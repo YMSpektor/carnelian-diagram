@@ -1,8 +1,8 @@
-import { diff, patch } from "virtual-dom";
+import { JSXNode } from "carnelian/jsx-runtime";
+import { diff, patch, VTree } from "virtual-dom";
 import h from "virtual-dom/h";
-import { DOMElement } from ".";
 
-export type DiagramElement<P> = (props: P) => DOMElement;
+export type DiagramElement<P> = (props: P) => JSX.Element;
 
 export interface DiagramElementInstance<P> {
     type: DiagramElement<P>;
@@ -11,7 +11,7 @@ export interface DiagramElementInstance<P> {
 
 export class DiagramDocument {
     private elements: DiagramElementInstance<any>[] = [];
-    private lastTree: DOMElement;
+    private lastTree: VTree;
 
     constructor() {
         this.lastTree = h("", []);
@@ -27,7 +27,17 @@ export class DiagramDocument {
     }
 
     render(rootNode: Element): Element {
-        const nodes = this.elements.map(element => element.type(element.props));
+        let nodes: JSXNode[] = [];
+        this.elements
+            .map(element => element.type(element.props))
+            .forEach(element => {
+                if (Array.isArray(element)) {
+                    nodes.push(...element);
+                }
+                else {
+                    nodes.push(element);
+                }
+            });
         const tree = h("", nodes);
         const lastTree = this.lastTree;
         const patches = diff(lastTree, tree);

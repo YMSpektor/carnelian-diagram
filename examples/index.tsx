@@ -4,11 +4,10 @@ import { DiagramDocument } from "carnelian";
 
 function Hello(name: string) {
     const result = (
-        <div className="asd">
-            Hello {name}
-            <div> Hello Nested </div>
-            <div> Hello Nested 2</div>
-        </div>
+        <>
+            <line x1="0" y1="0" x2="100" y2="0" />
+            <text x="0" y="0">{name}</text>
+        </>
     );
 
     return result;

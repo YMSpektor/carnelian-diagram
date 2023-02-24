@@ -1,11 +1,9 @@
 import h from "virtual-dom/h";
-import { createProperties, VChild, VNode } from "virtual-dom";
-
-export type DOMElement = VNode;
+import { createProperties, VNode } from "virtual-dom";
 
 declare global {
     namespace JSX {
-        type Element = DOMElement;
+        type Element = JSXNode | JSXNode[];
 
         interface IntrinsicElements {
             [elemName: string]: any;
@@ -13,18 +11,31 @@ declare global {
     }
 }
 
+export type JSXNode = string | VNode;
+
 interface JSXProperties extends createProperties {
-    children: VChild[];
+    children: string | JSXNode[];
 }
 
 function _jsx(
-    tagName: string, 
+    tagName: string | symbol, 
     properties: JSXProperties, 
-): DOMElement
+): JSX.Element
 {
-    const { children, ...props } = properties;
-    return h(tagName, props, children);
+    if (typeof tagName === "string")
+    {
+        const { children, ...props } = properties;
+        return h(tagName, props, children);
+    }
+    else {
+        if (tagName === Fragment) {
+            return properties.children;
+        }
+        throw new Error(`Invalid tag passed: ${tagName.toString()}`);
+    }
 }
+
+export const Fragment = Symbol.for("Fragment");
 
 export const jsx = _jsx;
 export const jsxs = _jsx;
