@@ -5,9 +5,9 @@
   "main": "index.js",
   "scripts": {
     "dev": "ts-node-dev -r tsconfig-paths/register --files --respawn examples/index.tsx",
-    "prebuild": "rimraf build",
+    "prebuild": "rimraf dist",
     "build": "tsc --project tsconfig.build.json",
-    "postbuild": "copyfiles package.json build"
+    "postbuild": "copyfiles package.json dist"
   },
   "author": "",
   "license": "ISC",

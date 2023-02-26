@@ -1,4 +1,4 @@
-import { JSXNode } from "carnelian/jsx-runtime";
+import { JSXNode } from "carnelian";
 import { diff, patch, VTree } from "virtual-dom";
 import h from "virtual-dom/h";
 

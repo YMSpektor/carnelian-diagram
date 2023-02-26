@@ -1,5 +1,8 @@
 import h from "virtual-dom/h";
-import { createProperties, VNode } from "virtual-dom";
+import { createProperties } from "virtual-dom";
+import { JSXNode } from "..";
+
+const svg: typeof h = require("virtual-dom/virtual-hyperscript/svg");
 
 declare global {
     namespace JSX {
@@ -11,9 +14,7 @@ declare global {
     }
 }
 
-export type JSXNode = string | VNode;
-
-interface JSXProperties extends createProperties {
+export interface JSXProperties extends createProperties {
     children: string | JSXNode[];
 }
 
@@ -25,7 +26,7 @@ function _jsx(
     if (typeof tagName === "string")
     {
         const { children, ...props } = properties;
-        return h(tagName, props, children);
+        return svg(tagName, props, children);
     }
     else {
         if (tagName === Fragment) {
