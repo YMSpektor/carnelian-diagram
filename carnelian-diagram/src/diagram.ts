@@ -1,6 +1,5 @@
-import { JSXNode } from "carnelian";
+import { h } from "./jsx-runtime";
 import { diff, patch, VTree } from "virtual-dom";
-import h from "virtual-dom/h";
 
 export interface HitArea {
     type: string;
@@ -101,8 +100,7 @@ export class DiagramDocument {
     render(rootNode: Element, elements?: DiagramElementInstance<any>[]): Element {
         DiagramDocument.current = this;
         const nodes = this.elements
-            .map(element => !elements || elements.indexOf(element) >= 0 || !element.jsx ? this.renderElement(element) : element.jsx)
-            .reduce<JSXNode[]>((acc, cur) => acc.concat(cur), []);
+            .map(element => !elements || elements.indexOf(element) >= 0 || !element.jsx ? this.renderElement(element) : element.jsx);
         const tree = h("", nodes);
         const lastTree = this.lastTree;
         const patches = diff(lastTree, tree);
@@ -112,9 +110,8 @@ export class DiagramDocument {
 
     renderControls(rootNode: Element, transform: DOMMatrixReadOnly, elements?: DiagramElementInstance<any>[]): Element {
         DiagramDocument.current = this;
-        const nodes = this.elements
-            .map(element => !elements || elements.indexOf(element) >= 0 || !element.jsxControls ? this.renderElementControls(transform, element) : element.jsxControls)
-            .reduce<JSXNode[]>((acc, cur) => cur ? acc.concat(cur) : acc, []);
+        const nodes: JSX.Element[] = this.elements
+            .map(element => !elements || elements.indexOf(element) >= 0 || !element.jsxControls ? this.renderElementControls(transform, element) : element.jsxControls);
         const tree = h("", nodes);
         const lastTree = this.lastControlsTree;
         const patches = diff(lastTree, tree);

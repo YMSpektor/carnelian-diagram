@@ -1,12 +1,20 @@
-import h from "virtual-dom/h";
-import { createProperties } from "virtual-dom";
-import { JSXNode } from "..";
+import { createProperties, VNode } from "virtual-dom";
 
-const svg: typeof h = require("virtual-dom/virtual-hyperscript/svg");
+export type JSXNode = string | VNode;
+
+declare function hFn(tagName: string, properties: createProperties, children: JSX.Element): VNode
+declare function hFn(tagName: string, children: JSX.Element): VNode;
+export const h: typeof hFn = require("virtual-dom/h");
+export const svg: typeof hFn = require("virtual-dom/virtual-hyperscript/svg");
 
 declare global {
     namespace JSX {
-        type Element = JSXNode | JSXNode[];
+        type ElementRecursive = void | JSXNode | ElementRecursive[];
+        type Element = ElementRecursive;
+
+        interface ElementChildrenAttribute {
+            children: Element;
+        }
 
         interface IntrinsicElements {
             [elemName: string]: any;
@@ -18,8 +26,10 @@ export interface JSXProperties extends createProperties {
     children: string | JSXNode[];
 }
 
+export type JSXComponent<P extends JSXProperties> = (props: P) => JSX.Element;
+
 function _jsx(
-    tagName: string | symbol, 
+    tagName: string | JSXComponent<JSXProperties>, 
     properties: JSXProperties, 
 ): JSX.Element
 {
@@ -29,14 +39,13 @@ function _jsx(
         return svg(tagName, props, children);
     }
     else {
-        if (tagName === Fragment) {
-            return properties.children;
-        }
-        throw new Error(`Invalid tag passed: ${tagName.toString()}`);
+        return tagName(properties);
     }
 }
 
-export const Fragment = Symbol.for("Fragment");
+export const Fragment = function(props: {children: JSX.Element}): JSX.Element {
+    return props.children;
+}
 
 export const jsx = _jsx;
 export const jsxs = _jsx;

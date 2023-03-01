@@ -1,4 +1,4 @@
-import { getCurrentElement, JSXNode, RenderControlsCallback } from "..";
+import { getCurrentElement, RenderControlsCallback } from "..";
 
 export function useControls(callback: RenderControlsCallback) {
     const curElement = getCurrentElement();
@@ -6,8 +6,7 @@ export function useControls(callback: RenderControlsCallback) {
         const oldCallback = curElement.hooks.renderControlsCallback;
         curElement.hooks.renderControlsCallback = !oldCallback ? callback : (transform) => {
             return [oldCallback, callback]
-                .map(cb => cb(transform))
-                .reduce<JSXNode[]>((acc, cur) => acc.concat(cur), []);
+                .map(cb => cb(transform));
         }
     }
     else {

@@ -1,13 +1,17 @@
 import { create } from "virtual-dom";
-import h from "virtual-dom/h";
 import { DiagramDocument } from "carnelian";
+import { h } from "carnelian/jsx-runtime";
+
+function Aux(props: {children: JSX.Element}): JSX.Element {
+    return props.children;
+}
 
 function Hello(name: string) {
     const result = (
-        <>
+        <Aux>
             <line x1="0" y1="0" x2="100" y2="0" />
             <text x="0" y="0">{name}</text>
-        </>
+        </Aux>
     );
 
     return result;
