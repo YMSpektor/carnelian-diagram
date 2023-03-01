@@ -27,31 +27,48 @@ interface DIagramElementInstanceHooks {
 export interface DiagramElementInstance<P> {
     type: DiagramElement<P>;
     props: P;
+    jsx?: JSX.Element;
+    jsxControls?: JSX.Element;
     hooks: DIagramElementInstanceHooks;
 }
 
-let curElement: DiagramElementInstance<unknown>;
+export function getCurrentElement(): DiagramElementInstance<unknown> | undefined {
+    return DiagramDocument.current?.["currentElement"];
+}
 
-export function useHitTest(callback: HitTestCallback) {
-    const oldCallback = curElement.hooks.hitTestCallback;
-    curElement.hooks.hitTestCallback = !oldCallback ? callback : (transform, point, tolerance) => {
-        return oldCallback(transform, point, tolerance) || callback(transform, point, tolerance);
+type DiagramDocumentEventHandler<T> = (args: T) => void;
+
+export class DiagramDocumentEvent<T> {
+    private listeners: DiagramDocumentEventHandler<T>[] = [];
+
+    addListener(listener: DiagramDocumentEventHandler<T>) {
+        this.listeners.push(listener);
+    }
+
+    removeListener(listener: DiagramDocumentEventHandler<T>) {
+        this.listeners = this.listeners.filter(x => x !== listener);
+    }
+
+    dispatch(args: T) {
+        this.listeners.forEach(e => e(args));
     }
 }
 
-export function useControls(callback: RenderControlsCallback) {
-    const oldCallback = curElement.hooks.renderControlsCallback;
-    curElement.hooks.renderControlsCallback = !oldCallback ? callback : (transform) => {
-        return [oldCallback, callback]
-            .map(cb => cb(transform))
-            .reduce<JSXNode[]>((acc, cur) => acc.concat(cur), []);
-    }
+export interface SelectEventArgs {
+    document: DiagramDocument;
+    oldSelection: ReadonlySet<DiagramElementInstance<any>>;
+    newSelection: ReadonlySet<DiagramElementInstance<any>>;
 }
 
 export class DiagramDocument {
     private elements: DiagramElementInstance<any>[] = [];
+    private selectedElements: Set<DiagramElementInstance<any>> = new Set();
+    private currentElement?: DiagramElementInstance<unknown>;
     private lastTree: VTree;
     private lastControlsTree: VTree;
+
+    public readonly onSelect = new DiagramDocumentEvent<SelectEventArgs>();
+    public static current: DiagramDocument;
 
     constructor() {
         this.lastTree = h("", []);
@@ -69,18 +86,22 @@ export class DiagramDocument {
     }
 
     private renderElement(element: DiagramElementInstance<unknown>): JSX.Element {
-        curElement = element;
+        this.currentElement = element;
         element.hooks = {};
-        return element.type(element.props);
+        element.jsx = element.type(element.props);
+        return element.jsx;
     }
 
     private renderElementControls(transform: DOMMatrixReadOnly, element: DiagramElementInstance<unknown>): JSX.Element | void {
-        return element.hooks.renderControlsCallback && element.hooks.renderControlsCallback(transform);
+        this.currentElement = element;
+        element.jsxControls = element.hooks.renderControlsCallback && element.hooks.renderControlsCallback(transform);
+        return element.jsxControls;
     }
 
-    render(rootNode: Element): Element {
+    render(rootNode: Element, elements?: DiagramElementInstance<any>[]): Element {
+        DiagramDocument.current = this;
         const nodes = this.elements
-            .map(element => this.renderElement(element))
+            .map(element => !elements || elements.indexOf(element) >= 0 || !element.jsx ? this.renderElement(element) : element.jsx)
             .reduce<JSXNode[]>((acc, cur) => acc.concat(cur), []);
         const tree = h("", nodes);
         const lastTree = this.lastTree;
@@ -89,9 +110,10 @@ export class DiagramDocument {
         return patch(rootNode, patches);
     }
 
-    renderControls(rootNode: Element, transform: DOMMatrixReadOnly): Element {
+    renderControls(rootNode: Element, transform: DOMMatrixReadOnly, elements?: DiagramElementInstance<any>[]): Element {
+        DiagramDocument.current = this;
         const nodes = this.elements
-            .map(element => this.renderElementControls(transform, element))
+            .map(element => !elements || elements.indexOf(element) >= 0 || !element.jsxControls ? this.renderElementControls(transform, element) : element.jsxControls)
             .reduce<JSXNode[]>((acc, cur) => cur ? acc.concat(cur) : acc, []);
         const tree = h("", nodes);
         const lastTree = this.lastControlsTree;
@@ -101,6 +123,7 @@ export class DiagramDocument {
     }
 
     hitTest(transform: DOMMatrixReadOnly, screenPoint: DOMPointReadOnly, tolerance: number): HitInfo | undefined {
+        DiagramDocument.current = this;
         for (var i = this.elements.length - 1; i >= 0; i--) {
             const element = this.elements[i];
             const hitArea = element.hooks.hitTestCallback && element.hooks.hitTestCallback(transform, screenPoint, tolerance);
@@ -116,5 +139,19 @@ export class DiagramDocument {
                 }
             }
         }
+    }
+
+    select(element: DiagramElementInstance<unknown>) {
+        const oldSelection = this.selectedElements;
+        this.selectedElements = new Set([element]);
+        this.onSelect.dispatch({
+            document: this,
+            oldSelection,
+            newSelection: this.selectedElements
+        });
+    }
+
+    isSelected(element: DiagramElementInstance<unknown>): boolean {
+        return this.selectedElements.has(element);
     }
 }
