@@ -1,154 +1,157 @@
-import { h } from "./jsx-runtime";
-import { diff, patch, VTree } from "virtual-dom";
+import { createProperties, diff, patch, VChild, VNode, VTree } from "virtual-dom";
+import { Root } from "./components/root";
+import { ComponentState, RenderControlsCallback } from "./hooks";
+import { ComponentChildren, createElement, FunctionComponent, VirtualNode } from "./jsx-runtime";
 
-export interface HitArea {
-    type: string;
-}
+type HyperscriptChild = undefined | null | VChild | HyperscriptChild[];
+type Hyperscript = (tagName: string, properties: createProperties, children: HyperscriptChild) => VNode;
 
-export interface HitInfo {
-    element: DiagramElementInstance<unknown>;
-    screenX: number;
-    screenY: number;
-    elementX: number;
-    elementY: number;
-    hitArea: HitArea;
-}
-export type HitTestCallback = (transform: DOMMatrixReadOnly, point: DOMPointReadOnly, tolerance: number) => HitArea | void;
-export type RenderControlsCallback = (transform: DOMMatrixReadOnly) => JSX.Element;
+export const h: Hyperscript = require("virtual-dom/h");
+export const svg: Hyperscript = require("virtual-dom/virtual-hyperscript/svg");
 
-export type DiagramElement<P> = (props: P) => JSX.Element;
+export type DiagramElement<P> = FunctionComponent<P>;
 
-interface DIagramElementInstanceHooks {
-    hitTestCallback?: HitTestCallback;
+export interface DiagramComponentData {
+    parent?: VirtualNode<any, DiagramComponentData>;
+    state?: ComponentState;
     renderControlsCallback?: RenderControlsCallback;
 }
 
-export interface DiagramElementInstance<P> {
-    type: DiagramElement<P>;
-    props: P;
-    jsx?: JSX.Element;
-    jsxControls?: JSX.Element;
-    hooks: DIagramElementInstanceHooks;
-}
+type Schedule = any;
 
-export function getCurrentElement(): DiagramElementInstance<unknown> | undefined {
-    return DiagramDocument.current?.["currentElement"];
-}
+const schedule = (callback: () => void): Schedule => {
+    const fn = typeof requestIdleCallback !== 'undefined' ? requestIdleCallback : setImmediate;
+    return fn(callback);
+};
 
-type DiagramDocumentEventHandler<T> = (args: T) => void;
+const cancelSchedule = (schedule: Schedule): void => {
+    const fn = typeof cancelIdleCallback !== 'undefined' ? cancelIdleCallback : clearImmediate;
+    fn(schedule);
+};
 
-export class DiagramDocumentEvent<T> {
-    private listeners: DiagramDocumentEventHandler<T>[] = [];
-
-    addListener(listener: DiagramDocumentEventHandler<T>) {
-        this.listeners.push(listener);
-    }
-
-    removeListener(listener: DiagramDocumentEventHandler<T>) {
-        this.listeners = this.listeners.filter(x => x !== listener);
-    }
-
-    dispatch(args: T) {
-        this.listeners.forEach(e => e(args));
-    }
-}
-
-export interface SelectEventArgs {
-    document: DiagramDocument;
-    oldSelection: ReadonlySet<DiagramElementInstance<any>>;
-    newSelection: ReadonlySet<DiagramElementInstance<any>>;
-}
-
-export class DiagramDocument {
-    private elements: DiagramElementInstance<any>[] = [];
-    private selectedElements: Set<DiagramElementInstance<any>> = new Set();
-    private currentElement?: DiagramElementInstance<unknown>;
+export class Diagram {
+    private isValid = false;
+    private idleCallbackId?: Schedule;
+    private elements: VirtualNode<any, DiagramComponentData>[] = [];
     private lastTree: VTree;
-    private lastControlsTree: VTree;
-
-    public readonly onSelect = new DiagramDocumentEvent<SelectEventArgs>();
-    public static current: DiagramDocument;
+    private rootState: ComponentState;
 
     constructor() {
-        this.lastTree = h("", []);
-        this.lastControlsTree = h("", []);
+        this.lastTree = h("", {}, []);
+        this.rootState = new ComponentState(); // Temporary, until reconsiliation is implemented
     }
 
-    add<P>(type: DiagramElement<P>, props: P): DiagramElementInstance<P> {
-        const element = {
-            type,
-            props,
-            hooks: {}
+    private createElementNode<P extends {}>(type: DiagramElement<P>, props: P, state?: ComponentState): VirtualNode<P, DiagramComponentData> {
+        const element = createElement<P, DiagramComponentData>(type, props);
+        element.data = {
+            state: state || new ComponentState()
         };
-        this.elements.push(element);
         return element;
     }
 
-    private renderElement(element: DiagramElementInstance<unknown>): JSX.Element {
-        this.currentElement = element;
-        element.hooks = {};
-        element.jsx = element.type(element.props);
-        return element.jsx;
-    }
+    private renderVirtual(node: VirtualNode<any, DiagramComponentData>): HyperscriptChild {
+        renderContext.currentNode = node;
+        node.data = node.data || {};
+        node.data.state?.reset();
+        node.data.renderControlsCallback = undefined;
 
-    private renderElementControls(transform: DOMMatrixReadOnly, element: DiagramElementInstance<unknown>): JSX.Element | void {
-        this.currentElement = element;
-        element.jsxControls = element.hooks.renderControlsCallback && element.hooks.renderControlsCallback(transform);
-        return element.jsxControls;
-    }
-
-    render(rootNode: Element, elements?: DiagramElementInstance<any>[]): Element {
-        DiagramDocument.current = this;
-        const nodes = this.elements
-            .map(element => !elements || elements.indexOf(element) >= 0 || !element.jsx ? this.renderElement(element) : element.jsx);
-        const tree = h("", nodes);
-        const lastTree = this.lastTree;
-        const patches = diff(lastTree, tree);
-        this.lastTree = tree;
-        return patch(rootNode, patches);
-    }
-
-    renderControls(rootNode: Element, transform: DOMMatrixReadOnly, elements?: DiagramElementInstance<any>[]): Element {
-        DiagramDocument.current = this;
-        const nodes: JSX.Element[] = this.elements
-            .map(element => !elements || elements.indexOf(element) >= 0 || !element.jsxControls ? this.renderElementControls(transform, element) : element.jsxControls);
-        const tree = h("", nodes);
-        const lastTree = this.lastControlsTree;
-        const patches = diff(lastTree, tree);
-        this.lastControlsTree = tree;
-        return patch(rootNode, patches);
-    }
-
-    hitTest(transform: DOMMatrixReadOnly, screenPoint: DOMPointReadOnly, tolerance: number): HitInfo | undefined {
-        DiagramDocument.current = this;
-        for (var i = this.elements.length - 1; i >= 0; i--) {
-            const element = this.elements[i];
-            const hitArea = element.hooks.hitTestCallback && element.hooks.hitTestCallback(transform, screenPoint, tolerance);
-            if (hitArea) {
-                const elemPt = screenPoint.matrixTransform(transform);
-                return {
-                    element,
-                    screenX: screenPoint.x,
-                    screenY: screenPoint.y,
-                    elementX: elemPt.x,
-                    elementY: elemPt.y,
-                    hitArea
-                }
+        const createVDomNode = (child: ComponentChildren<any, DiagramComponentData>): HyperscriptChild => {
+            if (Array.isArray(child)) {
+                return child.map(createVDomNode);
             }
+            if (child && typeof child === 'object') {
+                if (child.data) {
+                    child.data.parent = node;
+                }
+                return this.renderVirtual(child);
+            }
+            else {
+                return child;
+            }
+        }
+
+        if (typeof node.type === 'string') {
+            const { children, ...properties } = node.props;
+            const childrenNodes = Array.isArray(children) ? children : [children];
+            return svg(node.type, properties, childrenNodes.map(createVDomNode));
+        }
+        else {
+            const result = node.type(node.props);
+            return createVDomNode(result);
         }
     }
 
-    select(element: DiagramElementInstance<unknown>) {
-        const oldSelection = this.selectedElements;
-        this.selectedElements = new Set([element]);
-        this.onSelect.dispatch({
-            document: this,
-            oldSelection,
-            newSelection: this.selectedElements
-        });
+    private applyAllEffects() {
+        renderContext.currentDiagram = this;
+        renderContext.applyIdleEffects();
+        renderContext.applyEffects();
+        renderContext.reset();
     }
 
-    isSelected(element: DiagramElementInstance<unknown>): boolean {
-        return this.selectedElements.has(element);
+    update(root: SVGGraphicsElement): SVGGraphicsElement {
+        renderContext.currentDiagram = this;
+        renderContext.idleEffects = [];
+        const rootNode = this.renderVirtual(this.createElementNode(Root, {svg: root, children: this.elements}, this.rootState));
+        const tree = h("", {}, rootNode);
+        const lastTree = this.lastTree;
+        const patches = diff(lastTree, tree);
+        const result = patch(root, patches);
+        this.lastTree = tree;
+        this.isValid = true;
+        this.applyAllEffects();
+        return result;
+    }
+
+    invalidate() {
+        this.isValid = false;
+    }
+
+    attach(root: SVGGraphicsElement) {
+        const workloop = () => {
+            if (!this.isValid) {
+                this.update(root);
+            }
+            else {
+                this.applyAllEffects();
+            }     
+
+            this.idleCallbackId = schedule!(workloop);
+        }
+
+        this.idleCallbackId = schedule!(workloop);
+    }
+
+    detach() {
+        this.idleCallbackId && cancelSchedule!(this.idleCallbackId);
+    }
+
+    add<P extends {}>(type: DiagramElement<P>, props: P) {
+        const element = this.createElementNode(type, props);
+        this.elements.push(element);
+        this.invalidate();
+        return element;
     }
 }
+
+class RenderContext {
+    currentDiagram: Diagram | null = null;
+    currentNode: VirtualNode<any, DiagramComponentData> | null = null;
+    effects: Array<() => void> = [];
+    idleEffects: Array<() => void> = [];
+
+    reset() {
+        this.currentDiagram = null;
+        this.currentNode = null;
+        this.effects = [];
+    }
+
+    applyIdleEffects() {
+        this.idleEffects.forEach(effect => effect());
+    }
+
+    applyEffects() {
+        this.effects.forEach(effect => effect());
+    }
+}
+
+export const renderContext = new RenderContext();

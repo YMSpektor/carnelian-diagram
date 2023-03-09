@@ -1,4 +1,4 @@
-import React, { useEffect, useLayoutEffect, useRef, useState } from 'react';
+import React, { useLayoutEffect, useRef } from 'react';
 import doc from "./diagram-document";
 
 interface DiagramViewerProps {
@@ -6,48 +6,28 @@ interface DiagramViewerProps {
 }
 
 function App(props: DiagramViewerProps) {
-    const container = useRef<HTMLDivElement>(null);
-    const root = useRef<SVGGElement>(null);
-    const controls = useRef<SVGGElement>(null);
-
-    const [controlsTransform, setControlsTransform] = useState<DOMMatrix | undefined>(undefined);
-    const [resizeObserver] = useState(new ResizeObserver(() => handleResize()));
+    const root = useRef<SVGSVGElement>(null);
 
     useLayoutEffect(() => {
-        const containerElement = container.current!;
-        root.current && doc.render(root.current);
-        resizeObserver.observe(container.current!);
+        root.current && doc.attach(root.current);
 
-        return () => resizeObserver.unobserve(containerElement);
-    }, [resizeObserver]);
-
-    useEffect(() => {
-        controls.current && controlsTransform && doc.renderControls(controls.current, controlsTransform.inverse());
-    }, [controlsTransform]);
-
-    function handleResize() {
-        if (controls.current && root.current) {
-            const transform = root.current.getScreenCTM()!.inverse();
-            setControlsTransform(transform);
+        return () => {
+            doc.detach();
         }
-    }
+    }, []);
 
     function handleClick(e: React.MouseEvent<SVGSVGElement, MouseEvent>) {
-        const pt = new DOMPoint(e.clientX, e.clientY);
-        const transform = e.currentTarget.getScreenCTM()?.inverse();
-        const hit = doc.hitTest(transform!, pt, 2);
-        console.log(hit);
+        // const pt = new DOMPoint(e.clientX, e.clientY);
+        // const transform = e.currentTarget.getScreenCTM()?.inverse();
+        // const hit = doc.hitTest(transform!, pt, 2);
+        // console.log(hit);
     }
 
     return (
-        <div ref={container}>
-            <svg xmlns="http://www.w3.org/2000/svg"
-                    viewBox={[0, 0, props.documentSize.width, props.documentSize.height].join(' ')}  
-                    onClick={handleClick}>
-                <g ref={root} />
-                <g ref={controls} transform={controlsTransform ? `matrix(${controlsTransform.a} ${controlsTransform.b} ${controlsTransform.c} ${controlsTransform.d} ${controlsTransform.e} ${controlsTransform.f})` : undefined} />
-            </svg>
-        </div>
+        <svg xmlns="http://www.w3.org/2000/svg"
+                viewBox={[0, 0, props.documentSize.width, props.documentSize.height].join(' ')}  
+                ref={root} onClick={handleClick}>
+        </svg>
     );
 }
 

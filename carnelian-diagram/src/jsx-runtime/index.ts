@@ -1,19 +1,35 @@
-import { createProperties, VNode } from "virtual-dom";
+export type ComponentChild<P = any, D = any> = VirtualNode<P, D> | string | null | undefined;
+export type ComponentChildren<P = any, D = any> = ComponentChild<P, D>[] | ComponentChild<P, D>;
+export type RenderableProps<P> = P & Readonly<{ children?: ComponentChildren; }>;
+export type FunctionComponent<P> = (props: RenderableProps<P>) => JSX.Element;
+export type ComponentType<P = {}> = FunctionComponent<P>;
 
-export type JSXNode = string | VNode;
+export interface VirtualNode<P = {}, D = unknown> {
+    type: string | ComponentType<P>;
+    props: P & { children?: ComponentChildren };
+    data?: D;
+}
 
-declare function hFn(tagName: string, properties: createProperties, children: JSX.Element): VNode
-declare function hFn(tagName: string, children: JSX.Element): VNode;
-export const h: typeof hFn = require("virtual-dom/h");
-export const svg: typeof hFn = require("virtual-dom/virtual-hyperscript/svg");
+export function createElement<P, D>(
+    type: string | ComponentType<P>,
+    props: P & { children?: ComponentChildren }
+): VirtualNode<P, D> {
+    return {
+        type,
+        props
+    }
+}
+
+function Fragment(props: RenderableProps<{}>) {
+    return props.children;
+}
 
 declare global {
     namespace JSX {
-        type ElementRecursive = void | JSXNode | ElementRecursive[];
-        type Element = ElementRecursive;
+        type Element = ComponentChildren | undefined;
 
         interface ElementChildrenAttribute {
-            children: Element;
+            children: any;
         }
 
         interface IntrinsicElements {
@@ -22,30 +38,9 @@ declare global {
     }
 }
 
-export interface JSXProperties extends createProperties {
-    children: string | JSXNode[];
+export {
+    createElement as jsx,
+    createElement as jsxs,
+    createElement as jsxDEV,
+    Fragment
 }
-
-export type JSXComponent<P extends JSXProperties> = (props: P) => JSX.Element;
-
-function _jsx(
-    tagName: string | JSXComponent<JSXProperties>, 
-    properties: JSXProperties, 
-): JSX.Element
-{
-    if (typeof tagName === "string")
-    {
-        const { children, ...props } = properties;
-        return svg(tagName, props, children);
-    }
-    else {
-        return tagName(properties);
-    }
-}
-
-export const Fragment = function(props: {children: JSX.Element}): JSX.Element {
-    return props.children;
-}
-
-export const jsx = _jsx;
-export const jsxs = _jsx;

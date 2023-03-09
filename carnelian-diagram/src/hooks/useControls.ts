@@ -1,15 +1,16 @@
-import { getCurrentElement, RenderControlsCallback } from "..";
+import { ComponentChild } from "../jsx-runtime";
+import { renderContext } from "..";
+
+export type RenderControlsCallback = (transform: DOMMatrixReadOnly) => JSX.Element;
 
 export function useControls(callback: RenderControlsCallback) {
-    const curElement = getCurrentElement();
-    if (curElement) {
-        const oldCallback = curElement.hooks.renderControlsCallback;
-        curElement.hooks.renderControlsCallback = !oldCallback ? callback : (transform) => {
+    let curNode = renderContext.currentNode;
+    if (curNode) {
+        const oldCallback = curNode.data?.renderControlsCallback;
+        curNode.data = curNode.data || {};
+        curNode.data.renderControlsCallback = !oldCallback ? callback : (transform) => {
             return [oldCallback, callback]
-                .map(cb => cb(transform));
+                .reduce<ComponentChild[]>((acc, cur) => acc.concat(cur(transform)), []);
         }
-    }
-    else {
-        throw new Error("Invalid hook call. Current element is not defined");
     }
 }
