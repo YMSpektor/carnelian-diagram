@@ -12,10 +12,12 @@ export const svg: Hyperscript = require("virtual-dom/virtual-hyperscript/svg");
 export type DiagramElement<P> = FunctionComponent<P>;
 
 export interface DiagramComponentData {
-    parent?: VirtualNode<any, DiagramComponentData>;
+    parent?: DiagramNode;
     state?: ComponentState;
     renderControlsCallback?: RenderControlsCallback;
 }
+
+export type DiagramNode<P = any> = VirtualNode<P, DiagramComponentData>;
 
 type Schedule = any;
 
@@ -32,7 +34,7 @@ const cancelSchedule = (schedule: Schedule): void => {
 export class Diagram {
     private isValid = false;
     private idleCallbackId?: Schedule;
-    private elements: VirtualNode<any, DiagramComponentData>[] = [];
+    private elements: DiagramNode[] = [];
     private lastTree: VTree;
     private rootState: ComponentState;
 
@@ -41,7 +43,7 @@ export class Diagram {
         this.rootState = new ComponentState(); // Temporary, until reconsiliation is implemented
     }
 
-    private createElementNode<P extends {}>(type: DiagramElement<P>, props: P, state?: ComponentState): VirtualNode<P, DiagramComponentData> {
+    private createElementNode<P extends {}>(type: DiagramElement<P>, props: P, state?: ComponentState): DiagramNode<P> {
         const element = createElement<P, DiagramComponentData>(type, props);
         element.data = {
             state: state || new ComponentState()
@@ -49,7 +51,7 @@ export class Diagram {
         return element;
     }
 
-    private renderVirtual(node: VirtualNode<any, DiagramComponentData>): HyperscriptChild {
+    private renderVirtual(node: DiagramNode): HyperscriptChild {
         renderContext.currentNode = node;
         node.data = node.data || {};
         node.data.state?.reset();
@@ -125,7 +127,7 @@ export class Diagram {
         this.idleCallbackId && cancelSchedule!(this.idleCallbackId);
     }
 
-    add<P extends {}>(type: DiagramElement<P>, props: P) {
+    add<P extends {}>(type: DiagramElement<P>, props: P): DiagramNode<P> {
         const element = this.createElementNode(type, props);
         this.elements.push(element);
         this.invalidate();
@@ -135,7 +137,7 @@ export class Diagram {
 
 class RenderContext {
     currentDiagram: Diagram | null = null;
-    currentNode: VirtualNode<any, DiagramComponentData> | null = null;
+    currentNode: DiagramNode | null = null;
     effects: Array<() => void> = [];
     idleEffects: Array<() => void> = [];
 
