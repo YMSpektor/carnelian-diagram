@@ -20,3 +20,4 @@ export * from "./hit-tests";
 export * from "./diagram-selections";
 export * from "./useInteractions";
 export * from "./useControls";
+export * from "./useHitTest";

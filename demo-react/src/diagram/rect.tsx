@@ -1,6 +1,6 @@
 /** @jsxImportSource carnelian-diagram */
 
-import { useControls } from "carnelian-diagram/interactivity";
+import { useControls, useHitTest, rectHitTest } from "carnelian-diagram/interactivity";
 
 export interface RectProps {
     x: number;
@@ -12,14 +12,10 @@ export interface RectProps {
 }
 
 export function Rect(props: RectProps) {
-    // useHitTest((transform, screenPoint, tolerance) => {
-    //     const pt = screenPoint.matrixTransform(transform);
-    //     if (pt.x >= props.x && pt.y >= props.y && pt.x <= props.x + props.width && pt.y <= props.y + props.height) {
-    //         return {
-    //             type: "in"
-    //         }
-    //     }
-    // });
+    useHitTest(
+        rectHitTest(props.x, props.y, props.width, props.height),
+        { type: "in", priority: 0 }
+    );
 
     useControls((transform) => {
         const p1 = new DOMPoint(props.x, props.y).matrixTransform(transform);

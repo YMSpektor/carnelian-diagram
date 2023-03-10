@@ -14,8 +14,15 @@ export function Root(props: RootProps): JSX.Element {
     interactions.reset();
     DiagramInteractions.current = interactions; // TODO: use Context
 
-    props.svg.onclick = () => { // TODO: use useEffect
-        console.log("click");
+    props.svg.onclick = (e: MouseEvent) => { // TODO: use useEffect
+        if (matrix) {
+            const pt = new DOMPoint(e.clientX, e.clientY);
+            const hitInfo = interactions.hitTests.hitTest(pt, matrix);
+            if (hitInfo) {
+                interactions.selections.set([hitInfo.element]);
+                console.log(hitInfo);
+            }
+        }
     }
 
     useIdleEffect(() => {
