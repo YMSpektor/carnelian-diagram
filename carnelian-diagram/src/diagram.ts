@@ -1,18 +1,13 @@
-import { createProperties, diff, patch, VChild, VNode, VTree } from "virtual-dom";
 import { Root } from "./components/root";
+import { DOMBuilder } from "./dom";
 import { ComponentState } from "./hooks";
-import { ComponentChildren, createElement, FunctionComponent, VirtualNode } from "./jsx-runtime";
-
-type HyperscriptChild = undefined | null | VChild | HyperscriptChild[];
-type Hyperscript = (tagName: string, properties: createProperties, children: HyperscriptChild) => VNode;
-
-export const h: Hyperscript = require("virtual-dom/h");
-export const svg: Hyperscript = require("virtual-dom/virtual-hyperscript/svg");
+import { ComponentChild, ComponentChildren, createElement, FunctionComponent, VirtualNode } from "./jsx-runtime";
 
 export type DiagramElement<P> = FunctionComponent<P>;
 
 export interface DiagramComponentData {
     parent?: DiagramNode;
+    children: ComponentChild[];
     state?: ComponentState;
 }
 
@@ -34,51 +29,56 @@ export class Diagram {
     private isValid = false;
     private idleCallbackId?: Schedule;
     private elements: DiagramNode[] = [];
-    private lastTree: VTree;
+    private domBuilder = new DOMBuilder();
     private rootState: ComponentState;
 
     constructor() {
-        this.lastTree = h("", {}, []);
         this.rootState = new ComponentState(); // Temporary, until reconsiliation is implemented
     }
 
     private createElementNode<P extends {}>(type: DiagramElement<P>, props: P, state?: ComponentState): DiagramNode<P> {
         const element = createElement<P, DiagramComponentData>(type, props);
         element.data = {
-            state: state || new ComponentState()
+            state: state || new ComponentState(),
+            children: []
         };
         return element;
     }
 
-    private renderVirtual(node: DiagramNode): HyperscriptChild {
+    private renderNode(node: DiagramNode, parent: DiagramNode | undefined = undefined): DiagramNode {
         renderContext.currentNode = node;
-        node.data = node.data || {};
+        node.data = node.data || { children: [] };
         node.data.state?.reset();
+        node.data.parent = parent;
+        const nodeData = node.data;
+        let children: ComponentChildren;
 
-        const createVDomNode = (child: ComponentChildren<any, DiagramComponentData>): HyperscriptChild => {
-            if (Array.isArray(child)) {
-                return child.map(createVDomNode);
-            }
-            if (child && typeof child === 'object') {
-                if (child.data) {
-                    child.data.parent = node;
-                }
-                return this.renderVirtual(child);
-            }
-            else {
-                return child;
-            }
-        }
-
-        if (typeof node.type === 'string') {
-            const { children, ...properties } = node.props;
-            const childrenNodes = Array.isArray(children) ? children : [children];
-            return svg(node.type, properties, childrenNodes.map(createVDomNode));
+        if (typeof node.type === 'function') {
+            children = node.type(node.props);
         }
         else {
-            const result = node.type(node.props);
-            return createVDomNode(result);
+            children = node.props.children;
         }
+
+        if (children) {
+            if (Array.isArray(children)) {
+                nodeData.children = children;
+            }
+            else {
+                nodeData.children = [children];
+            }
+        }
+        else {
+            nodeData.children = [];
+        }
+
+        nodeData.children.forEach(child => {
+            if (child && typeof child === 'object') {
+                this.renderNode(child, node);
+            }
+        });
+
+        return node;
     }
 
     private applyAllEffects() {
@@ -88,18 +88,19 @@ export class Diagram {
         renderContext.reset();
     }
 
+    private commit(root: SVGGraphicsElement, rootNode: DiagramNode): SVGGraphicsElement {
+        return this.domBuilder.updateDOM(root, rootNode);
+    }
+
     update(root: SVGGraphicsElement): SVGGraphicsElement {
         renderContext.currentDiagram = this;
         renderContext.idleEffects = [];
-        const rootNode = this.renderVirtual(this.createElementNode(Root, {svg: root, children: this.elements}, this.rootState));
-        const tree = h("", {}, rootNode);
-        const lastTree = this.lastTree;
-        const patches = diff(lastTree, tree);
-        const result = patch(root, patches);
-        this.lastTree = tree;
+        const rootNode = this.renderNode(
+            this.createElementNode(Root, {svg: root, children: this.elements}, this.rootState)
+        );
         this.isValid = true;
         this.applyAllEffects();
-        return result;
+        return this.commit(root, rootNode);
     }
 
     invalidate() {
