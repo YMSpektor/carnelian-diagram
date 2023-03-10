@@ -1,14 +1,18 @@
 /** @jsxImportSource .. */
-import { DiagramComponentData, useIdleEffect, useState } from "..";
-import { VirtualNode } from "../jsx-runtime";
+import { DiagramInteractions } from "../interactivity";
+import { DiagramNode, useIdleEffect, useState } from "..";
 
 export interface RootProps {
     svg: SVGGraphicsElement;
-    children: VirtualNode<any, DiagramComponentData>[];
+    children: DiagramNode[];
 }
 
 export function Root(props: RootProps): JSX.Element {
     const [matrix, setMatrix] = useState<DOMMatrix | null>(null);
+    const [interactions] = useState(new DiagramInteractions());
+
+    interactions.reset();
+    DiagramInteractions.current = interactions; // TODO: use Context
 
     useIdleEffect(() => {
         const newMatrix = props.svg.getScreenCTM?.()?.inverse() || null;
@@ -23,13 +27,18 @@ export function Root(props: RootProps): JSX.Element {
     const transform = matrix 
         ? `matrix(${matrix.a} ${matrix.b} ${matrix.c} ${matrix.d} ${matrix.e} ${matrix.f})`
         : undefined;
+
+    const DiagramControls = (props: { transform: DOMMatrixReadOnly }): JSX.Element => {
+        return interactions.controls.render(props.transform.inverse());
+    }
+
     return (
         <>
             <g>
                 {props.children}
             </g>
             {matrix && <g transform={transform}>
-                { props.children.map(node => node.data?.renderControlsCallback && node.data.renderControlsCallback(matrix.inverse())) }
+                <DiagramControls transform={matrix} />
             </g>}
         </>
     )

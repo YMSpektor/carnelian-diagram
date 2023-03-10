@@ -1,6 +1,6 @@
 import { createProperties, diff, patch, VChild, VNode, VTree } from "virtual-dom";
 import { Root } from "./components/root";
-import { ComponentState, RenderControlsCallback } from "./hooks";
+import { ComponentState } from "./hooks";
 import { ComponentChildren, createElement, FunctionComponent, VirtualNode } from "./jsx-runtime";
 
 type HyperscriptChild = undefined | null | VChild | HyperscriptChild[];
@@ -14,7 +14,6 @@ export type DiagramElement<P> = FunctionComponent<P>;
 export interface DiagramComponentData {
     parent?: DiagramNode;
     state?: ComponentState;
-    renderControlsCallback?: RenderControlsCallback;
 }
 
 export type DiagramNode<P = any> = VirtualNode<P, DiagramComponentData>;
@@ -55,7 +54,6 @@ export class Diagram {
         renderContext.currentNode = node;
         node.data = node.data || {};
         node.data.state?.reset();
-        node.data.renderControlsCallback = undefined;
 
         const createVDomNode = (child: ComponentChildren<any, DiagramComponentData>): HyperscriptChild => {
             if (Array.isArray(child)) {
