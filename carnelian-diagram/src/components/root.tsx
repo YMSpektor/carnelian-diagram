@@ -14,6 +14,10 @@ export function Root(props: RootProps): JSX.Element {
     interactions.reset();
     DiagramInteractions.current = interactions; // TODO: use Context
 
+    props.svg.onclick = () => { // TODO: use useEffect
+        console.log("click");
+    }
+
     useIdleEffect(() => {
         const newMatrix = props.svg.getScreenCTM?.()?.inverse() || null;
         if ((newMatrix && !matrix) || 
