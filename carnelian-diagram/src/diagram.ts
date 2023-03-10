@@ -47,9 +47,17 @@ export class Diagram {
 
     private renderNode(node: DiagramNode, parent: DiagramNode | undefined = undefined): DiagramNode {
         renderContext.currentNode = node;
+        renderContext.currentElement = null;
         node.data = node.data || { children: [] };
         node.data.state?.reset();
         node.data.parent = parent;
+        let curNode: DiagramNode | undefined = node;
+        while (curNode && !renderContext.currentElement) {
+            if (this.elements.indexOf(curNode) >= 0) {
+                renderContext.currentElement = curNode;
+            }
+            curNode = curNode.data?.parent;
+        }
         const nodeData = node.data;
         let children: ComponentChildren;
 
@@ -137,12 +145,14 @@ export class Diagram {
 class RenderContext {
     currentDiagram: Diagram | null = null;
     currentNode: DiagramNode | null = null;
+    currentElement: DiagramNode | null = null;
     effects: Array<() => void> = [];
     idleEffects: Array<() => void> = [];
 
     reset() {
         this.currentDiagram = null;
         this.currentNode = null;
+        this.currentElement = null;
         this.effects = [];
     }
 
