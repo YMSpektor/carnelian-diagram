@@ -1,5 +1,5 @@
 /** @jsxImportSource .. */
-import { DiagramInteractions } from "../interactivity";
+import { DiagramInteractions, hasHitArea, HitInfo } from "../interactivity";
 import { DiagramNode, useIdleEffect, useState } from "..";
 
 export interface RootProps {
@@ -15,13 +15,27 @@ export function Root(props: RootProps): JSX.Element {
     DiagramInteractions.current = interactions; // TODO: use Context
 
     props.svg.onclick = (e: MouseEvent) => { // TODO: use useEffect
+        let hitInfo: HitInfo | undefined;
         if (matrix) {
             const pt = new DOMPoint(e.clientX, e.clientY);
-            const hitInfo = interactions.hitTests.hitTest(pt, matrix);
-            if (hitInfo) {
-                interactions.selections.set([hitInfo.element]);
-                console.log(hitInfo);
+            if (e.target && hasHitArea(e.target)) {
+                const elementPoint = pt.matrixTransform(matrix);
+                hitInfo = {
+                    ...e.target.__hitTest,
+                    screenX: pt.x,
+                    screenY: pt.y,
+                    elementX: elementPoint.x,
+                    elementY: elementPoint.y,
+                }
             }
+            else {
+                hitInfo = interactions.hitTests.hitTest(pt, matrix);
+            }
+        }
+
+        if (hitInfo) {
+            interactions.selections.set([hitInfo.element]);
+            console.log(hitInfo);
         }
     }
 

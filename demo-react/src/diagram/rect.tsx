@@ -15,7 +15,7 @@ export interface RectProps {
 export function Rect(props: RectProps) {
     useHitTest(
         rectHitTest(props.x, props.y, props.width, props.height),
-        { type: "in", priority: 0 }
+        { type: "in" }
     );
 
     useControls((transform, element) => {

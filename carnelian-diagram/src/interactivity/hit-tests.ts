@@ -1,10 +1,9 @@
-import { DiagramNode } from "..";
+import { DiagramNode, renderContext } from "..";
 
 export type HitTestCallback = (point: DOMPointReadOnly, transform: DOMMatrixReadOnly) => boolean;
 
 export interface HitArea {
     type: string;
-    priority: number;
 }
 
 export type HitInfo = {
@@ -14,6 +13,32 @@ export type HitInfo = {
     elementX: number;
     elementY: number;
     hitArea: HitArea;
+}
+
+export interface HitTestProps {
+    __hitTest: {
+        element: DiagramNode;
+        hitArea: HitArea;
+    }
+}
+
+export type HitTestEventTarget = EventTarget & HitTestProps;
+
+export function hasHitArea(target: EventTarget): target is HitTestEventTarget {
+    return (target as HitTestEventTarget).__hitTest !== undefined;
+}
+
+export function createHitTestProps(hitArea: HitArea, element?: DiagramNode): HitTestProps {
+    const elem = element || renderContext.currentElement;
+    if (!elem) {
+        throw new Error("The createHitTestProps function is not allowed to be called from here. Current element is not defined");
+    }
+    return {
+        __hitTest: {
+            element: elem, 
+            hitArea
+        }
+    }
 }
 
 interface HitAreaCollection {
@@ -27,11 +52,11 @@ export class HitTests {
         this.hitAreas = {};
     }
 
-    addHitArea(element: DiagramNode, callback: HitTestCallback, hitArea: HitArea) {
-        let arr = this.hitAreas[hitArea.priority];
+    addHitArea(element: DiagramNode, callback: HitTestCallback, hitArea: HitArea, priority: number) {
+        let arr = this.hitAreas[priority];
         if (!arr) {
             arr = [];
-            this.hitAreas[hitArea.priority] = arr;
+            this.hitAreas[priority] = arr;
         }
         arr.push({element, callback, hitArea});
     }
