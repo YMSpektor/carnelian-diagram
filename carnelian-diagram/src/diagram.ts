@@ -1,14 +1,22 @@
-import { Root } from "./components/root";
 import { DOMBuilder } from "./dom";
 import { ComponentState } from "./hooks";
 import { ComponentChild, ComponentChildren, createElement, FunctionComponent, VirtualNode } from "./jsx-runtime";
 
 export type DiagramElement<P> = FunctionComponent<P>;
 
+export interface DiagramRootProps {
+    svg: SVGGraphicsElement;
+    children: DiagramNode[];
+}
+
+export type DiagramRoot<P extends DiagramRootProps> = FunctionComponent<P>;
+
 export interface DiagramComponentData {
     parent?: DiagramNode;
     children: ComponentChild[];
     state?: ComponentState;
+    context?: Context<any>;
+    contextValue?: any;
 }
 
 export type DiagramNode<P = any> = VirtualNode<P, DiagramComponentData>;
@@ -25,6 +33,51 @@ const cancelSchedule = (schedule: Schedule): void => {
     fn(schedule);
 };
 
+export interface ContextProviderProps<T> {
+    value: T;
+    children?: JSX.Element;
+}
+
+export interface ContextConsumerProps<T> {
+    children?: (value: T) => JSX.Element;
+}
+
+export class Context<T> {
+    private defaultValue: T;
+
+    constructor(defaultValue: T) {
+        this.defaultValue = defaultValue;
+    }
+
+    Provider = (props: ContextProviderProps<T>): JSX.Element => {
+        this.currentValue = props.value;
+        return props.children;
+    }
+
+    Consumer = (props: ContextConsumerProps<T>): JSX.Element => {
+        return props.children?.(this.currentValue);
+    }
+
+    get currentValue(): T {
+        let node: DiagramNode | null = renderContext.currentNode;
+        while (node && node.data?.context !== this) {
+            node = node.data?.parent || null;
+        }
+        return node?.data?.contextValue || this.defaultValue;
+    }
+
+    set currentValue(newValue: T) {
+        if (renderContext.currentNode?.data) {
+            renderContext.currentNode.data.context = this;
+            renderContext.currentNode.data.contextValue = newValue;
+        }
+    }
+}
+
+export function createContext<T>(defaultValue: T) {
+    return new Context<T>(defaultValue);
+}
+
 export class Diagram {
     private isValid = false;
     private idleCallbackId?: Schedule;
@@ -32,7 +85,7 @@ export class Diagram {
     private domBuilder = new DOMBuilder();
     private rootState: ComponentState;
 
-    constructor() {
+    constructor(private rootComponent: DiagramRoot<DiagramRootProps>) {
         this.rootState = new ComponentState(); // Temporary, until reconsiliation is implemented
     }
 
@@ -104,7 +157,7 @@ export class Diagram {
         renderContext.currentDiagram = this;
         renderContext.idleEffects = [];
         const rootNode = this.renderNode(
-            this.createElementNode(Root, {svg: root, children: this.elements}, this.rootState)
+            this.createElementNode(this.rootComponent, {svg: root, children: this.elements}, this.rootState)
         );
         this.isValid = true;
         this.applyAllEffects();

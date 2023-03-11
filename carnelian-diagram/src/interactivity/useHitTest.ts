@@ -1,9 +1,9 @@
-import { DiagramNode, renderContext } from "..";
+import { InteractionContext } from ".";
+import { DiagramNode, renderContext, useContext } from "..";
 import { HitArea, HitTestCallback } from "./hit-tests";
-import { useInteractions } from "./useInteractions";
 
 export function useHitTest(callback: HitTestCallback, hitArea: HitArea, priority: number = 0, element?: DiagramNode) {
-    const interactions = useInteractions();
+    const interactions = useContext(InteractionContext);
     const curElement = element || renderContext.currentElement;
     if (curElement) {
         interactions.hitTests.addHitArea(curElement, callback, hitArea, priority);

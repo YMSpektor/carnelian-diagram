@@ -1,5 +1,6 @@
 import { create, h } from "virtual-dom";
 import { Diagram, useState } from "carnelian";
+import { Root } from "carnelian/components/root";
 
 function Test() {
     return <div className="test">Test</div>
@@ -21,7 +22,7 @@ function Hello(name: string) {
 }
 
 const svg = create(h("svg", {xmlns: "http://www.w3.org/2000/svg"}, [])) as SVGSVGElement;
-const doc = new Diagram();
+const doc = new Diagram(Root);
 doc.add(Hello, "World");
 doc.attach(svg);
 

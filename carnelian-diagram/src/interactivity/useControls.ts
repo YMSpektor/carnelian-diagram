@@ -1,9 +1,9 @@
-import { renderContext } from "..";
+import { InteractionContext } from ".";
+import { renderContext, useContext } from "..";
 import { RenderControlsCallback } from "./diagram-controls";
-import { useInteractions } from "./useInteractions";
 
 export function useControls(callback: RenderControlsCallback) {
-    const interactions = useInteractions();
+    const interactions = useContext(InteractionContext);
     const curElement = renderContext.currentElement;
     if (curElement) {
         interactions.controls.addControl(curElement, callback);
