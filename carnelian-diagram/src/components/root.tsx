@@ -1,5 +1,5 @@
 /** @jsxImportSource .. */
-import { DiagramInteractions, hasHitArea, HitInfo } from "../interactivity";
+import { DiagramInteractions, hasHitTestProps, HitInfo } from "../interactivity";
 import { DiagramNode, useIdleEffect, useState } from "..";
 
 export interface RootProps {
@@ -18,7 +18,7 @@ export function Root(props: RootProps): JSX.Element {
         let hitInfo: HitInfo | undefined;
         if (matrix) {
             const pt = new DOMPoint(e.clientX, e.clientY);
-            if (e.target && hasHitArea(e.target)) {
+            if (e.target && hasHitTestProps(e.target)) {
                 const elementPoint = pt.matrixTransform(matrix);
                 hitInfo = {
                     ...e.target.__hitTest,

@@ -24,7 +24,7 @@ export interface HitTestProps {
 
 export type HitTestEventTarget = EventTarget & HitTestProps;
 
-export function hasHitArea(target: EventTarget): target is HitTestEventTarget {
+export function hasHitTestProps(target: EventTarget): target is HitTestEventTarget {
     return (target as HitTestEventTarget).__hitTest !== undefined;
 }
 
