@@ -1,5 +1,5 @@
 /** @jsxImportSource .. */
-import { DiagramControls, hasHitTestProps, HitInfo, HitTests, InteractionContext } from "../interactivity";
+import { DiagramElementControls, hasHitTestProps, HitInfo, HitTests, InteractionContext, InteractionContextType } from "../interactivity";
 import { DiagramNode, useIdleEffect, useState } from "..";
 
 export interface RootProps {
@@ -8,8 +8,9 @@ export interface RootProps {
 }
 
 export function Root(props: RootProps): JSX.Element {
-    const [matrix, setMatrix] = useState<DOMMatrix | null>(null); // TODO: move to child component once states are fixed
+    const [matrix, setMatrix] = useState<DOMMatrix | null>(null);
     const [selectedElements, setSelectedElements] = useState(new Set<DiagramNode>);
+    const [controls, setControls] = useState<DiagramElementControls[]>([]);
 
     useIdleEffect(() => {
         const newMatrix = props.svg.getScreenCTM?.()?.inverse() || null;
@@ -21,11 +22,15 @@ export function Root(props: RootProps): JSX.Element {
         }
     });
 
-    const interactions = {
-        controls: new DiagramControls(),
+    const interactions: InteractionContextType = {
         hitTests: new HitTests(),
         isSelected: (element: DiagramNode): boolean => {
             return selectedElements.has(element);
+        },
+        updateControls: (newControls: DiagramElementControls, prevControls?: DiagramElementControls) => {
+            setControls(controls
+                .filter(x => x !== prevControls)
+                .concat(newControls));
         },
     };
 
@@ -61,20 +66,21 @@ export function Root(props: RootProps): JSX.Element {
         ? `matrix(${matrix.a} ${matrix.b} ${matrix.c} ${matrix.d} ${matrix.e} ${matrix.f})`
         : undefined;
 
-    const Controls = (props: { transform: DOMMatrixReadOnly }): JSX.Element => {
-        return interactions.controls.render(props.transform.inverse());
-    }
-
     return (
         <InteractionContext.Provider value={interactions}>
-            <>
-                <g>
-                    {props.children}
-                </g>
-                {matrix && <g transform={transform}>
-                    <Controls transform={matrix} />
-                </g>}
-            </>
+            <g>
+                {props.children}
+            </g>
+            {matrix && <g transform={transform}>
+                {controls.map((control) => {
+                    const controlsTransform = matrix.inverse();
+                    return (
+                        <>
+                            {control.renderCallback(controlsTransform, control.element)}
+                        </>
+                    )
+                })}
+            </g>}
         </InteractionContext.Provider>
     )
 }

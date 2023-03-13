@@ -1,5 +1,5 @@
 export type ComponentChild<P = any, D = any> = VirtualNode<P, D> | string | null | undefined;
-export type ComponentChildren<P = any, D = any> = ComponentChild<P, D>[] | ComponentChild<P, D>;
+export type ComponentChildren<P = any, D = any> = ComponentChild<P, D>[] | ComponentChild<P, D> | ComponentChildren<P, D>[];
 export type RenderableProps<P> = P & Readonly<{ children?: ComponentChildren; }>;
 export type FunctionComponent<P> = (props: RenderableProps<P>) => JSX.Element;
 export type ComponentType<P = {}> = FunctionComponent<P>;

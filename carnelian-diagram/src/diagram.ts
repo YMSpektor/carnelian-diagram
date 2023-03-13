@@ -123,7 +123,8 @@ export class Diagram {
 
         if (children) {
             if (Array.isArray(children)) {
-                nodeData.children = children;
+                // @ts-ignore
+                nodeData.children = children.flat(Infinity);
             }
             else {
                 nodeData.children = [children];
@@ -210,11 +211,19 @@ class RenderContext {
     }
 
     applyIdleEffects() {
-        this.idleEffects.forEach(effect => effect());
+        let effect = this.idleEffects.shift();
+        while (effect) {
+            effect();
+            effect = this.idleEffects.shift();
+        }
     }
 
     applyEffects() {
-        this.effects.forEach(effect => effect());
+        let effect = this.effects.shift();
+        while (effect) {
+            effect();
+            effect = this.effects.shift();
+        }
     }
 }
 

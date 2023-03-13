@@ -48,10 +48,6 @@ interface HitAreaCollection {
 export class HitTests {
     private  hitAreas: HitAreaCollection = {};
 
-    reset() {
-        this.hitAreas = {};
-    }
-
     addHitArea(element: DiagramNode, callback: HitTestCallback, hitArea: HitArea, priority: number) {
         let arr = this.hitAreas[priority];
         if (!arr) {
