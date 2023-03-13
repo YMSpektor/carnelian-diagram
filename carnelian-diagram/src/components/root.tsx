@@ -1,18 +1,15 @@
 /** @jsxImportSource .. */
 import { DiagramControls, hasHitTestProps, HitInfo, HitTests, InteractionContext } from "../interactivity";
-import { DiagramNode, useContext, useIdleEffect, useState } from "..";
+import { DiagramNode, useIdleEffect, useState } from "..";
 
 export interface RootProps {
     svg: SVGGraphicsElement;
     children: DiagramNode[];
 }
 
-export interface DiagramRootProps extends RootProps {
-    matrix: DOMMatrix | null;
-}
-
 export function Root(props: RootProps): JSX.Element {
     const [matrix, setMatrix] = useState<DOMMatrix | null>(null); // TODO: move to child component once states are fixed
+    const [selectedElements, setSelectedElements] = useState(new Set<DiagramNode>);
 
     useIdleEffect(() => {
         const newMatrix = props.svg.getScreenCTM?.()?.inverse() || null;
@@ -27,18 +24,10 @@ export function Root(props: RootProps): JSX.Element {
     const interactions = {
         controls: new DiagramControls(),
         hitTests: new HitTests(),
+        isSelected: (element: DiagramNode): boolean => {
+            return selectedElements.has(element);
+        },
     };
-
-    return (
-        <InteractionContext.Provider value={interactions}>
-            <DiagramRoot matrix={matrix} {...props} />
-        </InteractionContext.Provider>
-    )
-}
-
-function DiagramRoot(props: DiagramRootProps): JSX.Element {
-    const matrix = props.matrix;
-    const interactions = useContext(InteractionContext);
 
     props.svg.onclick = (e: MouseEvent) => { // TODO: use useEffect
         let hitInfo: HitInfo | undefined;
@@ -60,8 +49,11 @@ function DiagramRoot(props: DiagramRootProps): JSX.Element {
         }
 
         if (hitInfo) {
-            // interactions.selections.set([hitInfo.element]);
-            console.log(hitInfo);
+            setSelectedElements(new Set([hitInfo.element]));
+            console.log(hitInfo.hitArea);
+        }
+        else {
+            setSelectedElements(new Set([]));
         }
     }
 
@@ -69,18 +61,20 @@ function DiagramRoot(props: DiagramRootProps): JSX.Element {
         ? `matrix(${matrix.a} ${matrix.b} ${matrix.c} ${matrix.d} ${matrix.e} ${matrix.f})`
         : undefined;
 
-    const DiagramControls = (props: { transform: DOMMatrixReadOnly }): JSX.Element => {
+    const Controls = (props: { transform: DOMMatrixReadOnly }): JSX.Element => {
         return interactions.controls.render(props.transform.inverse());
     }
 
     return (
-        <>
-            <g>
-                {props.children}
-            </g>
-            {matrix && <g transform={transform}>
-                <DiagramControls transform={matrix} />
-            </g>}
-        </>
+        <InteractionContext.Provider value={interactions}>
+            <>
+                <g>
+                    {props.children}
+                </g>
+                {matrix && <g transform={transform}>
+                    <Controls transform={matrix} />
+                </g>}
+            </>
+        </InteractionContext.Provider>
     )
 }
