@@ -2,7 +2,7 @@ import { InteractionContext } from ".";
 import { DiagramNode, renderContext, useContext, useEffect, useState } from "..";
 import { DiagramElementHitTest, HitArea, HitTestCallback } from "./hit-tests";
 
-export function useHitTest(callback: HitTestCallback, deps: any[], hitArea: HitArea, priority: number = 0, element?: DiagramNode) {
+export function useHitTest<P>(callback: HitTestCallback, deps: any[], hitArea: HitArea<P>, priority: number = 0, element?: DiagramNode) {
     const curElement = element || renderContext.currentElement;
 
     if (!curElement) {

@@ -3,17 +3,24 @@
 import { DiagramNode } from "carnelian-diagram";
 import { createHitTestProps } from "carnelian-diagram/interactivity";
 
-export interface HandleControlProps {
+export interface HandleControlProps<P> {
     element: DiagramNode;
     x: number;
     y: number;
     size: number;
     transform: DOMMatrixReadOnly;
+    onUpdate: (pos: DOMPointReadOnly) => P;
 }
 
-export function HandleControl(props: HandleControlProps) {
+export function HandleControl<P>(props: HandleControlProps<P>) {
     const p = new DOMPoint(props.x, props.y).matrixTransform(props.transform);
-    const hitTestProps = createHitTestProps({type: "handle"}, props.element);
+    const hitTestProps = createHitTestProps<P>(
+        {
+            type: "handle", 
+            dragHandler: (pos, update) => update(props.onUpdate(pos))
+        }, 
+        props.element
+    );
 
     return (
         <rect 

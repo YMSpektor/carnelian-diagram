@@ -1,9 +1,10 @@
 /** @jsxImportSource .. */
-import { DiagramNode, useEffect, useIdleEffect, useState } from "..";
+import { DiagramNode, renderContext, useEffect, useIdleEffect, useState } from "..";
 import { 
     DiagramElementControls, 
     DiagramElementHitTest, 
     HitAreaCollection, 
+    HitInfo, 
     hitTest, 
     InteractionContext, 
     InteractionContextType } from "../interactivity";
@@ -50,19 +51,64 @@ export function Root(props: RootProps): JSX.Element {
     };
 
     useEffect(() => {
-        props.svg.onclick = (e: MouseEvent) => {
+        props.svg.onmousedown = (e: MouseEvent) => {
             const hitInfo = matrix && hitTest(e, hitTests, matrix);
     
             if (hitInfo) {
-                setSelectedElements(new Set([hitInfo.element]));
-                console.log(hitInfo.hitArea);
+                const isSelected = selectedElements.has(hitInfo.element);
+                if (e.shiftKey) {
+                    if (isSelected) {
+                        selectedElements.delete(hitInfo.element);
+                    }
+                    else {
+                        selectedElements.add(hitInfo.element);
+                    }
+                    setSelectedElements(new Set(selectedElements));
+                } 
+                else {
+                    if (!isSelected) {
+                        setSelectedElements(new Set([hitInfo.element]));
+                    }
+                    else {
+                        beginDrag(e, [...selectedElements], hitInfo, matrix);
+                    }
+                }
             }
             else {
-                setSelectedElements(new Set([]));
+                selectedElements.size && setSelectedElements(new Set([]));
             }
         }
-    }, [matrix, hitTests]);
-    
+    }, [matrix, hitTests, selectedElements]);
+
+    function beginDrag(e: MouseEvent, elements: DiagramNode[], hitInfo: HitInfo<any>, transform: DOMMatrixReadOnly) {
+        if (hitInfo.hitArea.dragHandler) {
+            console.log("Begin drag...");
+            const dragHandler = hitInfo.hitArea.dragHandler;
+
+            const mouseMoveHandler = (e: MouseEvent) => {
+                const point = new DOMPoint(e.clientX, e.clientY);
+                const elementPoint = point.matrixTransform(transform);
+
+                dragHandler(elementPoint, (props) => {
+                    renderContext.effects.push(() => {
+                        hitInfo.element.props = props;
+                        renderContext.currentDiagram?.invalidate();
+                    });
+                });
+
+                console.log("Dragging...");
+            }
+
+            const mouseUpHandler = (e: MouseEvent) => {
+                console.log("End drag...");
+                window.removeEventListener("mousemove", mouseMoveHandler);
+                window.removeEventListener("mouseup", mouseUpHandler);
+            }
+
+            window.addEventListener("mousemove", mouseMoveHandler);
+            window.addEventListener("mouseup", mouseUpHandler);
+        }
+    }    
 
     const transform = matrix 
         ? `matrix(${matrix.a} ${matrix.b} ${matrix.c} ${matrix.d} ${matrix.e} ${matrix.f})`

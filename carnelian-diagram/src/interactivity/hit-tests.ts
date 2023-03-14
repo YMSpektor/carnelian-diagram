@@ -2,23 +2,24 @@ import { DiagramNode, renderContext } from "..";
 
 export type HitTestCallback = (point: DOMPointReadOnly, transform: DOMMatrixReadOnly) => boolean;
 
-export interface HitArea {
+export interface HitArea<P> {
     type: string;
+    dragHandler?: (p: DOMPointReadOnly, update: (props: P) => void) => void;
 }
 
-export type HitInfo = {
-    element: DiagramNode;
+export type HitInfo<P> = {
+    element: DiagramNode<P>;
     screenX: number;
     screenY: number;
     elementX: number;
     elementY: number;
-    hitArea: HitArea;
+    hitArea: HitArea<P>;
 }
 
-export interface DiagramElementHitTest {
-    element: DiagramNode;
+export interface DiagramElementHitTest<P = any> {
+    element: DiagramNode<P>;
     callback: HitTestCallback;
-    hitArea: HitArea;
+    hitArea: HitArea<P>;
     priority: number;
 }
 
@@ -26,20 +27,20 @@ export interface HitAreaCollection {
     [priority: number]: DiagramElementHitTest[];
 }
 
-export interface HitTestProps {
+export interface HitTestProps<P> {
     __hitTest: {
-        element: DiagramNode;
-        hitArea: HitArea;
+        element: DiagramNode<P>;
+        hitArea: HitArea<P>;
     }
 }
 
-export type HitTestEventTarget = EventTarget & HitTestProps;
+export type HitTestEventTarget<P> = EventTarget & HitTestProps<P>;
 
-export function hasHitTestProps(target: EventTarget): target is HitTestEventTarget {
-    return (target as HitTestEventTarget).__hitTest !== undefined;
+export function hasHitTestProps<P>(target: EventTarget): target is HitTestEventTarget<P> {
+    return (target as HitTestEventTarget<P>).__hitTest !== undefined;
 }
 
-export function createHitTestProps(hitArea: HitArea, element?: DiagramNode): HitTestProps {
+export function createHitTestProps<P>(hitArea: HitArea<P>, element?: DiagramNode): HitTestProps<P> {
     const elem = element || renderContext.currentElement;
     if (!elem) {
         throw new Error("The createHitTestProps function is not allowed to be called from here. Current element is not defined");
@@ -52,7 +53,7 @@ export function createHitTestProps(hitArea: HitArea, element?: DiagramNode): Hit
     }
 }
 
-export function hitTest(e: MouseEvent, hitAreas: HitAreaCollection, transform: DOMMatrixReadOnly): HitInfo | undefined {
+export function hitTest(e: MouseEvent, hitAreas: HitAreaCollection, transform: DOMMatrixReadOnly): HitInfo<unknown> | undefined {
     const point = new DOMPoint(e.clientX, e.clientY);
     if (e.target && hasHitTestProps(e.target)) {
         const elementPoint = point.matrixTransform(transform);
