@@ -211,11 +211,8 @@ class RenderContext {
     }
 
     applyIdleEffects() {
-        let effect = this.idleEffects.shift();
-        while (effect) {
-            effect();
-            effect = this.idleEffects.shift();
-        }
+        // Idle effects must not be removed from queue when applied
+        this.idleEffects.forEach(effect => effect());
     }
 
     applyEffects() {

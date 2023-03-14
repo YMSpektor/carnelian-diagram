@@ -15,6 +15,17 @@ export type HitInfo = {
     hitArea: HitArea;
 }
 
+export interface DiagramElementHitTest {
+    element: DiagramNode;
+    callback: HitTestCallback;
+    hitArea: HitArea;
+    priority: number;
+}
+
+export interface HitAreaCollection {
+    [priority: number]: DiagramElementHitTest[];
+}
+
 export interface HitTestProps {
     __hitTest: {
         element: DiagramNode;
@@ -41,34 +52,31 @@ export function createHitTestProps(hitArea: HitArea, element?: DiagramNode): Hit
     }
 }
 
-interface HitAreaCollection {
-    [priority: number]: { element: DiagramNode, callback: HitTestCallback, hitArea: HitArea }[];
-}
-
-export class HitTests {
-    private  hitAreas: HitAreaCollection = {};
-
-    addHitArea(element: DiagramNode, callback: HitTestCallback, hitArea: HitArea, priority: number) {
-        let arr = this.hitAreas[priority];
-        if (!arr) {
-            arr = [];
-            this.hitAreas[priority] = arr;
+export function hitTest(e: MouseEvent, hitAreas: HitAreaCollection, transform: DOMMatrixReadOnly): HitInfo | undefined {
+    const point = new DOMPoint(e.clientX, e.clientY);
+    if (e.target && hasHitTestProps(e.target)) {
+        const elementPoint = point.matrixTransform(transform);
+        return {
+            ...e.target.__hitTest,
+            screenX: point.x,
+            screenY: point.y,
+            elementX: elementPoint.x,
+            elementY: elementPoint.y,
         }
-        arr.push({element, callback, hitArea});
     }
-
-    hitTest(point: DOMPointReadOnly, transform: DOMMatrixReadOnly): HitInfo | undefined {
-        const priorities = Object.keys(this.hitAreas).map(x => parseInt(x)).reverse();
+    else {
+        const priorities = Object.keys(hitAreas).map(x => parseInt(x)).reverse();
         for (let priority of priorities) {
-            const hit = this.hitAreas[priority].find(x => x.callback(point, transform));
+            const hit = hitAreas[priority].find(x => x.callback(point, transform));
             if (hit) {
                 const elementPoint = point.matrixTransform(transform);
                 return {
-                    ...hit,
+                    element: hit.element,
                     screenX: point.x,
                     screenY: point.y,
                     elementX: elementPoint.x,
-                    elementY: elementPoint.y
+                    elementY: elementPoint.y,
+                    hitArea: hit.hitArea
                 }
             }
         }

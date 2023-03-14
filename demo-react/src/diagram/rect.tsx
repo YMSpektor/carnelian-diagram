@@ -17,9 +17,12 @@ export function Rect(props: RectProps) {
     const interactions = useContext(InteractionContext);
     const isSelected = interactions.isSelected(renderContext.currentNode!);
 
+    console.log("Rect: rendering...");
+
     useHitTest(
         rectHitTest(props.x, props.y, props.width, props.height),
-        { type: "in" }
+        [props],
+        { type: "in" },
     );
 
     useControls((transform, element) => {

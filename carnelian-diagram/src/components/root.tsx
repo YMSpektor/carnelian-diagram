@@ -1,6 +1,12 @@
 /** @jsxImportSource .. */
-import { DiagramElementControls, hasHitTestProps, HitInfo, HitTests, InteractionContext, InteractionContextType } from "../interactivity";
-import { DiagramNode, useIdleEffect, useState } from "..";
+import { DiagramNode, useEffect, useIdleEffect, useState } from "..";
+import { 
+    DiagramElementControls, 
+    DiagramElementHitTest, 
+    HitAreaCollection, 
+    hitTest, 
+    InteractionContext, 
+    InteractionContextType } from "../interactivity";
 
 export interface RootProps {
     svg: SVGGraphicsElement;
@@ -11,6 +17,7 @@ export function Root(props: RootProps): JSX.Element {
     const [matrix, setMatrix] = useState<DOMMatrix | null>(null);
     const [selectedElements, setSelectedElements] = useState(new Set<DiagramNode>);
     const [controls, setControls] = useState<DiagramElementControls[]>([]);
+    const [hitTests, setHitTests] = useState<HitAreaCollection>({});
 
     useIdleEffect(() => {
         const newMatrix = props.svg.getScreenCTM?.()?.inverse() || null;
@@ -23,44 +30,39 @@ export function Root(props: RootProps): JSX.Element {
     });
 
     const interactions: InteractionContextType = {
-        hitTests: new HitTests(),
         isSelected: (element: DiagramNode): boolean => {
             return selectedElements.has(element);
         },
-        updateControls: (newControls: DiagramElementControls, prevControls?: DiagramElementControls) => {
-            setControls(controls
-                .filter(x => x !== prevControls)
-                .concat(newControls));
+        updateControls: (newControls?: DiagramElementControls, prevControls?: DiagramElementControls) => {
+            let newValue = prevControls ? controls.filter(x => x !== prevControls) : controls;
+            newValue = newControls ? newValue.concat(newControls) : newValue;
+            setControls(newValue);
         },
+        updateHitTests: (newHitTests?: DiagramElementHitTest, prevHitTests?: DiagramElementHitTest) => {
+            if (prevHitTests) {
+                hitTests[prevHitTests.priority] = hitTests[prevHitTests.priority].filter(x => x !== prevHitTests);
+            }
+            if (newHitTests) {
+                hitTests[newHitTests.priority] = (hitTests[newHitTests.priority] || []).concat(newHitTests);
+            }
+            setHitTests({...hitTests});
+        }
     };
 
-    props.svg.onclick = (e: MouseEvent) => { // TODO: use useEffect
-        let hitInfo: HitInfo | undefined;
-        if (matrix) {
-            const pt = new DOMPoint(e.clientX, e.clientY);
-            if (e.target && hasHitTestProps(e.target)) {
-                const elementPoint = pt.matrixTransform(matrix);
-                hitInfo = {
-                    ...e.target.__hitTest,
-                    screenX: pt.x,
-                    screenY: pt.y,
-                    elementX: elementPoint.x,
-                    elementY: elementPoint.y,
-                }
+    useEffect(() => {
+        props.svg.onclick = (e: MouseEvent) => {
+            const hitInfo = matrix && hitTest(e, hitTests, matrix);
+    
+            if (hitInfo) {
+                setSelectedElements(new Set([hitInfo.element]));
+                console.log(hitInfo.hitArea);
             }
             else {
-                hitInfo = interactions.hitTests.hitTest(pt, matrix);
+                setSelectedElements(new Set([]));
             }
         }
-
-        if (hitInfo) {
-            setSelectedElements(new Set([hitInfo.element]));
-            console.log(hitInfo.hitArea);
-        }
-        else {
-            setSelectedElements(new Set([]));
-        }
-    }
+    }, [matrix, hitTests]);
+    
 
     const transform = matrix 
         ? `matrix(${matrix.a} ${matrix.b} ${matrix.c} ${matrix.d} ${matrix.e} ${matrix.f})`
@@ -76,7 +78,7 @@ export function Root(props: RootProps): JSX.Element {
                     const controlsTransform = matrix.inverse();
                     return (
                         <>
-                            {control.renderCallback(controlsTransform, control.element)}
+                            {control.callback(controlsTransform, control.element)}
                         </>
                     )
                 })}

@@ -14,9 +14,13 @@ export function useControls(callback: RenderControlsCallback, deps: any[]) {
     useEffect(() => {
         const controls: DiagramElementControls = {
             element: curElement,
-            renderCallback: callback
+            callback
         }
         interactions.updateControls(controls, storedControls);
         setStoredControls(controls);
+
+        return () => {
+            interactions.updateControls(undefined, storedControls);
+        }
     }, deps);
 }
