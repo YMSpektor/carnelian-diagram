@@ -22,7 +22,17 @@ export function Rect(props: RectProps) {
     useHitTest(
         rectHitTest(props.x, props.y, props.width, props.height),
         [props.x, props.y, props.width, props.height],
-        { type: "in" },
+        { 
+            type: "in", 
+            cursor: "move",
+            dragHandler: (curPos, prevPos, startPos, update) => {
+                update({
+                    ...props,
+                    x: props.x + (curPos.x - startPos.x),
+                    y: props.y + (curPos.y - startPos.y)
+                });  
+            }
+        },
     );
 
     useControls((transform, element) => {
@@ -33,18 +43,40 @@ export function Rect(props: RectProps) {
             new DOMPoint(props.x + props.width, props.y + props.height)
         ] : [];
 
+        const cursors = ["nwse-resize", "nesw-resize", "nesw-resize", "nwse-resize"];
+
         const updateFnArray = [
-            (pos: DOMPointReadOnly) => ({...props, x: pos.x, y: pos.y}),
-            (pos: DOMPointReadOnly) => ({...props, width: pos.x - props.x, y: pos.y}),
-            (pos: DOMPointReadOnly) => ({...props, x: pos.x, height: pos.y - props.y}),
-            (pos: DOMPointReadOnly) => ({...props, width: pos.x - props.x, height: pos.y - props.y}),
-        ]
+            (pos: DOMPointReadOnly) => ({
+                ...props, 
+                x: Math.min(pos.x, props.x + props.width), 
+                y: Math.min(pos.y, props.y + props.height), 
+                width: Math.max(0, props.x + props.width - pos.x), 
+                height: Math.max(0, props.y + props.height - pos.y)
+            }),
+            (pos: DOMPointReadOnly) => ({
+                ...props, 
+                y: Math.min(pos.y, props.y + props.height), 
+                width: Math.max(0, pos.x - props.x), 
+                height: Math.max(0, props.y + props.height - pos.y)
+            }),
+            (pos: DOMPointReadOnly) => ({
+                ...props, 
+                x: Math.min(pos.x, props.x + props.width), 
+                width: Math.max(0, props.x + props.width - pos.x),
+                height: Math.max(0, pos.y - props.y)
+            }),
+            (pos: DOMPointReadOnly) => ({
+                ...props, 
+                width: Math.max(0, pos.x - props.x), 
+                height: Math.max(0, pos.y - props.y)
+            }),
+        ];
 
         return (
             <>
                 { points.map((p, i) => (
                     <HandleControl<RectProps> 
-                        x={p.x} y={p.y} size={8} 
+                        x={p.x} y={p.y} size={8} cursor={cursors[i]}
                         transform={transform} 
                         element={element}
                         onUpdate={(pos) => updateFnArray[i](pos)}

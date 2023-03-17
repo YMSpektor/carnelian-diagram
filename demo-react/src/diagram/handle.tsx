@@ -8,6 +8,7 @@ export interface HandleControlProps<P> {
     x: number;
     y: number;
     size: number;
+    cursor: string;
     transform: DOMMatrixReadOnly;
     onUpdate: (pos: DOMPointReadOnly) => P;
 }
@@ -16,8 +17,9 @@ export function HandleControl<P>(props: HandleControlProps<P>) {
     const p = new DOMPoint(props.x, props.y).matrixTransform(props.transform);
     const hitTestProps = createHitTestProps<P>(
         {
-            type: "handle", 
-            dragHandler: (pos, update) => update(props.onUpdate(pos))
+            type: "handle",
+            cursor: props.cursor,
+            dragHandler: (curPos, prevPos, startPos, update) => update(props.onUpdate(curPos))
         }, 
         props.element
     );

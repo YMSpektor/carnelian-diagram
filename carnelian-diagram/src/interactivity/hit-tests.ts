@@ -1,10 +1,12 @@
 import { DiagramNode, renderContext } from "..";
 
 export type HitTestCallback = (point: DOMPointReadOnly, transform: DOMMatrixReadOnly) => boolean;
+export type HitAreaDragHandler<P> = (curPos: DOMPointReadOnly, prevPos: DOMPointReadOnly, startPos: DOMPointReadOnly, update: (props: P) => void) => void;
 
 export interface HitArea<P> {
     type: string;
-    dragHandler?: (p: DOMPointReadOnly, update: (props: P) => void) => void;
+    cursor?: string;
+    dragHandler?: HitAreaDragHandler<P>;
 }
 
 export type HitInfo<P> = {
@@ -28,6 +30,9 @@ export interface HitAreaCollection {
 }
 
 export interface HitTestProps<P> {
+    style?: {
+        cursor: string;
+    }
     __hitTest: {
         element: DiagramNode<P>;
         hitArea: HitArea<P>;
@@ -46,6 +51,9 @@ export function createHitTestProps<P>(hitArea: HitArea<P>, element?: DiagramNode
         throw new Error("The createHitTestProps function is not allowed to be called from here. Current element is not defined");
     }
     return {
+        style: hitArea.cursor ? {
+            cursor: hitArea.cursor
+        } : undefined,
         __hitTest: {
             element: elem, 
             hitArea

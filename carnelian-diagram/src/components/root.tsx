@@ -56,18 +56,22 @@ export function Root(props: RootProps): JSX.Element {
     
             if (hitInfo) {
                 const isSelected = selectedElements.has(hitInfo.element);
+
                 if (e.shiftKey) {
                     if (isSelected) {
                         selectedElements.delete(hitInfo.element);
+                        props.svg.style.cursor = "";
                     }
                     else {
                         selectedElements.add(hitInfo.element);
+                        props.svg.style.cursor = hitInfo.hitArea.cursor || "";
                     }
                     setSelectedElements(new Set(selectedElements));
                 } 
                 else {
                     if (!isSelected) {
                         setSelectedElements(new Set([hitInfo.element]));
+                        props.svg.style.cursor = hitInfo.hitArea.cursor || "";
                     }
                     else {
                         beginDrag(e, [...selectedElements], hitInfo, matrix);
@@ -76,31 +80,40 @@ export function Root(props: RootProps): JSX.Element {
             }
             else {
                 selectedElements.size && setSelectedElements(new Set([]));
+                props.svg.style.cursor = "";
             }
+        }
+
+        props.svg.onmousemove = (e: MouseEvent) => {
+            const hitInfo = matrix && hitTest(e, hitTests, matrix);
+            const isSelected = hitInfo && selectedElements.has(hitInfo.element);
+
+            props.svg.style.cursor = isSelected ? hitInfo?.hitArea.cursor || "" : "";
         }
     }, [matrix, hitTests, selectedElements]);
 
     function beginDrag(e: MouseEvent, elements: DiagramNode[], hitInfo: HitInfo<any>, transform: DOMMatrixReadOnly) {
+        const startPoint = new DOMPoint(e.clientX, e.clientY).matrixTransform(transform);
+        let lastPoint = startPoint;
+
         if (hitInfo.hitArea.dragHandler) {
-            console.log("Begin drag...");
             const dragHandler = hitInfo.hitArea.dragHandler;
 
             const mouseMoveHandler = (e: MouseEvent) => {
                 const point = new DOMPoint(e.clientX, e.clientY);
                 const elementPoint = point.matrixTransform(transform);
 
-                dragHandler(elementPoint, (props) => {
+                dragHandler(elementPoint, lastPoint, startPoint, (props) => {
                     renderContext.effects.push(() => {
                         hitInfo.element.props = props;
                         renderContext.currentDiagram?.invalidate();
                     });
                 });
 
-                console.log("Dragging...");
+                lastPoint = elementPoint;
             }
 
             const mouseUpHandler = (e: MouseEvent) => {
-                console.log("End drag...");
                 window.removeEventListener("mousemove", mouseMoveHandler);
                 window.removeEventListener("mouseup", mouseUpHandler);
             }
