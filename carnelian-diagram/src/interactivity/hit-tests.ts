@@ -1,3 +1,4 @@
+import { RenderableProps } from "../jsx-runtime";
 import { DiagramNode, renderContext } from "..";
 
 export type HitTestCallback = (point: DOMPointReadOnly, transform: DOMMatrixReadOnly) => boolean;
@@ -6,7 +7,7 @@ export type HitAreaDragHandler<P> = (curPos: DOMPointReadOnly, prevPos: DOMPoint
 export interface HitArea<P> {
     type: string;
     cursor?: string;
-    dragHandler?: HitAreaDragHandler<P>;
+    onDrag?: HitAreaDragHandler<RenderableProps<P>>;
 }
 
 export type HitInfo<P> = {
@@ -57,37 +58,6 @@ export function createHitTestProps<P>(hitArea: HitArea<P>, element?: DiagramNode
         __hitTest: {
             element: elem, 
             hitArea
-        }
-    }
-}
-
-export function hitTest(e: MouseEvent, hitAreas: HitAreaCollection, transform: DOMMatrixReadOnly): HitInfo<unknown> | undefined {
-    const point = new DOMPoint(e.clientX, e.clientY);
-    if (e.target && hasHitTestProps(e.target)) {
-        const elementPoint = point.matrixTransform(transform);
-        return {
-            ...e.target.__hitTest,
-            screenX: point.x,
-            screenY: point.y,
-            elementX: elementPoint.x,
-            elementY: elementPoint.y,
-        }
-    }
-    else {
-        const priorities = Object.keys(hitAreas).map(x => parseInt(x)).reverse();
-        for (let priority of priorities) {
-            const hit = hitAreas[priority].find(x => x.callback(point, transform));
-            if (hit) {
-                const elementPoint = point.matrixTransform(transform);
-                return {
-                    element: hit.element,
-                    screenX: point.x,
-                    screenY: point.y,
-                    elementX: elementPoint.x,
-                    elementY: elementPoint.y,
-                    hitArea: hit.hitArea
-                }
-            }
         }
     }
 }

@@ -2,6 +2,7 @@
 
 import { DiagramNode } from "carnelian-diagram";
 import { createHitTestProps } from "carnelian-diagram/interactivity";
+import { RenderableProps } from "carnelian-diagram/jsx-runtime";
 
 export interface HandleControlProps<P> {
     element: DiagramNode;
@@ -10,7 +11,7 @@ export interface HandleControlProps<P> {
     size: number;
     cursor: string;
     transform: DOMMatrixReadOnly;
-    onUpdate: (pos: DOMPointReadOnly) => P;
+    onUpdate: (pos: DOMPointReadOnly) => RenderableProps<P>;
 }
 
 export function HandleControl<P>(props: HandleControlProps<P>) {
@@ -19,7 +20,7 @@ export function HandleControl<P>(props: HandleControlProps<P>) {
         {
             type: "handle",
             cursor: props.cursor,
-            dragHandler: (curPos, prevPos, startPos, update) => update(props.onUpdate(curPos))
+            onDrag: (curPos, prevPos, startPos, update) => update(props.onUpdate(curPos))
         }, 
         props.element
     );

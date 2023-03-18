@@ -19,13 +19,12 @@ export function Rect(props: RectProps) {
 
     console.log("Rect: rendering...");
 
-    useHitTest(
+    useHitTest<RectProps>(
         rectHitTest(props.x, props.y, props.width, props.height),
-        [props.x, props.y, props.width, props.height],
         { 
             type: "in", 
             cursor: "move",
-            dragHandler: (curPos, prevPos, startPos, update) => {
+            onDrag: (curPos, prevPos, startPos, update) => {
                 update({
                     ...props,
                     x: props.x + (curPos.x - startPos.x),

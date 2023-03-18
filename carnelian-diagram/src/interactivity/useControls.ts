@@ -8,19 +8,19 @@ export function useControls(callback: RenderControlsCallback) {
         throw new Error("The useControls hook is not allowed to be called from here. It must be called when element is rendering");
     }
 
-    const [storedControls, setStoredControls] = useState<DiagramElementControls | undefined>(undefined);
+    const [storedControls] = useState<[DiagramElementControls | undefined]>([undefined]);
     const interactions = useContext(InteractionContext);
 
     const controls: DiagramElementControls = {
         element: curElement,
         callback
     }
-    interactions.updateControls(controls, storedControls);
-    setStoredControls(controls);
+    interactions.updateControls(controls, storedControls[0]);
+    storedControls[0] = controls; // Setting a state will cause an infinite loop
 
     useEffect(() => {
         return () => {
-            interactions.updateControls(undefined, storedControls);
+            interactions.updateControls(undefined, storedControls[0]);
         }
-    }, [interactions, storedControls]);
+    }, [interactions]);
 }

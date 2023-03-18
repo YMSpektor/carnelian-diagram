@@ -2,28 +2,28 @@ import { InteractionContext } from ".";
 import { DiagramNode, renderContext, useContext, useEffect, useState } from "..";
 import { DiagramElementHitTest, HitArea, HitTestCallback } from "./hit-tests";
 
-export function useHitTest<P>(callback: HitTestCallback, deps: any[], hitArea: HitArea<P>, priority: number = 0, element?: DiagramNode) {
+export function useHitTest<P>(callback: HitTestCallback, hitArea: HitArea<P>, priority: number = 0, element?: DiagramNode) {
     const curElement = element || renderContext.currentElement;
 
     if (!curElement) {
         throw new Error("The useHitTest hook is not allowed to be called from here. Current element is not defined");
     }
 
-    const [storedHitTest, setStoredHitTest] = useState<DiagramElementHitTest | undefined>(undefined);
+    const [storedHitTest] = useState<[DiagramElementHitTest | undefined]>([undefined]);
     const interactions = useContext(InteractionContext);
 
-    useEffect(() => {
-        const hitTest: DiagramElementHitTest = {
-            element: curElement,
-            callback,
-            hitArea,
-            priority
-        }
-        interactions.updateHitTests(hitTest, storedHitTest);
-        setStoredHitTest(hitTest);
+    const hitTest: DiagramElementHitTest = {
+        element: curElement,
+        callback,
+        hitArea,
+        priority
+    }
+    interactions.updateHitTests(hitTest, storedHitTest[0]);
+    storedHitTest[0] = hitTest; // Setting a state will cause an infinite loop
 
+    useEffect(() => {
         return () => {
-            interactions.updateHitTests(undefined, storedHitTest);
+            interactions.updateHitTests(undefined, storedHitTest[0]);
         }
-    }, deps);
+    }, [interactions]);
 }
