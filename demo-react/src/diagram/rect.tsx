@@ -84,7 +84,7 @@ export function Rect(props: RectProps) {
                 )) }
             </>
         );
-    }, [props.x, props.y, props.width, props.height, isSelected]);
+    });
 
     return (
         <rect {...props} />

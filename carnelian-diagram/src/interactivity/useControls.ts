@@ -1,7 +1,7 @@
 import { DiagramElementControls, InteractionContext, RenderControlsCallback } from ".";
 import { renderContext, useContext, useEffect, useState } from "..";
 
-export function useControls(callback: RenderControlsCallback, deps: any[]) {
+export function useControls(callback: RenderControlsCallback) {
     const curElement = renderContext.currentElement;
 
     if (!curElement) {
@@ -11,16 +11,16 @@ export function useControls(callback: RenderControlsCallback, deps: any[]) {
     const [storedControls, setStoredControls] = useState<DiagramElementControls | undefined>(undefined);
     const interactions = useContext(InteractionContext);
 
-    useEffect(() => {
-        const controls: DiagramElementControls = {
-            element: curElement,
-            callback
-        }
-        interactions.updateControls(controls, storedControls);
-        setStoredControls(controls);
+    const controls: DiagramElementControls = {
+        element: curElement,
+        callback
+    }
+    interactions.updateControls(controls, storedControls);
+    setStoredControls(controls);
 
+    useEffect(() => {
         return () => {
             interactions.updateControls(undefined, storedControls);
         }
-    }, deps);
+    }, [interactions, storedControls]);
 }
