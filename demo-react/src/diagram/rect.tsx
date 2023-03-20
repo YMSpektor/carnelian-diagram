@@ -1,7 +1,7 @@
 /** @jsxImportSource carnelian-diagram */
 
 import { useContext, renderContext } from "carnelian-diagram";
-import { useControls, useHitTest, rectHitTest, InteractionContext } from "carnelian-diagram/interactivity";
+import { useControls, useHitTest, rectHitTest, InteractionContext, useBehaviour, MovementActionPayload } from "carnelian-diagram/interactivity";
 import { HandleControl } from "./handle";
 
 export interface RectProps {
@@ -15,14 +15,15 @@ export interface RectProps {
 
 export function Rect(props: RectProps) {
     const interactions = useContext(InteractionContext);
-    const isSelected = interactions.isSelected(renderContext.currentNode!);
+    const isSelected = interactions?.isSelected(renderContext.currentNode!);
 
     console.log("Rect: rendering...");
 
     useHitTest<RectProps>(
         rectHitTest(props.x, props.y, props.width, props.height),
         { 
-            type: "in", 
+            type: "in",
+            action: "move",
             cursor: "move",
             onDrag: (curPos, prevPos, startPos, update) => {
                 update({
@@ -33,6 +34,10 @@ export function Rect(props: RectProps) {
             }
         },
     );
+
+    useBehaviour<MovementActionPayload>("move", (payload) => {
+        console.log(payload);
+    });
 
     useControls((transform, element) => {
         const points = isSelected ? [

@@ -1,10 +1,7 @@
 /** @jsxImportSource .. */
 import { DiagramNode, useIdleEffect, useState } from "..";
-import { 
-    DiagramElementControls, 
-    DiagramElementHitTest, 
+import {
     InteractionContext, 
-    InteractionContextType, 
     InteractionController
 } from "../interactivity";
 
@@ -16,17 +13,6 @@ export interface RootProps {
 export function Root(props: RootProps): JSX.Element {
     const [matrix, setMatrix] = useState<DOMMatrix | undefined>(undefined);
     const [controller] = useState(new InteractionController(props.svg));
-    const [interactions] = useState<InteractionContextType>({
-        isSelected: (element: DiagramNode): boolean => {
-            return controller.isSelected(element);
-        },
-        updateControls: (newControls?: DiagramElementControls, prevControls?: DiagramElementControls) => {
-            controller.updateControls(newControls, prevControls);
-        },
-        updateHitTests: (newHitTests?: DiagramElementHitTest, prevHitTests?: DiagramElementHitTest) => {
-            controller.updateHitTests(newHitTests, prevHitTests);
-        }
-    });
     const [selectedElements, setSelectedElements] = useState<DiagramNode[]>([]);
 
     controller.onSelect = (elements) => setSelectedElements(elements);
@@ -63,7 +49,7 @@ export function Root(props: RootProps): JSX.Element {
     }
 
     return (
-        <InteractionContext.Provider value={interactions}>
+        <InteractionContext.Provider value={controller}>
             <DiagramElements elements={props.children} />
             <DiagramControls matrix={matrix} />
         </InteractionContext.Provider>

@@ -19,6 +19,7 @@ export function HandleControl<P>(props: HandleControlProps<P>) {
     const hitTestProps = createHitTestProps<P>(
         {
             type: "handle",
+            action: "handle_move",
             cursor: props.cursor,
             onDrag: (curPos, prevPos, startPos, update) => update(props.onUpdate(curPos))
         }, 

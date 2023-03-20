@@ -6,6 +6,7 @@ export type HitAreaDragHandler<P> = (curPos: DOMPointReadOnly, prevPos: DOMPoint
 
 export interface HitArea<P> {
     type: string;
+    action: string;
     cursor?: string;
     onDrag?: HitAreaDragHandler<RenderableProps<P>>;
 }

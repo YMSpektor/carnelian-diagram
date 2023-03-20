@@ -1,21 +1,50 @@
-import { DiagramNode, renderContext } from "..";
-import { DiagramElementControls } from "./diagram-controls";
+import { createContext, DiagramNode, renderContext } from "..";
 import { DiagramElementHitTest, hasHitTestProps, HitAreaCollection, HitInfo } from "./hit-tests";
 
+export type RenderControlsCallback = (transform: DOMMatrixReadOnly, element: DiagramNode) => JSX.Element;
+
+export interface DiagramElementControls {
+    element: DiagramNode;
+    callback: RenderControlsCallback;
+}
+
+export type BehaviourCallback<T> = (payload: T) => void;
+
+export interface DiagramElementBehaviour<T> {
+    action: string;
+    element: DiagramNode;
+    callback: BehaviourCallback<T>;
+}
+
+export interface BehaviourCollection {
+    [action: string]: DiagramElementBehaviour<any>[];
+}
+
 export interface InteractionControllerType {
-    init: (transform?: DOMMatrixReadOnly) => void;
-    isSelected: (element: DiagramNode) => boolean;
-    updateControls: (controls?: DiagramElementControls, prevControls?: DiagramElementControls) => void;
-    renderControls: (transform: DOMMatrixReadOnly) => JSX.Element;
-    updateHitTests: (hitTests?: DiagramElementHitTest, prevHitTests?: DiagramElementHitTest) => void;
+    init(transform?: DOMMatrixReadOnly): void;
+    isSelected(element: DiagramNode): boolean;
+    updateControls(controls?: DiagramElementControls, prevControls?: DiagramElementControls): void;
+    renderControls(transform: DOMMatrixReadOnly): JSX.Element;
+    updateHitTests(hitTests?: DiagramElementHitTest, prevHitTests?: DiagramElementHitTest): void;
     hitTest(e: MouseEvent): HitInfo<unknown> | undefined;
+    updateBehaviours(behaviour?: DiagramElementBehaviour<any>, prevBehaviour?: DiagramElementBehaviour<any>): void;
+    dispatch<T>(elements: DiagramNode[], action: string, payload: T): void;
 
     onSelect?: (elements: DiagramNode[]) => void;
+}
+
+export const InteractionContext = createContext<InteractionControllerType | undefined>(undefined);
+
+export interface MovementActionPayload {
+    position: DOMPointReadOnly;
+    deltaX: number;
+    deltaY: number;
 }
 
 export class InteractionController implements InteractionControllerType {
     private controls: DiagramElementControls[] = [];
     private hitAreas: HitAreaCollection = {};
+    private behaviours: BehaviourCollection = {};
     private selectedElements = new Set<DiagramNode>();
     private transform?: DOMMatrixReadOnly;
 
@@ -87,6 +116,15 @@ export class InteractionController implements InteractionControllerType {
                     });
                 });
 
+                this.dispatch<MovementActionPayload>(
+                    [hitInfo.element],
+                    hitInfo.hitArea.action,
+                    {
+                        position: elementPoint,
+                        deltaX: elementPoint.x - startPoint.x,
+                        deltaY: elementPoint.y - startPoint.y
+                    });
+
                 lastPoint = elementPoint;
             }
 
@@ -155,6 +193,26 @@ export class InteractionController implements InteractionControllerType {
                 }
             }
         }
+    }
+
+    updateBehaviours(newBehaviour?: DiagramElementBehaviour<any>, prevBehaviour?: DiagramElementBehaviour<any>) {
+        if (prevBehaviour) {
+            this.behaviours[prevBehaviour.action] = this.behaviours[prevBehaviour.action].filter(x => x !== prevBehaviour);
+        }
+        if (newBehaviour) {
+            this.behaviours[newBehaviour.action] = (this.behaviours[newBehaviour.action] || []).concat(newBehaviour);
+        }
+    }
+
+    dispatch<T>(elements: DiagramNode[], action: string, payload: T) {
+        elements.forEach(element => {
+            const callbacks = this.behaviours[action]
+                ?.filter(x => x.element === element)
+                ?.map(x => x.callback);
+            if (callbacks) {
+                callbacks.forEach(cb => cb(payload));
+            }
+        });
     }
 
     onSelect?: (elements: DiagramNode[]) => void;
