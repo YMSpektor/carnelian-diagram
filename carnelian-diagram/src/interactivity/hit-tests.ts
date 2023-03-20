@@ -1,29 +1,28 @@
-import { RenderableProps } from "../jsx-runtime";
 import { DiagramNode, renderContext } from "..";
+import { CustomPropHook } from "../utils/custom-prop-hook";
 
 export type HitTestCallback = (point: DOMPointReadOnly, transform: DOMMatrixReadOnly) => boolean;
-export type HitAreaDragHandler<P> = (curPos: DOMPointReadOnly, prevPos: DOMPointReadOnly, startPos: DOMPointReadOnly, update: (props: P) => void) => void;
 
-export interface HitArea<P> {
+export interface HitArea {
     type: string;
+    index?: number;
     action: string;
     cursor?: string;
-    onDrag?: HitAreaDragHandler<RenderableProps<P>>;
 }
 
-export type HitInfo<P> = {
-    element: DiagramNode<P>;
+export type HitInfo = {
+    element: DiagramNode;
     screenX: number;
     screenY: number;
     elementX: number;
     elementY: number;
-    hitArea: HitArea<P>;
+    hitArea: HitArea;
 }
 
-export interface DiagramElementHitTest<P = any> {
-    element: DiagramNode<P>;
+export interface DiagramElementHitTest {
+    element: DiagramNode;
     callback: HitTestCallback;
-    hitArea: HitArea<P>;
+    hitArea: HitArea
     priority: number;
 }
 
@@ -31,23 +30,20 @@ export interface HitAreaCollection {
     [priority: number]: DiagramElementHitTest[];
 }
 
-export interface HitTestProps<P> {
-    style?: {
-        cursor: string;
-    }
+export interface HitTestProps {
     __hitTest: {
-        element: DiagramNode<P>;
-        hitArea: HitArea<P>;
+        element: DiagramNode;
+        hitArea: HitArea;
     }
 }
 
-export type HitTestEventTarget<P> = EventTarget & HitTestProps<P>;
+export type HitTestEventTarget = EventTarget & HitTestProps;
 
-export function hasHitTestProps<P>(target: EventTarget): target is HitTestEventTarget<P> {
-    return (target as HitTestEventTarget<P>).__hitTest !== undefined;
+export function hasHitTestProps(target: EventTarget): target is HitTestEventTarget {
+    return (target as HitTestEventTarget).__hitTest !== undefined;
 }
 
-export function createHitTestProps<P>(hitArea: HitArea<P>, element?: DiagramNode): HitTestProps<P> {
+export function createHitTestProps(hitArea: HitArea, element?: DiagramNode) {
     const elem = element || renderContext.currentElement;
     if (!elem) {
         throw new Error("The createHitTestProps function is not allowed to be called from here. Current element is not defined");
@@ -56,10 +52,10 @@ export function createHitTestProps<P>(hitArea: HitArea<P>, element?: DiagramNode
         style: hitArea.cursor ? {
             cursor: hitArea.cursor
         } : undefined,
-        __hitTest: {
+        __hitTest: new CustomPropHook({
             element: elem, 
             hitArea
-        }
+        })
     }
 }
 

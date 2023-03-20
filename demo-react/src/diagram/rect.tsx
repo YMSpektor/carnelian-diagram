@@ -20,13 +20,12 @@ export function Rect(props: DiagramElementProps<RectProps>) {
 
     console.log("Rect: rendering...");
 
-    useHitTest<RectProps>(
+    useHitTest(
         rectHitTest(props.x, props.y, props.width, props.height),
         { 
             type: "in",
             action: "move",
             cursor: "move",
-            onDrag: (curPos, prevPos, startPos, update) => { }
         },
     );
 
@@ -36,6 +35,44 @@ export function Rect(props: DiagramElementProps<RectProps>) {
             x: props.x + payload.deltaX,
             y: props.y + payload.deltaY
         }));
+    });
+
+    useAction<MovementActionPayload>("handle_move", (payload) => {
+        const pos = payload.position;
+        switch (payload.hitArea.index) {
+            case 0:
+                onChange(props => ({
+                    ...props,
+                    x: Math.min(pos.x, props.x + props.width), 
+                    y: Math.min(pos.y, props.y + props.height), 
+                    width: Math.max(0, props.x + props.width - pos.x), 
+                    height: Math.max(0, props.y + props.height - pos.y)
+                }));
+                break;
+            case 1:
+                onChange(props => ({
+                    ...props,
+                    y: Math.min(pos.y, props.y + props.height), 
+                    width: Math.max(0, pos.x - props.x), 
+                    height: Math.max(0, props.y + props.height - pos.y)
+                }));
+                break;
+            case 2:
+                onChange(props => ({
+                    ...props,
+                    x: Math.min(pos.x, props.x + props.width), 
+                    width: Math.max(0, props.x + props.width - pos.x),
+                    height: Math.max(0, pos.y - props.y)
+                }));
+                break;
+            case 3:
+                onChange(props => ({
+                    ...props,
+                    width: Math.max(0, pos.x - props.x), 
+                    height: Math.max(0, pos.y - props.y)
+                }));
+                break;
+        }
     });
 
     useControls((transform, element) => {
@@ -48,41 +85,13 @@ export function Rect(props: DiagramElementProps<RectProps>) {
 
         const cursors = ["nwse-resize", "nesw-resize", "nesw-resize", "nwse-resize"];
 
-        const updateFnArray = [
-            (pos: DOMPointReadOnly) => ({
-                ...props, 
-                x: Math.min(pos.x, props.x + props.width), 
-                y: Math.min(pos.y, props.y + props.height), 
-                width: Math.max(0, props.x + props.width - pos.x), 
-                height: Math.max(0, props.y + props.height - pos.y)
-            }),
-            (pos: DOMPointReadOnly) => ({
-                ...props, 
-                y: Math.min(pos.y, props.y + props.height), 
-                width: Math.max(0, pos.x - props.x), 
-                height: Math.max(0, props.y + props.height - pos.y)
-            }),
-            (pos: DOMPointReadOnly) => ({
-                ...props, 
-                x: Math.min(pos.x, props.x + props.width), 
-                width: Math.max(0, props.x + props.width - pos.x),
-                height: Math.max(0, pos.y - props.y)
-            }),
-            (pos: DOMPointReadOnly) => ({
-                ...props, 
-                width: Math.max(0, pos.x - props.x), 
-                height: Math.max(0, pos.y - props.y)
-            }),
-        ];
-
         return (
             <>
                 { points.map((p, i) => (
-                    <HandleControl<RectProps> 
-                        x={p.x} y={p.y} size={8} cursor={cursors[i]}
+                    <HandleControl 
+                        x={p.x} y={p.y} size={8} cursor={cursors[i]} index={i} action="handle_move"
                         transform={transform} 
                         element={element}
-                        onUpdate={(pos) => updateFnArray[i](pos)}
                     />
                 )) }
             </>

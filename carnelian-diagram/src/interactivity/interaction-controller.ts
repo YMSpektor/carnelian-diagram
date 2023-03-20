@@ -1,5 +1,5 @@
-import { createContext, DiagramNode, renderContext } from "..";
-import { DiagramElementHitTest, hasHitTestProps, HitAreaCollection, HitInfo } from "./hit-tests";
+import { createContext, DiagramNode } from "..";
+import { DiagramElementHitTest, hasHitTestProps, HitArea, HitAreaCollection, HitInfo } from "./hit-tests";
 
 export type RenderControlsCallback = (transform: DOMMatrixReadOnly, element: DiagramNode) => JSX.Element;
 
@@ -26,7 +26,7 @@ export interface InteractionControllerType {
     updateControls(controls?: DiagramElementControls, prevControls?: DiagramElementControls): void;
     renderControls(transform: DOMMatrixReadOnly): JSX.Element;
     updateHitTests(hitTests?: DiagramElementHitTest, prevHitTests?: DiagramElementHitTest): void;
-    hitTest(e: MouseEvent): HitInfo<unknown> | undefined;
+    hitTest(e: MouseEvent): HitInfo | undefined;
     updateActions(action?: DiagramElementAction<any>, prevAction?: DiagramElementAction<any>): void;
     dispatch<T>(elements: DiagramNode[], action: string, payload: T): void;
 
@@ -39,6 +39,7 @@ export interface MovementActionPayload {
     position: DOMPointReadOnly;
     deltaX: number;
     deltaY: number;
+    hitArea: HitArea;
 }
 
 export class InteractionController implements InteractionControllerType {
@@ -98,23 +99,14 @@ export class InteractionController implements InteractionControllerType {
         this.svg.style.cursor = isSelected ? hitInfo?.hitArea.cursor || "" : "";
     }
 
-    private beginDrag<P>(e: MouseEvent, hitInfo: HitInfo<P>) {
+    private beginDrag(e: MouseEvent, hitInfo: HitInfo) {
         const startPoint = new DOMPoint(e.clientX, e.clientY).matrixTransform(this.transform);
         let lastPoint = startPoint;
 
-        if (hitInfo.hitArea.onDrag) {
-            const dragHandler = hitInfo.hitArea.onDrag;
-
+        if (hitInfo.hitArea.action) {
             const mouseMoveHandler = (e: MouseEvent) => {
                 const point = new DOMPoint(e.clientX, e.clientY);
                 const elementPoint = point.matrixTransform(this.transform);
-
-                dragHandler(elementPoint, lastPoint, startPoint, (props) => {
-                    renderContext.effects.push(() => {
-                        hitInfo.element.props = props;
-                        renderContext.currentDiagram?.invalidate();
-                    });
-                });
 
                 this.dispatch<MovementActionPayload>(
                     [hitInfo.element],
@@ -122,7 +114,8 @@ export class InteractionController implements InteractionControllerType {
                     {
                         position: elementPoint,
                         deltaX: elementPoint.x - lastPoint.x,
-                        deltaY: elementPoint.y - lastPoint.y
+                        deltaY: elementPoint.y - lastPoint.y,
+                        hitArea: hitInfo.hitArea,
                     });
 
                 lastPoint = elementPoint;

@@ -2,7 +2,7 @@ import { InteractionContext } from ".";
 import { DiagramNode, renderContext, useContext, useEffect, useState } from "..";
 import { DiagramElementHitTest, HitArea, HitTestCallback } from "./hit-tests";
 
-export function useHitTest<P>(callback: HitTestCallback, hitArea: HitArea<P>, priority: number = 0, element?: DiagramNode) {
+export function useHitTest(callback: HitTestCallback, hitArea: HitArea, priority: number = 0, element?: DiagramNode) {
     const curElement = element || renderContext.currentElement;
     if (!curElement) {
         throw new Error("The useHitTest hook is not allowed to be called from here. Current element is not defined");
