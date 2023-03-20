@@ -2,14 +2,10 @@ import { DOMBuilder } from "./dom";
 import { ComponentState } from "./hooks";
 import { ComponentChild, ComponentChildren, createElement, FunctionComponent, VirtualNode } from "./jsx-runtime";
 
-export type DiagramElement<P> = FunctionComponent<P>;
-
-export interface DiagramRootProps {
-    svg: SVGGraphicsElement;
-    children: DiagramNode[];
+export type DiagramElementProps<P> = P & {
+    onChange: (callback: (oldProps: DiagramElementProps<P>) => DiagramElementProps<P>) => void;
 }
-
-export type DiagramRoot<P extends DiagramRootProps> = FunctionComponent<P>;
+export type DiagramElement<P> = FunctionComponent<DiagramElementProps<P>>;
 
 export interface DiagramComponentData {
     parent?: DiagramNode;
@@ -20,6 +16,14 @@ export interface DiagramComponentData {
 }
 
 export type DiagramNode<P = any> = VirtualNode<P, DiagramComponentData>;
+export type DiagramElementNode<P = any> = DiagramNode<DiagramElementProps<P>>;
+
+export interface DiagramRootProps {
+    svg: SVGGraphicsElement;
+    children: DiagramElementNode[];
+}
+
+export type DiagramRoot<P extends DiagramRootProps> = FunctionComponent<P>;
 
 type Schedule = any;
 
@@ -81,7 +85,7 @@ export function createContext<T>(defaultValue: T) {
 export class Diagram {
     private isValid = false;
     private idleCallbackId?: Schedule;
-    private elements: DiagramNode[] = [];
+    private elements: DiagramElementNode[] = [];
     private domBuilder = new DOMBuilder();
     private rootState: ComponentState;
 
@@ -89,8 +93,14 @@ export class Diagram {
         this.rootState = new ComponentState(); // Temporary, until reconsiliation is implemented
     }
 
-    private createElementNode<P extends {}>(type: DiagramElement<P>, props: P, state?: ComponentState): DiagramNode<P> {
-        const element = createElement<P, DiagramComponentData>(type, props);
+    private createElementNode<P extends {}>(type: DiagramElement<P>, props: P, state?: ComponentState): DiagramElementNode<P> {
+        const onChange = (callback: (oldProps: DiagramElementProps<P>) => DiagramElementProps<P>) => {
+            renderContext.effects.push(() => {
+                element.props = callback(element.props);
+                this.invalidate();
+            });
+        }
+        const element = createElement<DiagramElementProps<P>, DiagramComponentData>(type, {...props, onChange});
         element.data = {
             state: state || new ComponentState(),
             children: []
@@ -188,7 +198,7 @@ export class Diagram {
         this.idleCallbackId && cancelSchedule!(this.idleCallbackId);
     }
 
-    add<P extends {}>(type: DiagramElement<P>, props: P): DiagramNode<P> {
+    add<P extends {}>(type: DiagramElement<P>, props: P): DiagramElementNode<P> {
         const element = this.createElementNode(type, props);
         this.elements.push(element);
         this.invalidate();

@@ -8,16 +8,16 @@ export interface DiagramElementControls {
     callback: RenderControlsCallback;
 }
 
-export type BehaviourCallback<T> = (payload: T) => void;
+export type ActionCallback<T> = (payload: T) => void;
 
-export interface DiagramElementBehaviour<T> {
+export interface DiagramElementAction<T> {
     action: string;
     element: DiagramNode;
-    callback: BehaviourCallback<T>;
+    callback: ActionCallback<T>;
 }
 
-export interface BehaviourCollection {
-    [action: string]: DiagramElementBehaviour<any>[];
+export interface ActionCollection {
+    [action: string]: DiagramElementAction<any>[];
 }
 
 export interface InteractionControllerType {
@@ -27,7 +27,7 @@ export interface InteractionControllerType {
     renderControls(transform: DOMMatrixReadOnly): JSX.Element;
     updateHitTests(hitTests?: DiagramElementHitTest, prevHitTests?: DiagramElementHitTest): void;
     hitTest(e: MouseEvent): HitInfo<unknown> | undefined;
-    updateBehaviours(behaviour?: DiagramElementBehaviour<any>, prevBehaviour?: DiagramElementBehaviour<any>): void;
+    updateActions(action?: DiagramElementAction<any>, prevAction?: DiagramElementAction<any>): void;
     dispatch<T>(elements: DiagramNode[], action: string, payload: T): void;
 
     onSelect?: (elements: DiagramNode[]) => void;
@@ -44,7 +44,7 @@ export interface MovementActionPayload {
 export class InteractionController implements InteractionControllerType {
     private controls: DiagramElementControls[] = [];
     private hitAreas: HitAreaCollection = {};
-    private behaviours: BehaviourCollection = {};
+    private actions: ActionCollection = {};
     private selectedElements = new Set<DiagramNode>();
     private transform?: DOMMatrixReadOnly;
 
@@ -121,8 +121,8 @@ export class InteractionController implements InteractionControllerType {
                     hitInfo.hitArea.action,
                     {
                         position: elementPoint,
-                        deltaX: elementPoint.x - startPoint.x,
-                        deltaY: elementPoint.y - startPoint.y
+                        deltaX: elementPoint.x - lastPoint.x,
+                        deltaY: elementPoint.y - lastPoint.y
                     });
 
                 lastPoint = elementPoint;
@@ -195,18 +195,18 @@ export class InteractionController implements InteractionControllerType {
         }
     }
 
-    updateBehaviours(newBehaviour?: DiagramElementBehaviour<any>, prevBehaviour?: DiagramElementBehaviour<any>) {
-        if (prevBehaviour) {
-            this.behaviours[prevBehaviour.action] = this.behaviours[prevBehaviour.action].filter(x => x !== prevBehaviour);
+    updateActions(newAction?: DiagramElementAction<any>, prevAction?: DiagramElementAction<any>) {
+        if (prevAction) {
+            this.actions[prevAction.action] = this.actions[prevAction.action].filter(x => x !== prevAction);
         }
-        if (newBehaviour) {
-            this.behaviours[newBehaviour.action] = (this.behaviours[newBehaviour.action] || []).concat(newBehaviour);
+        if (newAction) {
+            this.actions[newAction.action] = (this.actions[newAction.action] || []).concat(newAction);
         }
     }
 
     dispatch<T>(elements: DiagramNode[], action: string, payload: T) {
         elements.forEach(element => {
-            const callbacks = this.behaviours[action]
+            const callbacks = this.actions[action]
                 ?.filter(x => x.element === element)
                 ?.map(x => x.callback);
             if (callbacks) {

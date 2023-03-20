@@ -1,5 +1,5 @@
 /** @jsxImportSource .. */
-import { DiagramNode, useIdleEffect, useState } from "..";
+import { DiagramElementNode, useIdleEffect, useState } from "..";
 import {
     InteractionContext, 
     InteractionController
@@ -7,13 +7,13 @@ import {
 
 export interface RootProps {
     svg: SVGGraphicsElement;
-    children: DiagramNode[];
+    children: DiagramElementNode[];
 }
 
 export function Root(props: RootProps): JSX.Element {
     const [matrix, setMatrix] = useState<DOMMatrix | undefined>(undefined);
     const [controller] = useState(new InteractionController(props.svg));
-    const [selectedElements, setSelectedElements] = useState<DiagramNode[]>([]);
+    const [selectedElements, setSelectedElements] = useState<DiagramElementNode[]>([]);
 
     controller.onSelect = (elements) => setSelectedElements(elements);
 
@@ -28,7 +28,7 @@ export function Root(props: RootProps): JSX.Element {
         }
     }); 
 
-    const DiagramElements = (props: { elements: DiagramNode[] }) => {
+    const DiagramElements = (props: { elements: DiagramElementNode[] }) => {
         return (
             <g>
                 {props.elements}

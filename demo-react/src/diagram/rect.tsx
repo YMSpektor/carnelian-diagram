@@ -1,7 +1,7 @@
 /** @jsxImportSource carnelian-diagram */
 
-import { useContext, renderContext } from "carnelian-diagram";
-import { useControls, useHitTest, rectHitTest, InteractionContext, useBehaviour, MovementActionPayload } from "carnelian-diagram/interactivity";
+import { useContext, renderContext, DiagramElementProps } from "carnelian-diagram";
+import { useControls, useHitTest, rectHitTest, InteractionContext, useAction, MovementActionPayload } from "carnelian-diagram/interactivity";
 import { HandleControl } from "./handle";
 
 export interface RectProps {
@@ -13,7 +13,8 @@ export interface RectProps {
     fill?: string;
 }
 
-export function Rect(props: RectProps) {
+export function Rect(props: DiagramElementProps<RectProps>) {
+    const { onChange, ...rest } = props;
     const interactions = useContext(InteractionContext);
     const isSelected = interactions?.isSelected(renderContext.currentNode!);
 
@@ -25,18 +26,16 @@ export function Rect(props: RectProps) {
             type: "in",
             action: "move",
             cursor: "move",
-            onDrag: (curPos, prevPos, startPos, update) => {
-                update({
-                    ...props,
-                    x: props.x + (curPos.x - startPos.x),
-                    y: props.y + (curPos.y - startPos.y)
-                });  
-            }
+            onDrag: (curPos, prevPos, startPos, update) => { }
         },
     );
 
-    useBehaviour<MovementActionPayload>("move", (payload) => {
-        console.log(payload);
+    useAction<MovementActionPayload>("move", (payload) => {
+        onChange(props => ({
+            ...props,
+            x: props.x + payload.deltaX,
+            y: props.y + payload.deltaY
+        }));
     });
 
     useControls((transform, element) => {
@@ -91,6 +90,6 @@ export function Rect(props: RectProps) {
     });
 
     return (
-        <rect {...props} />
+        <rect {...rest} />
     );
 }
