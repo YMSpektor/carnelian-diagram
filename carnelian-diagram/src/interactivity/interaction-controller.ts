@@ -16,10 +16,6 @@ export interface DiagramElementAction<T> {
     callback: ActionCallback<T>;
 }
 
-export interface ActionCollection {
-    [action: string]: DiagramElementAction<any>[];
-}
-
 export interface InteractionControllerType {
     init(transform?: DOMMatrixReadOnly): void;
     isSelected(element: DiagramNode): boolean;
@@ -45,7 +41,7 @@ export interface MovementActionPayload {
 export class InteractionController implements InteractionControllerType {
     private controls: DiagramElementControls[] = [];
     private hitAreas: HitAreaCollection = {};
-    private actions: ActionCollection = {};
+    private actions = new Map<DiagramNode, DiagramElementAction<any>[]>();
     private selectedElements = new Set<DiagramNode>();
     private transform?: DOMMatrixReadOnly;
 
@@ -190,17 +186,17 @@ export class InteractionController implements InteractionControllerType {
 
     updateActions(newAction?: DiagramElementAction<any>, prevAction?: DiagramElementAction<any>) {
         if (prevAction) {
-            this.actions[prevAction.action] = this.actions[prevAction.action].filter(x => x !== prevAction);
+            this.actions.set(prevAction.element, this.actions.get(prevAction.element)?.filter(x => x !== prevAction) || []);
         }
         if (newAction) {
-            this.actions[newAction.action] = (this.actions[newAction.action] || []).concat(newAction);
+            this.actions.set(newAction.element, (this.actions.get(newAction.element) || []).concat(newAction));
         }
     }
 
     dispatch<T>(elements: DiagramNode[], action: string, payload: T) {
         elements.forEach(element => {
-            const callbacks = this.actions[action]
-                ?.filter(x => x.element === element)
+            const callbacks = this.actions.get(element)
+                ?.filter(x => x.action === action)
                 ?.map(x => x.callback);
             if (callbacks) {
                 callbacks.forEach(cb => cb(payload));
