@@ -2,7 +2,7 @@ import { DiagramElementControls, InteractionContext, RenderControlsCallback } fr
 import { renderContext, useContext, useEffect, useState } from "..";
 
 export function useControls(callback: RenderControlsCallback) {
-    const curElement = renderContext.currentElement;
+    const curElement = renderContext.currentElement();
     if (!curElement) {
         throw new Error("The useControls hook is not allowed to be called from here. It must be called when element is rendering");
     }

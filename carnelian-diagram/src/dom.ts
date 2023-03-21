@@ -1,6 +1,6 @@
 import { ComponentChildren } from "./jsx-runtime";
 import { createProperties, diff, patch, VChild, VNode, VTree } from "virtual-dom";
-import { DiagramComponentData, DiagramNode } from "./diagram";
+import { DiagramNode, isDiagramNode } from "./diagram";
 
 type HyperscriptChild = undefined | null | VChild | HyperscriptChild[];
 type Hyperscript = (tagName: string, properties: createProperties, children: HyperscriptChild) => VNode;
@@ -16,24 +16,24 @@ export class DOMBuilder {
     }
 
     private transformNode(node: DiagramNode): HyperscriptChild {
-        const createVDomNode = (child: ComponentChildren<any, DiagramComponentData> | undefined): HyperscriptChild => {
+        const createVDomNode = (child: ComponentChildren<any> | undefined): HyperscriptChild => {
             if (Array.isArray(child)) {
                 return child.map(createVDomNode);
             }
-            if (child && typeof child === 'object') {
+            if (isDiagramNode(child)) {
                 return this.transformNode(child);
             }
             else {
-                return child;
+                return child as VChild;
             }
         }
 
         if (typeof node.type === 'string') {
             const { children, ...properties } = node.props;
-            return svg(node.type, properties, node.data?.children.map(createVDomNode));
+            return svg(node.type, properties, node.children.map(createVDomNode));
         }
         else {
-            return createVDomNode(node.data?.children);
+            return createVDomNode(node.children);
         }
     }
 

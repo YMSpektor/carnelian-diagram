@@ -1,45 +1,25 @@
-import { renderContext } from "../diagram";
-
-export class ComponentState {
-    hookIndex = 0;
-    states: any[] = [];
-
-    reset() {
-        this.hookIndex = 0;
-    }
-
-    current<T>(initialValue: T) {
-        if (this.hookIndex >= this.states.length) {
-            this.states.push(initialValue);
-        }
-        return this.states[this.hookIndex];
-    }
-
-    set<T>(index: number, newValue: T) {
-        this.states[index] = newValue;
-    }
-}
+import { ComponentState, renderContext } from "../diagram";
 
 export function useState<T>(initialValue: T): [T, (newValue: T) => void] {
     let curNode = renderContext.currentNode;
-    let componentState = curNode?.data?.state;
-    if (!componentState) {
-        throw new Error("The useState hook is not allowed to be called from here. No state is defined for the current node");
+    if (!curNode) {
+        throw new Error("The useState hook is not allowed to be called from here. Current element is not defined");
     }
-    else {
-        const currentState = componentState.current(initialValue);
-        const hookIndex = componentState.hookIndex;
+    let componentState: ComponentState;
+    if (!curNode.hooks.state) {
+        curNode.hooks.state = new ComponentState();
+    }
+    componentState = curNode.hooks.state;
+    const [currentState, hookIndex] = componentState.current(initialValue);
 
-        const updateState = (newValue: T) => {
-            if (currentState !== newValue) {
-                renderContext.effects.push(() => {
-                    componentState && componentState.set(hookIndex, newValue);
-                    renderContext.currentDiagram?.invalidate();
-                });
-            }
+    const updateState = (newValue: T) => {
+        if (currentState !== newValue) {
+            renderContext.queue(() => {
+                componentState.set(hookIndex, newValue);
+                renderContext.currentDiagram?.invalidate();
+            });
         }
-
-        componentState.hookIndex++;
-        return [currentState, updateState];
     }
+
+    return [currentState, updateState];
 }
