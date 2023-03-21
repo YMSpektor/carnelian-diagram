@@ -1,7 +1,7 @@
 /** @jsxImportSource carnelian-diagram */
 
 import { useContext, renderContext, DiagramElementProps } from "carnelian-diagram";
-import { useControls, useHitTest, rectHitTest, InteractionContext, useAction, MovementActionPayload } from "carnelian-diagram/interactivity";
+import { useControls, useHitTest, rectHitTest, InteractionContext, useAction, MovementActionPayload, HitArea } from "carnelian-diagram/interactivity";
 import { HandleControl } from "./handle";
 
 export interface RectProps {
@@ -37,7 +37,7 @@ export function Rect(props: DiagramElementProps<RectProps>) {
         }));
     });
 
-    useAction<MovementActionPayload>("handle_move", (payload) => {
+    useAction<MovementActionPayload>("resize_handle_move", (payload) => {
         const pos = payload.position;
         switch (payload.hitArea.index) {
             case 0:
@@ -84,12 +84,18 @@ export function Rect(props: DiagramElementProps<RectProps>) {
         ] : [];
 
         const cursors = ["nwse-resize", "nesw-resize", "nesw-resize", "nwse-resize"];
+        const hitAreas: HitArea[] = cursors.map((cursor, index) => ({
+            type: "resize_handle",
+            index,
+            cursor,
+            action: "resize_handle_move"
+        }));
 
         return (
             <>
                 { points.map((p, i) => (
                     <HandleControl 
-                        x={p.x} y={p.y} size={8} cursor={cursors[i]} index={i} action="handle_move"
+                        x={p.x} y={p.y} size={8} hitArea={hitAreas[i]}
                         transform={transform} 
                         element={element}
                     />

@@ -1,6 +1,7 @@
 import { DOMBuilder } from "./dom";
 import { ComponentState } from "./hooks";
 import { ComponentChild, ComponentChildren, createElement, FunctionComponent, VirtualNode } from "./jsx-runtime";
+import { schedule } from "./utils/schedule";
 
 export type DiagramElementProps<P> = P & {
     onChange: (callback: (oldProps: DiagramElementProps<P>) => DiagramElementProps<P>) => void;
@@ -24,18 +25,6 @@ export interface DiagramRootProps {
 }
 
 export type DiagramRoot<P extends DiagramRootProps> = FunctionComponent<P>;
-
-type Schedule = any;
-
-const schedule = (callback: () => void): Schedule => {
-    const fn = typeof requestIdleCallback !== 'undefined' ? requestIdleCallback : setImmediate;
-    return fn(callback);
-};
-
-const cancelSchedule = (schedule: Schedule): void => {
-    const fn = typeof cancelIdleCallback !== 'undefined' ? cancelIdleCallback : clearImmediate;
-    fn(schedule);
-};
 
 export interface ContextProviderProps<T> {
     value: T;
@@ -84,7 +73,7 @@ export function createContext<T>(defaultValue: T) {
 
 export class Diagram {
     private isValid = false;
-    private idleCallbackId?: Schedule;
+    private cancelIdleCallback?: () => void;
     private elements: DiagramElementNode[] = [];
     private domBuilder = new DOMBuilder();
     private rootState: ComponentState;
@@ -155,7 +144,6 @@ export class Diagram {
 
     private applyAllEffects() {
         renderContext.currentDiagram = this;
-        renderContext.applyIdleEffects();
         renderContext.applyEffects();
         renderContext.reset();
     }
@@ -166,7 +154,6 @@ export class Diagram {
 
     update(root: SVGGraphicsElement): SVGGraphicsElement {
         renderContext.currentDiagram = this;
-        renderContext.idleEffects = [];
         const rootNode = this.renderNode(
             this.createElementNode(this.rootComponent, {svg: root, children: this.elements}, this.rootState)
         );
@@ -188,14 +175,14 @@ export class Diagram {
                 this.applyAllEffects();
             }     
 
-            this.idleCallbackId = schedule!(workloop);
+            this.cancelIdleCallback = schedule!(workloop);
         }
 
-        this.idleCallbackId = schedule!(workloop);
+        this.cancelIdleCallback = schedule!(workloop);
     }
 
     detach() {
-        this.idleCallbackId && cancelSchedule!(this.idleCallbackId);
+        this.cancelIdleCallback && this.cancelIdleCallback();
     }
 
     add<P extends {}>(type: DiagramElement<P>, props: P): DiagramElementNode<P> {
@@ -211,18 +198,12 @@ class RenderContext {
     currentNode: DiagramNode | null = null;
     currentElement: DiagramNode | null = null;
     effects: Array<() => void> = [];
-    idleEffects: Array<() => void> = [];
 
     reset() {
         this.currentDiagram = null;
         this.currentNode = null;
         this.currentElement = null;
         this.effects = [];
-    }
-
-    applyIdleEffects() {
-        // Idle effects must not be removed from queue when applied
-        this.idleEffects.forEach(effect => effect());
     }
 
     applyEffects() {

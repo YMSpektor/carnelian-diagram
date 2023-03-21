@@ -1,5 +1,6 @@
 /** @jsxImportSource .. */
-import { DiagramElementNode, useIdleEffect, useState } from "..";
+import { schedule } from "../utils/schedule";
+import { DiagramElementNode, useEffect, useState } from "..";
 import {
     InteractionContext, 
     InteractionController
@@ -17,16 +18,30 @@ export function Root(props: RootProps): JSX.Element {
 
     controller.onSelect = (elements) => setSelectedElements(elements);
 
-    useIdleEffect(() => {
-        const newMatrix = props.svg.getScreenCTM?.()?.inverse() || undefined;
-        if ((newMatrix && !matrix) || 
-            (matrix && !newMatrix) || 
-            (newMatrix && matrix && (newMatrix.a !== matrix.a || newMatrix.b !== matrix.b || newMatrix.c !== matrix.c || newMatrix.d !== matrix.d || newMatrix.e !== matrix.e || newMatrix.f !== matrix.f)))
-        {
-            controller.init(newMatrix);
-            setMatrix(newMatrix);
+    useEffect(() => {
+        let cancelSchedule: () => void;
+        let curMatrix = matrix;
+
+        const workloop = () => {
+            const newMatrix = props.svg.getScreenCTM?.()?.inverse() || undefined;
+            if ((newMatrix && !curMatrix) || 
+                (curMatrix && !newMatrix) || 
+                (newMatrix && curMatrix && (newMatrix.a !== curMatrix.a || newMatrix.b !== curMatrix.b || newMatrix.c !== curMatrix.c || newMatrix.d !== curMatrix.d || newMatrix.e !== curMatrix.e || newMatrix.f !== curMatrix.f)))
+            {
+                curMatrix = newMatrix;
+                controller.init(newMatrix);
+                setMatrix(newMatrix);
+            }
+
+            cancelSchedule = schedule(workloop);
         }
-    }); 
+
+        cancelSchedule = schedule(workloop);
+
+        return () => {
+            cancelSchedule();
+        }
+    }, []);
 
     const DiagramElements = (props: { elements: DiagramElementNode[] }) => {
         return (

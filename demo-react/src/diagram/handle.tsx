@@ -1,30 +1,20 @@
 /** @jsxImportSource carnelian-diagram */
 
 import { DiagramNode } from "carnelian-diagram";
-import { createHitTestProps } from "carnelian-diagram/interactivity";
+import { createHitTestProps, HitArea } from "carnelian-diagram/interactivity";
 
 export interface HandleControlProps {
     element: DiagramNode;
     x: number;
     y: number;
     size: number;
-    index: number;
-    action: string;
-    cursor: string;
+    hitArea: HitArea,
     transform: DOMMatrixReadOnly;
 }
 
 export function HandleControl(props: HandleControlProps) {
     const p = new DOMPoint(props.x, props.y).matrixTransform(props.transform);
-    const hitTestProps = createHitTestProps(
-        {
-            type: "handle",
-            index: props.index,
-            action: props.action,
-            cursor: props.cursor,
-        }, 
-        props.element
-    );
+    const hitTestProps = createHitTestProps(props.hitArea, props.element);
 
     return (
         <rect 
