@@ -1,5 +1,6 @@
 import { DiagramNode, RenderContext, useContext } from "..";
 import { CustomPropHook } from "../utils/custom-prop-hook";
+import { segmentDistance } from "../geometry/segment";
 
 export type HitTestCallback = (point: DOMPointReadOnly, transform: DOMMatrixReadOnly) => boolean;
 
@@ -71,5 +72,14 @@ export function rectHitTest(x: number, y: number, width: number, height: number)
     return (point, transform) => {
         const elemPoint = point.matrixTransform(transform);
         return elemPoint.x >= x && elemPoint.y >= y && elemPoint.x <= x + width && elemPoint.y <= y + height;
+    }
+}
+
+export function lineHitTest(x1: number, y1: number, x2: number, y2: number, tolerance: number): HitTestCallback {
+    return (point, transform) => {
+        const p1 = new DOMPoint(x1, y1).matrixTransform(transform.inverse());
+        const p2 = new DOMPoint(x2, y2).matrixTransform(transform.inverse());
+        const d = segmentDistance(point, p1, p2);
+        return d <= tolerance;
     }
 }
