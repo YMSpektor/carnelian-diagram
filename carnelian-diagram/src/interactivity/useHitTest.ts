@@ -27,6 +27,7 @@ export function useHitTest(callback: HitTestCallback, hitArea: HitArea, priority
     useEffect(() => {
         return () => {
             interactions.updateHitTests(undefined, storedHitTest[0]);
+            storedHitTest[0] = undefined;
         }
     }, [interactions]);
 }

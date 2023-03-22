@@ -1,7 +1,7 @@
 import { ActionCallback, DiagramElementAction, InteractionContext } from ".";
 import { renderContext, useContext, useEffect, useState } from "..";
 
-export function useAction<T>(action: string, callback: ActionCallback<T>) {
+export function useAction<T>(actionType: string, callback: ActionCallback<T>) {
     const curElement = renderContext.currentElement();
 
     if (!curElement) {
@@ -15,17 +15,18 @@ export function useAction<T>(action: string, callback: ActionCallback<T>) {
 
     const [storedActions] = useState<[DiagramElementAction<T> | undefined]>([undefined]);
 
-    const behavior: DiagramElementAction<T> = {
+    const action: DiagramElementAction<T> = {
         element: curElement,
         callback,
-        action
+        action: actionType
     }
-    interactions.updateActions(behavior, storedActions[0]);
-    storedActions[0] = behavior; // Setting a state will cause an infinite loop
+    interactions.updateActions(action, storedActions[0]);
+    storedActions[0] = action; // Setting a state will cause an infinite loop
 
     useEffect(() => {
         return () => {
             interactions.updateActions(undefined, storedActions[0]);
+            storedActions[0] = undefined;
         }
     }, [interactions]);
 }

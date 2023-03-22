@@ -24,6 +24,7 @@ export function useControls(callback: RenderControlsCallback) {
     useEffect(() => {
         return () => {
             interactions.updateControls(undefined, storedControls[0]);
+            storedControls[0] = undefined;
         }
     }, [interactions]);
 }

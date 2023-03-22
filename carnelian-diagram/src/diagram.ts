@@ -155,7 +155,6 @@ export class Diagram {
     private prevRootNode?: DiagramNode;
     private domBuilder = new DOMBuilder();
     private isValid = false;
-    private attachedRoot?: SVGGraphicsElement;
     private unschedule?: () => void;
 
     constructor(private rootComponent: DiagramRoot<DiagramRootProps>) { }
@@ -171,6 +170,12 @@ export class Diagram {
         return element;
     }
 
+    private copyNodeState<P>(node: DiagramNode<P>, prevNode?: DiagramNode<P>) {
+        node.hooks = prevNode?.hooks || node.hooks;
+        node.context = prevNode?.context;
+        node.contextValue = prevNode?.contextValue;
+    }
+
     private unmount(node: ComponentChild) {
         if (isDiagramNode(node)) {
             node.children.forEach(x => this.unmount(x));
@@ -180,7 +185,7 @@ export class Diagram {
 
     private render<P>(node: DiagramNode<P>, prevNode?: DiagramNode<P>, parent?: DiagramNode<any>): DiagramNode<P> {
         renderContext.currentNode = node;
-        node.hooks = prevNode?.hooks || node.hooks;
+        this.copyNodeState(node, prevNode);
         node.hooks.reset();
         node.parent = parent;
         let children: ComponentChildren;
@@ -205,6 +210,8 @@ export class Diagram {
             node.children = [];
         }
 
+        const nodesToRender: {node: DiagramNode<unknown>, prevNode?: DiagramNode<unknown>, parent?: DiagramNode<P>}[] = [];
+
         node.children.forEach(child => {
             if (isDiagramNode(child)) {
                 let prevChild: DiagramNode<unknown> | undefined;
@@ -216,63 +223,54 @@ export class Diagram {
                         prevChildren.splice(prevChildIndex, 1);
                     }
                 }
-                this.render(child, prevChild, node);
+                // First unmount then render
+                nodesToRender.push({node: child, prevNode: prevChild, parent: node});
             }
         });
 
         prevChildren?.forEach(x => this.unmount(x));
+        nodesToRender.forEach(x => this.render(x.node, x.prevNode, x.parent));
 
         return node;
-    }
-
-    private scheduleUpdate() {
-        if (!this.attachedRoot) {
-            throw new Error("Diagram must be attached to DOM node to schedule upadate");
-        }
-        const root = this.attachedRoot;
-
-        const workloop = () => {
-            this.update(root, false);
-            if (!this.isValid) {
-                this.scheduleUpdate();
-            }
-        }
-
-        this.unschedule = schedule(workloop);
     }
 
     private commit(root: SVGGraphicsElement, rootNode: DiagramNode): SVGGraphicsElement {
         return this.domBuilder.updateDOM(root, rootNode);
     }
 
-    update(root: SVGGraphicsElement, commitInvalid: boolean): SVGGraphicsElement {
+    update(root: SVGGraphicsElement): SVGGraphicsElement {
         renderContext.currentDiagram = this;
         const rootNode = createElement(this.rootComponent, {svg: root, children: this.elements});
         this.prevRootNode = this.render(rootNode, this.prevRootNode);
         this.isValid = true;
         renderContext.invokePendingActions();
         renderContext.reset();
-        return this.isValid || commitInvalid ? this.commit(root, rootNode) : root;
+        return this.commit(root, rootNode);
     }
 
     invalidate() {
-        if (this.isValid) {
-            this.isValid = false;
-            if (this.attachedRoot) {
-                this.scheduleUpdate();
-            }
-        }
+        this.isValid = false;
     }
 
     attach(root: SVGGraphicsElement) {
-        this.attachedRoot = root;
-        this.isValid = false;
-        this.scheduleUpdate();
+        const workloop = () => {
+            if (!this.isValid) {
+                this.update(root);
+            }
+            else {
+                renderContext.currentDiagram = this;
+                renderContext.invokePendingActions();
+                renderContext.reset();
+            }
+
+            this.unschedule = schedule(workloop);
+        }
+
+        this.unschedule = schedule(workloop);
     }
 
     detach() {
         this.unschedule?.();
-        this.attachedRoot = undefined;
     }
 
     add<P>(type: DiagramElement<P>, props: P): DiagramElementNode<P> {
