@@ -1,6 +1,7 @@
 import { DOMBuilder } from "./dom";
 import { ComponentChild, ComponentChildren, ComponentType, FunctionComponent, jsxCore, Key, RenderableProps, VirtualNode } from "./jsx-runtime";
 import { schedule } from "./utils/schedule";
+import { WithThis } from "./utils/types";
 
 export class ComponentState {
     private hookIndex = 0;
@@ -139,7 +140,8 @@ export function isVirtualNode<P>(node: ComponentChild): node is VirtualNode<P> {
 export type DiagramElementProps<P> = P & {
     onChange: (callback: (oldProps: DiagramElementProps<P>) => DiagramElementProps<P>) => void;
 }
-export type DiagramElement<P> = FunctionComponent<DiagramElementProps<P>>;
+export type DiagramComponent<P> = WithThis<DiagramNode<P>, FunctionComponent<P>>;
+export type DiagramElement<P> = DiagramComponent<DiagramElementProps<P>>;
 export type DiagramElementNode<P = any> = DiagramNode<DiagramElementProps<P>>;
 
 export interface DiagramRootProps {
@@ -192,7 +194,7 @@ export class Diagram {
         node.parent = parent;
         let children: ComponentChildren;
         if (typeof node.type === 'function') {
-            children = node.type(node.props);
+            children = node.type.call(node, node.props);
         }
         else {
             children = node.props.children;

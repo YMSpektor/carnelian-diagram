@@ -1,8 +1,8 @@
 export type ComponentChild<P = any> = VirtualNode<P> | string | null | undefined;
 export type ComponentChildren<P = any> = ComponentChild<P>[] | ComponentChild<P> | ComponentChildren<P>[];
 export type RenderableProps<P> = P & Readonly<{ children?: ComponentChildren; }>;
-export type FunctionComponent<P> = (props: RenderableProps<P>) => JSX.Element;
-export type ComponentType<P = {}> = FunctionComponent<P>;
+export type FunctionComponent<P> = (props: P) => JSX.Element;
+export type ComponentType<P> = FunctionComponent<P>;
 export type Key = string | number | any;
 
 export interface VirtualNode<P = {}> {
