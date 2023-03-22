@@ -1,14 +1,36 @@
 import { useState } from ".";
-import { renderContext } from "..";
+import { ComponentEffects, Effect, EffectCleanup, renderContext } from "..";
 
 function compareArrays(a: any[], b: any[]): boolean {
     return a.length === b.length && a.every((x, i) => x === b[i]);
 }
 
-export function useEffect(callback: () => (() => void) | void, dependencies: any[] | undefined) {
-    const [deps, setDeps] = useState<any[] | undefined>(undefined);
-    if (!dependencies || !deps || !compareArrays(dependencies, deps)) {
-        setDeps(dependencies);
-        renderContext.effects.push(callback); // TODO: clear effect when component is unmounted
+interface StoredEffect {
+    dependencies?: any[];
+    cleanup?: EffectCleanup | void;
+}
+
+export function useEffect(effect: Effect, dependencies: any[] | undefined) {
+    let curNode = renderContext.currentNode;
+    if (!curNode) {
+        throw new Error("The useEffect hook is not allowed to be called from here. Current element is not defined");
+    }
+
+    let effects: ComponentEffects;
+    if (!curNode.hooks.effects) {
+        curNode.hooks.effects = new ComponentEffects();
+    }
+    effects = curNode.hooks.effects;
+
+    const [storedEffect] = useState<StoredEffect>({});
+    if (!dependencies || !storedEffect.dependencies || !compareArrays(dependencies, storedEffect.dependencies)) {
+        storedEffect.dependencies = dependencies;
+        renderContext.queue(() => {
+            storedEffect.cleanup && effects.invokeCleanup(storedEffect.cleanup);
+            const cleanup = storedEffect.cleanup = effect();
+            if (cleanup) {
+                effects.registerCleanup(cleanup);
+            }
+        });
     }
 }

@@ -11,6 +11,30 @@ export interface RootProps {
     children: DiagramElementNode[];
 }
 
+const DiagramElements = (props: { elements: DiagramElementNode[] }) => {
+    return (
+        <g>
+            {props.elements}
+        </g>
+    );
+}
+
+const DiagramControls = (props: { matrix: DOMMatrixReadOnly | undefined }) => {
+    const matrix = props.matrix;
+
+    const transform = matrix 
+        ? `matrix(${matrix.a} ${matrix.b} ${matrix.c} ${matrix.d} ${matrix.e} ${matrix.f})`
+        : undefined;
+
+    return (
+        <InteractionContext.Consumer>
+            {(controller) => (matrix && <g transform={transform}>
+                {controller?.renderControls(matrix.inverse())}
+            </g>)}
+        </InteractionContext.Consumer>
+    );
+}
+
 export function Root(props: RootProps): JSX.Element {
     const [matrix, setMatrix] = useState<DOMMatrix | undefined>(undefined);
     const [controller] = useState(new InteractionController(props.svg));
@@ -42,26 +66,6 @@ export function Root(props: RootProps): JSX.Element {
             cancelSchedule();
         }
     }, []);
-
-    const DiagramElements = (props: { elements: DiagramElementNode[] }) => {
-        return (
-            <g>
-                {props.elements}
-            </g>
-        );
-    }
-
-    const DiagramControls = (props: { matrix: DOMMatrixReadOnly | undefined }) => {
-        const transform = matrix 
-            ? `matrix(${matrix.a} ${matrix.b} ${matrix.c} ${matrix.d} ${matrix.e} ${matrix.f})`
-            : undefined;
-
-        return (
-            props.matrix ? <g transform={transform}>
-                {controller.renderControls(props.matrix.inverse())}
-            </g> : undefined
-        );
-    }
 
     return (
         <InteractionContext.Provider value={controller}>
