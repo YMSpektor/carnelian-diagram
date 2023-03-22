@@ -156,12 +156,14 @@ export class Diagram {
     private domBuilder = new DOMBuilder();
     private isValid = false;
     private unschedule?: () => void;
+    private attachedRoot?: SVGGraphicsElement;
+    private tasks: Array<() => void> = [];
 
     constructor(private rootComponent: DiagramRoot<DiagramRootProps>) { }
 
     private createElementNode<P>(type: DiagramElement<P>, props: P, key: Key): DiagramElementNode<P> {
         const onChange = (callback: (oldProps: DiagramElementProps<P>) => DiagramElementProps<P>) => {
-            renderContext.queue(() => {
+            this.schedule(() => {
                 element.props = callback(element.props);
                 this.invalidate();
             });
@@ -238,39 +240,63 @@ export class Diagram {
         return this.domBuilder.updateDOM(root, rootNode);
     }
 
-    update(root: SVGGraphicsElement): SVGGraphicsElement {
+    update(root: SVGGraphicsElement, commitInvalid: boolean): SVGGraphicsElement {
         renderContext.currentDiagram = this;
         const rootNode = createElement(this.rootComponent, {svg: root, children: this.elements});
         this.prevRootNode = this.render(rootNode, this.prevRootNode);
         this.isValid = true;
         renderContext.invokePendingActions();
         renderContext.reset();
-        return this.commit(root, rootNode);
+        return this.isValid || commitInvalid ? this.commit(root, rootNode) : root;
     }
 
     invalidate() {
-        this.isValid = false;
+        if (this.isValid) {
+            this.isValid = false;
+            this.attachedRoot && this.scheduleUpdate(this.attachedRoot);
+        }
+    }
+
+    private scheduleUpdate(root: SVGGraphicsElement) {
+        this.scheduleTask(() => {
+            this.update(root, false);
+        });
+    }
+
+    private scheduleTask(task: () => void) {
+        this.tasks.push(task);
+        if (!this.unschedule) {
+            this.unschedule = schedule(() => {
+                this.unschedule = undefined;
+                const tasks = [...this.tasks];
+                this.tasks = [];
+                tasks.forEach(task => task());
+            });
+        }
+    }
+
+    schedule(action: () => void) {
+        if (renderContext.isRendering()) {
+            renderContext.queue(action);
+        }
+        else {
+            this.scheduleTask(() => {
+                renderContext.currentDiagram = this;
+                action();
+                renderContext.reset();
+            });
+        }
     }
 
     attach(root: SVGGraphicsElement) {
-        const workloop = () => {
-            if (!this.isValid) {
-                this.update(root);
-            }
-            else {
-                renderContext.currentDiagram = this;
-                renderContext.invokePendingActions();
-                renderContext.reset();
-            }
-
-            this.unschedule = schedule(workloop);
-        }
-
-        this.unschedule = schedule(workloop);
+        this.attachedRoot = root;
+        this.scheduleUpdate(root);
     }
 
     detach() {
+        this.attachedRoot = undefined;
         this.unschedule?.();
+        this.unschedule = undefined;
     }
 
     add<P>(type: DiagramElement<P>, props: P): DiagramElementNode<P> {
@@ -310,6 +336,10 @@ export class RenderContext {
             action();
             action = this.pendingActions.shift();
         }
+    }
+
+    isRendering(): boolean {
+        return !!this.currentNode;
     }
 }
 

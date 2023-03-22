@@ -1,6 +1,6 @@
 import { ComponentChildren } from "./jsx-runtime";
 import { createProperties, diff, patch, VChild, VNode, VTree } from "virtual-dom";
-import { DiagramNode, isDiagramNode } from "./diagram";
+import { DiagramNode, isVirtualNode } from "./diagram";
 
 type HyperscriptChild = undefined | null | VChild | HyperscriptChild[];
 type Hyperscript = (tagName: string, properties: createProperties, children: HyperscriptChild) => VNode;
@@ -20,11 +20,11 @@ export class DOMBuilder {
             if (Array.isArray(child)) {
                 return child.map(createVDomNode);
             }
-            if (isDiagramNode(child)) {
-                return this.transformNode(child);
+            if (isVirtualNode(child)) {
+                return this.transformNode(child as DiagramNode);
             }
             else {
-                return child as VChild;
+                return child;
             }
         }
 

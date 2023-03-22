@@ -12,6 +12,7 @@ interface StoredEffect {
 
 export function useEffect(effect: Effect, dependencies: any[] | undefined) {
     let curNode = renderContext.currentNode;
+    const diagram = renderContext.currentDiagram;
     if (!curNode) {
         throw new Error("The useEffect hook is not allowed to be called from here. Current element is not defined");
     }
@@ -25,7 +26,7 @@ export function useEffect(effect: Effect, dependencies: any[] | undefined) {
     const [storedEffect] = useState<StoredEffect>({});
     if (!dependencies || !storedEffect.dependencies || !compareArrays(dependencies, storedEffect.dependencies)) {
         storedEffect.dependencies = dependencies;
-        renderContext.queue(() => {
+        diagram?.schedule(() => {
             storedEffect.cleanup && effects.invokeCleanup(storedEffect.cleanup);
             const cleanup = storedEffect.cleanup = effect();
             if (cleanup) {
