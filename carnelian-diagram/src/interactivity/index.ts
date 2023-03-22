@@ -1,3 +1,4 @@
+export * from "./diagram-root";
 export * from "./hit-tests";
 export * from "./interaction-controller";
 export * from "./useAction";

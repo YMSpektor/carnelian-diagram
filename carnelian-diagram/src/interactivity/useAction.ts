@@ -1,8 +1,9 @@
 import { ActionCallback, DiagramElementAction, InteractionContext } from ".";
-import { renderContext, useContext, useEffect, useState } from "..";
+import { RenderContext, useContext, useEffect, useState } from "..";
 
 export function useAction<T>(actionType: string, callback: ActionCallback<T>) {
-    const curElement = renderContext.currentElement();
+    const renderContext = useContext(RenderContext);
+    const curElement = renderContext?.currentElement();
 
     if (!curElement) {
         throw new Error("The useAction hook is not allowed to be called from here. Current element is not defined");

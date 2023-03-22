@@ -1,4 +1,4 @@
-import { DiagramNode, renderContext } from "..";
+import { DiagramNode, RenderContext, useContext } from "..";
 import { CustomPropHook } from "../utils/custom-prop-hook";
 
 export type HitTestCallback = (point: DOMPointReadOnly, transform: DOMMatrixReadOnly) => boolean;
@@ -44,7 +44,8 @@ export function hasHitTestProps(target: EventTarget): target is HitTestEventTarg
 }
 
 export function createHitTestProps(hitArea: HitArea, element?: DiagramNode) {
-    const elem = element || renderContext.currentElement;
+    const renderContext = useContext(RenderContext);
+    const elem = element || renderContext?.currentElement;
     if (!elem) {
         throw new Error("The createHitTestProps function is not allowed to be called from here. Current element is not defined");
     }

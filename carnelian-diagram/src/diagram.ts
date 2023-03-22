@@ -1,5 +1,6 @@
-import { DOMBuilder } from "./dom";
 import { ComponentChild, ComponentChildren, ComponentType, FunctionComponent, jsxCore, Key, RenderableProps, VirtualNode } from "./jsx-runtime";
+import { Root } from "./components/root";
+import { DOMBuilder } from "./dom";
 import { schedule } from "./utils/schedule";
 import { WithThis } from "./utils/types";
 
@@ -57,40 +58,47 @@ export interface ContextConsumerProps<T> {
     children?: (value: T) => JSX.Element;
 }
 
-export class Context<T> {
-    private defaultValue: T;
+export interface Context<T> {
+    defaultValue: T;
+    renderContext?: RenderContextType;
+    currentValue(): T;
+    Provider: DiagramComponent<ContextProviderProps<T>>;
+    Consumer: DiagramComponent<ContextConsumerProps<T>>;
+}
 
-    constructor(defaultValue: T) {
-        this.defaultValue = defaultValue;
+export function createContext<T>(defaultValue: T): Context<T> {
+    const context: Context<T> = {
+        defaultValue,
+        currentValue: () => defaultValue,
+        Provider: (props) => undefined,
+        Consumer: (props) => undefined
     }
 
-    Provider = (props: ContextProviderProps<T>): JSX.Element => {
-        this.currentValue = props.value;
+    context.currentValue = () => {
+        let node: DiagramNode | undefined = context.renderContext?.currentNode;
+        while (node && node.context !== context) {
+            node = node.parent;
+        }
+        return node?.contextValue || context.defaultValue;
+    }
+
+    context.Provider = function(props) {
+        this.context = context;
+        this.contextValue = props.value;
+        // Root element context must be RenderContext
+        let node: DiagramNode = this;
+        while (node.parent) {
+            node = node.parent;
+        }
+        context.renderContext = node.contextValue;
         return props.children;
     }
 
-    Consumer = (props: ContextConsumerProps<T>): JSX.Element => {
-        return props.children?.(this.currentValue);
+    context.Consumer = function(props) {
+        return props.children?.(context.currentValue());
     }
 
-    get currentValue(): T {
-        let node: DiagramNode | undefined = renderContext.currentNode;
-        while (node && node.context !== this) {
-            node = node.parent;
-        }
-        return node?.contextValue || this.defaultValue;
-    }
-
-    set currentValue(value: T) {
-        if (renderContext.currentNode) {
-            renderContext.currentNode.context = this;
-            renderContext.currentNode.contextValue = value;
-        }
-    }
-}
-
-export function createContext<T>(defaultValue: T) {
-    return new Context<T>(defaultValue);
+    return context;
 }
 
 export class ComponentHooks {
@@ -154,6 +162,7 @@ export type DiagramRoot<P extends DiagramRootProps> = FunctionComponent<P>;
 export class Diagram {
     private lastElementId = 0;
     private elements: DiagramElementNode[] = [];
+    private renderContext = new RenderContextType();
     private prevRootNode?: DiagramNode;
     private domBuilder = new DOMBuilder();
     private isValid = false;
@@ -161,7 +170,7 @@ export class Diagram {
     private attachedRoot?: SVGGraphicsElement;
     private tasks: Array<() => void> = [];
 
-    constructor(private rootComponent: DiagramRoot<DiagramRootProps>) { }
+    constructor(private diagramRoot: DiagramRoot<DiagramRootProps>) { }
 
     private createElementNode<P>(type: DiagramElement<P>, props: P, key: Key): DiagramElementNode<P> {
         const onChange = (callback: (oldProps: DiagramElementProps<P>) => DiagramElementProps<P>) => {
@@ -176,8 +185,8 @@ export class Diagram {
 
     private copyNodeState<P>(node: DiagramNode<P>, prevNode?: DiagramNode<P>) {
         node.hooks = prevNode?.hooks || node.hooks;
-        node.context = prevNode?.context;
-        node.contextValue = prevNode?.contextValue;
+        node.context = node.context || prevNode?.context;
+        node.contextValue = node.contextValue || prevNode?.contextValue;
     }
 
     private unmount(node: ComponentChild) {
@@ -188,7 +197,7 @@ export class Diagram {
     }
 
     private render<P>(node: DiagramNode<P>, prevNode?: DiagramNode<P>, parent?: DiagramNode<any>): DiagramNode<P> {
-        renderContext.currentNode = node;
+        this.renderContext.currentNode = node;
         this.copyNodeState(node, prevNode);
         node.hooks.reset();
         node.parent = parent;
@@ -243,12 +252,16 @@ export class Diagram {
     }
 
     update(root: SVGGraphicsElement, commitInvalid: boolean): SVGGraphicsElement {
-        renderContext.currentDiagram = this;
-        const rootNode = createElement(this.rootComponent, {svg: root, children: this.elements});
+        this.renderContext.currentDiagram = this;
+        const rootNode = createElement(Root, {
+            renderContext: this.renderContext,
+            diagramRoot: this.diagramRoot,
+            diagramRootProps: {svg: root, children: this.elements}
+        });
         this.prevRootNode = this.render(rootNode, this.prevRootNode);
         this.isValid = true;
-        renderContext.invokePendingActions();
-        renderContext.reset();
+        this.renderContext.invokePendingActions();
+        this.renderContext.reset();
         return this.isValid || commitInvalid ? this.commit(root, rootNode) : root;
     }
 
@@ -278,14 +291,14 @@ export class Diagram {
     }
 
     schedule(action: () => void) {
-        if (renderContext.isRendering()) {
-            renderContext.queue(action);
+        if (this.renderContext.isRendering()) {
+            this.renderContext.queue(action);
         }
         else {
             this.scheduleTask(() => {
-                renderContext.currentDiagram = this;
+                this.renderContext.currentDiagram = this;
                 action();
-                renderContext.reset();
+                this.renderContext.reset();
             });
         }
     }
@@ -310,7 +323,7 @@ export class Diagram {
     }
 }
 
-export class RenderContext {
+export class RenderContextType {
     private pendingActions: Array<() => void> = [];
     currentNode?: DiagramNode;
     currentDiagram?: Diagram;
@@ -345,4 +358,4 @@ export class RenderContext {
     }
 }
 
-export const renderContext = new RenderContext();
+export const RenderContext = createContext<RenderContextType | undefined>(undefined);
