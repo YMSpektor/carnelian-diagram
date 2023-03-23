@@ -1,4 +1,13 @@
-import { ComponentChild, ComponentChildren, ComponentType, FunctionComponent, jsxCore, Key, RenderableProps, VirtualNode } from "./jsx-runtime";
+import { 
+    ComponentChild, 
+    ComponentChildren, 
+    ComponentType, 
+    FunctionComponent, 
+    jsxCore, 
+    Key, 
+    RenderableProps, 
+    VirtualNode
+} from "./jsx-runtime";
 import { Root } from "./components/root";
 import { DOMBuilder } from "./dom";
 import { scheduleImmediate } from "./utils/schedule";
@@ -12,7 +21,7 @@ export class ComponentState {
         this.hookIndex = 0;
     }
 
-    current<T>(initialValue: T): [any, number] {
+    current<T>(initialValue: T): [T, number] {
         if (this.hookIndex >= this.states.length) {
             this.states.push(initialValue);
         }
@@ -41,7 +50,8 @@ export interface ContextConsumerProps<T> {
 export interface Context<T> {
     defaultValue: T;
     renderContext?: RenderContextType;
-    currentValue(): T;
+    consume(): T;
+    provide(node: DiagramNode, value: T): void;
     Provider: DiagramComponent<ContextProviderProps<T>>;
     Consumer: DiagramComponent<ContextConsumerProps<T>>;
 }
@@ -49,33 +59,56 @@ export interface Context<T> {
 export function createContext<T>(defaultValue: T): Context<T> {
     const context: Context<T> = {
         defaultValue,
-        currentValue: () => defaultValue,
+        consume: () => defaultValue,
+        provide: (node, value) => {},
         Provider: (props) => undefined,
         Consumer: (props) => undefined
     }
 
-    context.currentValue = () => {
-        let node: DiagramNode | undefined = context.renderContext?.currentNode;
-        while (node && node.context !== context) {
-            node = node.parent;
+    context.consume = () => {
+        const curNode = context.renderContext?.currentNode;
+        if (curNode) {
+            const componentState = curNode.state = curNode.state || new ComponentState();
+            const [storedCleanup] = componentState.current<[EffectCleanup | undefined]>([undefined]);
+            let node: DiagramNode | undefined = curNode;
+            while (node && node.context !== context) {
+                node = node.parent;
+            }
+            if (node && curNode && !node.subscriptions?.has(curNode)) {
+                const subscriptions = node.subscriptions = node.subscriptions || new Set<DiagramNode>();
+                subscriptions.add(curNode);
+                const cleanups = curNode.cleanups = curNode.cleanups || new ComponentCleanups();
+                storedCleanup[0] && cleanups.invokeCleanup(storedCleanup[0]);
+                storedCleanup[0] = () => {
+                    subscriptions.delete(curNode);
+                }
+                cleanups.registerCleanup(storedCleanup[0]);
+
+            }
+            return node?.contextValue || context.defaultValue;
         }
-        return node?.contextValue || context.defaultValue;
     }
 
-    context.Provider = function(props) {
-        this.context = context;
-        this.contextValue = props.value;
+    context.provide = (node: DiagramNode, value: T) => {
+        if (value !== node.contextValue) {
+            node.subscriptions?.forEach(x => x.isValid = false);
+        }
+        node.context = context;
+        node.contextValue = value;
         // Root element context must be RenderContext
-        let node: DiagramNode = this;
         while (node.parent) {
             node = node.parent;
         }
         context.renderContext = node.contextValue;
+    }
+
+    context.Provider = function(props) {
+        context.provide(this, props.value);
         return props.children;
     }
 
     context.Consumer = function(props) {
-        return props.children?.(context.currentValue());
+        return props.children?.(context.consume());
     }
 
     return context;
@@ -108,7 +141,9 @@ export interface DiagramNode<P = any> extends VirtualNode<P> {
     cleanups?: ComponentCleanups;
     context?: Context<any>;
     contextValue?: any;
+    subscriptions?: Set<DiagramNode>;
     isElement?: boolean;
+    isValid?: boolean;
     node_type: "diagram-node";
 }
 
@@ -153,7 +188,7 @@ export type DiagramRoot<P extends DiagramRootProps> = FunctionComponent<P>;
 export class Diagram {
     private lastElementId = 0;
     private elements: DiagramElementNode[] = [];
-    private renderContext = new RenderContextType();
+    private renderContext = new RenderContextType(this);
     private prevRootNode?: DiagramNode;
     private domBuilder = new DOMBuilder();
     private isValid = false;
@@ -167,7 +202,7 @@ export class Diagram {
         const onChange = (callback: (oldProps: DiagramElementProps<P>) => DiagramElementProps<P>) => {
             this.schedule(() => {
                 element.props = callback(element.props);
-                this.invalidate();
+                this.invalidate(element);
             });
         }
         const element = createElement(type, {...props, onChange}, key);
@@ -179,6 +214,7 @@ export class Diagram {
         node.cleanups = prevNode?.cleanups || node.cleanups;
         node.context = node.context || prevNode?.context;
         node.contextValue = node.contextValue || prevNode?.contextValue;
+        node.subscriptions = prevNode?.subscriptions || node.subscriptions;
         node.state?.reset();
     }
 
@@ -190,51 +226,54 @@ export class Diagram {
     }
 
     private render<P>(node: DiagramNode<P>, prevNode?: DiagramNode<P>, parent?: DiagramNode<any>): DiagramNode<P> {
-        this.renderContext.currentNode = node;
-        this.initNode(node, prevNode);
-        node.parent = parent;
-        let children: ComponentChildren;
-        if (typeof node.type === 'function') {
-            children = node.type.call(node, node.props);
-        }
-        else {
-            children = node.props.children;
-        }
-
-        const prevChildren = prevNode?.children;
-        if (children) {
-            if (Array.isArray(children)) {
-                // @ts-ignore
-                node.children = children.flat(Infinity);
+        if (!node.isValid) {
+            this.renderContext.currentNode = node;
+            this.initNode(node, prevNode);
+            node.parent = parent;
+            let children: ComponentChildren;
+            if (typeof node.type === 'function') {
+                children = node.type.call(node, node.props);
             }
             else {
-                node.children = [children];
+                children = node.props.children;
             }
-        }
-        else {
-            node.children = [];
-        }
 
-        const nodesToRender: {node: DiagramNode<unknown>, prevNode?: DiagramNode<unknown>, parent?: DiagramNode<P>}[] = [];
-
-        node.children.forEach(child => {
-            if (isDiagramNode(child)) {
-                let prevChild: DiagramNode<unknown> | undefined;
-                if (prevChildren) {
-                    const prevChildIndex = prevChildren
-                        .findIndex(x => isDiagramNode(x) && x.type === child.type && x.key === child.key);
-                    if (prevChildIndex >= 0) {
-                        prevChild = prevChildren[prevChildIndex] as DiagramNode<unknown>;
-                        prevChildren.splice(prevChildIndex, 1);
-                    }
+            const prevChildren = prevNode?.children;
+            if (children) {
+                if (Array.isArray(children)) {
+                    // @ts-ignore
+                    node.children = children.flat(Infinity);
                 }
-                // First unmount then render
-                nodesToRender.push({node: child, prevNode: prevChild, parent: node});
+                else {
+                    node.children = [children];
+                }
             }
-        });
+            else {
+                node.children = [];
+            }
 
-        prevChildren?.forEach(x => this.unmount(x));
-        nodesToRender.forEach(x => this.render(x.node, x.prevNode, x.parent));
+            const nodesToRender: {node: DiagramNode<unknown>, prevNode?: DiagramNode<unknown>, parent?: DiagramNode<P>}[] = [];
+
+            node.children.forEach(child => {
+                if (isDiagramNode(child)) {
+                    let prevChild: DiagramNode<unknown> | undefined;
+                    if (prevChildren) {
+                        const prevChildIndex = prevChildren
+                            .findIndex(x => isDiagramNode(x) && x.type === child.type && x.key === child.key);
+                        if (prevChildIndex >= 0) {
+                            prevChild = prevChildren[prevChildIndex] as DiagramNode<unknown>;
+                            prevChildren.splice(prevChildIndex, 1);
+                        }
+                    }
+                    // First unmount then render
+                    nodesToRender.push({node: child, prevNode: prevChild, parent: node});
+                }
+            });
+
+            prevChildren?.forEach(x => this.unmount(x));
+            nodesToRender.forEach(x => this.render(x.node, x.prevNode, x.parent));
+            node.isValid = true;
+        }
 
         return node;
     }
@@ -257,7 +296,10 @@ export class Diagram {
         return this.isValid || commitInvalid ? this.commit(root, rootNode) : root;
     }
 
-    invalidate() {
+    invalidate(node?: DiagramNode) {
+        if (node) {
+            node.isValid = false;
+        }
         if (this.isValid) {
             this.isValid = false;
             this.attachedRoot && this.scheduleUpdate(this.attachedRoot);
@@ -310,7 +352,7 @@ export class Diagram {
         const element = this.createElementNode(type, props, this.lastElementId++);
         element.isElement = true;
         this.elements.push(element);
-        this.invalidate();
+        this.invalidate(element);
         return element;
     }
 }
@@ -318,10 +360,10 @@ export class Diagram {
 export class RenderContextType {
     private pendingActions: Array<() => void> = [];
     currentNode?: DiagramNode;
-    currentDiagram?: Diagram;
+
+    constructor(public currentDiagram: Diagram) {}
 
     reset() {
-        this.currentDiagram = undefined;
         this.currentNode = undefined;
     }
 

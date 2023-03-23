@@ -9,8 +9,7 @@ export interface RootProps {
 }
 
 export const Root: DiagramComponent<RootProps> = function(props) {
-    this.context = RenderContext;
-    this.contextValue = RenderContext.renderContext = props.renderContext;
+    RenderContext.provide(this, props.renderContext);
     const DiagramRoot = props.diagramRoot;
     
     return (

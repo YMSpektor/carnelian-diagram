@@ -3,7 +3,8 @@ import { scheduleIdle } from "../utils/schedule";
 import { DiagramElementNode, DiagramRootProps, useEffect, useState } from "..";
 import {
     InteractionContext, 
-    InteractionController
+    InteractionController,
+    SelectionContext
 } from ".";
 
 const DiagramElements = (props: { elements: DiagramElementNode[] }) => {
@@ -65,8 +66,10 @@ export function InteractiveDiagramRoot(props: DiagramRootProps): JSX.Element {
 
     return (
         <InteractionContext.Provider value={controller}>
-            <DiagramElements elements={props.children} />
-            <DiagramControls matrix={matrix} />
+            <SelectionContext.Provider value={selectedElements}>
+                <DiagramElements elements={props.children} />
+                <DiagramControls matrix={matrix} />
+            </SelectionContext.Provider>
         </InteractionContext.Provider>
     )
 }

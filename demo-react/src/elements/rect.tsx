@@ -1,7 +1,7 @@
 /** @jsxImportSource carnelian-diagram */
 
-import { useContext, DiagramElement } from "carnelian-diagram";
-import { useControls, useHitTest, rectHitTest, InteractionContext, useAction, MovementActionPayload, ActionCallback } from "carnelian-diagram/interactivity";
+import { DiagramElement } from "carnelian-diagram";
+import { useControls, useHitTest, useSelection, rectHitTest, useAction, MovementActionPayload, ActionCallback } from "carnelian-diagram/interactivity";
 import { HandleControl, EdgeControl } from "../controls";
 
 export interface RectProps {
@@ -15,8 +15,7 @@ export interface RectProps {
 
 export const Rect: DiagramElement<RectProps> = function(props) {
     const { onChange, ...rest } = props;
-    const interactions = useContext(InteractionContext);
-    const isSelected = interactions?.isSelected(this);
+    const { isSelected } = useSelection();
 
     console.log("Rect: rendering...");
 

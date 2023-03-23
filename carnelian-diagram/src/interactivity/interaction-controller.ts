@@ -18,7 +18,6 @@ export interface DiagramElementAction<T> {
 
 export interface InteractionControllerType {
     updateTransform(transform?: DOMMatrixReadOnly): void;
-    isSelected(element: DiagramNode): boolean;
     updateControls(controls?: DiagramElementControls, prevControls?: DiagramElementControls): void;
     renderControls(transform: DOMMatrixReadOnly): JSX.Element;
     updateHitTests(hitTests?: DiagramElementHitTest, prevHitTests?: DiagramElementHitTest): void;
@@ -30,6 +29,7 @@ export interface InteractionControllerType {
 }
 
 export const InteractionContext = createContext<InteractionControllerType | undefined>(undefined);
+export const SelectionContext = createContext<DiagramElementNode[]>([]);
 
 export interface MovementActionPayload {
     position: DOMPointReadOnly;
@@ -85,9 +85,11 @@ export class InteractionController implements InteractionControllerType {
             }
         }
         else {
-            this.selectedElements.clear();
-            this.svg.style.cursor = "";
-            this.onSelect?.([]);
+            if (this.selectedElements.size > 0) {
+                this.selectedElements.clear();
+                this.svg.style.cursor = "";
+                this.onSelect?.([]);
+            }
         }
     }
 

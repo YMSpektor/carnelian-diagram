@@ -9,18 +9,14 @@ export function useState<T>(initialValue: T): [T, (newValue: T) => void] {
         throw new Error("The useState hook is not allowed to be called from here. Current element is not defined");
     }
     
-    let componentState: ComponentState;
-    if (!curNode.state) {
-        curNode.state = new ComponentState();
-    }
-    componentState = curNode.state;
+    const componentState = curNode.state = curNode.state || new ComponentState();
     const [currentState, hookIndex] = componentState.current(initialValue);
 
     const updateState = (newValue: T) => {
         if (currentState !== newValue) {
             diagram?.schedule(() => {
                 componentState.set(hookIndex, newValue);
-                diagram?.invalidate();
+                diagram?.invalidate(curNode);
             });
         }
     }
