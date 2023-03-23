@@ -1,5 +1,5 @@
 import { useContext, useState } from ".";
-import { ComponentEffects, Effect, EffectCleanup, RenderContext } from "..";
+import { ComponentCleanups, Effect, EffectCleanup, RenderContext } from "..";
 
 function compareArrays(a: any[], b: any[]): boolean {
     return a.length === b.length && a.every((x, i) => x === b[i]);
@@ -18,20 +18,20 @@ export function useEffect(effect: Effect, dependencies: any[] | undefined) {
         throw new Error("The useEffect hook is not allowed to be called from here. Current element is not defined");
     }
 
-    let effects: ComponentEffects;
-    if (!curNode.hooks.effects) {
-        curNode.hooks.effects = new ComponentEffects();
+    let cleanups: ComponentCleanups;
+    if (!curNode.cleanups) {
+        curNode.cleanups = new ComponentCleanups();
     }
-    effects = curNode.hooks.effects;
+    cleanups = curNode.cleanups;
 
     const [storedEffect] = useState<StoredEffect>({});
     if (!dependencies || !storedEffect.dependencies || !compareArrays(dependencies, storedEffect.dependencies)) {
         storedEffect.dependencies = dependencies;
         diagram?.schedule(() => {
-            storedEffect.cleanup && effects.invokeCleanup(storedEffect.cleanup);
+            storedEffect.cleanup && cleanups.invokeCleanup(storedEffect.cleanup);
             const cleanup = storedEffect.cleanup = effect();
             if (cleanup) {
-                effects.registerCleanup(cleanup);
+                cleanups.registerCleanup(cleanup);
             }
         });
     }

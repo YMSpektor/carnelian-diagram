@@ -10,10 +10,10 @@ export function useState<T>(initialValue: T): [T, (newValue: T) => void] {
     }
     
     let componentState: ComponentState;
-    if (!curNode.hooks.state) {
-        curNode.hooks.state = new ComponentState();
+    if (!curNode.state) {
+        curNode.state = new ComponentState();
     }
-    componentState = curNode.hooks.state;
+    componentState = curNode.state;
     const [currentState, hookIndex] = componentState.current(initialValue);
 
     const updateState = (newValue: T) => {

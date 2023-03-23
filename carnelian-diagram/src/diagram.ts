@@ -29,26 +29,6 @@ export class ComponentState {
 export type EffectCleanup = () => void;
 export type Effect = () => EffectCleanup | void;
 
-export class ComponentEffects {
-    private cleanupFunctions: EffectCleanup[] = [];
-
-    registerCleanup(cleanup: EffectCleanup) {
-        this.cleanupFunctions.push(cleanup);
-    }
-
-    invokeCleanup(cleanup: EffectCleanup) {
-        cleanup();
-        this.cleanupFunctions = this.cleanupFunctions.filter(x => x !== cleanup);
-    }
-
-    cleanupAll() {
-        this.cleanupFunctions = this.cleanupFunctions.reduce<EffectCleanup[]>((result, cleanup) => {
-            cleanup();
-            return result;
-        }, []);
-    }
-}
-
 export interface ContextProviderProps<T> {
     value: T;
     children?: JSX.Element;
@@ -101,19 +81,31 @@ export function createContext<T>(defaultValue: T): Context<T> {
     return context;
 }
 
-export class ComponentHooks {
-    state?: ComponentState;
-    effects?: ComponentEffects;
+export class ComponentCleanups {
+    private cleanupFunctions: EffectCleanup[] = [];  
 
-    reset() {
-        this.state?.reset();
+    registerCleanup(cleanup: EffectCleanup) {
+        this.cleanupFunctions.push(cleanup);
+    }
+
+    invokeCleanup(cleanup: EffectCleanup) {
+        cleanup();
+        this.cleanupFunctions = this.cleanupFunctions.filter(x => x !== cleanup);
+    }
+
+    cleanupAll() {
+        this.cleanupFunctions = this.cleanupFunctions.reduce<EffectCleanup[]>((result, cleanup) => {
+            cleanup();
+            return result;
+        }, []);
     }
 }
 
 export interface DiagramNode<P = any> extends VirtualNode<P> {
     parent?: DiagramNode;
     children: ComponentChild[];
-    hooks: ComponentHooks;
+    state?: ComponentState;
+    cleanups?: ComponentCleanups;
     context?: Context<any>;
     contextValue?: any;
     isElement?: boolean;
@@ -130,7 +122,6 @@ const createElement = <P>(
         props,
         key,
         children: [],
-        hooks: new ComponentHooks(),
         node_type: "diagram-node"
     };
 }
@@ -183,23 +174,24 @@ export class Diagram {
         return element;
     }
 
-    private copyNodeState<P>(node: DiagramNode<P>, prevNode?: DiagramNode<P>) {
-        node.hooks = prevNode?.hooks || node.hooks;
+    private initNode<P>(node: DiagramNode<P>, prevNode?: DiagramNode<P>) {
+        node.state = prevNode?.state || node.state;
+        node.cleanups = prevNode?.cleanups || node.cleanups;
         node.context = node.context || prevNode?.context;
         node.contextValue = node.contextValue || prevNode?.contextValue;
+        node.state?.reset();
     }
 
     private unmount(node: ComponentChild) {
         if (isDiagramNode(node)) {
             node.children.forEach(x => this.unmount(x));
-            node.hooks.effects?.cleanupAll();
+            node.cleanups?.cleanupAll();
         }
     }
 
     private render<P>(node: DiagramNode<P>, prevNode?: DiagramNode<P>, parent?: DiagramNode<any>): DiagramNode<P> {
         this.renderContext.currentNode = node;
-        this.copyNodeState(node, prevNode);
-        node.hooks.reset();
+        this.initNode(node, prevNode);
         node.parent = parent;
         let children: ComponentChildren;
         if (typeof node.type === 'function') {
