@@ -35,6 +35,7 @@ export function InteractiveDiagramRoot(props: DiagramRootProps): JSX.Element {
     const [controller] = useState(new InteractionController(props.svg));
     const [selectedElements, setSelectedElements] = useState<DiagramElementNode[]>([]);
 
+    controller.elements = props.children;
     controller.onSelect = (elements) => setSelectedElements(elements);
 
     useEffect(() => {
@@ -48,7 +49,7 @@ export function InteractiveDiagramRoot(props: DiagramRootProps): JSX.Element {
                 (newMatrix && curMatrix && (newMatrix.a !== curMatrix.a || newMatrix.b !== curMatrix.b || newMatrix.c !== curMatrix.c || newMatrix.d !== curMatrix.d || newMatrix.e !== curMatrix.e || newMatrix.f !== curMatrix.f)))
             {
                 curMatrix = newMatrix;
-                controller.init(newMatrix);
+                controller.updateTransform(newMatrix);
                 setMatrix(newMatrix);
             }
 

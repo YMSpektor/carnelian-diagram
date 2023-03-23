@@ -174,7 +174,7 @@ export const Rect: DiagramElement<RectProps> = function(props) {
                         transform={transform}
                         element={element}
                         onDrag={control.dragHandler}
-                />
+                    />
                 ))}
                 { handles.map(control => (
                     <HandleControl

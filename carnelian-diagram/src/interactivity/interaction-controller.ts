@@ -1,4 +1,4 @@
-import { createContext, DiagramNode } from "..";
+import { createContext, DiagramElementNode, DiagramNode } from "..";
 import { DiagramElementHitTest, hasHitTestProps, HitArea, HitAreaCollection, HitInfo } from "./hit-tests";
 
 export type RenderControlsCallback = (transform: DOMMatrixReadOnly, element: DiagramNode) => JSX.Element;
@@ -17,7 +17,7 @@ export interface DiagramElementAction<T> {
 }
 
 export interface InteractionControllerType {
-    init(transform?: DOMMatrixReadOnly): void;
+    updateTransform(transform?: DOMMatrixReadOnly): void;
     isSelected(element: DiagramNode): boolean;
     updateControls(controls?: DiagramElementControls, prevControls?: DiagramElementControls): void;
     renderControls(transform: DOMMatrixReadOnly): JSX.Element;
@@ -43,11 +43,11 @@ export class InteractionController implements InteractionControllerType {
     private hitAreas: HitAreaCollection = {};
     private actions = new Map<DiagramNode, DiagramElementAction<any>[]>();
     private selectedElements = new Set<DiagramNode>();
-    private transform?: DOMMatrixReadOnly;
+    elements: DiagramElementNode[] = [];
 
-    constructor(private svg: SVGGraphicsElement) {}
+    constructor(private svg: SVGGraphicsElement, private transform?: DOMMatrixReadOnly) {}
 
-    init(transform?: DOMMatrixReadOnly) {
+    updateTransform(transform?: DOMMatrixReadOnly) {
         this.transform = transform;
         this.svg.onmousedown = (e) => this.mouseDownHandler(e);
         this.svg.onmousemove = (e) => this.mouseMoveHandler(e);
@@ -143,10 +143,25 @@ export class InteractionController implements InteractionControllerType {
 
     updateHitTests(newHitTests?: DiagramElementHitTest, prevHitTests?: DiagramElementHitTest) {
         if (prevHitTests) {
-            this.hitAreas[prevHitTests.priority] = this.hitAreas[prevHitTests.priority].filter(x => x !== prevHitTests);
+            const map = this.hitAreas[prevHitTests.priority];
+            let arr = map?.get(prevHitTests.element);
+            arr = arr?.filter(x => x !== prevHitTests);
+            if (arr && arr.length) {
+                map?.set(prevHitTests.element, arr);
+            }
+            else {
+                map?.delete(prevHitTests.element);
+            }
         }
         if (newHitTests) {
-            this.hitAreas[newHitTests.priority] = (this.hitAreas[newHitTests.priority] || []).concat(newHitTests);
+            let map = this.hitAreas[newHitTests.priority];
+            if (!map) {
+                map = new Map<DiagramNode, DiagramElementHitTest[]>();
+                this.hitAreas[newHitTests.priority] = map;
+            }
+            let arr = map.get(newHitTests.element) || [];
+            arr = arr.concat(newHitTests);
+            map.set(newHitTests.element, arr);
         }
     }
 
@@ -166,8 +181,18 @@ export class InteractionController implements InteractionControllerType {
             }
             else {
                 const priorities = Object.keys(this.hitAreas).map(x => parseInt(x)).reverse();
+                const reversedElements = this.elements.slice().reverse();
+                const sortedElements = reversedElements
+                    .filter(x => this.isSelected(x))
+                    .concat(reversedElements.filter(x => !this.isSelected(x)));  
                 for (let priority of priorities) {
-                    const hit = this.hitAreas[priority].find(x => x.callback(point, transform));
+                    let hit: DiagramElementHitTest | undefined;
+                    for (let element of sortedElements) {
+                        hit = this.hitAreas[priority]
+                            ?.get(element)
+                            ?.find(x => x.callback(point, transform));
+                        if (hit) break;
+                    }
                     if (hit) {
                         const elementPoint = point.matrixTransform(transform);
                         return {

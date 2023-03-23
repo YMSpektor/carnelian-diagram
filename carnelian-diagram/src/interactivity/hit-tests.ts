@@ -28,7 +28,7 @@ export interface DiagramElementHitTest {
 }
 
 export interface HitAreaCollection {
-    [priority: number]: DiagramElementHitTest[];
+    [priority: number]: Map<DiagramNode, DiagramElementHitTest[]> | undefined;
 }
 
 export interface HitTestProps {
