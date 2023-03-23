@@ -158,7 +158,9 @@ export class InteractionController implements InteractionControllerType {
     }
 
     renderControls(transform: DOMMatrixReadOnly): JSX.Element {
-        return this.controls.map(x => x.callback(transform, x.element));
+        return this.controls
+            .filter(x => this.isSelected(x.element))
+            .map(x => x.callback(transform, x.element));
     }
 
     updateHitTests(newHitTests?: DiagramElementHitTest, prevHitTests?: DiagramElementHitTest) {

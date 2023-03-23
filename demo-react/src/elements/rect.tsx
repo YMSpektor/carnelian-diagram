@@ -1,7 +1,7 @@
 /** @jsxImportSource carnelian-diagram */
 
 import { DiagramElement } from "carnelian-diagram";
-import { useControls, useHitTest, useSelection, rectHitTest, useAction, MovementActionPayload, ActionCallback } from "carnelian-diagram/interactivity";
+import { useControls, useHitTest, rectHitTest, useAction, MovementActionPayload, ActionCallback } from "carnelian-diagram/interactivity";
 import { HandleControl, EdgeControl } from "../controls";
 
 export interface RectProps {
@@ -15,7 +15,6 @@ export interface RectProps {
 
 export const Rect: DiagramElement<RectProps> = function(props) {
     const { onChange, ...rest } = props;
-    const { isSelected } = useSelection();
 
     console.log("Rect: rendering...");
 
@@ -150,19 +149,19 @@ export const Rect: DiagramElement<RectProps> = function(props) {
 
     useControls((transform, element) => {
         const { x, y, width, height } = props;
-        const handles = isSelected ? [
+        const handles = [
             createHandleControl(0, x, y, "nwse-resize", resizeTopLeft),
             createHandleControl(1, x + width, y, "nesw-resize", resizeTopRight),
             createHandleControl(2, x, y + height, "nesw-resize", resizeBottomLeft),
             createHandleControl(3, x + width, y + height, "nwse-resize", resizeBottomRight),
-        ] : [];
+        ];
 
-        const edges = isSelected ? [
+        const edges = [
             createEdgeControl(0, x, y, x, y + height, "ew-resize", resizeLeft),
             createEdgeControl(1, x, y, x + width, y, "ns-resize", resizeTop),
             createEdgeControl(2, x + width, y, x + width, y + height, "ew-resize", resizeRight),
             createEdgeControl(3, x, y + height, x + width, y + height, "ns-resize", resizeBottom)
-        ] : [];
+        ];
 
         return (
             <>
