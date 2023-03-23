@@ -1,7 +1,7 @@
 import { ComponentChild, ComponentChildren, ComponentType, FunctionComponent, jsxCore, Key, RenderableProps, VirtualNode } from "./jsx-runtime";
 import { Root } from "./components/root";
 import { DOMBuilder } from "./dom";
-import { schedule } from "./utils/schedule";
+import { scheduleImmediate } from "./utils/schedule";
 import { WithThis } from "./utils/types";
 
 export class ComponentState {
@@ -281,7 +281,7 @@ export class Diagram {
     private scheduleTask(task: () => void) {
         this.tasks.push(task);
         if (!this.unschedule) {
-            this.unschedule = schedule(() => {
+            this.unschedule = scheduleImmediate(() => {
                 this.unschedule = undefined;
                 const tasks = [...this.tasks];
                 this.tasks = [];

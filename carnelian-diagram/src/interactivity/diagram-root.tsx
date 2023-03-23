@@ -1,5 +1,5 @@
 /** @jsxImportSource .. */
-import { schedule } from "../utils/schedule";
+import { scheduleIdle } from "../utils/schedule";
 import { DiagramElementNode, DiagramRootProps, useEffect, useState } from "..";
 import {
     InteractionContext, 
@@ -53,10 +53,10 @@ export function InteractiveDiagramRoot(props: DiagramRootProps): JSX.Element {
                 setMatrix(newMatrix);
             }
 
-            cancelSchedule = schedule(workloop);
+            cancelSchedule = scheduleIdle(workloop);
         }
 
-        cancelSchedule = schedule(workloop);
+        cancelSchedule = scheduleIdle(workloop);
 
         return () => {
             cancelSchedule();
