@@ -43,19 +43,21 @@ export class InteractionController implements InteractionControllerType {
     private hitAreas: HitAreaCollection = {};
     private actions = new Map<DiagramNode, DiagramElementAction<any>[]>();
     private selectedElements = new Set<DiagramNode>();
+    private dragging = false;
     elements: DiagramElementNode[] = [];
 
     constructor(private svg: SVGGraphicsElement, private transform?: DOMMatrixReadOnly) {}
 
     updateTransform(transform?: DOMMatrixReadOnly) {
         this.transform = transform;
-        this.svg.onmousedown = (e) => this.mouseDownHandler(e);
-        this.svg.onmousemove = (e) => this.mouseMoveHandler(e);
+        this.svg.onpointerdown = (e) => this.mouseDownHandler(e);
+        this.svg.onpointermove = (e) => this.mouseMoveHandler(e);
     }
 
-    private mouseDownHandler(e: MouseEvent) {
+    private mouseDownHandler(e: PointerEvent) {
+        if (this.dragging) return;
+
         const hitInfo = this.hitTest(e);
-    
         if (hitInfo) {
             const isSelected = this.selectedElements.has(hitInfo.element);
 
@@ -88,19 +90,24 @@ export class InteractionController implements InteractionControllerType {
         }
     }
 
-    private mouseMoveHandler(e: MouseEvent) {
-        const hitInfo = this.hitTest(e);
-        const isSelected = hitInfo && this.selectedElements.has(hitInfo.element);
+    private mouseMoveHandler(e: PointerEvent) {
+        if (!this.dragging) {
+            const hitInfo = this.hitTest(e);
+            const isSelected = hitInfo && this.selectedElements.has(hitInfo.element);
 
-        this.svg.style.cursor = isSelected ? hitInfo?.hitArea.cursor || "" : "";
+            this.svg.style.cursor = isSelected ? hitInfo?.hitArea.cursor || "" : "";
+        }
     }
 
-    private beginDrag(e: MouseEvent, hitInfo: HitInfo) {
-        const startPoint = new DOMPoint(e.clientX, e.clientY).matrixTransform(this.transform);
-        let lastPoint = startPoint;
+    private beginDrag(e: PointerEvent, hitInfo: HitInfo) {
+        this.dragging = true;
+        this.svg.style.cursor = hitInfo.hitArea.cursor || "";
+        this.svg.setPointerCapture(e.pointerId);
+
+        let lastPoint = new DOMPoint(e.clientX, e.clientY).matrixTransform(this.transform);
 
         if (hitInfo.hitArea.action) {
-            const mouseMoveHandler = (e: MouseEvent) => {
+            const mouseMoveHandler = (e: PointerEvent) => {
                 const point = new DOMPoint(e.clientX, e.clientY);
                 const elementPoint = point.matrixTransform(this.transform);
 
@@ -117,13 +124,17 @@ export class InteractionController implements InteractionControllerType {
                 lastPoint = elementPoint;
             }
 
-            const mouseUpHandler = (e: MouseEvent) => {
-                window.removeEventListener("mousemove", mouseMoveHandler);
-                window.removeEventListener("mouseup", mouseUpHandler);
+            const mouseUpHandler = (e: PointerEvent) => {
+                this.dragging = false;
+                this.svg.style.cursor = "";
+                this.svg.releasePointerCapture(e.pointerId);
+
+                this.svg.removeEventListener("pointermove", mouseMoveHandler);
+                this.svg.removeEventListener("pointerup", mouseUpHandler);
             }
 
-            window.addEventListener("mousemove", mouseMoveHandler);
-            window.addEventListener("mouseup", mouseUpHandler);
+            this.svg.addEventListener("pointermove", mouseMoveHandler);
+            this.svg.addEventListener("pointerup", mouseUpHandler);
         }
     }
 
