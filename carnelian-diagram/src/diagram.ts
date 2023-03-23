@@ -9,7 +9,7 @@ import {
     VirtualNode
 } from "./jsx-runtime";
 import { Root } from "./components/root";
-import { DOMBuilder } from "./dom";
+import { DOMBuilder, HyperscriptChild } from "./dom";
 import { scheduleImmediate } from "./utils/schedule";
 import { WithThis } from "./utils/types";
 
@@ -144,6 +144,7 @@ export interface DiagramNode<P = any> extends VirtualNode<P> {
     subscriptions?: Set<DiagramNode>;
     isElement?: boolean;
     isValid?: boolean;
+    vdom?: HyperscriptChild;
     node_type: "diagram-node";
 }
 
@@ -273,6 +274,7 @@ export class Diagram {
             prevChildren?.forEach(x => this.unmount(x));
             nodesToRender.forEach(x => this.render(x.node, x.prevNode, x.parent));
             node.isValid = true;
+            node.vdom = undefined;
         }
 
         return node;
