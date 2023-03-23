@@ -52,6 +52,7 @@ export class InteractionController implements InteractionControllerType {
         this.transform = transform;
         this.svg.onpointerdown = (e) => this.mouseDownHandler(e);
         this.svg.onpointermove = (e) => this.mouseMoveHandler(e);
+        this.svg.onpointerup = (e) => this.mouseUpHandler(e);
     }
 
     private mouseDownHandler(e: PointerEvent) {
@@ -86,7 +87,7 @@ export class InteractionController implements InteractionControllerType {
         else {
             this.selectedElements.clear();
             this.svg.style.cursor = "";
-            this.onSelect?.([...this.selectedElements]);
+            this.onSelect?.([]);
         }
     }
 
@@ -99,9 +100,14 @@ export class InteractionController implements InteractionControllerType {
         }
     }
 
+    private mouseUpHandler(e: PointerEvent) {
+        if (this.dragging) {
+            this.endDrag(e);
+        }
+    }
+
     private beginDrag(e: PointerEvent, hitInfo: HitInfo) {
         this.dragging = true;
-        this.svg.style.cursor = hitInfo.hitArea.cursor || "";
         this.svg.setPointerCapture(e.pointerId);
 
         let lastPoint = new DOMPoint(e.clientX, e.clientY).matrixTransform(this.transform);
@@ -125,10 +131,6 @@ export class InteractionController implements InteractionControllerType {
             }
 
             const mouseUpHandler = (e: PointerEvent) => {
-                this.dragging = false;
-                this.svg.style.cursor = "";
-                this.svg.releasePointerCapture(e.pointerId);
-
                 this.svg.removeEventListener("pointermove", mouseMoveHandler);
                 this.svg.removeEventListener("pointerup", mouseUpHandler);
             }
@@ -136,6 +138,11 @@ export class InteractionController implements InteractionControllerType {
             this.svg.addEventListener("pointermove", mouseMoveHandler);
             this.svg.addEventListener("pointerup", mouseUpHandler);
         }
+    }
+
+    private endDrag(e: PointerEvent) {
+        this.dragging = false;
+        this.svg.releasePointerCapture(e.pointerId);
     }
 
     isSelected(element: DiagramNode) {
