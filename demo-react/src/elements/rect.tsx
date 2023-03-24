@@ -94,8 +94,7 @@ export const Rect: DiagramElement<RectProps> = function(props) {
 
     function createHandleControl(
         index: number, 
-        x: number, 
-        y: number, 
+        x: number, y: number, 
         cursor: string, 
         dragHandler: ActionCallback<MovementActionPayload>
     ) {
@@ -113,10 +112,7 @@ export const Rect: DiagramElement<RectProps> = function(props) {
 
     function createEdgeControl(
         index: number,
-        x1: number,
-        y1: number,
-        x2: number,
-        y2: number,
+        x1: number, y1: number, x2: number, y2: number,
         cursor: string,
         dragHandler: ActionCallback<MovementActionPayload>
     ) {
