@@ -16,10 +16,6 @@ export class DOMBuilder {
     }
 
     private transformNode(node: DiagramNode): HyperscriptChild {
-        if (node.vdom) {
-            return node.vdom;
-        }
-        
         const createVDomNode = (child: ComponentChildren<any> | undefined): HyperscriptChild => {
             if (Array.isArray(child)) {
                 return child.map(createVDomNode);
@@ -34,10 +30,10 @@ export class DOMBuilder {
 
         if (typeof node.type === 'string') {
             const { children, ...properties } = node.props;
-            return node.vdom = svg(node.type, properties, node.children.map(createVDomNode));
+            return svg(node.type, properties, node.children.map(createVDomNode));
         }
         else {
-            return node.vdom = createVDomNode(node.children);
+            return createVDomNode(node.children);
         }
     }
 

@@ -9,7 +9,7 @@ import {
     VirtualNode
 } from "./jsx-runtime";
 import { Root } from "./components/root";
-import { DOMBuilder, HyperscriptChild } from "./dom";
+import { DOMBuilder } from "./dom";
 import { scheduleImmediate } from "./utils/schedule";
 import { WithThis } from "./utils/types";
 import { Context, createContext } from "./context";
@@ -69,7 +69,6 @@ export interface DiagramNode<P = any> extends VirtualNode<P> {
     subscriptions?: Set<DiagramNode>;
     isElement?: boolean;
     isValid?: boolean;
-    vdom?: HyperscriptChild;
     node_type: "diagram-node";
 }
 
@@ -152,10 +151,19 @@ export class Diagram {
     }
 
     private render<P>(node: DiagramNode<P>, prevNode?: DiagramNode<P>, parent?: DiagramNode<any>): DiagramNode<P> {
-        if (!node.isValid) {
-            this.renderContext.currentNode = node;
-            this.initNode(node, prevNode);
-            node.parent = parent;
+        this.renderContext.currentNode = node;
+        this.initNode(node, prevNode);
+        node.parent = parent;
+        
+        const nodesToRender: {node: DiagramNode<unknown>, prevNode?: DiagramNode<unknown>, parent?: DiagramNode<P>}[] = [];
+        if (node.isValid) {
+            node.children.forEach(child => {
+                if (isDiagramNode(child)) {
+                    nodesToRender.push({node: child, prevNode: child, parent: node});
+                }
+            });
+        }
+        else {
             let children: ComponentChildren;
             if (typeof node.type === 'function') {
                 children = node.type.call(node, node.props);
@@ -164,7 +172,6 @@ export class Diagram {
                 children = node.props.children;
             }
 
-            const prevChildren = prevNode?.children;
             if (children) {
                 if (Array.isArray(children)) {
                     // @ts-ignore
@@ -178,8 +185,7 @@ export class Diagram {
                 node.children = [];
             }
 
-            const nodesToRender: {node: DiagramNode<unknown>, prevNode?: DiagramNode<unknown>, parent?: DiagramNode<P>}[] = [];
-
+            const prevChildren = prevNode?.children?.slice();
             node.children.forEach(child => {
                 if (isDiagramNode(child)) {
                     let prevChild: DiagramNode<unknown> | undefined;
@@ -197,10 +203,10 @@ export class Diagram {
             });
 
             prevChildren?.forEach(x => this.unmount(x));
-            nodesToRender.forEach(x => this.render(x.node, x.prevNode, x.parent));
-            node.isValid = true;
-            node.vdom = undefined;
         }
+
+        nodesToRender.forEach(x => this.render(x.node, x.prevNode, x.parent));
+        node.isValid = true;
 
         return node;
     }
