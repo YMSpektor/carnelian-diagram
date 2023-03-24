@@ -16,6 +16,13 @@ export interface DiagramElementAction<T> {
     callback: ActionCallback<T>;
 }
 
+export interface RectSelection {
+    x: number;
+    y: number;
+    width: number;
+    height: number;
+}
+
 export interface InteractionControllerType {
     updateTransform(transform?: DOMMatrixReadOnly): void;
     updateControls(controls?: DiagramElementControls, prevControls?: DiagramElementControls): void;
@@ -26,6 +33,7 @@ export interface InteractionControllerType {
     dispatch<T>(elements: DiagramNode[], action: string, payload: T): void;
 
     onSelect?: (elements: DiagramNode[]) => void;
+    onRectSelection?: (selection?: RectSelection) => void;
 }
 
 export const InteractionContext = createContext<InteractionControllerType | undefined>(undefined);
@@ -44,6 +52,7 @@ export class InteractionController implements InteractionControllerType {
     private actions = new Map<DiagramNode, DiagramElementAction<any>[]>();
     private selectedElements = new Set<DiagramNode>();
     private dragging = false;
+    private selecting = false;
     elements: DiagramElementNode[] = [];
 
     constructor(private svg: SVGGraphicsElement, private transform?: DOMMatrixReadOnly) {}
@@ -56,7 +65,7 @@ export class InteractionController implements InteractionControllerType {
     }
 
     private mouseDownHandler(e: PointerEvent) {
-        if (this.dragging) return;
+        if (this.dragging || this.selecting) return;
 
         const hitInfo = this.hitTest(e);
         if (hitInfo) {
@@ -90,11 +99,12 @@ export class InteractionController implements InteractionControllerType {
                 this.svg.style.cursor = "";
                 this.onSelect?.([]);
             }
+            this.beginSelect(e);
         }
     }
 
     private mouseMoveHandler(e: PointerEvent) {
-        if (!this.dragging) {
+        if (!this.dragging && !this.selecting) {
             const hitInfo = this.hitTest(e);
             const isSelected = hitInfo && this.selectedElements.has(hitInfo.element);
 
@@ -106,6 +116,45 @@ export class InteractionController implements InteractionControllerType {
         if (this.dragging) {
             this.endDrag(e);
         }
+        if (this.selecting) {
+            this.endSelect(e);
+        }
+    }
+
+    private beginSelect(e: PointerEvent) {
+        this.selecting = true;
+        this.svg.setPointerCapture(e.pointerId);
+
+        const startPoint = new DOMPoint(e.clientX, e.clientY);
+        const startElementPoint = startPoint.matrixTransform(this.transform);
+
+        const mouseMoveHandler = (e: PointerEvent) => {
+            const point = new DOMPoint(e.clientX, e.clientY)
+            const elementPoint = point.matrixTransform(this.transform);
+
+            // TODO: Select elements based on bounds
+
+            this.onRectSelection?.({
+                x: Math.min(startPoint.x, point.x),
+                y: Math.min(startPoint.y, point.y),
+                width: Math.max(startPoint.x, point.x) - Math.min(startPoint.x, point.x),
+                height: Math.max(startPoint.y, point.y) - Math.min(startPoint.y, point.y),
+            });
+        }
+
+        const mouseUpHandler = (e: PointerEvent) => {
+            this.onRectSelection?.(undefined);
+            this.svg.removeEventListener("pointermove", mouseMoveHandler);
+            this.svg.removeEventListener("pointerup", mouseUpHandler);
+        }
+
+        this.svg.addEventListener("pointermove", mouseMoveHandler);
+        this.svg.addEventListener("pointerup", mouseUpHandler);
+    }
+
+    private endSelect(e: PointerEvent) {
+        this.selecting = false;
+        this.svg.releasePointerCapture(e.pointerId);
     }
 
     private beginDrag(e: PointerEvent, hitInfo: HitInfo) {
@@ -252,4 +301,5 @@ export class InteractionController implements InteractionControllerType {
     }
 
     onSelect?: (elements: DiagramNode[]) => void;
+    onRectSelection?: (selection?: RectSelection) => void;
 }

@@ -100,8 +100,7 @@ export const Rect: DiagramElement<RectProps> = function(props) {
         dragHandler: ActionCallback<MovementActionPayload>
     ) {
         return {
-            x,
-            y,
+            x, y,
             hitArea: {
                 type: "resize_handle",
                 index,
@@ -122,10 +121,7 @@ export const Rect: DiagramElement<RectProps> = function(props) {
         dragHandler: ActionCallback<MovementActionPayload>
     ) {
         return {
-            x1,
-            y1,
-            x2,
-            y2,
+            x1, y1, x2, y2,
             hitArea: {
                 type: "resize_edge",
                 index,

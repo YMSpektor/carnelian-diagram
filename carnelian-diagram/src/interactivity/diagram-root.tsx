@@ -1,9 +1,10 @@
 /** @jsxImportSource .. */
 import { scheduleIdle } from "../utils/schedule";
-import { DiagramElementNode, DiagramRootProps, useEffect, useState } from "..";
+import { DiagramElementNode, DiagramRootProps, useContext, useEffect, useState } from "..";
 import {
     InteractionContext, 
     InteractionController,
+    RectSelection,
     SelectionContext
 } from ".";
 
@@ -15,19 +16,26 @@ const DiagramElements = (props: { elements: DiagramElementNode[] }) => {
     );
 }
 
-const DiagramControls = (props: { matrix: DOMMatrixReadOnly | undefined }) => {
+interface DiagramControlsProps {
+    matrix: DOMMatrixReadOnly | undefined;
+}
+
+const DiagramControls = (props: DiagramControlsProps) => {
     const matrix = props.matrix;
+    const controller = useContext(InteractionContext);
+
+    const [rectSelection, setRectSelection] = useState<RectSelection | undefined>(undefined);
+    controller && (controller.onRectSelection = (rect) => setRectSelection(rect));
 
     const transform = matrix 
         ? `matrix(${matrix.a} ${matrix.b} ${matrix.c} ${matrix.d} ${matrix.e} ${matrix.f})`
         : undefined;
 
     return (
-        <InteractionContext.Consumer>
-            {(controller) => (matrix && <g transform={transform}>
-                {controller?.renderControls(matrix.inverse())}
-            </g>)}
-        </InteractionContext.Consumer>
+        matrix && <g transform={transform}>
+            {controller?.renderControls(matrix.inverse())}
+            {rectSelection && <rect {...rectSelection} fill="none" stroke="black" stroke-dasharray="4" />}
+        </g>
     );
 }
 
