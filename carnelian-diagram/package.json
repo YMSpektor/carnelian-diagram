@@ -4,7 +4,7 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "dev": "ts-node-dev -r tsconfig-paths/register --files --respawn examples/index.tsx",
+    "dev": "ts-node-dev -r tsconfig-paths/register --files --respawn demo/hello-world/index.tsx",
     "prebuild": "rimraf dist",
     "build": "tsc --project tsconfig.build.json",
     "copy-dts": "copyfiles -u 1 \"src/**/*.d.ts\" dist",

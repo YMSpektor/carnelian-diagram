@@ -1,0 +1,8 @@
+{
+    "compilerOptions": {
+        "paths": {
+            "carnelian-diagram": ["../../src"],
+            "carnelian-diagram/*": ["../../src/*"]
+          },
+    }
+}

@@ -5,6 +5,8 @@ const { getLoaders, loaderByName, addBeforeLoader } = require("@craco/craco");
 const appDirectory = fs.realpathSync(process.cwd());
 const resolveApp = (relativePath) => path.resolve(appDirectory, relativePath);
 
+const libPath = "../../src";
+
 module.exports = {
     webpack: {
         configure: (webpackConfig) => {
@@ -16,12 +18,12 @@ module.exports = {
             const {matches} = getLoaders(webpackConfig, loaderByName('babel-loader'));
             addBeforeLoader(webpackConfig, loaderByName('babel-loader'), {
                 ...matches[0].loader,
-                include: [resolveApp('../carnelian-diagram/src')],
+                include: [resolveApp(libPath)],
             });
             return webpackConfig;
         },
         alias: {
-            'carnelian-diagram': path.resolve(__dirname, '../carnelian-diagram/src'),
+            'carnelian-diagram': path.resolve(__dirname, libPath),
         },
     },
 };
