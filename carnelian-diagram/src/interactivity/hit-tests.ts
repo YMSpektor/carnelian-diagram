@@ -1,6 +1,6 @@
 import { DiagramNode, RenderContext, useContext } from "..";
 import { CustomPropHook } from "../utils/custom-prop-hook";
-import { segmentDistance } from "../geometry/segment";
+import { segmentDistance } from "../geometry";
 
 export type HitTestCallback = (point: DOMPointReadOnly, transform: DOMMatrixReadOnly) => boolean;
 

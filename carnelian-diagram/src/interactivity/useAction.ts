@@ -1,7 +1,8 @@
+import { Reference } from "../utils/types";
 import { ActionCallback, DiagramElementAction, InteractionContext } from ".";
-import { DiagramNode, RenderContext, useContext, useEffect, useState } from "..";
+import { DiagramElementNode, RenderContext, useContext, useEffect, useState } from "..";
 
-export function useAction<T>(actionType: string, callback: ActionCallback<T>, element?: DiagramNode) {
+export function useAction<T>(actionType: string, callback: ActionCallback<T>, element?: DiagramElementNode) {
     const renderContext = useContext(RenderContext);
     const curElement = element || renderContext?.currentElement();
     if (!curElement) {
@@ -13,20 +14,20 @@ export function useAction<T>(actionType: string, callback: ActionCallback<T>, el
         throw new Error("InteractionContext is not defined");
     }
 
-    const [storedActions] = useState<[DiagramElementAction<T> | undefined]>([undefined]);
+    const [storedActions] = useState<Reference<DiagramElementAction<T> | undefined>>({value: undefined});
 
     const action: DiagramElementAction<T> = {
         element: curElement,
         callback,
         action: actionType
     }
-    interactions.updateActions(action, storedActions[0]);
-    storedActions[0] = action; // Setting a state will cause an infinite loop
+    interactions.updateActions(action, storedActions.value);
+    storedActions.value = action; // Setting a state will cause an infinite loop
 
     useEffect(() => {
         return () => {
-            interactions.updateActions(undefined, storedActions[0]);
-            storedActions[0] = undefined;
+            interactions.updateActions(undefined, storedActions.value);
+            storedActions.value = undefined;
         }
     }, [interactions]);
 }

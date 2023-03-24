@@ -1,4 +1,5 @@
 import { ComponentCleanups, ComponentState, DiagramComponent, DiagramNode, EffectCleanup, RenderContextType } from "./diagram";
+import { Reference } from "./utils/types";
 
 export interface ContextProviderProps<T> {
     value: T;
@@ -31,7 +32,7 @@ export function createContext<T>(defaultValue: T): Context<T> {
         const curNode = context.renderContext?.currentNode;
         if (curNode) {
             const componentState = curNode.state = curNode.state || new ComponentState();
-            const [storedCleanup] = componentState.current<[EffectCleanup | undefined]>([undefined]);
+            const [storedCleanup] = componentState.current<Reference<EffectCleanup | undefined>>({value: undefined});
             let node: DiagramNode | undefined = curNode;
             while (node && node.context !== context) {
                 node = node.parent;
@@ -40,11 +41,11 @@ export function createContext<T>(defaultValue: T): Context<T> {
                 const subscriptions = node.subscriptions = node.subscriptions || new Set<DiagramNode>();
                 subscriptions.add(curNode);
                 const cleanups = curNode.cleanups = curNode.cleanups || new ComponentCleanups();
-                storedCleanup[0] && cleanups.invokeCleanup(storedCleanup[0]);
-                storedCleanup[0] = () => {
+                storedCleanup.value && cleanups.invokeCleanup(storedCleanup.value);
+                storedCleanup.value = () => {
                     subscriptions.delete(curNode);
                 }
-                cleanups.registerCleanup(storedCleanup[0]);
+                cleanups.registerCleanup(storedCleanup.value);
 
             }
             return node?.contextValue || context.defaultValue;

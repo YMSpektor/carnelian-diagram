@@ -1,8 +1,9 @@
+import { Reference } from "../utils/types";
 import { InteractionContext } from ".";
-import { DiagramNode, RenderContext, useContext, useEffect, useState } from "..";
+import { DiagramElementNode, RenderContext, useContext, useEffect, useState } from "..";
 import { DiagramElementHitTest, HitArea, HitTestCallback } from "./hit-tests";
 
-export function useHitTest(callback: HitTestCallback, hitArea: HitArea, priority: number = 0, element?: DiagramNode) {
+export function useHitTest(callback: HitTestCallback, hitArea: HitArea, priority: number = 0, element?: DiagramElementNode) {
     const renderContext = useContext(RenderContext);
     const curElement = element || renderContext?.currentElement();
     if (!curElement) {
@@ -14,7 +15,7 @@ export function useHitTest(callback: HitTestCallback, hitArea: HitArea, priority
         throw new Error("InteractionContext is not defined");
     }
 
-    const [storedHitTest] = useState<[DiagramElementHitTest | undefined]>([undefined]);
+    const [storedHitTest] = useState<Reference<DiagramElementHitTest | undefined>>({value: undefined});
 
     const hitTest: DiagramElementHitTest = {
         element: curElement,
@@ -22,13 +23,13 @@ export function useHitTest(callback: HitTestCallback, hitArea: HitArea, priority
         hitArea,
         priority
     }
-    interactions.updateHitTests(hitTest, storedHitTest[0]);
-    storedHitTest[0] = hitTest; // Setting a state will cause an infinite loop
+    interactions.updateHitTests(hitTest, storedHitTest.value);
+    storedHitTest.value = hitTest; // Setting a state will cause an infinite loop
 
     useEffect(() => {
         return () => {
-            interactions.updateHitTests(undefined, storedHitTest[0]);
-            storedHitTest[0] = undefined;
+            interactions.updateHitTests(undefined, storedHitTest.value);
+            storedHitTest.value = undefined;
         }
     }, [interactions]);
 }

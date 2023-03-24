@@ -1,7 +1,7 @@
 /** @jsxImportSource carnelian-diagram */
 
 import { DiagramElement } from "carnelian-diagram";
-import { useControls, useHitTest, rectHitTest, useAction, MovementActionPayload, ActionCallback } from "carnelian-diagram/interactivity";
+import { useControls, useHitTest, useBounds, rectHitTest, useAction, MovementActionPayload, ActionCallback } from "carnelian-diagram/interactivity";
 import { HandleControl, EdgeControl } from "../controls";
 
 export interface RectProps {
@@ -142,6 +142,8 @@ export const Rect: DiagramElement<RectProps> = function(props) {
     );
 
     useAction<MovementActionPayload>("move", move);
+
+    useBounds({x: props.x, y: props.y, width: props.width, height: props.height});
 
     useControls((transform, element) => {
         const { x, y, width, height } = props;

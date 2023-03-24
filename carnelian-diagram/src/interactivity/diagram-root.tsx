@@ -1,12 +1,12 @@
 /** @jsxImportSource .. */
-import { scheduleIdle } from "../utils/schedule";
 import { DiagramElementNode, DiagramRootProps, useContext, useEffect, useState } from "..";
 import {
     InteractionContext, 
     InteractionController,
-    RectSelection,
     SelectionContext
 } from ".";
+import { scheduleIdle } from "../utils/schedule";
+import { Rect } from "../geometry";
 
 const DiagramElements = (props: { elements: DiagramElementNode[] }) => {
     return (
@@ -24,7 +24,7 @@ const DiagramControls = (props: DiagramControlsProps) => {
     const matrix = props.matrix;
     const controller = useContext(InteractionContext);
 
-    const [rectSelection, setRectSelection] = useState<RectSelection | undefined>(undefined);
+    const [rectSelection, setRectSelection] = useState<Rect | undefined>(undefined);
     controller && (controller.onRectSelection = (rect) => setRectSelection(rect));
 
     const transform = matrix 

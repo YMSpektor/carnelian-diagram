@@ -1,3 +1,4 @@
+import { Reference } from "../utils/types";
 import { DiagramElementControls, InteractionContext, RenderControlsCallback } from ".";
 import { RenderContext, useContext, useEffect, useState } from "..";
 
@@ -14,19 +15,19 @@ export function useControls(callback: RenderControlsCallback) {
         throw new Error("InteractionContext is not defined");
     }
 
-    const [storedControls] = useState<[DiagramElementControls | undefined]>([undefined]);
+    const [storedControls] = useState<Reference<DiagramElementControls | undefined>>({value: undefined});
 
     const controls: DiagramElementControls = {
         element: curElement,
         callback
     }
-    interactions.updateControls(controls, storedControls[0]);
-    storedControls[0] = controls; // Setting a state will cause an infinite loop
+    interactions.updateControls(controls, storedControls.value);
+    storedControls.value = controls; // Setting a state will cause an infinite loop
 
     useEffect(() => {
         return () => {
-            interactions.updateControls(undefined, storedControls[0]);
-            storedControls[0] = undefined;
+            interactions.updateControls(undefined, storedControls.value);
+            storedControls.value = undefined;
         }
     }, [interactions]);
 }

@@ -1,10 +1,11 @@
-import { createContext, DiagramElementNode, DiagramNode } from "..";
+import { createContext, DiagramElementNode } from "..";
 import { DiagramElementHitTest, hasHitTestProps, HitArea, HitAreaCollection, HitInfo } from "./hit-tests";
+import { intersectRect, Rect } from "../geometry";
 
-export type RenderControlsCallback = (transform: DOMMatrixReadOnly, element: DiagramNode) => JSX.Element;
+export type RenderControlsCallback = (transform: DOMMatrixReadOnly, element: DiagramElementNode) => JSX.Element;
 
 export interface DiagramElementControls {
-    element: DiagramNode;
+    element: DiagramElementNode;
     callback: RenderControlsCallback;
 }
 
@@ -12,15 +13,13 @@ export type ActionCallback<T> = (payload: T) => void;
 
 export interface DiagramElementAction<T> {
     action: string;
-    element: DiagramNode;
+    element: DiagramElementNode;
     callback: ActionCallback<T>;
 }
 
-export interface RectSelection {
-    x: number;
-    y: number;
-    width: number;
-    height: number;
+export interface DiagramElementBounds {
+    element: DiagramElementNode;
+    bounds: Rect;
 }
 
 export interface InteractionControllerType {
@@ -30,10 +29,11 @@ export interface InteractionControllerType {
     updateHitTests(hitTests?: DiagramElementHitTest, prevHitTests?: DiagramElementHitTest): void;
     hitTest(e: MouseEvent): HitInfo | undefined;
     updateActions(action?: DiagramElementAction<any>, prevAction?: DiagramElementAction<any>): void;
-    dispatch<T>(elements: DiagramNode[], action: string, payload: T): void;
+    dispatch<T>(elements: DiagramElementNode[], action: string, payload: T): void;
+    updateBounds(bounds?: DiagramElementBounds, prevBounds?: DiagramElementBounds): void;
 
-    onSelect?: (elements: DiagramNode[]) => void;
-    onRectSelection?: (selection?: RectSelection) => void;
+    onSelect?: (elements: DiagramElementNode[]) => void;
+    onRectSelection?: (selection?: Rect) => void;
 }
 
 export const InteractionContext = createContext<InteractionControllerType | undefined>(undefined);
@@ -49,8 +49,9 @@ export interface MovementActionPayload {
 export class InteractionController implements InteractionControllerType {
     private controls: DiagramElementControls[] = [];
     private hitAreas: HitAreaCollection = {};
-    private actions = new Map<DiagramNode, DiagramElementAction<any>[]>();
-    private selectedElements = new Set<DiagramNode>();
+    private actions = new Map<DiagramElementNode, DiagramElementAction<any>[]>();
+    private bounds = new Map<DiagramElementNode, DiagramElementBounds>();
+    private selectedElements = new Set<DiagramElementNode>();
     private dragging = false;
     private selecting = false;
     elements: DiagramElementNode[] = [];
@@ -62,6 +63,11 @@ export class InteractionController implements InteractionControllerType {
         this.svg.onpointerdown = (e) => this.mouseDownHandler(e);
         this.svg.onpointermove = (e) => this.mouseMoveHandler(e);
         this.svg.onpointerup = (e) => this.mouseUpHandler(e);
+    }
+
+    private select(elements: DiagramElementNode[]) {
+        this.selectedElements = new Set(elements);
+        this.onSelect?.(elements);
     }
 
     private mouseDownHandler(e: PointerEvent) {
@@ -84,9 +90,8 @@ export class InteractionController implements InteractionControllerType {
             } 
             else {
                 if (!isSelected) {
-                    this.selectedElements = new Set([hitInfo.element]);
                     this.svg.style.cursor = hitInfo.hitArea.cursor || "";
-                    this.onSelect?.([...this.selectedElements]);
+                    this.select([hitInfo.element]);
                 }
                 else {
                     this.beginDrag(e, hitInfo);
@@ -95,9 +100,8 @@ export class InteractionController implements InteractionControllerType {
         }
         else {
             if (this.selectedElements.size > 0) {
-                this.selectedElements.clear();
                 this.svg.style.cursor = "";
-                this.onSelect?.([]);
+                this.select([]);
             }
             this.beginSelect(e);
         }
@@ -126,24 +130,35 @@ export class InteractionController implements InteractionControllerType {
         this.svg.setPointerCapture(e.pointerId);
 
         const startPoint = new DOMPoint(e.clientX, e.clientY);
-        const startElementPoint = startPoint.matrixTransform(this.transform);
 
         const mouseMoveHandler = (e: PointerEvent) => {
             const point = new DOMPoint(e.clientX, e.clientY)
-            const elementPoint = point.matrixTransform(this.transform);
 
-            // TODO: Select elements based on bounds
-
-            this.onRectSelection?.({
+            const selectionRect = {
                 x: Math.min(startPoint.x, point.x),
                 y: Math.min(startPoint.y, point.y),
                 width: Math.max(startPoint.x, point.x) - Math.min(startPoint.x, point.x),
                 height: Math.max(startPoint.y, point.y) - Math.min(startPoint.y, point.y),
-            });
+            };
+
+            this.onRectSelection?.(selectionRect);
         }
 
         const mouseUpHandler = (e: PointerEvent) => {
             this.onRectSelection?.(undefined);
+
+            const p1 = startPoint.matrixTransform(this.transform);
+            const p2 = new DOMPoint(e.clientX, e.clientY).matrixTransform(this.transform);
+            const selectionRect = {
+                x: Math.min(p1.x, p2.x),
+                y: Math.min(p1.y, p2.y),
+                width: Math.max(p1.x, p2.x) - Math.min(p1.x, p2.x),
+                height: Math.max(p1.y, p2.y) - Math.min(p1.y, p2.y),
+            };
+            this.select([...this.bounds]
+                .filter(x => intersectRect(selectionRect, x[1].bounds))
+                .map(x => x[0]));
+
             this.svg.removeEventListener("pointermove", mouseMoveHandler);
             this.svg.removeEventListener("pointerup", mouseUpHandler);
         }
@@ -196,7 +211,7 @@ export class InteractionController implements InteractionControllerType {
         this.svg.releasePointerCapture(e.pointerId);
     }
 
-    isSelected(element: DiagramNode) {
+    isSelected(element: DiagramElementNode) {
         return this.selectedElements.has(element);
     }
 
@@ -227,7 +242,7 @@ export class InteractionController implements InteractionControllerType {
         if (newHitTests) {
             let map = this.hitAreas[newHitTests.priority];
             if (!map) {
-                map = new Map<DiagramNode, DiagramElementHitTest[]>();
+                map = new Map<DiagramElementNode, DiagramElementHitTest[]>();
                 this.hitAreas[newHitTests.priority] = map;
             }
             let arr = map.get(newHitTests.element) || [];
@@ -289,7 +304,7 @@ export class InteractionController implements InteractionControllerType {
         }
     }
 
-    dispatch<T>(elements: DiagramNode[], action: string, payload: T) {
+    dispatch<T>(elements: DiagramElementNode[], action: string, payload: T) {
         elements.forEach(element => {
             const callbacks = this.actions.get(element)
                 ?.filter(x => x.action === action)
@@ -300,6 +315,15 @@ export class InteractionController implements InteractionControllerType {
         });
     }
 
-    onSelect?: (elements: DiagramNode[]) => void;
-    onRectSelection?: (selection?: RectSelection) => void;
+    updateBounds(newBounds?: DiagramElementBounds, prevBounds?: DiagramElementBounds) {
+        if (prevBounds) {
+            this.bounds.delete(prevBounds.element);
+        }
+        if (newBounds) {
+            this.bounds.set(newBounds.element, newBounds);
+        }
+    }
+
+    onSelect?: (elements: DiagramElementNode[]) => void;
+    onRectSelection?: (selection?: Rect) => void;
 }
