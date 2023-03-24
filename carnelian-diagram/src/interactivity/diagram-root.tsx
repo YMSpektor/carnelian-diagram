@@ -39,7 +39,7 @@ const DiagramControls = (props: DiagramControlsProps) => {
     );
 }
 
-export function InteractiveDiagramRoot(props: DiagramRootProps): JSX.Element {
+export function InteractiveDiagramRoot(props: DiagramRootProps) {
     const [matrix, setMatrix] = useState<DOMMatrix | undefined>(undefined);
     const [controller] = useState(new InteractionController(props.svg));
     const [selectedElements, setSelectedElements] = useState<DiagramElementNode[]>([]);

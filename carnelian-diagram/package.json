@@ -7,7 +7,9 @@
     "dev": "ts-node-dev -r tsconfig-paths/register --files --respawn examples/index.tsx",
     "prebuild": "rimraf dist",
     "build": "tsc --project tsconfig.build.json",
-    "postbuild": "copyfiles package.json dist"
+    "copy-dts": "copyfiles -u 1 \"src/**/*.d.ts\" dist",
+    "copy-package": "copyfiles package.json dist",
+    "postbuild": "npm run copy-dts & npm run copy-package"
   },
   "author": "",
   "license": "ISC",

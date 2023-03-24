@@ -161,6 +161,7 @@ export const Rect: DiagramElement<RectProps> = function(props) {
             <>
                 { edges.map(control => (
                     <EdgeControl
+                        key={control.hitArea.index}
                         x1={control.x1} y1={control.y1} x2={control.x2} y2={control.y2}
                         hitArea={control.hitArea}
                         transform={transform}
