@@ -9,7 +9,7 @@ const doc = new Diagram(
         controller
     )
 );
-doc.add(Rect, {x: 150, y: 80, width: 200, height: 140, stroke: 'black', fill: 'white'});
-doc.add(Rect, {x: 200, y: 100, width: 200, height: 140, stroke: 'black', fill: 'blue'});
+doc.add(Rect, {x: 300, y: 150, width: 400, height: 300, stroke: 'black', fill: 'white'});
+doc.add(Rect, {x: 400, y: 200, width: 400, height: 300, stroke: 'black', fill: 'blue'});
 
 export default doc;

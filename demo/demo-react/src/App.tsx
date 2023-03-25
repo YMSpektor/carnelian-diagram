@@ -9,7 +9,11 @@ function App() {
     return (
         <>
             <DiagramToolbar scale={scale} onScaleChange={setScale} />
-            <DiagramViewer diagram={doc} diagramSize={{width: 800, height: 600}} scale={scale} />
+            <DiagramViewer 
+                diagram={doc} 
+                diagramSize={{width: 2100, height: 2970}} 
+                scale={scale} unit="mm" unitMultiplier={0.1} 
+            />
         </>
     )
 }
