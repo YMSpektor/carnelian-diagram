@@ -1,4 +1,4 @@
-export * from "./withInteractions";
+export * from "./withInteraction";
 export * from "./hit-tests";
 export * from "./interaction-controller";
 export * from "./useAction";
