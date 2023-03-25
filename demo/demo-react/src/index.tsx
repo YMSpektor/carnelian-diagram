@@ -9,7 +9,7 @@ const root = ReactDOM.createRoot(
 );
 root.render(
   <React.StrictMode>
-    <App documentSize={{width: 800, height: 600}}/>
+    <App />
   </React.StrictMode>
 );
 

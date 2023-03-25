@@ -1,27 +1,11 @@
-import React, { useLayoutEffect, useRef } from 'react';
+import React from 'react';
+import DiagramViewer from './components/DiagramViewer';
 import doc from "./diagram-document";
 
-interface DiagramViewerProps {
-    documentSize: {width: number, height: number};
-}
-
-function App(props: DiagramViewerProps) {
-    const root = useRef<SVGSVGElement>(null);
-
-    useLayoutEffect(() => {
-        root.current && doc.attach(root.current);
-
-        return () => {
-            doc.detach();
-        }
-    }, []);
-
+function App() {
     return (
-        <svg xmlns="http://www.w3.org/2000/svg"
-                viewBox={[0, 0, props.documentSize.width, props.documentSize.height].join(' ')}  
-                ref={root}>
-        </svg>
-    );
+        <DiagramViewer diagram={doc} diagramSize={{width: 800, height: 600}} />
+    )
 }
 
 export default App;

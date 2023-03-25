@@ -24,14 +24,14 @@ export interface DiagramElementBounds {
 }
 
 export interface InteractionControllerType {
+    elements: DiagramElementNode[];
+
     init(svg: SVGGraphicsElement, transform?: DOMMatrixReadOnly): void;
     cleanup?: () => void;
     updateControls(controls?: DiagramElementControls, prevControls?: DiagramElementControls): void;
     renderControls(transform: DOMMatrixReadOnly): JSXElement;
     updateHitTests(hitTests?: DiagramElementHitTest, prevHitTests?: DiagramElementHitTest): void;
-    hitTest(e: MouseEvent): HitInfo | undefined;
     updateActions(action?: DiagramElementAction<any>, prevAction?: DiagramElementAction<any>): void;
-    dispatch<T>(elements: DiagramElementNode[], action: string, payload: T): void;
     updateBounds(bounds?: DiagramElementBounds, prevBounds?: DiagramElementBounds): void;
 
     onSelect?: (elements: DiagramElementNode[]) => void;

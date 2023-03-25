@@ -2,7 +2,7 @@
 import { DiagramElementNode, DiagramRootComponent, DiagramRootProps, useContext, useEffect, useState } from "..";
 import {
     InteractionContext, 
-    InteractionController,
+    InteractionControllerType,
     SelectionContext
 } from ".";
 import { scheduleIdle } from "../utils/schedule";
@@ -40,9 +40,9 @@ const DiagramControls = (props: DiagramControlsProps) => {
     );
 }
 
-export const withInteractions = ( 
+export const withInteraction = ( 
     WrappedComponent: DiagramRootComponent,
-    controller: InteractionController
+    controller: InteractionControllerType
 ): DiagramRootComponent => {
     return (props: DiagramRootProps) => {
         const [matrix, setMatrix] = useState<DOMMatrix | undefined>(undefined);

@@ -1,7 +1,7 @@
 /** @jsxImportSource carnelian-diagram */
 
 import { DiagramNode } from "carnelian-diagram";
-import { ActionCallback, HitArea, lineHitTest, MovementActionPayload, useAction, useHitTest } from "carnelian-diagram/interactions";
+import { ActionCallback, HitArea, lineHitTest, MovementActionPayload, useAction, useHitTest } from "carnelian-diagram/interaction";
 
 export interface EdgeControlProps {
     element: DiagramNode;

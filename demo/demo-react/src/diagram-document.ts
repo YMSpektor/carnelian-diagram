@@ -1,11 +1,12 @@
 import { Diagram, DiagramRoot } from "carnelian-diagram";
-import { InteractionController, withInteractions } from "carnelian-diagram/interactions";
+import { InteractionController, withInteraction } from "carnelian-diagram/interaction";
 import { Rect } from "./elements/rect";
 
+const controller = new InteractionController();
 const doc = new Diagram(
-    withInteractions(
+    withInteraction(
         DiagramRoot, 
-        new InteractionController()
+        controller
     )
 );
 doc.add(Rect, {x: 150, y: 80, width: 200, height: 140, stroke: 'black', fill: 'white'});
