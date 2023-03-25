@@ -8,7 +8,7 @@ import {
     RenderableProps, 
     VirtualNode
 } from "./jsx-runtime";
-import { Root } from "./components/root";
+import { App } from "./components/app";
 import { DOMBuilder } from "./dom";
 import { scheduleImmediate } from "./utils/schedule";
 import { WithThis } from "./utils/types";
@@ -100,7 +100,7 @@ export type DiagramElementProps<P> = P & {
     onChange: (callback: (oldProps: DiagramElementProps<P>) => DiagramElementProps<P>) => void;
 }
 export type DiagramComponent<P> = WithThis<DiagramNode<P>, FunctionComponent<P>>;
-export type DiagramElement<P> = DiagramComponent<DiagramElementProps<P>>;
+export type DiagramElement<P extends object> = DiagramComponent<DiagramElementProps<P>>;
 export type DiagramElementNode<P = any> = DiagramNode<DiagramElementProps<P>>;
 
 export interface DiagramRootProps {
@@ -108,7 +108,7 @@ export interface DiagramRootProps {
     children: DiagramElementNode[];
 }
 
-export type DiagramRoot<P extends DiagramRootProps> = FunctionComponent<P>;
+export type DiagramRootComponent = DiagramComponent<DiagramRootProps>;
 
 export class Diagram {
     private lastElementId = 0;
@@ -121,9 +121,9 @@ export class Diagram {
     private attachedRoot?: SVGGraphicsElement;
     private tasks: Array<() => void> = [];
 
-    constructor(private diagramRoot: DiagramRoot<DiagramRootProps>) { }
+    constructor(private diagramRoot: DiagramRootComponent) { }
 
-    private createElementNode<P>(type: DiagramElement<P>, props: P, key: Key): DiagramElementNode<P> {
+    private createElementNode<P extends object>(type: DiagramElement<P>, props: P, key: Key): DiagramElementNode<P> {
         const onChange = (callback: (oldProps: DiagramElementProps<P>) => DiagramElementProps<P>) => {
             this.schedule(() => {
                 element.props = callback(element.props);
@@ -217,7 +217,7 @@ export class Diagram {
 
     update(root: SVGGraphicsElement, commitInvalid: boolean): SVGGraphicsElement {
         this.renderContext.currentDiagram = this;
-        const rootNode = createElement(Root, {
+        const rootNode = createElement(App, {
             renderContext: this.renderContext,
             diagramRoot: this.diagramRoot,
             diagramRootProps: {svg: root, children: this.elements}
@@ -281,7 +281,7 @@ export class Diagram {
         this.unschedule = undefined;
     }
 
-    add<P>(type: DiagramElement<P>, props: P): DiagramElementNode<P> {
+    add<P extends object>(type: DiagramElement<P>, props: P): DiagramElementNode<P> {
         const element = this.createElementNode(type, props, this.lastElementId++);
         element.isElement = true;
         this.elements.push(element);

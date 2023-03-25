@@ -1,6 +1,5 @@
 import { create, h } from "virtual-dom";
-import { Diagram, useState } from "carnelian";
-import { InteractiveDiagramRoot } from "carnelian/interactivity";
+import { Diagram, DiagramRoot, useState } from "carnelian";
 
 function Test() {
     return <div className="test">Test</div>
@@ -22,7 +21,7 @@ function Hello(props: {name: string}) {
 }
 
 const svg = create(h("svg", {xmlns: "http://www.w3.org/2000/svg"}, [])) as SVGSVGElement;
-const doc = new Diagram(InteractiveDiagramRoot);
+const doc = new Diagram(DiagramRoot);
 doc.add(Hello, {name: "World"});
 doc.attach(svg);
 

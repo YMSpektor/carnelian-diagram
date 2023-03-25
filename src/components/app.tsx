@@ -1,14 +1,14 @@
 /** @jsxImportSource .. */
 
-import { DiagramComponent, DiagramRoot, DiagramRootProps, RenderContext, RenderContextType } from "..";
+import { DiagramComponent, DiagramRootComponent, DiagramRootProps, RenderContext, RenderContextType } from "..";
 
-export interface RootProps {
+export interface AppProps {
     renderContext: RenderContextType;
-    diagramRoot: DiagramRoot<DiagramRootProps>;
+    diagramRoot: DiagramRootComponent;
     diagramRootProps: DiagramRootProps;
 }
 
-export const Root: DiagramComponent<RootProps> = function(props) {
+export const App: DiagramComponent<AppProps> = function(props) {
     RenderContext.provide(this, props.renderContext);
     const DiagramRoot = props.diagramRoot;
     
