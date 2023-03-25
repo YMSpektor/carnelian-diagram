@@ -4,6 +4,7 @@ import { Diagram } from "carnelian-diagram";
 interface DiagramViewerProps {
     diagram: Diagram;
     diagramSize: {width: number, height: number};
+    scale: number;
 }
 
 function DiagramViewer(props: DiagramViewerProps) {
