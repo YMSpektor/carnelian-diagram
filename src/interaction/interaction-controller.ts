@@ -25,9 +25,10 @@ export interface DiagramElementBounds {
 
 export interface InteractionControllerType {
     elements: DiagramElementNode[];
+    transform?: DOMMatrixReadOnly;
 
-    init(transform?: DOMMatrixReadOnly): void;
-    cleanup?: () => void;
+    attach(root: HTMLElement): void;
+    detach?: () => void;
     updateControls(controls?: DiagramElementControls, prevControls?: DiagramElementControls): void;
     renderControls(transform: DOMMatrixReadOnly): JSXElement;
     updateHitTests(hitTests?: DiagramElementHitTest, prevHitTests?: DiagramElementHitTest): void;
@@ -49,7 +50,6 @@ export interface MovementActionPayload {
 }
 
 export class InteractionController implements InteractionControllerType {
-    private transform?: DOMMatrixReadOnly;
     private controls: DiagramElementControls[] = [];
     private hitAreas: HitAreaCollection = {};
     private actions = new Map<DiagramElementNode, DiagramElementAction<any>[]>();
@@ -58,35 +58,34 @@ export class InteractionController implements InteractionControllerType {
     private dragging = false;
     private selecting = false;
     elements: DiagramElementNode[] = [];
+    transform?: DOMMatrixReadOnly;
 
-    constructor(private root: HTMLElement) {}
-
-    init(transform?: DOMMatrixReadOnly) {
-        this.transform = transform;
-        this.cleanup?.();
+    attach(root: HTMLElement) {
+        this.detach?.();
        
-        const mouseDownHandler = (e: PointerEvent) => this.mouseDownHandler(e);
-        const mouseMoveHandler = (e: PointerEvent) => this.mouseMoveHandler(e);
-        const mouseUpHandler = (e: PointerEvent) => this.mouseUpHandler(e);
-        this.root.addEventListener("pointerdown", mouseDownHandler);
-        this.root.addEventListener("pointermove", mouseMoveHandler);
-        this.root.addEventListener("pointerup", mouseUpHandler);
+        const mouseDownHandler = (e: PointerEvent) => this.mouseDownHandler(root, e);
+        const mouseMoveHandler = (e: PointerEvent) => this.mouseMoveHandler(root, e);
+        const mouseUpHandler = (e: PointerEvent) => this.mouseUpHandler(root, e);
+        root.addEventListener("pointerdown", mouseDownHandler);
+        root.addEventListener("pointermove", mouseMoveHandler);
+        root.addEventListener("pointerup", mouseUpHandler);
 
-        this.cleanup = () => {
-            this.root.removeEventListener("pointerdown", mouseDownHandler);
-            this.root.removeEventListener("pointermove", mouseMoveHandler);
-            this.root.removeEventListener("pointerup", mouseUpHandler);
+        this.detach = () => {
+            this.detach = undefined;
+            root.removeEventListener("pointerdown", mouseDownHandler);
+            root.removeEventListener("pointermove", mouseMoveHandler);
+            root.removeEventListener("pointerup", mouseUpHandler);
         }
     }
 
-    cleanup?: () => void;
+    detach?: () => void;
 
     private select(elements: DiagramElementNode[]) {
         this.selectedElements = new Set(elements);
         this.onSelect?.(elements);
     }
 
-    private mouseDownHandler(e: PointerEvent) {
+    private mouseDownHandler(root: HTMLElement, e: PointerEvent) {
         if (this.dragging || this.selecting) return;
 
         const hitInfo = this.hitTest(e);
@@ -96,54 +95,54 @@ export class InteractionController implements InteractionControllerType {
             if (e.shiftKey) {
                 if (isSelected) {
                     this.selectedElements.delete(hitInfo.element);
-                    this.root.style.cursor = "";
+                    root.style.cursor = "";
                 }
                 else {
                     this.selectedElements.add(hitInfo.element);
-                    this.root.style.cursor = hitInfo.hitArea.cursor || "";
+                    root.style.cursor = hitInfo.hitArea.cursor || "";
                 }
                 this.onSelect?.([...this.selectedElements]);
             } 
             else {
                 if (!isSelected) {
-                    this.root.style.cursor = hitInfo.hitArea.cursor || "";
+                    root.style.cursor = hitInfo.hitArea.cursor || "";
                     this.select([hitInfo.element]);
                 }
                 else {
-                    this.beginDrag(e, hitInfo);
+                    this.beginDrag(root, e, hitInfo);
                 }
             }
         }
         else {
             if (this.selectedElements.size > 0) {
-                this.root.style.cursor = "";
+                root.style.cursor = "";
                 this.select([]);
             }
-            this.beginSelect(e);
+            this.beginSelect(root, e);
         }
     }
 
-    private mouseMoveHandler(e: PointerEvent) {
+    private mouseMoveHandler(root: HTMLElement, e: PointerEvent) {
         if (!this.dragging && !this.selecting) {
             const hitInfo = this.hitTest(e);
             const isSelected = hitInfo && this.selectedElements.has(hitInfo.element);
 
-            this.root.style.cursor = isSelected ? hitInfo?.hitArea.cursor || "" : "";
+            root.style.cursor = isSelected ? hitInfo?.hitArea.cursor || "" : "";
         }
     }
 
-    private mouseUpHandler(e: PointerEvent) {
+    private mouseUpHandler(root: HTMLElement, e: PointerEvent) {
         if (this.dragging) {
-            this.endDrag(e);
+            this.endDrag(root, e);
         }
         if (this.selecting) {
-            this.endSelect(e);
+            this.endSelect(root, e);
         }
     }
 
-    private beginSelect(e: PointerEvent) {
+    private beginSelect(root: HTMLElement, e: PointerEvent) {
         this.selecting = true;
-        this.root.setPointerCapture(e.pointerId);
+        root.setPointerCapture(e.pointerId);
 
         const startPoint = new DOMPoint(e.clientX, e.clientY);
 
@@ -175,22 +174,22 @@ export class InteractionController implements InteractionControllerType {
                 .filter(x => intersectRect(selectionRect, x[1].bounds))
                 .map(x => x[0]));
 
-            this.root.removeEventListener("pointermove", mouseMoveHandler);
-            this.root.removeEventListener("pointerup", mouseUpHandler);
+            root.removeEventListener("pointermove", mouseMoveHandler);
+            root.removeEventListener("pointerup", mouseUpHandler);
         }
 
-        this.root.addEventListener("pointermove", mouseMoveHandler);
-        this.root.addEventListener("pointerup", mouseUpHandler);
+        root.addEventListener("pointermove", mouseMoveHandler);
+        root.addEventListener("pointerup", mouseUpHandler);
     }
 
-    private endSelect(e: PointerEvent) {
+    private endSelect(root: HTMLElement, e: PointerEvent) {
         this.selecting = false;
-        this.root.releasePointerCapture(e.pointerId);
+        root.releasePointerCapture(e.pointerId);
     }
 
-    private beginDrag(e: PointerEvent, hitInfo: HitInfo) {
+    private beginDrag(root: HTMLElement, e: PointerEvent, hitInfo: HitInfo) {
         this.dragging = true;
-        this.root.setPointerCapture(e.pointerId);
+        root.setPointerCapture(e.pointerId);
 
         let lastPoint = new DOMPoint(e.clientX, e.clientY).matrixTransform(this.transform);
 
@@ -213,18 +212,18 @@ export class InteractionController implements InteractionControllerType {
             }
 
             const mouseUpHandler = (e: PointerEvent) => {
-                this.root.removeEventListener("pointermove", mouseMoveHandler);
-                this.root.removeEventListener("pointerup", mouseUpHandler);
+                root.removeEventListener("pointermove", mouseMoveHandler);
+                root.removeEventListener("pointerup", mouseUpHandler);
             }
 
-            this.root.addEventListener("pointermove", mouseMoveHandler);
-            this.root.addEventListener("pointerup", mouseUpHandler);
+            root.addEventListener("pointermove", mouseMoveHandler);
+            root.addEventListener("pointerup", mouseUpHandler);
         }
     }
 
-    private endDrag(e: PointerEvent) {
+    private endDrag(root: HTMLElement, e: PointerEvent) {
         this.dragging = false;
-        this.root.releasePointerCapture(e.pointerId);
+        root.releasePointerCapture(e.pointerId);
     }
 
     isSelected(element: DiagramElementNode) {
