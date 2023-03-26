@@ -60,6 +60,10 @@ export class InteractionController implements InteractionControllerType {
     elements: DiagramElementNode[] = [];
     transform?: DOMMatrixReadOnly;
 
+    constructor(root?: HTMLElement) {
+        root && this.attach(root);
+    }
+
     attach(root: HTMLElement) {
         this.detach?.();
        
