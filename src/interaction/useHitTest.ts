@@ -12,7 +12,7 @@ export function useHitTest(callback: HitTestCallback, hitArea: HitArea, priority
 
     const interactions = useContext(InteractionContext);
     if (!interactions) {
-        throw new Error("InteractionContext is not defined");
+        return;
     }
 
     const [storedHitTest] = useState<Reference<DiagramElementHitTest | undefined>>({value: undefined});

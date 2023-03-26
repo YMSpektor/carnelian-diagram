@@ -292,6 +292,11 @@ export class Diagram {
         this.invalidate(element);
         return element;
     }
+
+    clear() {
+        this.elements = [];
+        this.invalidate();
+    }
 }
 
 export class RenderContextType {

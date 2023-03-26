@@ -11,7 +11,7 @@ export function useAction<T>(actionType: string, callback: ActionCallback<T>, el
 
     const interactions = useContext(InteractionContext);
     if (!interactions) {
-        throw new Error("InteractionContext is not defined");
+        return;
     }
 
     const [storedActions] = useState<Reference<DiagramElementAction<T> | undefined>>({value: undefined});

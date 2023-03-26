@@ -12,7 +12,7 @@ export function useControls(callback: RenderControlsCallback) {
 
     const interactions = useContext(InteractionContext);
     if (!interactions) {
-        throw new Error("InteractionContext is not defined");
+        return;
     }
 
     const [storedControls] = useState<Reference<DiagramElementControls | undefined>>({value: undefined});

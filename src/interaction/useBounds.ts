@@ -12,7 +12,7 @@ export function useBounds(boundsRect: Rect) {
 
     const interactions = useContext(InteractionContext);
     if (!interactions) {
-        throw new Error("InteractionContext is not defined");
+        return;
     }
 
     const [storedBounds] = useState<Reference<DiagramElementBounds | undefined>>({value: undefined});
