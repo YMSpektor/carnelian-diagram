@@ -1,18 +1,17 @@
 /** @jsxImportSource @emotion/react */
-import { HTMLAttributes, useLayoutEffect, useRef } from "react";
+import { forwardRef, HTMLAttributes, useLayoutEffect, useRef } from "react";
 import { Diagram } from "carnelian-diagram";
 
 interface DiagramViewerProps {
-    diagram: Diagram;
+    diagram: Diagram | null;
     diagramSize: {width: number, height: number};
     scale: number;
     unit?: string;
     unitMultiplier?: number;
 }
 
-function DiagramViewer(props: DiagramViewerProps & HTMLAttributes<HTMLDivElement>) {
+const DiagramViewer = forwardRef<HTMLDivElement, DiagramViewerProps & HTMLAttributes<HTMLDivElement>>(function(props, ref) {
     let {diagram, diagramSize, scale, unit, unitMultiplier, ...divProps} = props;
-    const container = useRef<HTMLDivElement>(null);
     const root = useRef<SVGSVGElement>(null);
 
     unit = unit || "px";
@@ -21,22 +20,32 @@ function DiagramViewer(props: DiagramViewerProps & HTMLAttributes<HTMLDivElement
     const height = `${diagramSize.height * (scale / 100) * unitMultiplier}${unit}`;
 
     useLayoutEffect(() => {
-        root.current && diagram.attach(root.current);
+        if (root.current && diagram && !diagram.isAttached()) {
+            diagram.attach(root.current);
 
-        return () => {
-            diagram.detach();
+            return () => {
+                diagram?.detach();
+            }
         }
     }, [diagram]);
 
     return (
-        <div ref={container} css={{display: "flex", overflow: "auto"}} {...divProps}>
+        <div ref={ref} css={{display: "flex", overflow: "auto"}} {...divProps}>
             <svg xmlns="http://www.w3.org/2000/svg"
                 viewBox={[0, 0, diagramSize.width, diagramSize.height].join(' ')}
-                style={{width, height}} css={{flex: "1 0 auto"}}
-                ref={root}>
+                {...{width, height}}
+                css={{flex: "1 0 auto", margin: "auto", overflow: "visible"}}
+            >
+                <g>
+                    <rect 
+                        x={0} y={0} width={diagramSize.width} height={diagramSize.height}
+                        css={{fill: "white", stroke: "black"}}
+                    />
+                </g>
+                <g ref={root} />
             </svg>
         </div>
     );
-}
+});
 
 export default DiagramViewer;

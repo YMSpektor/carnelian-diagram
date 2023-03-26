@@ -270,6 +270,10 @@ export class Diagram {
         }
     }
 
+    isAttached() {
+        return !!this.attachedRoot;
+    }
+
     attach(root: SVGGraphicsElement) {
         this.attachedRoot = root;
         this.scheduleUpdate(root);

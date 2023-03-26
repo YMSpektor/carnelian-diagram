@@ -26,7 +26,7 @@ export interface DiagramElementBounds {
 export interface InteractionControllerType {
     elements: DiagramElementNode[];
 
-    init(svg: SVGGraphicsElement, transform?: DOMMatrixReadOnly): void;
+    init(transform?: DOMMatrixReadOnly): void;
     cleanup?: () => void;
     updateControls(controls?: DiagramElementControls, prevControls?: DiagramElementControls): void;
     renderControls(transform: DOMMatrixReadOnly): JSXElement;
@@ -59,21 +59,23 @@ export class InteractionController implements InteractionControllerType {
     private selecting = false;
     elements: DiagramElementNode[] = [];
 
-    init(svg: SVGGraphicsElement, transform?: DOMMatrixReadOnly) {
+    constructor(private root: HTMLElement) {}
+
+    init(transform?: DOMMatrixReadOnly) {
         this.transform = transform;
         this.cleanup?.();
        
-        const mouseDownHandler = (e: PointerEvent) => this.mouseDownHandler(svg, e);
-        const mouseMoveHandler = (e: PointerEvent) => this.mouseMoveHandler(svg, e);
-        const mouseUpHandler = (e: PointerEvent) => this.mouseUpHandler(svg, e);
-        svg.addEventListener("pointerdown", mouseDownHandler);
-        svg.addEventListener("pointermove", mouseMoveHandler);
-        svg.addEventListener("pointerup", mouseUpHandler);
+        const mouseDownHandler = (e: PointerEvent) => this.mouseDownHandler(e);
+        const mouseMoveHandler = (e: PointerEvent) => this.mouseMoveHandler(e);
+        const mouseUpHandler = (e: PointerEvent) => this.mouseUpHandler(e);
+        this.root.addEventListener("pointerdown", mouseDownHandler);
+        this.root.addEventListener("pointermove", mouseMoveHandler);
+        this.root.addEventListener("pointerup", mouseUpHandler);
 
         this.cleanup = () => {
-            svg.removeEventListener("pointerdown", mouseDownHandler);
-            svg.removeEventListener("pointermove", mouseMoveHandler);
-            svg.removeEventListener("pointerup", mouseUpHandler);
+            this.root.removeEventListener("pointerdown", mouseDownHandler);
+            this.root.removeEventListener("pointermove", mouseMoveHandler);
+            this.root.removeEventListener("pointerup", mouseUpHandler);
         }
     }
 
@@ -84,7 +86,7 @@ export class InteractionController implements InteractionControllerType {
         this.onSelect?.(elements);
     }
 
-    private mouseDownHandler(svg: SVGGraphicsElement, e: PointerEvent) {
+    private mouseDownHandler(e: PointerEvent) {
         if (this.dragging || this.selecting) return;
 
         const hitInfo = this.hitTest(e);
@@ -94,54 +96,54 @@ export class InteractionController implements InteractionControllerType {
             if (e.shiftKey) {
                 if (isSelected) {
                     this.selectedElements.delete(hitInfo.element);
-                    svg.style.cursor = "";
+                    this.root.style.cursor = "";
                 }
                 else {
                     this.selectedElements.add(hitInfo.element);
-                    svg.style.cursor = hitInfo.hitArea.cursor || "";
+                    this.root.style.cursor = hitInfo.hitArea.cursor || "";
                 }
                 this.onSelect?.([...this.selectedElements]);
             } 
             else {
                 if (!isSelected) {
-                    svg.style.cursor = hitInfo.hitArea.cursor || "";
+                    this.root.style.cursor = hitInfo.hitArea.cursor || "";
                     this.select([hitInfo.element]);
                 }
                 else {
-                    this.beginDrag(svg, e, hitInfo);
+                    this.beginDrag(e, hitInfo);
                 }
             }
         }
         else {
             if (this.selectedElements.size > 0) {
-                svg.style.cursor = "";
+                this.root.style.cursor = "";
                 this.select([]);
             }
-            this.beginSelect(svg, e);
+            this.beginSelect(e);
         }
     }
 
-    private mouseMoveHandler(svg: SVGGraphicsElement, e: PointerEvent) {
+    private mouseMoveHandler(e: PointerEvent) {
         if (!this.dragging && !this.selecting) {
             const hitInfo = this.hitTest(e);
             const isSelected = hitInfo && this.selectedElements.has(hitInfo.element);
 
-            svg.style.cursor = isSelected ? hitInfo?.hitArea.cursor || "" : "";
+            this.root.style.cursor = isSelected ? hitInfo?.hitArea.cursor || "" : "";
         }
     }
 
-    private mouseUpHandler(svg: SVGGraphicsElement, e: PointerEvent) {
+    private mouseUpHandler(e: PointerEvent) {
         if (this.dragging) {
-            this.endDrag(svg, e);
+            this.endDrag(e);
         }
         if (this.selecting) {
-            this.endSelect(svg, e);
+            this.endSelect(e);
         }
     }
 
-    private beginSelect(svg: SVGGraphicsElement, e: PointerEvent) {
+    private beginSelect(e: PointerEvent) {
         this.selecting = true;
-        svg.setPointerCapture(e.pointerId);
+        this.root.setPointerCapture(e.pointerId);
 
         const startPoint = new DOMPoint(e.clientX, e.clientY);
 
@@ -173,22 +175,22 @@ export class InteractionController implements InteractionControllerType {
                 .filter(x => intersectRect(selectionRect, x[1].bounds))
                 .map(x => x[0]));
 
-            svg.removeEventListener("pointermove", mouseMoveHandler);
-            svg.removeEventListener("pointerup", mouseUpHandler);
+            this.root.removeEventListener("pointermove", mouseMoveHandler);
+            this.root.removeEventListener("pointerup", mouseUpHandler);
         }
 
-        svg.addEventListener("pointermove", mouseMoveHandler);
-        svg.addEventListener("pointerup", mouseUpHandler);
+        this.root.addEventListener("pointermove", mouseMoveHandler);
+        this.root.addEventListener("pointerup", mouseUpHandler);
     }
 
-    private endSelect(svg: SVGGraphicsElement, e: PointerEvent) {
+    private endSelect(e: PointerEvent) {
         this.selecting = false;
-        svg.releasePointerCapture(e.pointerId);
+        this.root.releasePointerCapture(e.pointerId);
     }
 
-    private beginDrag(svg: SVGGraphicsElement, e: PointerEvent, hitInfo: HitInfo) {
+    private beginDrag(e: PointerEvent, hitInfo: HitInfo) {
         this.dragging = true;
-        svg.setPointerCapture(e.pointerId);
+        this.root.setPointerCapture(e.pointerId);
 
         let lastPoint = new DOMPoint(e.clientX, e.clientY).matrixTransform(this.transform);
 
@@ -211,18 +213,18 @@ export class InteractionController implements InteractionControllerType {
             }
 
             const mouseUpHandler = (e: PointerEvent) => {
-                svg.removeEventListener("pointermove", mouseMoveHandler);
-                svg.removeEventListener("pointerup", mouseUpHandler);
+                this.root.removeEventListener("pointermove", mouseMoveHandler);
+                this.root.removeEventListener("pointerup", mouseUpHandler);
             }
 
-            svg.addEventListener("pointermove", mouseMoveHandler);
-            svg.addEventListener("pointerup", mouseUpHandler);
+            this.root.addEventListener("pointermove", mouseMoveHandler);
+            this.root.addEventListener("pointerup", mouseUpHandler);
         }
     }
 
-    private endDrag(svg: SVGGraphicsElement, e: PointerEvent) {
+    private endDrag(e: PointerEvent) {
         this.dragging = false;
-        svg.releasePointerCapture(e.pointerId);
+        this.root.releasePointerCapture(e.pointerId);
     }
 
     isSelected(element: DiagramElementNode) {

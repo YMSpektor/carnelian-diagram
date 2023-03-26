@@ -62,7 +62,7 @@ export const withInteraction = (
                     (newMatrix && curMatrix && (newMatrix.a !== curMatrix.a || newMatrix.b !== curMatrix.b || newMatrix.c !== curMatrix.c || newMatrix.d !== curMatrix.d || newMatrix.e !== curMatrix.e || newMatrix.f !== curMatrix.f)))
                 {
                     curMatrix = newMatrix;
-                    controller.init(props.svg, newMatrix);
+                    controller.init(newMatrix);
                     setMatrix(newMatrix);
                 }
 
