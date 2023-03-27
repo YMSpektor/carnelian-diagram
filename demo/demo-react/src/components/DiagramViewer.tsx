@@ -1,7 +1,8 @@
 /** @jsxImportSource @emotion/react */
-import { HTMLAttributes, useLayoutEffect, useRef } from "react";
+import { HTMLAttributes, useContext, useLayoutEffect, useRef } from "react";
 import { Diagram } from "carnelian-diagram";
 import { InteractionController } from "carnelian-diagram/interaction";
+import { DragDropContext } from "../context/DragDropContext";
 
 interface DiagramViewerProps {
     diagram: Diagram;
@@ -16,6 +17,7 @@ function DiagramViewer(props: DiagramViewerProps & HTMLAttributes<HTMLDivElement
     let {diagram, controller, diagramSize, scale, unit, unitMultiplier, ...divProps} = props;
     const root = useRef<SVGSVGElement>(null);
     const container = useRef<HTMLDivElement>(null);
+    const dragDropContext = useContext(DragDropContext);
 
     unit = unit || "px";
     unitMultiplier = unitMultiplier || 1;
@@ -34,9 +36,33 @@ function DiagramViewer(props: DiagramViewerProps & HTMLAttributes<HTMLDivElement
         }
     }, [diagram, controller]);
 
+    function dragOverHandler(e: React.DragEvent) {
+        if (controller && dragDropContext.draggedElement) {
+            e.preventDefault();
+            e.dataTransfer.dropEffect = "copy";
+        }
+    }
+
+    function dropHandler(e: React.DragEvent) {
+        if (controller && dragDropContext.draggedElement) {
+            e.preventDefault();
+            
+            const draggedElement = dragDropContext.draggedElement;
+            const point = controller.clientToDiagram(new DOMPoint(e.clientX, e.clientY));
+            const props = draggedElement.factory(point, draggedElement.elementProps);
+            const element = diagram.add(draggedElement.elementType, props);
+            controller.select(element);
+        }
+    }
+
     return (
         <div css={{display: "flex", overflow: "auto"}} {...divProps}>
-            <div ref={container} css={{display: "flex", flex: "1 0 auto", minHeight: "100%"}}>
+            <div 
+                ref={container} 
+                css={{display: "flex", flex: "1 0 auto", minHeight: "100%"}}
+                onDragOver={dragOverHandler}
+                onDrop={dropHandler}
+            >
                 <svg xmlns="http://www.w3.org/2000/svg"
                     viewBox={[0, 0, diagramSize.width, diagramSize.height].join(' ')}
                     {...{width, height}}

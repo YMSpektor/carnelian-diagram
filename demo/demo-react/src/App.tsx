@@ -12,15 +12,25 @@ function App() {
     const palette: DiagramPaletteElement<any>[] = [
         {
             elementType: Rect,
-            elementProps: {x: 10, y: 10, width: 80, height: 80, stroke: "black", fill: "white"},
-            viewBox: "0 0 100 100",
-            title: "Rectangle"
+            elementProps: {x: 20, y: 20, width: 300, height: 300, stroke: "black", fill: "white"},
+            viewBox: "0 0 340 340",
+            title: "Rectangle",
+            factory: (point, props) => ({
+                ...props,
+                x: point.x - props.width / 2,
+                y: point.y - props.height / 2
+            })
         },
         {
             elementType: Rect,
-            elementProps: {x: 10, y: 10, width: 80, height: 80, stroke: "black", fill: "blue"},
-            viewBox: "0 0 100 100",
-            title: "Rectangle"
+            elementProps: {x: 20, y: 20, width: 300, height: 300, stroke: "black", fill: "blue"},
+            viewBox: "0 0 340 340",
+            title: "Rectangle",
+            factory: (point, props) => ({
+                ...props,
+                x: point.x - props.width / 2,
+                y: point.y - props.height / 2
+            })
         }
     ];
 

@@ -1,15 +1,17 @@
 /** @jsxImportSource @emotion/react */
-import { HTMLAttributes } from "react";
+import { HTMLAttributes, useContext } from "react";
 import { Box } from "@mui/material";
 import { DiagramElement } from "carnelian-diagram";
 import DiagramElementIcon from "./DiagramElementIcon";
 import Typography from "@mui/material/Typography";
+import { DragDropContext, ElementFactory } from "../context/DragDropContext";
 
 export interface DiagramPaletteElement<T extends object> {
     elementType: DiagramElement<T>;
     elementProps: T;
     viewBox: string;
     title: string;
+    factory: ElementFactory<T>;
 }
 
 interface DiagramPaletteProps {
@@ -20,6 +22,21 @@ interface DiagramPaletteProps {
 
 function DiagramPalette(props: DiagramPaletteProps & HTMLAttributes<HTMLDivElement>) {
     const {iconWidth, iconHeight, palette, ...divProps} = props;
+
+    const dragDropContext = useContext(DragDropContext);
+
+    function dragStartHandler<T extends object>(e: React.DragEvent, element: DiagramPaletteElement<T>) {
+        // Set empty drag image
+        var img = document.createElement("img");   
+        img.src = "data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7";
+        e.dataTransfer.setDragImage(img, 0, 0);
+
+        dragDropContext.draggedElement = element;
+    }
+
+    function dragEndHandle(e: React.DragEvent) {
+        dragDropContext.draggedElement = null;
+    }
 
     return (
         <Box
@@ -32,18 +49,22 @@ function DiagramPalette(props: DiagramPaletteProps & HTMLAttributes<HTMLDivEleme
             {palette.map((element, i) => (
                 <div 
                     key={i} 
-                    css={{position: "relative", width: iconWidth, overflow: "hidden", whiteSpace: "nowrap", textOverflow: "ellipsis", textAlign: "center"}} 
+                    css={{width: iconWidth, overflow: "hidden", whiteSpace: "nowrap", textOverflow: "ellipsis", textAlign: "center"}}
+                    draggable={true}
+                    onDragStart={e => dragStartHandler(e, element)}
+                    onDragEnd={dragEndHandle}
                 >
                     <div>
                         <DiagramElementIcon
                             width={iconWidth} height={iconHeight}
-                            {...element}
+                            elementType={element.elementType}
+                            elementProps={element.elementProps}
+                            viewBox={element.viewBox}
                         />
                      </div>
                      <Typography variant="caption">
                         {element.title}
                     </Typography>
-                    <div draggable={true} css={{position: "absolute", left: 0, right: 0, top: 0, bottom: 0, opacity: 0}}/>
                 </div>
             ))}
         </Box>

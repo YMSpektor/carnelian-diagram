@@ -137,7 +137,18 @@ export class InteractionController {
         return this.contextValue;
     }
 
-    select(elements: DiagramElementNode[]) {
+    clientToDiagram(point: DOMPointReadOnly): DOMPointReadOnly {
+        return point.matrixTransform(this.transform);
+    }
+
+    diagramToClient(point: DOMPointReadOnly): DOMPointReadOnly {
+        return point.matrixTransform(this.transform?.inverse());
+    }
+
+    select(elements: DiagramElementNode | DiagramElementNode[]) {
+        if (!Array.isArray(elements)) {
+            elements = [elements];
+        }
         this.selectedElements = new Set(elements);
         this.onSelect?.(elements);
     }
@@ -163,7 +174,7 @@ export class InteractionController {
             else {
                 if (!isSelected) {
                     root.style.cursor = hitInfo.hitArea.cursor || "";
-                    this.select([hitInfo.element]);
+                    this.select(hitInfo.element);
                 }
                 else {
                     this.beginDrag(root, e, hitInfo);
@@ -219,8 +230,8 @@ export class InteractionController {
         const mouseUpHandler = (e: PointerEvent) => {
             this.onRectSelection?.(undefined);
 
-            const p1 = startPoint.matrixTransform(this.transform);
-            const p2 = new DOMPoint(e.clientX, e.clientY).matrixTransform(this.transform);
+            const p1 = this.clientToDiagram(startPoint);
+            const p2 = this.clientToDiagram(new DOMPoint(e.clientX, e.clientY));
             const selectionRect = {
                 x: Math.min(p1.x, p2.x),
                 y: Math.min(p1.y, p2.y),
@@ -248,12 +259,12 @@ export class InteractionController {
         this.dragging = true;
         root.setPointerCapture(e.pointerId);
 
-        let lastPoint = new DOMPoint(e.clientX, e.clientY).matrixTransform(this.transform);
+        let lastPoint = this.clientToDiagram(new DOMPoint(e.clientX, e.clientY));
 
         if (hitInfo.hitArea.action) {
             const mouseMoveHandler = (e: PointerEvent) => {
                 const point = new DOMPoint(e.clientX, e.clientY);
-                const elementPoint = point.matrixTransform(this.transform);
+                const elementPoint = this.clientToDiagram(point);
 
                 this.dispatch<MovementActionPayload>(
                     [hitInfo.element],
@@ -298,7 +309,7 @@ export class InteractionController {
             const transform = this.transform;
             const point = new DOMPoint(e.clientX, e.clientY);
             if (e.target && hasHitTestProps(e.target)) {
-                const elementPoint = point.matrixTransform(transform);
+                const elementPoint = this.clientToDiagram(point);
                 return {
                     ...e.target.__hitTest,
                     screenX: point.x,
@@ -322,7 +333,7 @@ export class InteractionController {
                         if (hit) break;
                     }
                     if (hit) {
-                        const elementPoint = point.matrixTransform(transform);
+                        const elementPoint = this.clientToDiagram(point);
                         return {
                             element: hit.element,
                             screenX: point.x,
