@@ -28,7 +28,7 @@ function App() {
         <div css={{display: "flex", flexDirection: "column", height: "100vh"}}>
             <DiagramToolbar scale={scale} onScaleChange={setScale} />
             <div css={{flex: 1, display: "flex", alignItems: "stretch", overflow: "hidden"}}>
-                <DiagramPalette thumbWidth={64} thumbHeight={64} elements={palette} css={{flex: "0 0 300px"}} />
+                <DiagramPalette thumbWidth={64} thumbHeight={64} palette={palette} css={{flex: "0 0 300px"}} />
                 <DiagramViewer
                     css={{flex: 1, backgroundColor: "#c5c5ff"}}
                     diagram={diagram} controller={controller}

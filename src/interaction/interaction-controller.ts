@@ -33,75 +33,6 @@ export interface InteractionContextType {
 export const InteractionContext = createContext<InteractionContextType | undefined>(undefined);
 export const SelectionContext = createContext<DiagramElementNode[]>([]);
 
-function createInteractionContextValue(
-    controls: DiagramElementControls[],
-    hitAreas: HitAreaCollection,
-    actions: Map<DiagramElementNode, DiagramElementAction<any>[]>,
-    bounds: Map<DiagramElementNode, DiagramElementBounds>
-): InteractionContextType {
-
-    const updateControls = (newControls?: DiagramElementControls, prevControls?: DiagramElementControls) => {
-        if (prevControls) {
-            const index = controls.indexOf(prevControls);
-            if (index >= 0) {
-                newControls ? controls.splice(index, 1, newControls) : controls.splice(index, 1);
-            }
-        }
-        else if (newControls) {
-            controls.push(newControls);
-        }
-    }
-
-    const updateHitTests = (newHitTests?: DiagramElementHitTest, prevHitTests?: DiagramElementHitTest) => {
-        if (prevHitTests) {
-            const map = hitAreas[prevHitTests.priority];
-            let arr = map?.get(prevHitTests.element);
-            arr = arr?.filter(x => x !== prevHitTests);
-            if (arr && arr.length) {
-                map?.set(prevHitTests.element, arr);
-            }
-            else {
-                map?.delete(prevHitTests.element);
-            }
-        }
-        if (newHitTests) {
-            let map = hitAreas[newHitTests.priority];
-            if (!map) {
-                map = new Map<DiagramElementNode, DiagramElementHitTest[]>();
-                hitAreas[newHitTests.priority] = map;
-            }
-            let arr = map.get(newHitTests.element) || [];
-            arr = arr.concat(newHitTests);
-            map.set(newHitTests.element, arr);
-        }
-    }
-
-    const updateActions = (newAction?: DiagramElementAction<any>, prevAction?: DiagramElementAction<any>) => {
-        if (prevAction) {
-            actions.set(prevAction.element, actions.get(prevAction.element)?.filter(x => x !== prevAction) || []);
-        }
-        if (newAction) {
-            actions.set(newAction.element, (actions.get(newAction.element) || []).concat(newAction));
-        }
-    }
-
-    const updateBounds = (newBounds?: DiagramElementBounds, prevBounds?: DiagramElementBounds) => {
-        if (prevBounds) {
-            bounds.delete(prevBounds.element);
-        }
-        if (newBounds) {
-            bounds.set(newBounds.element, newBounds);
-        }
-    }
-
-    return {
-        updateControls,
-        updateHitTests,
-        updateActions,
-        updateBounds
-    }
-}
-
 export interface MovementActionPayload {
     position: DOMPointReadOnly;
     deltaX: number;
@@ -114,7 +45,7 @@ export class InteractionController {
     private hitAreas: HitAreaCollection = {};
     private actions = new Map<DiagramElementNode, DiagramElementAction<any>[]>();
     private bounds = new Map<DiagramElementNode, DiagramElementBounds>();
-    private contextValue = createInteractionContextValue(this.controls, this.hitAreas, this.actions, this.bounds);
+    private contextValue: InteractionContextType;
     private dragging = false;
     private selecting = false;
     private selectedElements = new Set<DiagramElementNode>();
@@ -123,6 +54,7 @@ export class InteractionController {
 
     constructor(root?: HTMLElement) {
         root && this.attach(root);
+        this.contextValue = this.createInteractionContextValue();
     }
 
     attach(root: HTMLElement) {
@@ -144,6 +76,63 @@ export class InteractionController {
     }
 
     detach?: () => void;
+
+    private createInteractionContextValue(): InteractionContextType {
+        const updateControls = (newControls?: DiagramElementControls, prevControls?: DiagramElementControls) => {
+            let newValue = prevControls ? this.controls.filter(x => x !== prevControls) : this.controls;
+            newValue = newControls ? newValue.concat(newControls) : newValue;
+            this.controls = newValue;
+        }
+    
+        const updateHitTests = (newHitTests?: DiagramElementHitTest, prevHitTests?: DiagramElementHitTest) => {
+            if (prevHitTests) {
+                const map = this.hitAreas[prevHitTests.priority];
+                let arr = map?.get(prevHitTests.element);
+                arr = arr?.filter(x => x !== prevHitTests);
+                if (arr && arr.length) {
+                    map?.set(prevHitTests.element, arr);
+                }
+                else {
+                    map?.delete(prevHitTests.element);
+                }
+            }
+            if (newHitTests) {
+                let map = this.hitAreas[newHitTests.priority];
+                if (!map) {
+                    map = new Map<DiagramElementNode, DiagramElementHitTest[]>();
+                    this.hitAreas[newHitTests.priority] = map;
+                }
+                let arr = map.get(newHitTests.element) || [];
+                arr = arr.concat(newHitTests);
+                map.set(newHitTests.element, arr);
+            }
+        }
+    
+        const updateActions = (newAction?: DiagramElementAction<any>, prevAction?: DiagramElementAction<any>) => {
+            if (prevAction) {
+                this.actions.set(prevAction.element, this.actions.get(prevAction.element)?.filter(x => x !== prevAction) || []);
+            }
+            if (newAction) {
+                this.actions.set(newAction.element, (this.actions.get(newAction.element) || []).concat(newAction));
+            }
+        }
+    
+        const updateBounds = (newBounds?: DiagramElementBounds, prevBounds?: DiagramElementBounds) => {
+            if (prevBounds) {
+                this.bounds.delete(prevBounds.element);
+            }
+            if (newBounds) {
+                this.bounds.set(newBounds.element, newBounds);
+            }
+        }
+    
+        return {
+            updateControls,
+            updateHitTests,
+            updateActions,
+            updateBounds
+        }
+    }
 
     getContextValue(): InteractionContextType {
         return this.contextValue;

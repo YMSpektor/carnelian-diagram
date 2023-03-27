@@ -15,11 +15,11 @@ export interface DiagramPaletteElement<T extends object> {
 interface DiagramPaletteProps {
     thumbWidth: number;
     thumbHeight: number;
-    elements: DiagramPaletteElement<any>[];
+    palette: DiagramPaletteElement<any>[];
 }
 
 function DiagramPalette(props: DiagramPaletteProps & HTMLAttributes<HTMLDivElement>) {
-    const {thumbWidth, thumbHeight, elements, ...divProps} = props;
+    const {thumbWidth, thumbHeight, palette, ...divProps} = props;
 
     return (
         <Box
@@ -29,7 +29,7 @@ function DiagramPalette(props: DiagramPaletteProps & HTMLAttributes<HTMLDivEleme
             css={{display: "flex", flexWrap: "wrap", alignItems: "flex-start", gap: 8, padding: 8, overflowY: "auto"}} 
             {...divProps}
         >
-            {props.elements.map((element, i) => (
+            {palette.map((element, i) => (
                 <div 
                     key={i} 
                     css={{position: "relative", width: thumbWidth, overflow: "hidden", whiteSpace: "nowrap", textOverflow: "ellipsis", textAlign: "center"}} 
