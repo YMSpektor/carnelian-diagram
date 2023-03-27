@@ -1,5 +1,9 @@
-export type Reference<T> = {
-    value: T;
+export interface MutableRefObject<T> {
+    current: T;
+}
+
+export interface RefObject<T> {
+    readonly current: T | null;
 }
 
 export type WithThis<

@@ -1,12 +1,12 @@
 import { SVGAttributes, useLayoutEffect, useRef, useState } from "react";
 import { Diagram, DiagramElement, DiagramRoot } from "carnelian-diagram";
 
-interface DiagramElementThumbnailProps<T extends object> {
+interface DiagramElementIconProps<T extends object> {
     elementType: DiagramElement<T>;
     elementProps: T;
 }
 
-function DiagramElementThumbnail<T extends object>(props: DiagramElementThumbnailProps<T> & SVGAttributes<SVGSVGElement>) {
+function DiagramElementIcon<T extends object>(props: DiagramElementIconProps<T> & SVGAttributes<SVGSVGElement>) {
     const {elementType, elementProps, ...svgProps} = props;
     const [diagram] = useState(createDiagram());
     const svg = useRef<SVGSVGElement>(null);
@@ -32,4 +32,4 @@ function DiagramElementThumbnail<T extends object>(props: DiagramElementThumbnai
     )
 }
 
-export default DiagramElementThumbnail;
+export default DiagramElementIcon;

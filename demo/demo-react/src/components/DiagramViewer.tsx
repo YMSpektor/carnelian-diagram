@@ -29,7 +29,7 @@ function DiagramViewer(props: DiagramViewerProps & HTMLAttributes<HTMLDivElement
 
             return () => {
                 diagram.detach();
-                controller?.detach?.();
+                controller?.detach();
             }
         }
     }, [diagram, controller]);

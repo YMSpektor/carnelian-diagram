@@ -1,6 +1,5 @@
-import { Reference } from "../utils/types";
 import { DiagramElementBounds, InteractionContext } from ".";
-import { RenderContext, useContext, useEffect, useState } from "..";
+import { RenderContext, useContext, useEffect, useRef } from "..";
 import { Rect } from "../geometry";
 
 export function useBounds(boundsRect: Rect) {
@@ -15,19 +14,19 @@ export function useBounds(boundsRect: Rect) {
         return;
     }
 
-    const [storedBounds] = useState<Reference<DiagramElementBounds | undefined>>({value: undefined});
+    const storedBounds = useRef<DiagramElementBounds | undefined>(undefined);
 
     const bounds: DiagramElementBounds = {
         element: curElement,
         bounds: boundsRect
     }
-    interactions.updateBounds(bounds, storedBounds.value);
-    storedBounds.value = bounds; // Setting a state will cause an infinite loop
+    interactions.updateBounds(bounds, storedBounds.current);
+    storedBounds.current = bounds; // Setting a state will cause an infinite loop
 
     useEffect(() => {
         return () => {
-            interactions.updateBounds(undefined, storedBounds.value);
-            storedBounds.value = undefined;
+            interactions.updateBounds(undefined, storedBounds.current);
+            storedBounds.current = undefined;
         }
     }, [interactions]);
 }

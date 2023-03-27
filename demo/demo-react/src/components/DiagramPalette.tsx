@@ -2,7 +2,7 @@
 import { HTMLAttributes } from "react";
 import { Box } from "@mui/material";
 import { DiagramElement } from "carnelian-diagram";
-import DiagramElementThumbnail from "./DiagramElementThumbnail";
+import DiagramElementIcon from "./DiagramElementIcon";
 import Typography from "@mui/material/Typography";
 
 export interface DiagramPaletteElement<T extends object> {
@@ -13,13 +13,13 @@ export interface DiagramPaletteElement<T extends object> {
 }
 
 interface DiagramPaletteProps {
-    thumbWidth: number;
-    thumbHeight: number;
+    iconWidth: number;
+    iconHeight: number;
     palette: DiagramPaletteElement<any>[];
 }
 
 function DiagramPalette(props: DiagramPaletteProps & HTMLAttributes<HTMLDivElement>) {
-    const {thumbWidth, thumbHeight, palette, ...divProps} = props;
+    const {iconWidth, iconHeight, palette, ...divProps} = props;
 
     return (
         <Box
@@ -32,11 +32,11 @@ function DiagramPalette(props: DiagramPaletteProps & HTMLAttributes<HTMLDivEleme
             {palette.map((element, i) => (
                 <div 
                     key={i} 
-                    css={{position: "relative", width: thumbWidth, overflow: "hidden", whiteSpace: "nowrap", textOverflow: "ellipsis", textAlign: "center"}} 
+                    css={{position: "relative", width: iconWidth, overflow: "hidden", whiteSpace: "nowrap", textOverflow: "ellipsis", textAlign: "center"}} 
                 >
                     <div>
-                        <DiagramElementThumbnail
-                            width={thumbWidth} height={thumbHeight}
+                        <DiagramElementIcon
+                            width={iconWidth} height={iconHeight}
                             {...element}
                         />
                      </div>

@@ -52,13 +52,12 @@ export class InteractionController {
     elements: DiagramElementNode[] = [];
     transform?: DOMMatrixReadOnly;
 
-    constructor(root?: HTMLElement) {
-        root && this.attach(root);
+    constructor() {
         this.contextValue = this.createInteractionContextValue();
     }
 
     attach(root: HTMLElement) {
-        this.detach?.();
+        this.detach();
        
         const mouseDownHandler = (e: PointerEvent) => this.mouseDownHandler(root, e);
         const mouseMoveHandler = (e: PointerEvent) => this.mouseMoveHandler(root, e);
@@ -68,14 +67,14 @@ export class InteractionController {
         root.addEventListener("pointerup", mouseUpHandler);
 
         this.detach = () => {
-            this.detach = undefined;
+            this.detach = () => {};
             root.removeEventListener("pointerdown", mouseDownHandler);
             root.removeEventListener("pointermove", mouseMoveHandler);
             root.removeEventListener("pointerup", mouseUpHandler);
         }
     }
 
-    detach?: () => void;
+    detach() {};
 
     private createInteractionContextValue(): InteractionContextType {
         const updateControls = (newControls?: DiagramElementControls, prevControls?: DiagramElementControls) => {

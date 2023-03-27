@@ -1,6 +1,5 @@
-import { Reference } from "../utils/types";
 import { ActionCallback, DiagramElementAction, InteractionContext } from ".";
-import { DiagramElementNode, RenderContext, useContext, useEffect, useState } from "..";
+import { DiagramElementNode, RenderContext, useContext, useEffect, useRef } from "..";
 
 export function useAction<T>(actionType: string, callback: ActionCallback<T>, element?: DiagramElementNode) {
     const renderContext = useContext(RenderContext);
@@ -14,20 +13,20 @@ export function useAction<T>(actionType: string, callback: ActionCallback<T>, el
         return;
     }
 
-    const [storedActions] = useState<Reference<DiagramElementAction<T> | undefined>>({value: undefined});
+    const storedActions = useRef<DiagramElementAction<T> | undefined>(undefined);
 
     const action: DiagramElementAction<T> = {
         element: curElement,
         callback,
         action: actionType
     }
-    interactions.updateActions(action, storedActions.value);
-    storedActions.value = action; // Setting a state will cause an infinite loop
+    interactions.updateActions(action, storedActions.current);
+    storedActions.current = action; // Setting a state will cause an infinite loop
 
     useEffect(() => {
         return () => {
-            interactions.updateActions(undefined, storedActions.value);
-            storedActions.value = undefined;
+            interactions.updateActions(undefined, storedActions.current);
+            storedActions.current = undefined;
         }
     }, [interactions]);
 }

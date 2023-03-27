@@ -9,10 +9,6 @@ export function useSelection(element?: DiagramNode) {
     }
 
     const selectedElements = useContext(SelectionContext);
-    if (!selectedElements) {
-        throw new Error("SelectionContext is not defined");
-    }
-
     return {
         isSelected: selectedElements.indexOf(curElement) >= 0
     }
