@@ -1,6 +1,6 @@
 import { JSXElement } from "./jsx-runtime";
 import { ComponentCleanups, ComponentState, DiagramComponent, DiagramNode, EffectCleanup, RenderContextType } from "./diagram";
-import { Reference } from "./utils/types";
+import { MutableRefObject } from "./utils/types";
 
 export interface ContextProviderProps<T> {
     value: T;
@@ -33,7 +33,7 @@ export function createContext<T>(defaultValue: T): Context<T> {
         const curNode = context.renderContext?.currentNode;
         if (curNode) {
             const componentState = curNode.state = curNode.state || new ComponentState();
-            const [storedCleanup] = componentState.current<Reference<EffectCleanup | undefined>>({value: undefined});
+            const [storedCleanup] = componentState.current<MutableRefObject<EffectCleanup | undefined>>({current: undefined});
             let node: DiagramNode | undefined = curNode;
             while (node && node.context !== context) {
                 node = node.parent;
@@ -42,11 +42,11 @@ export function createContext<T>(defaultValue: T): Context<T> {
                 const subscriptions = node.subscriptions = node.subscriptions || new Set<DiagramNode>();
                 subscriptions.add(curNode);
                 const cleanups = curNode.cleanups = curNode.cleanups || new ComponentCleanups();
-                storedCleanup.value && cleanups.invokeCleanup(storedCleanup.value);
-                storedCleanup.value = () => {
+                storedCleanup.current && cleanups.invokeCleanup(storedCleanup.current);
+                storedCleanup.current = () => {
                     subscriptions.delete(curNode);
                 }
-                cleanups.registerCleanup(storedCleanup.value);
+                cleanups.registerCleanup(storedCleanup.current);
 
             }
             return node?.contextValue || context.defaultValue;
