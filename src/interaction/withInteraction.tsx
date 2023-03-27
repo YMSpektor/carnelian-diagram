@@ -7,9 +7,9 @@ import {
 } from ".";
 import { scheduleIdle } from "../utils/schedule";
 import { Rect } from "../geometry";
-import { JSXElement } from "../jsx-runtime";
+import { JSX } from "../jsx-runtime";
 
-const DiagramElements = (props: { children: JSXElement }) => {
+const DiagramElements = (props: { children: JSX.Element }) => {
     return (
         <g>
             {props.children}

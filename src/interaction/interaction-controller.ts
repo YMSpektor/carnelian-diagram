@@ -1,9 +1,9 @@
 import { createContext, DiagramElementNode } from "..";
 import { DiagramElementHitTest, hasHitTestProps, HitArea, HitAreaCollection, HitInfo } from "./hit-tests";
 import { intersectRect, Rect } from "../geometry";
-import { JSXElement } from "../jsx-runtime";
+import { JSX } from "../jsx-runtime";
 
-export type RenderControlsCallback = (transform: DOMMatrixReadOnly, element: DiagramElementNode) => JSXElement;
+export type RenderControlsCallback = (transform: DOMMatrixReadOnly, element: DiagramElementNode) => JSX.Element;
 
 export interface DiagramElementControls {
     element: DiagramElementNode;
@@ -287,7 +287,7 @@ export class InteractionController {
         return this.selectedElements.has(element);
     }
 
-    renderControls(transform: DOMMatrixReadOnly): JSXElement {
+    renderControls(transform: DOMMatrixReadOnly): JSX.Element {
         return this.controls
             .filter(x => this.isSelected(x.element))
             .map(x => x.callback(transform, x.element));

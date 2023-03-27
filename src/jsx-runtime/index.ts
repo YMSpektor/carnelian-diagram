@@ -1,14 +1,12 @@
-import { JSXInternal } from "./jsx.d";
+import { JSX } from "./jsx-namespace";
 
+export { JSX } from "./jsx-namespace";
 export type ComponentChild<P = any> = VirtualNode<P> | string | null | undefined;
 export type ComponentChildren<P = any> = ComponentChild<P>[] | ComponentChild<P> | ComponentChildren<P>[];
-export type JSXElement = ComponentChildren | undefined;
 export type RenderableProps<P> = P & Readonly<{ children?: ComponentChildren; }>;
-export type FunctionComponent<P> = (props: P) => JSXElement;
+export type FunctionComponent<P> = (props: P) => JSX.Element;
 export type ComponentType<P> = FunctionComponent<P>;
 export type Key = string | number | any;
-
-export import JSX = JSXInternal;
 
 export interface VirtualNode<P = {}> {
     type: string | ComponentType<P>;

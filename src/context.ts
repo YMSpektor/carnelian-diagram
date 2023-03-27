@@ -1,14 +1,14 @@
-import { JSXElement } from "./jsx-runtime";
+import { JSX } from "./jsx-runtime";
 import { ComponentCleanups, ComponentState, DiagramComponent, DiagramNode, EffectCleanup, RenderContextType } from "./diagram";
 import { MutableRefObject } from "./utils/types";
 
 export interface ContextProviderProps<T> {
     value: T;
-    children?: JSXElement;
+    children?: JSX.Element;
 }
 
 export interface ContextConsumerProps<T> {
-    children?: (value: T) => JSXElement;
+    children?: (value: T) => JSX.Element;
 }
 
 export interface Context<T> {

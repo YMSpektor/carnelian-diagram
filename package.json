@@ -7,9 +7,7 @@
     "dev": "ts-node-dev -r tsconfig-paths/register --files --respawn demo/hello-world/index.tsx",
     "prebuild": "rimraf dist",
     "build": "tsc --project tsconfig.build.json",
-    "copy-dts": "copyfiles -u 1 \"src/**/*.d.ts\" dist",
-    "copy-package": "copyfiles package.json dist",
-    "postbuild": "npm run copy-dts & npm run copy-package"
+    "postbuild": "copyfiles package.json dist"
   },
   "author": "",
   "license": "ISC",
