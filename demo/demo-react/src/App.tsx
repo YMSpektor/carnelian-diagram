@@ -1,38 +1,20 @@
 /** @jsxImportSource @emotion/react */
 import React, { useState } from 'react';
+import { Diagram } from 'carnelian-diagram';
 import DiagramPalette, { DiagramPaletteElement } from './components/DiagramPalette';
 import DiagramToolbar from './components/DiagramToolbar';
 import DiagramViewer from './components/DiagramViewer';
-import { controller, diagram } from "./diagram-document";
-import { Rect } from './elements';
+import { InteractionController } from 'carnelian-diagram/interaction';
 
-function App() {
+interface AppProps {
+    diagram: Diagram;
+    controller: InteractionController;
+    palette: DiagramPaletteElement<any>[];
+}
+
+function App(props: AppProps) {
+    const { controller, diagram, palette } = props;
     const [scale, setScale] = useState(100);
-
-    const palette: DiagramPaletteElement<any>[] = [
-        {
-            elementType: Rect,
-            elementProps: {x: 20, y: 20, width: 300, height: 300, stroke: "black", fill: "white"},
-            viewBox: "0 0 340 340",
-            title: "Rectangle",
-            factory: (point, props) => ({
-                ...props,
-                x: point.x - props.width / 2,
-                y: point.y - props.height / 2
-            })
-        },
-        {
-            elementType: Rect,
-            elementProps: {x: 20, y: 20, width: 300, height: 300, stroke: "black", fill: "blue"},
-            viewBox: "0 0 340 340",
-            title: "Rectangle",
-            factory: (point, props) => ({
-                ...props,
-                x: point.x - props.width / 2,
-                y: point.y - props.height / 2
-            })
-        }
-    ];
 
     return (
         <div css={{display: "flex", flexDirection: "column", height: "100vh"}}>
