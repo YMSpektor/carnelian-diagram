@@ -23,24 +23,84 @@ export interface DiagramElementBounds {
     bounds: Rect;
 }
 
-export interface InteractionControllerType {
-    elements: DiagramElementNode[];
-    transform?: DOMMatrixReadOnly;
-
-    attach(root: HTMLElement): void;
-    detach?: () => void;
+export interface InteractionContextType {
     updateControls(controls?: DiagramElementControls, prevControls?: DiagramElementControls): void;
-    renderControls(transform: DOMMatrixReadOnly): JSXElement;
     updateHitTests(hitTests?: DiagramElementHitTest, prevHitTests?: DiagramElementHitTest): void;
     updateActions(action?: DiagramElementAction<any>, prevAction?: DiagramElementAction<any>): void;
     updateBounds(bounds?: DiagramElementBounds, prevBounds?: DiagramElementBounds): void;
-
-    onSelect?: (elements: DiagramElementNode[]) => void;
-    onRectSelection?: (selection?: Rect) => void;
 }
 
-export const InteractionContext = createContext<InteractionControllerType | undefined>(undefined);
+export const InteractionContext = createContext<InteractionContextType | undefined>(undefined);
 export const SelectionContext = createContext<DiagramElementNode[]>([]);
+
+function createInteractionContextValue(
+    controls: DiagramElementControls[],
+    hitAreas: HitAreaCollection,
+    actions: Map<DiagramElementNode, DiagramElementAction<any>[]>,
+    bounds: Map<DiagramElementNode, DiagramElementBounds>
+): InteractionContextType {
+
+    const updateControls = (newControls?: DiagramElementControls, prevControls?: DiagramElementControls) => {
+        if (prevControls) {
+            const index = controls.indexOf(prevControls);
+            if (index >= 0) {
+                newControls ? controls.splice(index, 1, newControls) : controls.splice(index, 1);
+            }
+        }
+        else if (newControls) {
+            controls.push(newControls);
+        }
+    }
+
+    const updateHitTests = (newHitTests?: DiagramElementHitTest, prevHitTests?: DiagramElementHitTest) => {
+        if (prevHitTests) {
+            const map = hitAreas[prevHitTests.priority];
+            let arr = map?.get(prevHitTests.element);
+            arr = arr?.filter(x => x !== prevHitTests);
+            if (arr && arr.length) {
+                map?.set(prevHitTests.element, arr);
+            }
+            else {
+                map?.delete(prevHitTests.element);
+            }
+        }
+        if (newHitTests) {
+            let map = hitAreas[newHitTests.priority];
+            if (!map) {
+                map = new Map<DiagramElementNode, DiagramElementHitTest[]>();
+                hitAreas[newHitTests.priority] = map;
+            }
+            let arr = map.get(newHitTests.element) || [];
+            arr = arr.concat(newHitTests);
+            map.set(newHitTests.element, arr);
+        }
+    }
+
+    const updateActions = (newAction?: DiagramElementAction<any>, prevAction?: DiagramElementAction<any>) => {
+        if (prevAction) {
+            actions.set(prevAction.element, actions.get(prevAction.element)?.filter(x => x !== prevAction) || []);
+        }
+        if (newAction) {
+            actions.set(newAction.element, (actions.get(newAction.element) || []).concat(newAction));
+        }
+    }
+
+    const updateBounds = (newBounds?: DiagramElementBounds, prevBounds?: DiagramElementBounds) => {
+        if (prevBounds) {
+            bounds.delete(prevBounds.element);
+        }
+        if (newBounds) {
+            bounds.set(newBounds.element, newBounds);
+        }
+    }
+
+    return {
+        updateControls,
+        updateHitTests,
+        updateActions,
+        updateBounds
+    }
+}
 
 export interface MovementActionPayload {
     position: DOMPointReadOnly;
@@ -49,14 +109,15 @@ export interface MovementActionPayload {
     hitArea: HitArea;
 }
 
-export class InteractionController implements InteractionControllerType {
+export class InteractionController {
     private controls: DiagramElementControls[] = [];
     private hitAreas: HitAreaCollection = {};
     private actions = new Map<DiagramElementNode, DiagramElementAction<any>[]>();
     private bounds = new Map<DiagramElementNode, DiagramElementBounds>();
-    private selectedElements = new Set<DiagramElementNode>();
+    private contextValue = createInteractionContextValue(this.controls, this.hitAreas, this.actions, this.bounds);
     private dragging = false;
     private selecting = false;
+    private selectedElements = new Set<DiagramElementNode>();
     elements: DiagramElementNode[] = [];
     transform?: DOMMatrixReadOnly;
 
@@ -84,7 +145,11 @@ export class InteractionController implements InteractionControllerType {
 
     detach?: () => void;
 
-    private select(elements: DiagramElementNode[]) {
+    getContextValue(): InteractionContextType {
+        return this.contextValue;
+    }
+
+    select(elements: DiagramElementNode[]) {
         this.selectedElements = new Set(elements);
         this.onSelect?.(elements);
     }
@@ -234,40 +299,10 @@ export class InteractionController implements InteractionControllerType {
         return this.selectedElements.has(element);
     }
 
-    updateControls(newControls?: DiagramElementControls, prevControls?: DiagramElementControls) {
-        let newValue = prevControls ? this.controls.filter(x => x !== prevControls) : this.controls;
-        newValue = newControls ? newValue.concat(newControls) : newValue;
-        this.controls = newValue;
-    }
-
     renderControls(transform: DOMMatrixReadOnly): JSXElement {
         return this.controls
             .filter(x => this.isSelected(x.element))
             .map(x => x.callback(transform, x.element));
-    }
-
-    updateHitTests(newHitTests?: DiagramElementHitTest, prevHitTests?: DiagramElementHitTest) {
-        if (prevHitTests) {
-            const map = this.hitAreas[prevHitTests.priority];
-            let arr = map?.get(prevHitTests.element);
-            arr = arr?.filter(x => x !== prevHitTests);
-            if (arr && arr.length) {
-                map?.set(prevHitTests.element, arr);
-            }
-            else {
-                map?.delete(prevHitTests.element);
-            }
-        }
-        if (newHitTests) {
-            let map = this.hitAreas[newHitTests.priority];
-            if (!map) {
-                map = new Map<DiagramElementNode, DiagramElementHitTest[]>();
-                this.hitAreas[newHitTests.priority] = map;
-            }
-            let arr = map.get(newHitTests.element) || [];
-            arr = arr.concat(newHitTests);
-            map.set(newHitTests.element, arr);
-        }
     }
 
     hitTest(e: MouseEvent) {
@@ -314,15 +349,6 @@ export class InteractionController implements InteractionControllerType {
         }
     }
 
-    updateActions(newAction?: DiagramElementAction<any>, prevAction?: DiagramElementAction<any>) {
-        if (prevAction) {
-            this.actions.set(prevAction.element, this.actions.get(prevAction.element)?.filter(x => x !== prevAction) || []);
-        }
-        if (newAction) {
-            this.actions.set(newAction.element, (this.actions.get(newAction.element) || []).concat(newAction));
-        }
-    }
-
     dispatch<T>(elements: DiagramElementNode[], action: string, payload: T) {
         elements.forEach(element => {
             const callbacks = this.actions.get(element)
@@ -332,15 +358,6 @@ export class InteractionController implements InteractionControllerType {
                 callbacks.forEach(cb => cb(payload));
             }
         });
-    }
-
-    updateBounds(newBounds?: DiagramElementBounds, prevBounds?: DiagramElementBounds) {
-        if (prevBounds) {
-            this.bounds.delete(prevBounds.element);
-        }
-        if (newBounds) {
-            this.bounds.set(newBounds.element, newBounds);
-        }
     }
 
     onSelect?: (elements: DiagramElementNode[]) => void;

@@ -1,11 +1,11 @@
 /** @jsxImportSource @emotion/react */
 import { HTMLAttributes, useLayoutEffect, useRef } from "react";
 import { Diagram } from "carnelian-diagram";
-import { InteractionControllerType } from "carnelian-diagram/interaction";
+import { InteractionController } from "carnelian-diagram/interaction";
 
 interface DiagramViewerProps {
     diagram: Diagram;
-    controller?: InteractionControllerType;
+    controller?: InteractionController;
     diagramSize: {width: number, height: number};
     scale: number;
     unit?: string;

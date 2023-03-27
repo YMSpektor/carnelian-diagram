@@ -30,21 +30,21 @@ function DiagramPalette(props: DiagramPaletteProps & HTMLAttributes<HTMLDivEleme
             {...divProps}
         >
             {props.elements.map((element, i) => (
-                <Box 
+                <div 
                     key={i} 
                     css={{position: "relative", width: thumbWidth, overflow: "hidden", whiteSpace: "nowrap", textOverflow: "ellipsis", textAlign: "center"}} 
                 >
-                    <Box>
+                    <div>
                         <DiagramElementThumbnail
                             width={thumbWidth} height={thumbHeight}
                             {...element}
                         />
-                     </Box>
+                     </div>
                      <Typography variant="caption">
                         {element.title}
                     </Typography>
-                    <Box draggable={true} css={{position: "absolute", left: 0, right: 0, top: 0, bottom: 0, opacity: 0}}/>
-                </Box>
+                    <div draggable={true} css={{position: "absolute", left: 0, right: 0, top: 0, bottom: 0, opacity: 0}}/>
+                </div>
             ))}
         </Box>
     )

@@ -2,7 +2,7 @@
 import { DiagramElementNode, DiagramRootComponent, DiagramRootProps, useContext, useEffect, useState } from "..";
 import {
     InteractionContext, 
-    InteractionControllerType,
+    InteractionController, 
     SelectionContext
 } from ".";
 import { scheduleIdle } from "../utils/schedule";
@@ -19,11 +19,11 @@ const DiagramElements = (props: { children: JSXElement }) => {
 
 interface DiagramControlsProps {
     matrix: DOMMatrixReadOnly | undefined;
+    controller: InteractionController;
 }
 
 const DiagramControls = (props: DiagramControlsProps) => {
-    const matrix = props.matrix;
-    const controller = useContext(InteractionContext);
+    const { matrix, controller } = props;
 
     const [rectSelection, setRectSelection] = useState<Rect | undefined>(undefined);
     controller && (controller.onRectSelection = (rect) => setRectSelection(rect));
@@ -42,7 +42,7 @@ const DiagramControls = (props: DiagramControlsProps) => {
 
 export const withInteraction = ( 
     WrappedComponent: DiagramRootComponent,
-    controller: InteractionControllerType
+    controller: InteractionController
 ): DiagramRootComponent => {
     return (props: DiagramRootProps) => {
         const [matrix, setMatrix] = useState<DOMMatrix | undefined>(undefined);
@@ -77,12 +77,12 @@ export const withInteraction = (
         }, []);
 
         return (
-            <InteractionContext.Provider value={controller}>
+            <InteractionContext.Provider value={controller.getContextValue()}>
                 <SelectionContext.Provider value={selectedElements}>
                     <DiagramElements>
                         <WrappedComponent {...props} />
                     </DiagramElements>
-                    <DiagramControls matrix={matrix} />
+                    <DiagramControls matrix={matrix} controller={controller} />
                 </SelectionContext.Provider>
             </InteractionContext.Provider>
         )
