@@ -31,6 +31,10 @@ export class ComponentState {
         return [this.states[hookIndex], hookIndex];
     }
 
+    get<T>(index: number): T {
+        return this.states[index];
+    }
+
     set<T>(index: number, newValue: T) {
         this.states[index] = newValue;
     }
@@ -118,7 +122,7 @@ export class Diagram {
     private domBuilder = new DOMBuilder();
     private isValid = false;
     private unschedule?: () => void;
-    private attachedRoot?: SVGGraphicsElement;
+    private attachedRoot: SVGGraphicsElement | null = null;
     private tasks: Array<() => void> = [];
 
     constructor(private diagramRoot: DiagramRootComponent) { }
@@ -280,9 +284,13 @@ export class Diagram {
     }
 
     detach() {
-        this.attachedRoot = undefined;
-        this.unschedule?.();
-        this.unschedule = undefined;
+        if (this.attachedRoot) {
+            this.domBuilder.updateDOM(this.attachedRoot, null); // Clear the DOM
+            this.attachedRoot = null;
+            this.unschedule?.();
+            this.unschedule = undefined;
+            this.invalidate();
+        }
     }
 
     add<P extends object>(type: DiagramElement<P>, props: P): DiagramElementNode<P> {

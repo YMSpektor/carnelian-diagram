@@ -2,7 +2,7 @@ import { useContext, useState } from ".";
 import { ComponentCleanups, Effect, EffectCleanup, RenderContext } from "..";
 
 function compareArrays(a: any[], b: any[]): boolean {
-    return a.length === b.length && a.every((x, i) => x === b[i]);
+    return a.length === b.length && a.every((x, i) => Object.is(x, b[i]));
 }
 
 interface StoredEffect {

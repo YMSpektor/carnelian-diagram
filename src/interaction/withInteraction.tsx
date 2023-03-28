@@ -24,9 +24,14 @@ interface DiagramControlsProps {
 
 const DiagramControls = (props: DiagramControlsProps) => {
     const { matrix, controller } = props;
+    const [rectSelection, setRectSelection] = useState<Rect | null>(null);
 
-    const [rectSelection, setRectSelection] = useState<Rect | undefined>(undefined);
-    controller && (controller.onRectSelection = (rect) => setRectSelection(rect));
+    useEffect(() => {
+        controller.onRectSelection.addListener(setRectSelection);
+        return () => {
+            controller.onRectSelection.removeListener(setRectSelection);
+        }
+    }, [controller]);
 
     const transform = matrix 
         ? `matrix(${matrix.a} ${matrix.b} ${matrix.c} ${matrix.d} ${matrix.e} ${matrix.f})`
@@ -49,7 +54,13 @@ export const withInteraction = (
         const [selectedElements, setSelectedElements] = useState<DiagramElementNode[]>([]);
 
         controller.elements = props.children;
-        controller.onSelect = (elements) => setSelectedElements(elements);
+
+        useEffect(() => {
+            controller.onSelect.addListener(setSelectedElements);
+            return () => {
+                controller.onSelect.removeListener(setSelectedElements);
+            }
+        }, [controller]);
 
         useEffect(() => {
             let cancelSchedule: () => void;

@@ -15,7 +15,7 @@ export class DOMBuilder {
         this.lastTree = h("", {}, []);
     }
 
-    private transformNode(node: DiagramNode): HyperscriptChild {
+    private transformNode(node: DiagramNode | null): HyperscriptChild {
         const createVDomNode = (child: ComponentChildren<any> | undefined): HyperscriptChild => {
             if (Array.isArray(child)) {
                 return child.map(createVDomNode);
@@ -28,16 +28,18 @@ export class DOMBuilder {
             }
         }
 
-        if (typeof node.type === 'string') {
-            const { children, ...properties } = node.props;
-            return svg(node.type, properties, node.children.map(createVDomNode));
-        }
-        else {
-            return createVDomNode(node.children);
+        if (node) {
+            if (typeof node.type === 'string') {
+                const { children, ...properties } = node.props;
+                return svg(node.type, properties, node.children.map(createVDomNode));
+            }
+            else {
+                return createVDomNode(node.children);
+            }
         }
     }
 
-    updateDOM(rootElement: SVGGraphicsElement, rootNode: DiagramNode) {
+    updateDOM(rootElement: SVGGraphicsElement, rootNode: DiagramNode | null) {
         const tree = h("", {}, this.transformNode(rootNode));
         const lastTree = this.lastTree;
         const patches = diff(lastTree, tree);

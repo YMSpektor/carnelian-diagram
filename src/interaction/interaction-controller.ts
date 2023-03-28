@@ -2,6 +2,7 @@ import { createContext, DiagramElementNode } from "..";
 import { DiagramElementHitTest, hasHitTestProps, HitArea, HitAreaCollection, HitInfo } from "./hit-tests";
 import { intersectRect, Rect } from "../geometry";
 import { JSX } from "../jsx-runtime";
+import { Event } from "../utils/events";
 
 export type RenderControlsCallback = (transform: DOMMatrixReadOnly, element: DiagramElementNode) => JSX.Element;
 
@@ -51,6 +52,9 @@ export class InteractionController {
     private selectedElements = new Set<DiagramElementNode>();
     elements: DiagramElementNode[] = [];
     transform?: DOMMatrixReadOnly;
+
+    onSelect = new Event<DiagramElementNode[]>();
+    onRectSelection = new Event<Rect | null>();
 
     constructor() {
         this.contextValue = this.createInteractionContextValue();
@@ -150,7 +154,7 @@ export class InteractionController {
             elements = [elements];
         }
         this.selectedElements = new Set(elements);
-        this.onSelect?.(elements);
+        this.onSelect.emit(elements);
     }
 
     private mouseDownHandler(root: HTMLElement, e: PointerEvent) {
@@ -169,7 +173,7 @@ export class InteractionController {
                     this.selectedElements.add(hitInfo.element);
                     root.style.cursor = hitInfo.hitArea.cursor || "";
                 }
-                this.onSelect?.([...this.selectedElements]);
+                this.onSelect.emit([...this.selectedElements]);
             } 
             else {
                 if (!isSelected) {
@@ -224,11 +228,11 @@ export class InteractionController {
                 height: Math.max(startPoint.y, point.y) - Math.min(startPoint.y, point.y),
             };
 
-            this.onRectSelection?.(selectionRect);
+            this.onRectSelection.emit(selectionRect);
         }
 
         const mouseUpHandler = (e: PointerEvent) => {
-            this.onRectSelection?.(undefined);
+            this.onRectSelection.emit(null);
 
             const p1 = this.clientToDiagram(startPoint);
             const p2 = this.clientToDiagram(new DOMPoint(e.clientX, e.clientY));
@@ -358,7 +362,4 @@ export class InteractionController {
             }
         });
     }
-
-    onSelect?: (elements: DiagramElementNode[]) => void;
-    onRectSelection?: (selection?: Rect) => void;
 }
