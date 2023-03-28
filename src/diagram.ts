@@ -301,6 +301,18 @@ export class Diagram {
         return element;
     }
 
+    delete(element: DiagramElementNode): void;
+    delete(elements: DiagramElementNode[]): void;
+    delete(elements: DiagramElementNode | DiagramElementNode[]) {
+        if (!Array.isArray(elements)) {
+            this.delete([elements]);
+        }
+        else {
+            this.elements = this.elements.filter(x => !elements.includes(x));
+            this.invalidate();
+        }
+    }
+
     clear() {
         this.elements = [];
         this.invalidate();

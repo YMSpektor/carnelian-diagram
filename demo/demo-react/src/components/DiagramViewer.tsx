@@ -27,7 +27,7 @@ function DiagramViewer(props: DiagramViewerProps & HTMLAttributes<HTMLDivElement
     useLayoutEffect(() => {
         if (root.current && container.current && !diagram.isAttached()) {
             diagram.attach(root.current);
-            controller?.attach(container.current);
+            controller?.attach(diagram, container.current);
 
             return () => {
                 diagram.detach();
@@ -52,6 +52,8 @@ function DiagramViewer(props: DiagramViewerProps & HTMLAttributes<HTMLDivElement
             const props = draggedElement.factory(point, draggedElement.elementProps);
             const element = diagram.add(draggedElement.elementType, props);
             controller.select(element);
+
+            container.current?.focus();
         }
     }
 

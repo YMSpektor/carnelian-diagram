@@ -1,4 +1,4 @@
-import { createContext, DiagramElementNode } from "..";
+import { createContext, Diagram, DiagramElementNode } from "..";
 import { DiagramElementHitTest, hasHitTestProps, HitArea, HitAreaCollection, HitInfo } from "./hit-tests";
 import { intersectRect, Rect } from "../geometry";
 import { JSX } from "../jsx-runtime";
@@ -60,21 +60,36 @@ export class InteractionController {
         this.contextValue = this.createInteractionContextValue();
     }
 
-    attach(root: HTMLElement) {
+    attach(diagram: Diagram, root: HTMLElement) {
         this.detach();
        
         const mouseDownHandler = (e: PointerEvent) => this.mouseDownHandler(root, e);
         const mouseMoveHandler = (e: PointerEvent) => this.mouseMoveHandler(root, e);
         const mouseUpHandler = (e: PointerEvent) => this.mouseUpHandler(root, e);
+        const keyDownHandler = (e: KeyboardEvent) => this.keyDownHandler(diagram, root, e);
         root.addEventListener("pointerdown", mouseDownHandler);
         root.addEventListener("pointermove", mouseMoveHandler);
         root.addEventListener("pointerup", mouseUpHandler);
+        root.addEventListener("keydown", keyDownHandler);
+
+        const tabIndex = root.getAttribute("tabindex");
+        if (!tabIndex || +tabIndex < 0) {
+            root.setAttribute("tabindex", "0");
+        }
 
         this.detach = () => {
             this.detach = () => {};
             root.removeEventListener("pointerdown", mouseDownHandler);
             root.removeEventListener("pointermove", mouseMoveHandler);
             root.removeEventListener("pointerup", mouseUpHandler);
+            root.removeEventListener("keydown", keyDownHandler);
+            
+            if (!tabIndex) {
+                root.removeAttribute("tabindex");
+            }
+            else if (+tabIndex < 0) {
+                root.setAttribute("tabindex", tabIndex);
+            }
         }
     }
 
@@ -149,6 +164,8 @@ export class InteractionController {
         return point.matrixTransform(this.transform?.inverse());
     }
 
+    select(element: DiagramElementNode): void;
+    select(elements: DiagramElementNode[]): void;
     select(elements: DiagramElementNode | DiagramElementNode[]) {
         if (!Array.isArray(elements)) {
             elements = [elements];
@@ -209,6 +226,16 @@ export class InteractionController {
         }
         if (this.selecting) {
             this.endSelect(root, e);
+        }
+    }
+
+    private keyDownHandler(diagram: Diagram, root: HTMLElement, e: KeyboardEvent) {
+        // Firefox 36 and earlier uses "Del" instead of "Delete" for the Del key
+        // https://developer.mozilla.org/en-US/docs/Web/API/UI_Events/Keyboard_event_key_values
+        if ((e.key === "Delete" || e.key === "Del") && this.selectedElements.size > 0) {
+            diagram.delete([...this.selectedElements]);
+            root.style.cursor = "";
+            this.select([]);
         }
     }
 
