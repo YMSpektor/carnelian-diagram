@@ -1,11 +1,14 @@
 /** @jsxImportSource .. */
-import { DiagramElementNode, DiagramRootComponent, DiagramRootProps, useContext, useEffect, useState } from "..";
+import { DiagramElementNode, DiagramRootComponent, DiagramRootProps, useEffect, useState } from "..";
 import {
     InteractionContext, 
     InteractionController, 
+    RectSelectionEventArgs, 
+    SelectEventArgs, 
     SelectionContext
 } from ".";
 import { scheduleIdle } from "../utils/schedule";
+import { EventListener } from "../utils/events";
 import { Rect } from "../geometry";
 import { JSX } from "../jsx-runtime";
 
@@ -26,10 +29,12 @@ const DiagramControls = (props: DiagramControlsProps) => {
     const { matrix, controller } = props;
     const [rectSelection, setRectSelection] = useState<Rect | null>(null);
 
+    const handleRectSelection: EventListener<RectSelectionEventArgs> = (e) => setRectSelection(e.selectionRect);
+
     useEffect(() => {
-        controller.onRectSelection.addListener(setRectSelection);
+        controller.onRectSelection.addListener(handleRectSelection);
         return () => {
-            controller.onRectSelection.removeListener(setRectSelection);
+            controller.onRectSelection.removeListener(handleRectSelection);
         }
     }, [controller]);
 
@@ -55,10 +60,12 @@ export const withInteraction = (
 
         controller.elements = props.children;
 
+        const handleSelect: EventListener<SelectEventArgs> = (e) => setSelectedElements(e.selectedElements);
+
         useEffect(() => {
-            controller.onSelect.addListener(setSelectedElements);
+            controller.onSelect.addListener(handleSelect);
             return () => {
-                controller.onSelect.removeListener(setSelectedElements);
+                controller.onSelect.removeListener(handleSelect);
             }
         }, [controller]);
 

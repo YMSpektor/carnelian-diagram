@@ -41,6 +41,19 @@ export interface MovementActionPayload {
     hitArea: HitArea;
 }
 
+export interface SelectEventArgs {
+    selectedElements: DiagramElementNode[];
+}
+
+export interface RectSelectionEventArgs {
+    selectionRect: Rect | null;
+}
+
+export interface DeleteEventArg {
+    elements: DiagramElementNode[];
+    requestConfirmation(promise: Promise<boolean>): void;
+}
+
 export class InteractionController {
     private controls: DiagramElementControls[] = [];
     private hitAreas: HitAreaCollection = {};
@@ -53,8 +66,9 @@ export class InteractionController {
     elements: DiagramElementNode[] = [];
     transform?: DOMMatrixReadOnly;
 
-    onSelect = new Event<DiagramElementNode[]>();
-    onRectSelection = new Event<Rect | null>();
+    onSelect = new Event<SelectEventArgs>();
+    onRectSelection = new Event<RectSelectionEventArgs>();
+    onDelete = new Event<DeleteEventArg>();
 
     constructor() {
         this.contextValue = this.createInteractionContextValue();
@@ -171,7 +185,7 @@ export class InteractionController {
             elements = [elements];
         }
         this.selectedElements = new Set(elements);
-        this.onSelect.emit(elements);
+        this.onSelect.emit({selectedElements: elements});
     }
 
     private mouseDownHandler(root: HTMLElement, e: PointerEvent) {
@@ -190,7 +204,7 @@ export class InteractionController {
                     this.selectedElements.add(hitInfo.element);
                     root.style.cursor = hitInfo.hitArea.cursor || "";
                 }
-                this.onSelect.emit([...this.selectedElements]);
+                this.onSelect.emit({selectedElements: [...this.selectedElements]});
             } 
             else {
                 if (!isSelected) {
@@ -229,13 +243,31 @@ export class InteractionController {
         }
     }
 
-    private keyDownHandler(diagram: Diagram, root: HTMLElement, e: KeyboardEvent) {
+    private async keyDownHandler(diagram: Diagram, root: HTMLElement, e: KeyboardEvent) {
         // Firefox 36 and earlier uses "Del" instead of "Delete" for the Del key
         // https://developer.mozilla.org/en-US/docs/Web/API/UI_Events/Keyboard_event_key_values
         if ((e.key === "Delete" || e.key === "Del") && this.selectedElements.size > 0) {
-            diagram.delete([...this.selectedElements]);
-            root.style.cursor = "";
-            this.select([]);
+            const elements = [...this.selectedElements];
+            const promises: Promise<boolean>[] = [];
+            this.onDelete.emit({
+                elements,
+                requestConfirmation: (promise) => {
+                    promises.push(promise);
+                }
+            });
+
+            let confirmations: boolean[];
+            try {
+                confirmations = await Promise.all(promises);
+                if (confirmations.every(x => x)) {
+                    diagram.delete(elements);
+                    root.style.cursor = "";
+                    this.select([]);
+                }
+            }
+            catch {
+                // Rejecting confirmation requests is OK and should not delete the elements
+            }
         }
     }
 
@@ -255,11 +287,11 @@ export class InteractionController {
                 height: Math.max(startPoint.y, point.y) - Math.min(startPoint.y, point.y),
             };
 
-            this.onRectSelection.emit(selectionRect);
+            this.onRectSelection.emit({selectionRect});
         }
 
         const mouseUpHandler = (e: PointerEvent) => {
-            this.onRectSelection.emit(null);
+            this.onRectSelection.emit({selectionRect: null});
 
             const p1 = this.clientToDiagram(startPoint);
             const p2 = this.clientToDiagram(new DOMPoint(e.clientX, e.clientY));
