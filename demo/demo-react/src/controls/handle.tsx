@@ -25,12 +25,11 @@ export function HandleControl(props: HandleControlProps) {
 
     return (
         <rect 
+            className="control-handle"
             x={p.x - props.size / 2} 
             y={p.y - props.size / 2} 
             width={props.size} 
             height={props.size} 
-            stroke="black" 
-            fill="yellow"
             {...hitTestProps}
         />
     )

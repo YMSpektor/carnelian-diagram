@@ -1,5 +1,6 @@
 import { SVGAttributes, useLayoutEffect, useRef, useState } from "react";
 import { Diagram, DiagramElement, DiagramRoot } from "carnelian-diagram";
+import DiagramSvg from "./DiagramSvg";
 
 interface DiagramElementIconProps<T extends object> {
     elementType: DiagramElement<T>;
@@ -25,7 +26,7 @@ function DiagramElementIcon<T extends object>(props: DiagramElementIconProps<T> 
     }, [diagram]);
 
     return (
-        <svg xmlns="http://www.w3.org/2000/svg" 
+        <DiagramSvg xmlns="http://www.w3.org/2000/svg" 
             ref={svg}
             {...svgProps}
         />

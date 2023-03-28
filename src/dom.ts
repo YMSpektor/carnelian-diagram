@@ -31,6 +31,9 @@ export class DOMBuilder {
         if (node) {
             if (typeof node.type === 'string') {
                 const { children, ...properties } = node.props;
+                if (properties) {
+                    properties.class = properties.className;
+                }
                 return svg(node.type, properties, node.children.map(createVDomNode));
             }
             else {
@@ -40,6 +43,8 @@ export class DOMBuilder {
     }
 
     updateDOM(rootElement: SVGGraphicsElement, rootNode: DiagramNode | null) {
+        rootElement.classList.add("carnelian-diagram");
+        
         const tree = h("", {}, this.transformNode(rootNode));
         const lastTree = this.lastTree;
         const patches = diff(lastTree, tree);

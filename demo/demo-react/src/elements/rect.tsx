@@ -9,8 +9,10 @@ export interface RectProps {
     y: number;
     width: number;
     height: number;
-    stroke?: string;
-    fill?: string;
+    style?: {
+        stroke?: string;
+        fill?: string;
+    }
 }
 
 export const Rect: DiagramElement<RectProps> = function(props) {

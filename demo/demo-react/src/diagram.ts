@@ -19,7 +19,7 @@ function addToPalette<T extends object>(element: DiagramPaletteElement<T>) {
 
 addToPalette({
     elementType: Rect,
-    elementProps: {x: 20, y: 20, width: 300, height: 300, stroke: "black", fill: "white"},
+    elementProps: {x: 20, y: 20, width: 300, height: 300, style: { fill: "white" }},
     viewBox: "0 0 340 340",
     title: "Rectangle",
     factory: (point, props) => ({
@@ -31,7 +31,7 @@ addToPalette({
 
 addToPalette({
     elementType: Rect,
-    elementProps: {x: 20, y: 20, width: 300, height: 300, stroke: "black", fill: "blue"},
+    elementProps: {x: 20, y: 20, width: 300, height: 300, style: { fill: "blue" }},
     viewBox: "0 0 340 340",
     title: "Rectangle",
     factory: (point, props) => ({

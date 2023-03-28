@@ -11,3 +11,26 @@ code {
   font-family: source-code-pro, Menlo, Monaco, Consolas, 'Courier New',
     monospace;
 }
+
+.carnelian-diagram rect {
+  stroke: black;
+  fill: white;
+}
+
+.carnelian-diagram .selection-rect {
+  fill: #42a5f5;
+  fill-opacity: 0.3;
+  stroke: #42a5f5;
+  stroke-dasharray: 4;
+}
+
+.carnelian-diagram .control-handle {
+  stroke: black;
+  fill: yellow;
+}
+
+.carnelian-diagram .control-edge {
+  stroke: black;
+  stroke-dasharray: 4;
+}
+

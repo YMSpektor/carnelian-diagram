@@ -55,6 +55,7 @@ export interface DeleteEventArg {
 }
 
 export class InteractionController {
+    private diagram: Diagram | null = null;
     private controls: DiagramElementControls[] = [];
     private hitAreas: HitAreaCollection = {};
     private actions = new Map<DiagramElementNode, DiagramElementAction<any>[]>();
@@ -75,12 +76,13 @@ export class InteractionController {
     }
 
     attach(diagram: Diagram, root: HTMLElement) {
+        this.diagram = diagram;
         this.detach();
        
         const mouseDownHandler = (e: PointerEvent) => this.mouseDownHandler(root, e);
         const mouseMoveHandler = (e: PointerEvent) => this.mouseMoveHandler(root, e);
         const mouseUpHandler = (e: PointerEvent) => this.mouseUpHandler(root, e);
-        const keyDownHandler = (e: KeyboardEvent) => this.keyDownHandler(diagram, root, e);
+        const keyDownHandler = (e: KeyboardEvent) => this.keyDownHandler(root, e);
         root.addEventListener("pointerdown", mouseDownHandler);
         root.addEventListener("pointermove", mouseMoveHandler);
         root.addEventListener("pointerup", mouseUpHandler);
@@ -92,6 +94,7 @@ export class InteractionController {
         }
 
         this.detach = () => {
+            this.diagram = null;
             this.detach = () => {};
             root.removeEventListener("pointerdown", mouseDownHandler);
             root.removeEventListener("pointermove", mouseMoveHandler);
@@ -243,30 +246,13 @@ export class InteractionController {
         }
     }
 
-    private async keyDownHandler(diagram: Diagram, root: HTMLElement, e: KeyboardEvent) {
+    private async keyDownHandler(root: HTMLElement, e: KeyboardEvent) {
         // Firefox 36 and earlier uses "Del" instead of "Delete" for the Del key
         // https://developer.mozilla.org/en-US/docs/Web/API/UI_Events/Keyboard_event_key_values
         if ((e.key === "Delete" || e.key === "Del") && this.selectedElements.size > 0) {
-            const elements = [...this.selectedElements];
-            const promises: Promise<boolean>[] = [];
-            this.onDelete.emit({
-                elements,
-                requestConfirmation: (promise) => {
-                    promises.push(promise);
-                }
-            });
-
-            let confirmations: boolean[];
-            try {
-                confirmations = await Promise.all(promises);
-                if (confirmations.every(x => x)) {
-                    diagram.delete(elements);
-                    root.style.cursor = "";
-                    this.select([]);
-                }
-            }
-            catch {
-                // Rejecting confirmation requests is OK and should not delete the elements
+            const result = await this.delete([...this.selectedElements]);
+            if (result) {
+                root.style.cursor = "";
             }
         }
     }
@@ -359,6 +345,36 @@ export class InteractionController {
 
     isSelected(element: DiagramElementNode) {
         return this.selectedElements.has(element);
+    }
+
+    getSelectedElements() {
+        return [...this.selectedElements];
+    }
+
+    async delete(elements: DiagramElementNode[]): Promise<boolean> {
+        if (this.diagram) {
+            const promises: Promise<boolean>[] = [];
+            this.onDelete.emit({
+                elements,
+                requestConfirmation: (promise) => {
+                    promises.push(promise);
+                }
+            });
+
+            let confirmations: boolean[];
+            try {
+                confirmations = await Promise.all(promises);
+                if (confirmations.every(x => x)) {
+                    this.diagram.delete(elements);
+                    this.select([]);
+                    return true;
+                }
+            }
+            catch {
+                // Rejecting confirmation requests is OK and should not delete the elements
+            }
+        }
+        return false;
     }
 
     renderControls(transform: DOMMatrixReadOnly): JSX.Element {

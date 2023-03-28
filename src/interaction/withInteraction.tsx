@@ -8,7 +8,6 @@ import {
     SelectionContext
 } from ".";
 import { scheduleIdle } from "../utils/schedule";
-import { EventListener } from "../utils/events";
 import { Rect } from "../geometry";
 import { JSX } from "../jsx-runtime";
 
@@ -29,7 +28,7 @@ const DiagramControls = (props: DiagramControlsProps) => {
     const { matrix, controller } = props;
     const [rectSelection, setRectSelection] = useState<Rect | null>(null);
 
-    const handleRectSelection: EventListener<RectSelectionEventArgs> = (e) => setRectSelection(e.selectionRect);
+    const handleRectSelection = (e: RectSelectionEventArgs) => setRectSelection(e.selectionRect);
 
     useEffect(() => {
         controller.onRectSelection.addListener(handleRectSelection);
@@ -45,7 +44,7 @@ const DiagramControls = (props: DiagramControlsProps) => {
     return (
         matrix && <g transform={transform}>
             {controller?.renderControls(matrix.inverse())}
-            {rectSelection && <rect {...rectSelection} fill="none" stroke="black" stroke-dasharray="4" />}
+            {rectSelection && <rect className="selection-rect" {...rectSelection} fill="none" stroke="black" stroke-dasharray="4" />}
         </g>
     );
 }
@@ -60,7 +59,7 @@ export const withInteraction = (
 
         controller.elements = props.children;
 
-        const handleSelect: EventListener<SelectEventArgs> = (e) => setSelectedElements(e.selectedElements);
+        const handleSelect = (e: SelectEventArgs) => setSelectedElements(e.selectedElements);
 
         useEffect(() => {
             controller.onSelect.addListener(handleSelect);

@@ -3,6 +3,7 @@ import { HTMLAttributes, useContext, useLayoutEffect, useRef } from "react";
 import { Diagram } from "carnelian-diagram";
 import { InteractionController } from "carnelian-diagram/interaction";
 import { DragDropContext } from "../context/DragDropContext";
+import DiagramSvg from "./DiagramSvg";
 
 interface DiagramViewerProps {
     diagram: Diagram;
@@ -65,7 +66,7 @@ function DiagramViewer(props: DiagramViewerProps & HTMLAttributes<HTMLDivElement
                 onDragOver={dragOverHandler}
                 onDrop={dropHandler}
             >
-                <svg xmlns="http://www.w3.org/2000/svg"
+                <DiagramSvg
                     viewBox={[0, 0, diagramSize.width, diagramSize.height].join(' ')}
                     {...{width, height}}
                     css={{flex: "1 0 auto", margin: "auto", overflow: "visible"}}
@@ -77,7 +78,7 @@ function DiagramViewer(props: DiagramViewerProps & HTMLAttributes<HTMLDivElement
                         />
                     </g>
                     <g ref={root} />
-                </svg>
+                </DiagramSvg>
             </div>
         </div>
     );
