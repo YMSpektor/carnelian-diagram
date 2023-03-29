@@ -7,6 +7,7 @@ const resolveApp = (relativePath) => path.resolve(appDirectory, relativePath);
 
 const carnelianDiagramPath = "../../packages/carnelian-diagram/src";
 const carnelianInteractionPath = "../../packages/carnelian-interaction/src";
+const carnelianShapesPath = "../../packages/carnelian-shapes/src";
 
 module.exports = {
     webpack: {
@@ -21,7 +22,8 @@ module.exports = {
                 ...matches[0].loader,
                 include: [
                     resolveApp(carnelianDiagramPath),
-                    resolveApp(carnelianInteractionPath)
+                    resolveApp(carnelianInteractionPath),
+                    resolveApp(carnelianShapesPath)
                 ],
             });
             return webpackConfig;
@@ -29,6 +31,7 @@ module.exports = {
         alias: {
             '@carnelian/diagram': path.resolve(__dirname, carnelianDiagramPath),
             '@carnelian/interaction': path.resolve(__dirname, carnelianInteractionPath),
+            '@carnelian/shapes': path.resolve(__dirname, carnelianShapesPath),
         },
     },
 };

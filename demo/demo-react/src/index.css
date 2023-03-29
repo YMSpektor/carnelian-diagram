@@ -12,7 +12,8 @@ code {
     monospace;
 }
 
-.carnelian-diagram rect {
+.carnelian-diagram rect,
+.carnelian-diagram ellipse {
   stroke: black;
   fill: white;
 }

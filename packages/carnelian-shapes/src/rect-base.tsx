@@ -1,10 +1,19 @@
 /** @jsxImportSource @carnelian/diagram */
 
-import { DiagramElement } from "@carnelian/diagram";
-import { useControls, useHitTest, useBounds, rectHitTest, useAction, MovementActionPayload, ActionCallback } from "@carnelian/interaction";
-import { HandleControl, EdgeControl } from "../controls";
+import { DiagramElement, DiagramElementProps } from "@carnelian/diagram";
+import { 
+    useControls, 
+    useHitTest, 
+    useBounds, 
+    rectHitTest, 
+    useAction, 
+    MovementActionPayload, 
+    ActionCallback, 
+    EdgeControl, 
+    HandleControl 
+} from "@carnelian/interaction";
 
-export interface RectProps {
+export interface RectBaseProps {
     x: number;
     y: number;
     width: number;
@@ -15,10 +24,8 @@ export interface RectProps {
     }
 }
 
-export const Rect: DiagramElement<RectProps> = function(props) {
-    const { onChange, ...rest } = props;
-
-    console.log("Rect: rendering...");
+export function useRectBase<T extends RectBaseProps>(props: DiagramElementProps<T>) {
+    const onChange = props.onChange;
 
     function move(payload: MovementActionPayload) {
         onChange(props => ({
@@ -183,8 +190,11 @@ export const Rect: DiagramElement<RectProps> = function(props) {
             </>
         );
     });
+}
 
-    return (
-        <rect {...rest} />
-    );
+export function withRectBase<T extends RectBaseProps>(WrappedElement: DiagramElement<T>): DiagramElement<T> {
+    return (props) => {
+        useRectBase(props);
+        return <WrappedElement {...props} />;
+    }
 }
