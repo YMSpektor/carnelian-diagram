@@ -1,10 +1,12 @@
 /** @jsxImportSource @carnelian/diagram */
 
-import { RectBaseProps, withRectBase } from "./rect-base";
+import { DiagramElement } from "@carnelian/diagram";
+import { RectBaseProps } from ".";
+import { withInteractiveRect } from "../interaction";
 
 export interface RhombusProps extends RectBaseProps {}
 
-export const Rhombus = withRectBase<RhombusProps>(function(props) {
+export const Rhombus: DiagramElement<RhombusProps> = function(props) {
     const { onChange, x, y, width, height, ...rest } = props;
     const rx = width / 2;
     const ry = height / 2;
@@ -18,4 +20,6 @@ export const Rhombus = withRectBase<RhombusProps>(function(props) {
     return (
         <polygon points={points.map(p => `${p.x},${p.y}`).join(" ")} {...rest} />
     );
-});
+};
+
+export const InteractiveRhombus = withInteractiveRect(Rhombus);

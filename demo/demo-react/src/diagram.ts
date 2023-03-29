@@ -1,7 +1,11 @@
 import { Diagram, DiagramRoot } from "@carnelian/diagram";
 import { InteractionController, withInteraction } from "@carnelian/interaction";
 import { DiagramPaletteElement } from "./components/DiagramPalette";
-import { Rect, Ellipse, Rhombus } from "@carnelian/shapes/basic";
+import { 
+    InteractiveRect as Rect, 
+    InteractiveEllipse as Ellipse, 
+    InteractiveRhombus as Rhombus 
+} from "@carnelian/shapes/basic";
 
 export const controller = new InteractionController();
 export const diagram = new Diagram(

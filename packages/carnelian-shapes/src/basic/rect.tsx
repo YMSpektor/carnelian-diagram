@@ -1,13 +1,17 @@
 /** @jsxImportSource @carnelian/diagram */
 
-import { RectBaseProps, withRectBase } from "./rect-base";
+import { DiagramElement } from "@carnelian/diagram";
+import { RectBaseProps } from ".";
+import { withInteractiveRect } from "../interaction";
 
 export interface RectProps extends RectBaseProps {}
 
-export const Rect = withRectBase<RectProps>(function(props) {
+export const Rect: DiagramElement<RectProps> = function(props) {
     const { onChange, ...rest } = props;
 
     return (
         <rect {...rest} />
     );
-});
+};
+
+export const InteractiveRect = withInteractiveRect(Rect);

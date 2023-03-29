@@ -13,18 +13,14 @@ import {
     HandleControl 
 } from "@carnelian/interaction";
 
-export interface RectBaseProps {
+export interface InteractiveRectProps {
     x: number;
     y: number;
     width: number;
     height: number;
-    style?: {
-        stroke?: string;
-        fill?: string;
-    }
 }
 
-export function useRectBase<T extends RectBaseProps>(props: DiagramElementProps<T>) {
+export function useInteractiveRect<T extends InteractiveRectProps>(props: DiagramElementProps<T>) {
     const onChange = props.onChange;
 
     function move(payload: MovementActionPayload) {
@@ -192,9 +188,9 @@ export function useRectBase<T extends RectBaseProps>(props: DiagramElementProps<
     });
 }
 
-export function withRectBase<T extends RectBaseProps>(WrappedElement: DiagramElement<T>): DiagramElement<T> {
+export function withInteractiveRect<T extends InteractiveRectProps>(WrappedElement: DiagramElement<T>): DiagramElement<T> {
     return (props) => {
-        useRectBase(props);
+        useInteractiveRect(props);
         return <WrappedElement {...props} />;
     }
 }
