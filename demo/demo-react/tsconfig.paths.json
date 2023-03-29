@@ -1,8 +1,10 @@
 {
     "compilerOptions": {
         "paths": {
-            "carnelian-diagram": ["../../src"],
-            "carnelian-diagram/*": ["../../src/*"]
+            "@carnelian/diagram": ["../../packages/carnelian-diagram/src"],
+            "@carnelian/diagram/*": ["../../packages/carnelian-diagram/src/*"],
+            "@carnelian/interaction": ["../../packages/carnelian-interaction/src"],
+            "@carnelian/interaction/*": ["../../packages/carnelian-interaction/src/*"]
           },
     }
 }

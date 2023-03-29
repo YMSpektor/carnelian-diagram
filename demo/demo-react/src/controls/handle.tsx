@@ -1,7 +1,7 @@
-/** @jsxImportSource carnelian-diagram */
+/** @jsxImportSource @carnelian/diagram */
 
-import { DiagramNode } from "carnelian-diagram";
-import { ActionCallback, createHitTestProps, HitArea, MovementActionPayload, useAction } from "carnelian-diagram/interaction";
+import { DiagramNode } from "@carnelian/diagram";
+import { ActionCallback, createHitTestProps, HitArea, MovementActionPayload, useAction } from "@carnelian/interaction";
 
 export interface HandleControlProps {
     element: DiagramNode;

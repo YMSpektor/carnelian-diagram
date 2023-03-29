@@ -1,8 +1,9 @@
-import { createContext, Diagram, DiagramElementNode } from "..";
+import { createContext, Diagram, DiagramElementNode } from "@carnelian/diagram";
+import { intersectRect, Rect } from "@carnelian/diagram/geometry";
+import { JSX } from "@carnelian/diagram/jsx-runtime";
+import { Event } from "@carnelian/diagram/utils/events";
+import { InteractionContextType } from "./context";
 import { DiagramElementHitTest, hasHitTestProps, HitArea, HitAreaCollection, HitInfo } from "./hit-tests";
-import { intersectRect, Rect } from "../geometry";
-import { JSX } from "../jsx-runtime";
-import { Event } from "../utils/events";
 
 export type RenderControlsCallback = (transform: DOMMatrixReadOnly, element: DiagramElementNode) => JSX.Element;
 
@@ -23,16 +24,6 @@ export interface DiagramElementBounds {
     element: DiagramElementNode;
     bounds: Rect;
 }
-
-export interface InteractionContextType {
-    updateControls(controls?: DiagramElementControls, prevControls?: DiagramElementControls): void;
-    updateHitTests(hitTests?: DiagramElementHitTest, prevHitTests?: DiagramElementHitTest): void;
-    updateActions(action?: DiagramElementAction<any>, prevAction?: DiagramElementAction<any>): void;
-    updateBounds(bounds?: DiagramElementBounds, prevBounds?: DiagramElementBounds): void;
-}
-
-export const InteractionContext = createContext<InteractionContextType | undefined>(undefined);
-export const SelectionContext = createContext<DiagramElementNode[]>([]);
 
 export interface MovementActionPayload {
     position: DOMPointReadOnly;

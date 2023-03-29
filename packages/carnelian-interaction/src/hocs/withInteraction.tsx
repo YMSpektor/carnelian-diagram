@@ -1,15 +1,16 @@
-/** @jsxImportSource .. */
-import { DiagramElementNode, DiagramRootComponent, DiagramRootProps, useEffect, useState } from "..";
+/** @jsxImportSource @carnelian/diagram */
+
+import { DiagramElementNode, DiagramRootComponent, DiagramRootProps, useEffect, useState } from "@carnelian/diagram";
 import {
     InteractionContext, 
     InteractionController, 
     RectSelectionEventArgs, 
     SelectEventArgs, 
     SelectionContext
-} from ".";
-import { scheduleIdle } from "../utils/schedule";
-import { Rect } from "../geometry";
-import { JSX } from "../jsx-runtime";
+} from "..";
+import { scheduleIdle } from "@carnelian/diagram/utils/schedule";
+import { Rect } from "@carnelian/diagram/geometry";
+import { JSX } from "@carnelian/diagram/jsx-runtime";
 
 const DiagramElements = (props: { children: JSX.Element }) => {
     return (

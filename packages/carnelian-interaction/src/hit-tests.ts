@@ -1,6 +1,6 @@
-import { DiagramNode, RenderContext, useContext } from "..";
-import { CustomPropHook } from "../utils/custom-prop-hook";
-import { segmentDistance } from "../geometry";
+import { DiagramNode, RenderContext, useContext } from "@carnelian/diagram";
+import { CustomPropHook } from "@carnelian/diagram/utils/custom-prop-hook";
+import { segmentDistance } from "@carnelian/diagram/geometry";
 
 export type HitTestCallback = (point: DOMPointReadOnly, transform: DOMMatrixReadOnly) => boolean;
 

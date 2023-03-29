@@ -1,5 +1,5 @@
-import { DiagramNode, RenderContext, useContext } from "..";
-import { SelectionContext } from ".";
+import { DiagramNode, RenderContext, useContext } from "@carnelian/diagram";
+import { SelectionContext } from "..";
 
 export function useSelection(element?: DiagramNode) {
     const renderContext = useContext(RenderContext);

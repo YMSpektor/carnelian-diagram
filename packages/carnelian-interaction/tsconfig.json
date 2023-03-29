@@ -1,0 +1,12 @@
+{
+  "compilerOptions": {
+    "outDir": "./dist",
+    "jsxImportSource": "@carnelian/diagram",
+    "paths": {
+      "@carnelian/diagram": ["../carnelian-diagram/src"],
+      "@carnelian/diagram/*": ["../carnelian-diagram/src/*"]
+    }
+  },
+  "extends": "../../tsconfig",
+  "include": ["./src/**/*.ts", "./src/**/*.tsx"]
+}

@@ -1,4 +1,4 @@
-/** @jsxImportSource carnelian-diagram */
+/** @jsxImportSource @carnelian/diagram */
 
 export interface LineProps {
     x1: number;

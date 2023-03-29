@@ -1,5 +1,5 @@
-import { Diagram, DiagramRoot } from "carnelian-diagram";
-import { InteractionController, withInteraction } from "carnelian-diagram/interaction";
+import { Diagram, DiagramRoot } from "@carnelian/diagram";
+import { InteractionController, withInteraction } from "@carnelian/interaction";
 import { DiagramPaletteElement } from "./components/DiagramPalette";
 import { Rect } from "./elements";
 

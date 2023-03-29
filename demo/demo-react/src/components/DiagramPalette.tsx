@@ -1,7 +1,7 @@
 /** @jsxImportSource @emotion/react */
 import { HTMLAttributes, useContext } from "react";
 import { Box } from "@mui/material";
-import { DiagramElement } from "carnelian-diagram";
+import { DiagramElement } from "@carnelian/diagram";
 import DiagramElementIcon from "./DiagramElementIcon";
 import Typography from "@mui/material/Typography";
 import { DragDropContext, ElementFactory } from "../context/DragDropContext";

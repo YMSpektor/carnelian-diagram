@@ -1,5 +1,5 @@
-import { ActionCallback, DiagramElementAction, InteractionContext } from ".";
-import { DiagramElementNode, RenderContext, useContext, useEffect, useRef } from "..";
+import { DiagramElementNode, RenderContext, useContext, useEffect, useRef } from "@carnelian/diagram";
+import { ActionCallback, DiagramElementAction, InteractionContext } from "..";
 
 export function useAction<T>(actionType: string, callback: ActionCallback<T>, element?: DiagramElementNode) {
     const renderContext = useContext(RenderContext);

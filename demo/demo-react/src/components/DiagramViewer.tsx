@@ -1,7 +1,7 @@
 /** @jsxImportSource @emotion/react */
 import { HTMLAttributes, useContext, useLayoutEffect, useRef } from "react";
-import { Diagram } from "carnelian-diagram";
-import { InteractionController } from "carnelian-diagram/interaction";
+import { Diagram } from "@carnelian/diagram";
+import { InteractionController } from "@carnelian/interaction";
 import { DragDropContext } from "../context/DragDropContext";
 import DiagramSvg from "./DiagramSvg";
 

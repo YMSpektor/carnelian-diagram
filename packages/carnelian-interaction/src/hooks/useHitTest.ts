@@ -1,6 +1,6 @@
-import { InteractionContext } from ".";
-import { DiagramElementNode, RenderContext, useContext, useEffect, useRef } from "..";
-import { DiagramElementHitTest, HitArea, HitTestCallback } from "./hit-tests";
+import { DiagramElementNode, RenderContext, useContext, useEffect, useRef } from "@carnelian/diagram";
+import { InteractionContext } from "..";
+import { DiagramElementHitTest, HitArea, HitTestCallback } from "../hit-tests";
 
 export function useHitTest(callback: HitTestCallback, hitArea: HitArea, priority: number = 0, element?: DiagramElementNode) {
     const renderContext = useContext(RenderContext);

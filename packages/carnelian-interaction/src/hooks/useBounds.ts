@@ -1,6 +1,6 @@
-import { DiagramElementBounds, InteractionContext } from ".";
-import { RenderContext, useContext, useEffect, useRef } from "..";
-import { Rect } from "../geometry";
+import { RenderContext, useContext, useEffect, useRef } from "@carnelian/diagram";
+import { Rect } from "@carnelian/diagram/geometry";
+import { DiagramElementBounds, InteractionContext } from "..";
 
 export function useBounds(boundsRect: Rect) {
     const renderContext = useContext(RenderContext);

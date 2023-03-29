@@ -1,5 +1,5 @@
-import { DiagramElementControls, InteractionContext, RenderControlsCallback } from ".";
-import { RenderContext, useContext, useEffect, useRef } from "..";
+import { RenderContext, useContext, useEffect, useRef } from "@carnelian/diagram";
+import { DiagramElementControls, InteractionContext, RenderControlsCallback } from "..";
 
 export function useControls(callback: RenderControlsCallback) {
     const renderContext = useContext(RenderContext);

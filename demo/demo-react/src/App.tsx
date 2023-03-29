@@ -1,10 +1,10 @@
 /** @jsxImportSource @emotion/react */
 import React, { useState } from 'react';
-import { Diagram } from 'carnelian-diagram';
+import { Diagram } from '@carnelian/diagram';
 import DiagramPalette, { DiagramPaletteElement } from './components/DiagramPalette';
 import DiagramToolbar from './components/DiagramToolbar';
 import DiagramViewer from './components/DiagramViewer';
-import { InteractionController } from 'carnelian-diagram/interaction';
+import { InteractionController } from '@carnelian/interaction';
 
 interface AppProps {
     diagram: Diagram;

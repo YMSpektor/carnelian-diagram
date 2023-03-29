@@ -1,7 +1,7 @@
-/** @jsxImportSource carnelian-diagram */
+/** @jsxImportSource @carnelian/diagram */
 
-import { DiagramElement } from "carnelian-diagram";
-import { useControls, useHitTest, useBounds, rectHitTest, useAction, MovementActionPayload, ActionCallback } from "carnelian-diagram/interaction";
+import { DiagramElement } from "@carnelian/diagram";
+import { useControls, useHitTest, useBounds, rectHitTest, useAction, MovementActionPayload, ActionCallback } from "@carnelian/interaction";
 import { HandleControl, EdgeControl } from "../controls";
 
 export interface RectProps {
