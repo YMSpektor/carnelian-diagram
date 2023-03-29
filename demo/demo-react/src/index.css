@@ -13,7 +13,8 @@ code {
 }
 
 .carnelian-diagram rect,
-.carnelian-diagram ellipse {
+.carnelian-diagram ellipse,
+.carnelian-diagram polygon {
   stroke: black;
   fill: white;
 }

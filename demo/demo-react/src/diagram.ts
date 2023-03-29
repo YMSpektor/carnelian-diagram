@@ -1,7 +1,7 @@
 import { Diagram, DiagramRoot } from "@carnelian/diagram";
 import { InteractionController, withInteraction } from "@carnelian/interaction";
 import { DiagramPaletteElement } from "./components/DiagramPalette";
-import { Rect, Ellipse } from "@carnelian/shapes";
+import { Rect, Ellipse, Rhombus } from "@carnelian/shapes/basic";
 
 export const controller = new InteractionController();
 export const diagram = new Diagram(
@@ -19,7 +19,7 @@ function addToPalette<T extends object>(element: DiagramPaletteElement<T>) {
 
 addToPalette({
     elementType: Rect,
-    elementProps: {x: 20, y: 20, width: 300, height: 200, style: { fill: "white" }},
+    elementProps: {x: 20, y: 20, width: 300, height: 200},
     viewBox: "0 0 340 240",
     title: "Rectangle",
     factory: (point, props) => ({
@@ -31,9 +31,21 @@ addToPalette({
 
 addToPalette({
     elementType: Ellipse,
-    elementProps: {x: 20, y: 20, width: 300, height: 200, style: { fill: "blue" }},
+    elementProps: {x: 20, y: 20, width: 300, height: 200},
     viewBox: "0 0 340 240",
     title: "Ellipse",
+    factory: (point, props) => ({
+        ...props,
+        x: point.x - props.width / 2,
+        y: point.y - props.height / 2
+    }),
+});
+
+addToPalette({
+    elementType: Rhombus,
+    elementProps: {x: 20, y: 20, width: 300, height: 200},
+    viewBox: "0 0 340 240",
+    title: "Rhombus",
     factory: (point, props) => ({
         ...props,
         x: point.x - props.width / 2,
