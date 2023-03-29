@@ -167,6 +167,7 @@ export function useInteractiveRect<T extends InteractiveRectProps>(props: Diagra
                 { edges.map(control => (
                     <EdgeControl
                         key={control.hitArea.index}
+                        kind="default"
                         x1={control.x1} y1={control.y1} x2={control.x2} y2={control.y2}
                         hitArea={control.hitArea}
                         transform={transform}
@@ -177,7 +178,8 @@ export function useInteractiveRect<T extends InteractiveRectProps>(props: Diagra
                 { handles.map(control => (
                     <HandleControl
                         key={control.hitArea.index}
-                        x={control.x} y={control.y} size={8} hitArea={control.hitArea}
+                        kind="default"
+                        x={control.x} y={control.y} hitArea={control.hitArea}
                         transform={transform} 
                         element={element}
                         onDrag={control.dragHandler}

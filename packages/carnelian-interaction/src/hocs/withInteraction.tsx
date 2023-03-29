@@ -2,6 +2,7 @@
 
 import { DiagramElementNode, DiagramRootComponent, DiagramRootProps, useEffect, useState } from "@carnelian/diagram";
 import {
+    ControlsContext,
     InteractionContext, 
     InteractionController, 
     RectSelectionEventArgs, 
@@ -43,10 +44,12 @@ const DiagramControls = (props: DiagramControlsProps) => {
         : undefined;
 
     return (
-        matrix && <g transform={transform}>
-            {controller?.renderControls(matrix.inverse())}
-            {rectSelection && <rect className="selection-rect" {...rectSelection} fill="none" stroke="black" stroke-dasharray="4" />}
-        </g>
+        <ControlsContext.Provider value={controller.controlsContext}>
+            {matrix && <g transform={transform}>
+                {controller.renderControls(matrix.inverse())}
+                {rectSelection && <rect className="selection-rect" {...rectSelection} fill="none" stroke="black" stroke-dasharray="4" />}
+            </g>}
+        </ControlsContext.Provider>
     );
 }
 
@@ -95,7 +98,7 @@ export const withInteraction = (
         }, []);
 
         return (
-            <InteractionContext.Provider value={controller.getContextValue()}>
+            <InteractionContext.Provider value={controller.interactionContext}>
                 <SelectionContext.Provider value={selectedElements}>
                     <DiagramElements>
                         <WrappedComponent {...props} />

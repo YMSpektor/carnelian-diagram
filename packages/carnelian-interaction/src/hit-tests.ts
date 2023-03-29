@@ -61,6 +61,8 @@ export function createHitTestProps(hitArea: HitArea, element?: DiagramNode) {
     }
 }
 
+export type CreateHitTestProps = ReturnType<typeof createHitTestProps>;
+
 export function pointHitTest(x: number, y: number, tolerance: number): HitTestCallback {
     return (point, transform) => {
         const p = new DOMPoint(x, y).matrixTransform(transform.inverse());

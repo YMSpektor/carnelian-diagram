@@ -1,6 +1,5 @@
 /** @jsxImportSource @emotion/react */
 import { HTMLAttributes, useContext } from "react";
-import { Box } from "@mui/material";
 import { DiagramElement } from "@carnelian/diagram";
 import DiagramElementIcon from "./DiagramElementIcon";
 import Typography from "@mui/material/Typography";
@@ -39,10 +38,7 @@ function DiagramPalette(props: DiagramPaletteProps & HTMLAttributes<HTMLDivEleme
     }
 
     return (
-        <Box
-            sx={{
-                bgcolor: (theme) => theme.palette.primary.light
-            }}
+        <div
             css={{display: "flex", flexWrap: "wrap", alignItems: "flex-start", gap: 8, padding: 8, overflowY: "auto"}} 
             {...divProps}
         >
@@ -67,7 +63,7 @@ function DiagramPalette(props: DiagramPaletteProps & HTMLAttributes<HTMLDivEleme
                     </Typography>
                 </div>
             ))}
-        </Box>
+        </div>
     )
 }
 

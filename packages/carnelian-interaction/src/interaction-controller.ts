@@ -1,9 +1,11 @@
-import { createContext, Diagram, DiagramElementNode } from "@carnelian/diagram";
+import { Diagram, DiagramElementNode } from "@carnelian/diagram";
 import { intersectRect, Rect } from "@carnelian/diagram/geometry";
 import { JSX } from "@carnelian/diagram/jsx-runtime";
 import { Event } from "@carnelian/diagram/utils/events";
-import { InteractionContextType } from "./context";
-import { DiagramElementHitTest, hasHitTestProps, HitArea, HitAreaCollection, HitInfo } from "./hit-tests";
+import { AddParameters } from "@carnelian/diagram/utils/types";
+import { ControlsContextType, InteractionContextType } from "./context";
+import { CreateHitTestProps, DiagramElementHitTest, hasHitTestProps, HitArea, HitAreaCollection, HitInfo } from "./hit-tests";
+import { renderEdgeDefault, renderHandleDefault } from "./controls";
 
 export type RenderControlsCallback = (transform: DOMMatrixReadOnly, element: DiagramElementNode) => JSX.Element;
 
@@ -45,25 +47,39 @@ export interface DeleteEventArg {
     requestConfirmation(promise: Promise<boolean>): void;
 }
 
+export type ControlProps = Partial<CreateHitTestProps> & {
+    className: string;
+}
+
+export type RenderHandleCallback = (kind: string, x: number, y: number, otherProps: ControlProps) => JSX.Element;
+export type RenderEdgeCallback = (kind: string, x1: number, y1: number, x2: number, y2: number, otherProps: ControlProps) => JSX.Element;
+
+export interface InteractionControllerOptions {
+    renderHandle?: AddParameters<RenderHandleCallback, [RenderHandleCallback]>;
+    renderEdge?: AddParameters<RenderEdgeCallback, [RenderEdgeCallback]>;
+}
+
 export class InteractionController {
     private diagram: Diagram | null = null;
     private controls: DiagramElementControls[] = [];
     private hitAreas: HitAreaCollection = {};
     private actions = new Map<DiagramElementNode, DiagramElementAction<any>[]>();
     private bounds = new Map<DiagramElementNode, DiagramElementBounds>();
-    private contextValue: InteractionContextType;
     private dragging = false;
     private selecting = false;
     private selectedElements = new Set<DiagramElementNode>();
     elements: DiagramElementNode[] = [];
     transform?: DOMMatrixReadOnly;
+    interactionContext: InteractionContextType;
+    controlsContext: ControlsContextType;
 
     onSelect = new Event<SelectEventArgs>();
     onRectSelection = new Event<RectSelectionEventArgs>();
     onDelete = new Event<DeleteEventArg>();
 
-    constructor() {
-        this.contextValue = this.createInteractionContextValue();
+    constructor(public options?: InteractionControllerOptions) {
+        this.interactionContext = this.createInteractionContext();
+        this.controlsContext = this.createControlsContext();
     }
 
     attach(diagram: Diagram, root: HTMLElement) {
@@ -103,7 +119,7 @@ export class InteractionController {
 
     detach() {};
 
-    private createInteractionContextValue(): InteractionContextType {
+    private createInteractionContext(): InteractionContextType {
         const updateControls = (newControls?: DiagramElementControls, prevControls?: DiagramElementControls) => {
             let newValue = prevControls ? this.controls.filter(x => x !== prevControls) : this.controls;
             newValue = newControls ? newValue.concat(newControls) : newValue;
@@ -160,8 +176,23 @@ export class InteractionController {
         }
     }
 
-    getContextValue(): InteractionContextType {
-        return this.contextValue;
+    private createControlsContext(): ControlsContextType {
+        const renderHandle: RenderHandleCallback = (kind, x, y, otherProps) => {
+            return this.options?.renderHandle 
+                ? this.options.renderHandle(kind, x, y, otherProps, renderHandleDefault)
+                : renderHandleDefault(kind, x, y, otherProps);
+        }
+
+        const renderEdge: RenderEdgeCallback = (kind, x1, y1, x2, y2, otherProps) => {
+            return this.options?.renderEdge 
+                ? this.options.renderEdge(kind, x1, y1, x2, y2, otherProps, renderEdgeDefault)
+                : renderEdgeDefault(kind, x1, y1, x2, y2, otherProps);
+        }
+
+        return {
+            renderHandle,
+            renderEdge
+        }
     }
 
     clientToDiagram(point: DOMPointReadOnly): DOMPointReadOnly {
