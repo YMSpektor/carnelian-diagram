@@ -37,6 +37,7 @@ export function EdgeControl(props: EdgeControlProps) {
             y1={p1.y}
             x2={p2.x}
             y2={p2.y}
+            stroke-dasharray={4}
         />
     )
 }

@@ -29,7 +29,8 @@ export function HandleControl(props: HandleControlProps) {
             x={p.x - props.size / 2} 
             y={p.y - props.size / 2} 
             width={props.size} 
-            height={props.size} 
+            height={props.size}
+            fill="yellow"
             {...hitTestProps}
         />
     )
