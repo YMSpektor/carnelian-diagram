@@ -55,8 +55,8 @@ export type RenderHandleCallback = (kind: string, x: number, y: number, otherPro
 export type RenderEdgeCallback = (kind: string, x1: number, y1: number, x2: number, y2: number, otherProps: ControlProps) => JSX.Element;
 
 export interface InteractionControllerOptions {
-    renderHandle?: AddParameters<RenderHandleCallback, [RenderHandleCallback]>;
-    renderEdge?: AddParameters<RenderEdgeCallback, [RenderEdgeCallback]>;
+    renderHandleControl?: AddParameters<RenderHandleCallback, [RenderHandleCallback]>;
+    renderEdgeControl?: AddParameters<RenderEdgeCallback, [RenderEdgeCallback]>;
 }
 
 export class InteractionController {
@@ -178,14 +178,14 @@ export class InteractionController {
 
     private createControlsContext(): ControlsContextType {
         const renderHandle: RenderHandleCallback = (kind, x, y, otherProps) => {
-            return this.options?.renderHandle 
-                ? this.options.renderHandle(kind, x, y, otherProps, renderHandleDefault)
+            return this.options?.renderHandleControl 
+                ? this.options.renderHandleControl(kind, x, y, otherProps, renderHandleDefault)
                 : renderHandleDefault(kind, x, y, otherProps);
         }
 
         const renderEdge: RenderEdgeCallback = (kind, x1, y1, x2, y2, otherProps) => {
-            return this.options?.renderEdge 
-                ? this.options.renderEdge(kind, x1, y1, x2, y2, otherProps, renderEdgeDefault)
+            return this.options?.renderEdgeControl 
+                ? this.options.renderEdgeControl(kind, x1, y1, x2, y2, otherProps, renderEdgeDefault)
                 : renderEdgeDefault(kind, x1, y1, x2, y2, otherProps);
         }
 

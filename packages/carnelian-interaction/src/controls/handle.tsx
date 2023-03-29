@@ -32,8 +32,18 @@ export function HandleControl(props: HandleControlProps) {
 }
 
 export const renderHandleDefault: RenderHandleCallback = (kind, x, y, otherProps) => {
-    const size = 8;
-    return (
-        <rect x={x - size / 2} y={y - size / 2} width={size} height={size} fill="yellow" {...otherProps} />
-    )
+    let size = 8;
+    switch (kind) {
+        case "knob":
+            size = 9;
+            const points = [
+                {x: x - size / 2, y},
+                {x, y: y - size / 2},
+                {x: x + size / 2, y},
+                {x, y: y + size / 2}
+            ];
+            return <polygon points={points.map(p => `${p.x},${p.y}`).join(" ")} fill="lime" {...otherProps} />
+        default:
+            return <rect x={x - size / 2} y={y - size / 2} width={size} height={size} fill="yellow" {...otherProps} />
+    }
 }

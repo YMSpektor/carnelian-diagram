@@ -20,11 +20,15 @@ export interface InteractiveRectProps {
     height: number;
 }
 
-export function useInteractiveRect<T extends InteractiveRectProps>(props: DiagramElementProps<T>) {
+export function useInteractiveRect<T extends InteractiveRectProps>(
+    props: DiagramElementProps<T>, 
+    updatePropsCallback?: (prevProps: DiagramElementProps<T>, props: DiagramElementProps<T>) => DiagramElementProps<T>
+) {
     const onChange = props.onChange;
+    const updateProps = updatePropsCallback || (props => props);
 
     function move(payload: MovementActionPayload) {
-        onChange(props => ({
+        onChange(props => updateProps(props, {
             ...props,
             x: props.x + payload.deltaX,
             y: props.y + payload.deltaY
@@ -32,7 +36,7 @@ export function useInteractiveRect<T extends InteractiveRectProps>(props: Diagra
     }
 
     function resizeTopLeft(payload: MovementActionPayload) {
-        onChange(props => ({
+        onChange(props => updateProps(props, {
             ...props,
             x: Math.min(payload.position.x, props.x + props.width), 
             y: Math.min(payload.position.y, props.y + props.height), 
@@ -42,7 +46,7 @@ export function useInteractiveRect<T extends InteractiveRectProps>(props: Diagra
     }
 
     function resizeTopRight(payload: MovementActionPayload) {
-        onChange(props => ({
+        onChange(props => updateProps(props, {
             ...props,
             y: Math.min(payload.position.y, props.y + props.height), 
             width: Math.max(0, payload.position.x - props.x), 
@@ -51,7 +55,7 @@ export function useInteractiveRect<T extends InteractiveRectProps>(props: Diagra
     }
 
     function resizeBottomLeft(payload: MovementActionPayload) {
-        onChange(props => ({
+        onChange(props => updateProps(props, {
             ...props,
             x: Math.min(payload.position.x, props.x + props.width), 
             width: Math.max(0, props.x + props.width - payload.position.x),
@@ -60,7 +64,7 @@ export function useInteractiveRect<T extends InteractiveRectProps>(props: Diagra
     }
 
     function resizeBottomRight(payload: MovementActionPayload) {
-        onChange(props => ({
+        onChange(props => updateProps(props, {
             ...props,
             width: Math.max(0, payload.position.x - props.x), 
             height: Math.max(0, payload.position.y - props.y)
@@ -68,7 +72,7 @@ export function useInteractiveRect<T extends InteractiveRectProps>(props: Diagra
     }
 
     function resizeLeft(payload: MovementActionPayload) {
-        onChange(props => ({
+        onChange(props => updateProps(props, {
             ...props,
             x: Math.min(payload.position.x, props.x + props.width), 
             width: Math.max(0, props.x + props.width - payload.position.x),
@@ -76,7 +80,7 @@ export function useInteractiveRect<T extends InteractiveRectProps>(props: Diagra
     }
 
     function resizeTop(payload: MovementActionPayload) {
-        onChange(props => ({
+        onChange(props => updateProps(props, {
             ...props, 
             y: Math.min(payload.position.y, props.y + props.height), 
             height: Math.max(0, props.y + props.height - payload.position.y)
@@ -84,14 +88,14 @@ export function useInteractiveRect<T extends InteractiveRectProps>(props: Diagra
     }
 
     function resizeRight(payload: MovementActionPayload) {
-        onChange(props => ({
+        onChange(props => updateProps(props, {
             ...props,
             width: Math.max(0, payload.position.x - props.x), 
         }));
     }
 
     function resizeBottom(payload: MovementActionPayload) {
-        onChange(props => ({
+        onChange(props => updateProps(props, {
             ...props,
             height: Math.max(0, payload.position.y - props.y)
         }));
@@ -190,9 +194,12 @@ export function useInteractiveRect<T extends InteractiveRectProps>(props: Diagra
     });
 }
 
-export function withInteractiveRect<T extends InteractiveRectProps>(WrappedElement: DiagramElement<T>): DiagramElement<T> {
+export function withInteractiveRect<T extends InteractiveRectProps>(
+    WrappedElement: DiagramElement<T>,
+    updatePropsCallback?: (prevProps: DiagramElementProps<T>, props: DiagramElementProps<T>) => DiagramElementProps<T>
+): DiagramElement<T> {
     return (props) => {
-        useInteractiveRect(props);
+        useInteractiveRect(props, updatePropsCallback);
         return <WrappedElement {...props} />;
     }
 }

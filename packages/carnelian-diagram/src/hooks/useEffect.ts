@@ -18,7 +18,7 @@ export function useEffect(effect: Effect, dependencies: any[] | undefined) {
         throw new Error("The useEffect hook is not allowed to be called from here. Current element is not defined");
     }
 
-    const cleanups = curNode.cleanups = curNode.cleanups || new ComponentCleanups();
+    const cleanups = curNode.cleanups = (curNode.cleanups || new ComponentCleanups());
     const [storedEffect] = useState<StoredEffect>({});
     if (!dependencies || !storedEffect.dependencies || !compareArrays(dependencies, storedEffect.dependencies)) {
         storedEffect.dependencies = dependencies;

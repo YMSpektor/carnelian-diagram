@@ -169,6 +169,7 @@ export class Diagram {
         }
         else {
             let children: ComponentChildren;
+            const prevChildren = prevNode?.children?.slice();
             if (typeof node.type === 'function') {
                 children = node.type.call(node, node.props);
             }
@@ -189,7 +190,6 @@ export class Diagram {
                 node.children = [];
             }
 
-            const prevChildren = prevNode?.children?.slice();
             node.children.forEach(child => {
                 if (isDiagramNode(child)) {
                     let prevChild: DiagramNode<unknown> | undefined;
