@@ -2,9 +2,8 @@
 
 import { DiagramElement, DiagramElementProps } from "@carnelian/diagram";
 import { clamp } from "@carnelian/diagram/geometry";
-import { KnobController, withKnob } from "@carnelian/interaction";
 import { RectBaseProps } from ".";
-import { withInteractiveRect } from "../interaction";
+import { withInteractiveRect, KnobController, withKnob } from "../interaction";
 
 export interface RoundedRectProps extends RectBaseProps {
     radius: number;
@@ -22,10 +21,10 @@ const knobController: KnobController<RoundedRectProps> = {
             y: props.y
         }
     },
-    dragHandler(props, payload) {
+    setPosition(props, pos) {
         return {
             ...props,
-            radius: clamp(payload.position.x - props.x, 0, Math.min(props.width, props.height) / 2)
+            radius: clamp(pos.x - props.x, 0, Math.min(props.width, props.height) / 2)
         }
     }
 }
