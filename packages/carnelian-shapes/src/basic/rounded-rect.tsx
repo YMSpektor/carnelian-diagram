@@ -1,12 +1,13 @@
 /** @jsxImportSource @carnelian/diagram */
 
-import { DiagramElement, DiagramElementProps } from "@carnelian/diagram";
+import { DiagramElement } from "@carnelian/diagram";
 import { clamp } from "@carnelian/diagram/geometry";
 import { RectBaseProps } from ".";
 import { withInteractiveRect, KnobController, withKnob } from "../interaction";
+import { convertPercentage, isPercentage, NumberOrPercentage } from "../utils";
 
 export interface RoundedRectProps extends RectBaseProps {
-    radius: number;
+    radius: NumberOrPercentage;
 }
 
 const knobController: KnobController<RoundedRectProps> = {
@@ -16,34 +17,30 @@ const knobController: KnobController<RoundedRectProps> = {
         action: "knob_move"
     },
     getPosition(props) {
+        const base = Math.min(props.width, props.height) / 2;
+        const offset = clamp(convertPercentage(props.radius, base), 0, base);
         return {
-            x: props.x + props.radius,
+            x: props.x + offset,
             y: props.y
         }
     },
     setPosition(props, pos) {
+        const base = Math.min(props.width, props.height) / 2;
+        let radius: NumberOrPercentage = clamp(pos.x - props.x, 0, base);
+        radius = isPercentage(props.radius) 
+            ? base > 0 ? `${radius / base * 100}%` : props.radius
+            : radius
         return {
             ...props,
-            radius: clamp(pos.x - props.x, 0, Math.min(props.width, props.height) / 2)
+            radius
         }
-    }
-}
-
-const updateRadius = (
-    prevProps: DiagramElementProps<RoundedRectProps>,
-    props: DiagramElementProps<RoundedRectProps>
-): DiagramElementProps<RoundedRectProps> => {
-    const l = Math.min(prevProps.width, prevProps.height) / 2;
-    const p = l > 0 ? prevProps.radius / l : 0;
-    return {
-        ...props,
-        radius: p * Math.min(props.width, props.height) / 2
     }
 }
 
 export const RoundedRect: DiagramElement<RoundedRectProps> = function(props) {
     let { onChange, radius, ...rest } = props;
-    radius = Math.min(radius, Math.min(props.width, props.height) / 2);
+    const base = Math.min(props.width, props.height) / 2;
+    radius = clamp(convertPercentage(radius, base), 0, base);
 
     return (
         <rect rx={radius} {...rest} />
@@ -52,6 +49,5 @@ export const RoundedRect: DiagramElement<RoundedRectProps> = function(props) {
 
 export const InteractiveRoundedRect = 
     withInteractiveRect(
-        withKnob(knobController, RoundedRect),
-        updateRadius
+        withKnob(knobController, RoundedRect)
     );

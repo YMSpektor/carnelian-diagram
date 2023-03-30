@@ -37,7 +37,7 @@ addToPalette({
 
 addToPalette({
     elementType: RoundedRect,
-    elementProps: {x: 20, y: 20, width: 300, height: 200, radius: 50},
+    elementProps: {x: 20, y: 20, width: 300, height: 200, radius: "50%"},
     viewBox: "0 0 340 240",
     title: "Rounded Rectangle",
     factory: (point, props) => ({
@@ -73,7 +73,7 @@ addToPalette({
 
 addToPalette({
     elementType: Parallelogram,
-    elementProps: {x: 20, y: 20, width: 300, height: 200, offset: 100},
+    elementProps: {x: 20, y: 20, width: 300, height: 200, offset: "20%"},
     viewBox: "0 0 340 240",
     title: "Parallelogram",
     factory: (point, props) => ({
