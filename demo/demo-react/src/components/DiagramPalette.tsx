@@ -56,6 +56,7 @@ function DiagramPalette(props: DiagramPaletteProps & HTMLAttributes<HTMLDivEleme
                             elementType={element.elementType}
                             elementProps={element.elementProps}
                             viewBox={element.viewBox}
+                            strokeWidth={5}
                         />
                      </div>
                      <Typography variant="caption">
