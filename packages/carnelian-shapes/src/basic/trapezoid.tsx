@@ -6,27 +6,29 @@ import { RectBaseProps } from ".";
 import { withInteractiveRect, KnobController, withKnob } from "../interaction";
 import { convertPercentage, isPercentage, NumberOrPercentage } from "../utils";
 
-export interface ParallelogramProps extends RectBaseProps {
+export interface TrapezoidProps extends RectBaseProps {
     offset: NumberOrPercentage;
 }
 
-const knobController: KnobController<ParallelogramProps> = {
+const knobController: KnobController<TrapezoidProps> = {
     hitArea: {
         type: "knob_handle",
         cursor: "default",
         action: "knob_move"
     },
     getPosition(props) {
-        const offset = clamp(convertPercentage(props.offset, props.width), 0, props.width);
+        const base = props.width;
+        const offset = clamp(convertPercentage(props.offset, base), 0, base / 2);
         return {
             x: props.x + offset,
             y: props.y
         }
     },
     setPosition(props, pos) {
-        let offset: NumberOrPercentage = clamp(pos.x - props.x, 0, props.width);
+        const base = props.width;
+        let offset: NumberOrPercentage = clamp(pos.x - props.x, 0, base / 2);
         offset = isPercentage(props.offset) 
-            ? props.width > 0 ? `${offset / props.width * 100}%` : props.offset
+            ? base > 0 ? `${offset / base * 100}%` : props.offset
             : offset
         return {
             ...props,
@@ -35,14 +37,14 @@ const knobController: KnobController<ParallelogramProps> = {
     }
 }
 
-export const Parallelogram: DiagramElement<ParallelogramProps> = function(props) {
+export const Trapezoid: DiagramElement<TrapezoidProps> = function(props) {
     let { onChange, x, y, width, height, offset, ...rest } = props;
 
-    offset = clamp(convertPercentage(offset, width), 0, width);
+    offset = clamp(convertPercentage(offset, width), 0, width / 2);
     const points = [
         {x: x + offset, y},
-        {x: x + width, y},
-        {x: x + width - offset, y: y + height},
+        {x: x + width - offset, y},
+        {x: x + width, y: y + height},
         {x, y: y + height}
     ];
 
@@ -51,7 +53,7 @@ export const Parallelogram: DiagramElement<ParallelogramProps> = function(props)
     );
 };
 
-export const InteractiveParallelogram = 
+export const InteractiveTrapezoid = 
     withInteractiveRect(
-        withKnob(knobController, Parallelogram)
+        withKnob(knobController, Trapezoid)
     );

@@ -7,6 +7,8 @@ import {
     InteractiveRhombus as Rhombus,
     InteractiveRoundedRect as RoundedRect,
     InteractiveParallelogram as Parallelogram,
+    InteractiveTrapezoid as Trapezoid,
+    InteractiveHexagon as Hexagon,
 } from "@carnelian/shapes/basic";
 
 export const controller = new InteractionController();
@@ -76,6 +78,30 @@ addToPalette({
     elementProps: {x: 20, y: 20, width: 300, height: 200, offset: "20%"},
     viewBox: "0 0 340 240",
     title: "Parallelogram",
+    factory: (point, props) => ({
+        ...props,
+        x: point.x - props.width / 2,
+        y: point.y - props.height / 2
+    }),
+});
+
+addToPalette({
+    elementType: Trapezoid,
+    elementProps: {x: 20, y: 20, width: 300, height: 200, offset: "20%"},
+    viewBox: "0 0 340 240",
+    title: "Trapezoid",
+    factory: (point, props) => ({
+        ...props,
+        x: point.x - props.width / 2,
+        y: point.y - props.height / 2
+    }),
+});
+
+addToPalette({
+    elementType: Hexagon,
+    elementProps: {x: 20, y: 20, width: 300, height: 200, offset: "20%"},
+    viewBox: "0 0 340 240",
+    title: "Hexagon",
     factory: (point, props) => ({
         ...props,
         x: point.x - props.width / 2,
