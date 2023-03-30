@@ -29,7 +29,7 @@ const knobController: KnobController<RoundedRectProps> = {
     }
 }
 
-const updateKnobPosition = (
+const updateRadius = (
     prevProps: DiagramElementProps<RoundedRectProps>,
     props: DiagramElementProps<RoundedRectProps>
 ): DiagramElementProps<RoundedRectProps> => {
@@ -42,7 +42,8 @@ const updateKnobPosition = (
 }
 
 export const RoundedRect: DiagramElement<RoundedRectProps> = function(props) {
-    const { onChange, radius, ...rest } = props;
+    let { onChange, radius, ...rest } = props;
+    radius = Math.min(radius, Math.min(props.width, props.height) / 2);
 
     return (
         <rect rx={radius} {...rest} />
@@ -52,5 +53,5 @@ export const RoundedRect: DiagramElement<RoundedRectProps> = function(props) {
 export const InteractiveRoundedRect = 
     withInteractiveRect(
         withKnob(knobController, RoundedRect),
-        updateKnobPosition
+        updateRadius
     );

@@ -283,9 +283,11 @@ export class Diagram {
         this.scheduleUpdate(root);
     }
 
-    detach() {
+    detach(clearDom: boolean) {
         if (this.attachedRoot) {
-            this.domBuilder.updateDOM(this.attachedRoot, null); // Clear the DOM
+            if (clearDom) {
+                this.domBuilder.updateDOM(this.attachedRoot, null);
+            }
             this.attachedRoot = null;
             this.unschedule?.();
             this.unschedule = undefined;

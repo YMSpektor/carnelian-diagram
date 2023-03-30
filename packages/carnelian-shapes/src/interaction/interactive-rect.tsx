@@ -25,7 +25,7 @@ export function useInteractiveRect<T extends InteractiveRectProps>(
     updatePropsCallback?: (prevProps: DiagramElementProps<T>, props: DiagramElementProps<T>) => DiagramElementProps<T>
 ) {
     const onChange = props.onChange;
-    const updateProps = updatePropsCallback || (props => props);
+    const updateProps = updatePropsCallback || ((prevProps, props) => props);
 
     function move(payload: MovementActionPayload) {
         onChange(props => updateProps(props, {

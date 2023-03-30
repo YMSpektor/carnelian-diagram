@@ -6,6 +6,7 @@ import {
     InteractiveEllipse as Ellipse, 
     InteractiveRhombus as Rhombus,
     InteractiveRoundedRect as RoundedRect,
+    InteractiveParallelogram as Parallelogram,
 } from "@carnelian/shapes/basic";
 
 export const controller = new InteractionController();
@@ -63,6 +64,18 @@ addToPalette({
     elementProps: {x: 20, y: 20, width: 300, height: 200},
     viewBox: "0 0 340 240",
     title: "Rhombus",
+    factory: (point, props) => ({
+        ...props,
+        x: point.x - props.width / 2,
+        y: point.y - props.height / 2
+    }),
+});
+
+addToPalette({
+    elementType: Parallelogram,
+    elementProps: {x: 20, y: 20, width: 300, height: 200, offset: 100},
+    viewBox: "0 0 340 240",
+    title: "Parallelogram",
     factory: (point, props) => ({
         ...props,
         x: point.x - props.width / 2,

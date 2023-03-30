@@ -39,7 +39,7 @@ function DiagramPalette(props: DiagramPaletteProps & HTMLAttributes<HTMLDivEleme
 
     return (
         <div
-            css={{display: "flex", flexWrap: "wrap", alignItems: "flex-start", gap: 8, padding: 8, overflowY: "auto"}} 
+            css={{display: "flex", flexWrap: "wrap", alignContent: "flex-start", gap: 8, padding: 8, overflowY: "auto"}} 
             {...divProps}
         >
             {palette.map((element, i) => (

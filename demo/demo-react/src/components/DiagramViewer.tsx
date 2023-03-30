@@ -31,7 +31,7 @@ function DiagramViewer(props: DiagramViewerProps & HTMLAttributes<HTMLDivElement
             controller?.attach(diagram, container.current);
 
             return () => {
-                diagram.detach();
+                diagram.detach(false);
                 controller?.detach();
             }
         }

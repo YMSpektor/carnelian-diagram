@@ -46,11 +46,12 @@ export class DOMBuilder {
     }
 
     updateDOM(rootElement: SVGGraphicsElement, rootNode: DiagramNode | null) {
-        const tree = svg("", this.transformProperties({
+        const props = rootNode ? this.transformProperties({
             className: "carnelian-diagram",
             stroke: "black",
             fill: "white"
-        }), this.transformNode(rootNode));
+        }): {};
+        const tree = svg("", props, this.transformNode(rootNode));
         const lastTree = this.lastTree;
         const patches = diff(lastTree, tree);
         this.lastTree = tree;

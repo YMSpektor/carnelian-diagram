@@ -20,7 +20,7 @@ function App(props: AppProps) {
         <div css={{display: "flex", flexDirection: "column", height: "100vh"}}>
             <DiagramToolbar scale={scale} onScaleChange={setScale} />
             <div css={{flex: 1, display: "flex", alignItems: "stretch", overflow: "hidden"}}>
-                <DiagramPalette iconWidth={64} iconHeight={48} palette={palette} css={{flex: "0 0 300px", backgroundColor: "#42a5f560"}} />
+                <DiagramPalette iconWidth={64} iconHeight={48} palette={palette} css={{flex: "0 0 280px", backgroundColor: "#42a5f560"}} />
                 <DiagramViewer
                     css={{flex: 1, backgroundColor: "#c5c5ff"}}
                     diagram={diagram} controller={controller}
