@@ -12,6 +12,10 @@ code {
     monospace;
 }
 
+.MuiAccordion-root.Mui-expanded {
+  margin-bottom: 0 !important;
+}
+
 .carnelian-diagram .selection-rect {
   fill: #42a5f5;
   fill-opacity: 0.3;

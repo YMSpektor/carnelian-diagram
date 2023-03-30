@@ -4,7 +4,7 @@ import { DiagramPaletteElement } from "./components/DiagramPalette";
 import { 
     InteractiveRect as Rect, 
     InteractiveEllipse as Ellipse, 
-    InteractiveRhombus as Rhombus,
+    InteractiveDiamond as Diamond,
     InteractiveRoundedRect as RoundedRect,
     InteractiveParallelogram as Parallelogram,
     InteractiveTrapezoid as Trapezoid,
@@ -62,18 +62,6 @@ addToPalette({
 });
 
 addToPalette({
-    elementType: Rhombus,
-    elementProps: {x: 20, y: 20, width: 300, height: 200},
-    viewBox: "0 0 340 240",
-    title: "Rhombus",
-    factory: (point, props) => ({
-        ...props,
-        x: point.x - props.width / 2,
-        y: point.y - props.height / 2
-    }),
-});
-
-addToPalette({
     elementType: Parallelogram,
     elementProps: {x: 20, y: 20, width: 300, height: 200, offset: "20%"},
     viewBox: "0 0 340 240",
@@ -102,6 +90,18 @@ addToPalette({
     elementProps: {x: 20, y: 20, width: 300, height: 200, offset: "20%"},
     viewBox: "0 0 340 240",
     title: "Hexagon",
+    factory: (point, props) => ({
+        ...props,
+        x: point.x - props.width / 2,
+        y: point.y - props.height / 2
+    }),
+});
+
+addToPalette({
+    elementType: Diamond,
+    elementProps: {x: 20, y: 20, width: 300, height: 300},
+    viewBox: "0 0 340 340",
+    title: "Diamond",
     factory: (point, props) => ({
         ...props,
         x: point.x - props.width / 2,

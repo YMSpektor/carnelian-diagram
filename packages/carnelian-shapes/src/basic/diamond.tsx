@@ -4,9 +4,9 @@ import { DiagramElement } from "@carnelian/diagram";
 import { RectBaseProps } from ".";
 import { withInteractiveRect } from "../interaction";
 
-export interface RhombusProps extends RectBaseProps {}
+export interface DiamondProps extends RectBaseProps {}
 
-export const Rhombus: DiagramElement<RhombusProps> = function(props) {
+export const Diamond: DiagramElement<DiamondProps> = function(props) {
     const { onChange, x, y, width, height, ...rest } = props;
     const rx = width / 2;
     const ry = height / 2;
@@ -22,4 +22,4 @@ export const Rhombus: DiagramElement<RhombusProps> = function(props) {
     );
 };
 
-export const InteractiveRhombus = withInteractiveRect(Rhombus);
+export const InteractiveDiamond = withInteractiveRect(Diamond);

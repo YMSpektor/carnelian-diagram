@@ -100,8 +100,10 @@ export function isVirtualNode<P>(node: ComponentChild): node is VirtualNode<P> {
     return isDiagramNode(node);
 }
 
+export type DiagramElementChangeHandler<P> = (callback: (oldProps: DiagramElementProps<P>) => DiagramElementProps<P>) => void;
+
 export type DiagramElementProps<P> = P & {
-    onChange: (callback: (oldProps: DiagramElementProps<P>) => DiagramElementProps<P>) => void;
+    onChange: DiagramElementChangeHandler<P>;
 }
 export type DiagramComponent<P> = WithThis<DiagramNode<P>, FunctionComponent<P>>;
 export type DiagramElement<P extends object> = DiagramComponent<DiagramElementProps<P>>;
