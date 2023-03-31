@@ -10,6 +10,7 @@ import {
     InteractiveTrapezoid as Trapezoid,
     InteractiveHexagon as Hexagon,
     InteractiveSquare as Square,
+    InteractiveCircle as Circle,
 } from "@carnelian/shapes/basic";
 
 export const controller = new InteractionController();
@@ -119,6 +120,18 @@ addToPalette({
         ...props,
         x: point.x - props.size / 2,
         y: point.y - props.size / 2
+    }),
+});
+
+addToPalette({
+    elementType: Circle,
+    elementProps: {x: 160, y: 160, radius: 150},
+    viewBox: "0 0 340 340",
+    title: "Circle",
+    factory: (point, props) => ({
+        ...props,
+        x: point.x,
+        y: point.y
     }),
 });
 

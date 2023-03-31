@@ -1,6 +1,6 @@
 import { DiagramNode, RenderContext, useContext } from "@carnelian/diagram";
 import { CustomPropHook } from "@carnelian/diagram/utils/custom-prop-hook";
-import { segmentDistance } from "@carnelian/diagram/geometry";
+import { distance, segmentDistance } from "@carnelian/diagram/geometry";
 
 export type HitTestCallback = (point: DOMPointReadOnly, transform: DOMMatrixReadOnly) => boolean;
 
@@ -74,6 +74,13 @@ export function rectHitTest(x: number, y: number, width: number, height: number)
     return (point, transform) => {
         const elemPoint = point.matrixTransform(transform);
         return elemPoint.x >= x && elemPoint.y >= y && elemPoint.x <= x + width && elemPoint.y <= y + height;
+    }
+}
+
+export function circleHitTest(x: number, y: number, radius: number): HitTestCallback {
+    return (point, transform) => {
+        const elemPoint = point.matrixTransform(transform);
+        return distance(elemPoint, {x, y}) <= radius;
     }
 }
 

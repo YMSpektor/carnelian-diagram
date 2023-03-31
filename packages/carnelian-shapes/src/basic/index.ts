@@ -6,6 +6,7 @@ export * from "./parallelogram";
 export * from "./trapezoid";
 export * from "./hexagon";
 export * from "./square";
+export * from "./circle";
 
 export interface ClosedFigureStyleProps {
     style?: {

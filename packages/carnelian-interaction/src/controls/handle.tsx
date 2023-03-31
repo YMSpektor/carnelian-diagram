@@ -42,7 +42,7 @@ export const renderHandleDefault: RenderHandleCallback = (kind, x, y, otherProps
                 {x: x + size / 2, y},
                 {x, y: y + size / 2}
             ];
-            return <polygon points={points.map(p => `${p.x},${p.y}`).join(" ")} fill="lime" {...otherProps} />
+            return <polygon points={points.map(p => `${p.x},${p.y}`).join(" ")} fill="orange" {...otherProps} />
         default:
             return <rect x={x - size / 2} y={y - size / 2} width={size} height={size} fill="yellow" {...otherProps} />
     }

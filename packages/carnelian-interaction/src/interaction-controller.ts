@@ -301,17 +301,19 @@ export class InteractionController {
         const mouseUpHandler = (e: PointerEvent) => {
             this.onRectSelection.emit({selectionRect: null});
 
-            const p1 = this.clientToDiagram(startPoint);
-            const p2 = this.clientToDiagram(new DOMPoint(e.clientX, e.clientY));
-            const selectionRect = {
-                x: Math.min(p1.x, p2.x),
-                y: Math.min(p1.y, p2.y),
-                width: Math.max(p1.x, p2.x) - Math.min(p1.x, p2.x),
-                height: Math.max(p1.y, p2.y) - Math.min(p1.y, p2.y),
-            };
-            this.select([...this.bounds]
-                .filter(x => intersectRect(selectionRect, x[1].bounds))
-                .map(x => x[0]));
+            if (startPoint.x !== e.clientX || startPoint.y !== e.clientY) {
+                const p1 = this.clientToDiagram(startPoint);
+                const p2 = this.clientToDiagram(new DOMPoint(e.clientX, e.clientY));
+                const selectionRect = {
+                    x: Math.min(p1.x, p2.x),
+                    y: Math.min(p1.y, p2.y),
+                    width: Math.max(p1.x, p2.x) - Math.min(p1.x, p2.x),
+                    height: Math.max(p1.y, p2.y) - Math.min(p1.y, p2.y),
+                };
+                this.select([...this.bounds]
+                    .filter(x => intersectRect(selectionRect, x[1].bounds))
+                    .map(x => x[0]));
+            }
 
             root.removeEventListener("pointermove", mouseMoveHandler);
             root.removeEventListener("pointerup", mouseUpHandler);
