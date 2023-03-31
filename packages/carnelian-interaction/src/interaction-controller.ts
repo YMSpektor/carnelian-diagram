@@ -1,5 +1,4 @@
 import { Diagram, DiagramElementNode } from "@carnelian/diagram";
-import { intersectRect, Rect } from "@carnelian/diagram/geometry";
 import { JSX } from "@carnelian/diagram/jsx-runtime";
 import { Event } from "@carnelian/diagram/utils/events";
 import { AddParameters } from "@carnelian/diagram/utils/types";
@@ -7,6 +6,7 @@ import { ControlsContextType, InteractionContextType } from "./context";
 import { CreateHitTestProps, DiagramElementHitTest, hasHitTestProps, HitArea, HitTestCollection, HitInfo } from "./hit-tests";
 import { renderEdgeDefault, renderHandleDefault } from "./controls";
 import { DiagramElementIntersectionTest } from "./intersection-tests";
+import { Rect } from "./geometry";
 
 export type RenderControlsCallback = (transform: DOMMatrixReadOnly, element: DiagramElementNode) => JSX.Element;
 
