@@ -21,7 +21,7 @@ export interface InteractiveRectProps {
 }
 
 export function useInteractiveRect<T extends InteractiveRectProps>(props: DiagramElementProps<T>) {
-    const onChange = props.onChange;
+    const { x, y, width, height, onChange } = props;
 
     function move(payload: MovementActionPayload) {
         onChange(props => ({
@@ -97,6 +97,27 @@ export function useInteractiveRect<T extends InteractiveRectProps>(props: Diagra
         }));
     }
 
+    useInteractiveRectControls(
+        x, y, width, height, move, resizeTopLeft, resizeTopRight, resizeBottomLeft, resizeBottomRight,
+        resizeLeft, resizeTop, resizeRight, resizeBottom
+    );
+}
+
+export function useInteractiveRectControls(
+    x: number,
+    y: number,
+    width: number,
+    height: number,
+    move: ActionCallback<MovementActionPayload>,
+    resizeTopLeft: ActionCallback<MovementActionPayload>,
+    resizeTopRight: ActionCallback<MovementActionPayload>,
+    resizeBottomLeft: ActionCallback<MovementActionPayload>,
+    resizeBottomRight: ActionCallback<MovementActionPayload>,
+    resizeLeft: ActionCallback<MovementActionPayload>,
+    resizeTop: ActionCallback<MovementActionPayload>,
+    resizeRight: ActionCallback<MovementActionPayload>,
+    resizeBottom: ActionCallback<MovementActionPayload>
+) {
     function createHandleControl(
         index: number, 
         x: number, y: number, 
@@ -134,20 +155,17 @@ export function useInteractiveRect<T extends InteractiveRectProps>(props: Diagra
     }
 
     useHitTest(
-        rectHitTest(props.x, props.y, props.width, props.height),
+        rectHitTest(x, y, width, height),
         { 
             type: "in",
             action: "move",
             cursor: "move",
         },
     );
-
     useAction<MovementActionPayload>("move", move);
-
-    useBounds({x: props.x, y: props.y, width: props.width, height: props.height});
+    useBounds({x, y, width, height});
 
     useControls((transform, element) => {
-        const { x, y, width, height } = props;
         const handles = [
             createHandleControl(0, x, y, "nwse-resize", resizeTopLeft),
             createHandleControl(1, x + width, y, "nesw-resize", resizeTopRight),

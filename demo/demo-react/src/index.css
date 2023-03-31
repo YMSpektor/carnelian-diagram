@@ -13,7 +13,7 @@ code {
 }
 
 .MuiAccordion-root.Mui-expanded {
-  margin-bottom: 0 !important;
+  margin: 0 !important;
 }
 
 .carnelian-diagram .selection-rect {

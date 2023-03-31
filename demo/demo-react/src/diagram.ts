@@ -9,6 +9,7 @@ import {
     InteractiveParallelogram as Parallelogram,
     InteractiveTrapezoid as Trapezoid,
     InteractiveHexagon as Hexagon,
+    InteractiveSquare as Square,
 } from "@carnelian/shapes/basic";
 
 export const controller = new InteractionController();
@@ -108,3 +109,16 @@ addToPalette({
         y: point.y - props.height / 2
     }),
 });
+
+addToPalette({
+    elementType: Square,
+    elementProps: {x: 20, y: 20, size: 300},
+    viewBox: "0 0 340 340",
+    title: "Square",
+    factory: (point, props) => ({
+        ...props,
+        x: point.x - props.size / 2,
+        y: point.y - props.size / 2
+    }),
+});
+

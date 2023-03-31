@@ -2,6 +2,7 @@
 
 import { DiagramElement } from "@carnelian/diagram";;
 import { SquareBaseProps } from ".";
+import { withInteractiveSquare } from "../interaction";
 
 export interface SquareProps extends SquareBaseProps { }
 
@@ -12,3 +13,5 @@ export const Square: DiagramElement<SquareProps> = function(props) {
         <rect x={x} y={y} width={size} height={size} {...rest} />
     );
 };
+
+export const InteractiveSquare = withInteractiveSquare(Square);
