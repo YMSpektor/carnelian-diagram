@@ -2,7 +2,7 @@
 
 import { DiagramElement } from "@carnelian/diagram";
 import { ClosedFigureStyleProps } from ".";
-import { KnobController, withInteractiveCircle, withKnob } from "../interaction";
+import { KnobController, withInteractiveCircle, withInteractiveSquareForCircle, withKnob } from "../interaction";
 
 export interface CircleProps extends ClosedFigureStyleProps {
     x: number;
@@ -40,3 +40,5 @@ export const InteractiveCircle =
     withInteractiveCircle(
         withKnob(knobController, Circle)
     );
+
+export const InteractiveAsSquareCircle = withInteractiveSquareForCircle(Circle);
