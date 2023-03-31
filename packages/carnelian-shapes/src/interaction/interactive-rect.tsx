@@ -3,16 +3,15 @@
 import { DiagramElement, DiagramElementProps } from "@carnelian/diagram";
 import { 
     useControls, 
-    useHitTest,
-    rectHitTest, 
     useAction, 
     MovementActionPayload, 
     ActionCallback, 
     EdgeControl, 
     HandleControl, 
-    useIntersectionTest,
-    rectIntersectionTest
+    useShape,
+    Shape
 } from "@carnelian/interaction";
+import { RectShape } from "./shapes";
 
 export interface InteractiveRectProps {
     x: number;
@@ -21,7 +20,9 @@ export interface InteractiveRectProps {
     height: number;
 }
 
-export function useInteractiveRect<T extends InteractiveRectProps>(props: DiagramElementProps<T>) {
+export type RectShapeFactory = (x: number, y: number, width: number, height: number) => Shape;
+
+export function useInteractiveRect<T extends InteractiveRectProps>(props: DiagramElementProps<T>, shapeFactory?: RectShapeFactory) {
     const { x, y, width, height, onChange } = props;
 
     function move(payload: MovementActionPayload) {
@@ -100,11 +101,11 @@ export function useInteractiveRect<T extends InteractiveRectProps>(props: Diagra
 
     useInteractiveRectControls(
         x, y, width, height, move, resizeTopLeft, resizeTopRight, resizeBottomLeft, resizeBottomRight,
-        resizeLeft, resizeTop, resizeRight, resizeBottom
+        resizeLeft, resizeTop, resizeRight, resizeBottom, shapeFactory
     );
 }
 
-export function useInteractiveRectControls(
+export function useInteractiveRectControls<T extends InteractiveRectProps>(
     x: number,
     y: number,
     width: number,
@@ -117,7 +118,8 @@ export function useInteractiveRectControls(
     resizeLeft: ActionCallback<MovementActionPayload>,
     resizeTop: ActionCallback<MovementActionPayload>,
     resizeRight: ActionCallback<MovementActionPayload>,
-    resizeBottom: ActionCallback<MovementActionPayload>
+    resizeBottom: ActionCallback<MovementActionPayload>,
+    shapeFactory?: RectShapeFactory
 ) {
     function createHandleControl(
         index: number, 
@@ -155,15 +157,8 @@ export function useInteractiveRectControls(
         }
     }
 
-    useHitTest(
-        rectHitTest(x, y, width, height),
-        { 
-            type: "in",
-            action: "move",
-            cursor: "move",
-        },
-    );
-    useIntersectionTest(rectIntersectionTest(x, y, width, height));
+    const shape = shapeFactory?.(x, y, width, height) || new RectShape(x, y, width, height);
+    useShape(shape, { type: "in", action: "move", cursor: "move",});
     useAction<MovementActionPayload>("move", move);
 
     useControls((transform, element) => {
@@ -209,9 +204,12 @@ export function useInteractiveRectControls(
     });
 }
 
-export function withInteractiveRect<T extends InteractiveRectProps>(WrappedElement: DiagramElement<T>): DiagramElement<T> {
+export function withInteractiveRect<T extends InteractiveRectProps>(
+    WrappedElement: DiagramElement<T>,
+    shapeFactory?: RectShapeFactory
+): DiagramElement<T> {
     return (props) => {
-        useInteractiveRect(props);
+        useInteractiveRect(props, shapeFactory);
         return <WrappedElement {...props} />;
     }
 }

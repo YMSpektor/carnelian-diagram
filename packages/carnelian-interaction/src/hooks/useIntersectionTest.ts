@@ -1,7 +1,8 @@
 import { RenderContext, useContext, useEffect, useRef } from "@carnelian/diagram";
 import { DiagramElementIntersectionTest, InteractionContext, IntersectionTestCallback } from "..";
+import { Rect } from "../geometry";
 
-export function useIntersectionTest(callback: IntersectionTestCallback) {
+export function useIntersectionTest(callback: IntersectionTestCallback, bounds: Rect) {
     const renderContext = useContext(RenderContext);
     const curElement = renderContext?.currentElement();
     if (!curElement) {
@@ -17,7 +18,8 @@ export function useIntersectionTest(callback: IntersectionTestCallback) {
 
     const intersectionTest: DiagramElementIntersectionTest = {
         element: curElement,
-        callback
+        callback,
+        bounds
     }
     interactions.updateIntersectionTests(intersectionTest, storedIntersectionTest.current);
     storedIntersectionTest.current = intersectionTest; // Setting a state will cause an infinite loop

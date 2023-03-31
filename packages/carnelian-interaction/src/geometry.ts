@@ -139,6 +139,10 @@ export namespace Collisions {
         return false;
     }
 
+    export function circleCircle(c1: Point, r1: number, c2: Point, r2: number) {
+        return distanceSquared(c1, c2) <= sqr(r1 + r2);
+    }
+
     export function circleRect(c: Point, r: number, rect: Rect): boolean {
         const points = rectPoints(rect);
         if (pointRect(c, rect) || rectPoints(rect).some(p => pointCircle(p, c, r))) {

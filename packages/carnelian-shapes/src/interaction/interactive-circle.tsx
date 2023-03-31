@@ -1,6 +1,7 @@
 /** @jsxImportSource @carnelian/diagram */
 
 import { DiagramElement, DiagramElementChangeHandler, DiagramElementProps } from "@carnelian/diagram";
+import { RectShapeFactory } from "./interactive-rect";
 import { InteractiveSquareProps, useInteractiveSquare } from "./interactive-square";
 
 export interface InteractiveCircleProps {
@@ -10,7 +11,8 @@ export interface InteractiveCircleProps {
 }
 
 export function withInteractiveCircle<T extends InteractiveCircleProps>(
-    WrappedElement: DiagramElement<T>
+    WrappedElement: DiagramElement<T>,
+    shapeFactory?: RectShapeFactory
 ): DiagramElement<T> {
     return (props) => {
         const { x, y, radius, onChange } = props;
@@ -40,7 +42,7 @@ export function withInteractiveCircle<T extends InteractiveCircleProps>(
             size: radius * 2,
             onChange: squareOnChange
         };
-        useInteractiveSquare(squareProps);
+        useInteractiveSquare(squareProps, shapeFactory);
         return <WrappedElement {...props} />
     }
 }
