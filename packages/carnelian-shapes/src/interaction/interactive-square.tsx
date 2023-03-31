@@ -1,7 +1,7 @@
 /** @jsxImportSource @carnelian/diagram */
 
 import { DiagramElement, DiagramElementProps } from "@carnelian/diagram";
-import { MovementActionPayload } from "@carnelian/interaction";
+import { MovementActionPayload, Shape } from "@carnelian/interaction";
 import { RectShapeFactory, useInteractiveRectControls } from "./interactive-rect";
 
 export interface InteractiveSquareProps {
@@ -10,9 +10,11 @@ export interface InteractiveSquareProps {
     size: number;
 }
 
+export type SquareShapeFactory = (x: number, y: number, size: number) => Shape;
+
 export function useInteractiveSquare<T extends InteractiveSquareProps>(
     props: DiagramElementProps<T>, 
-    shapeFactory?: RectShapeFactory
+    shapeFactory?: SquareShapeFactory
 ) {
     const { x, y, size, onChange } = props;
 
@@ -98,15 +100,17 @@ export function useInteractiveSquare<T extends InteractiveSquareProps>(
         }));
     }
 
+    const rectShapeFactory: RectShapeFactory | undefined = shapeFactory ? (x, y, width, height) => shapeFactory(x, y, width) : undefined;
+
     useInteractiveRectControls(
         x, y, size, size, move, resizeTopLeft, resizeTopRight, resizeBottomLeft, resizeBottomRight,
-        resizeLeft, resizeTop, resizeRight, resizeBottom, shapeFactory
+        resizeLeft, resizeTop, resizeRight, resizeBottom, rectShapeFactory
     );    
 }
 
 export function withInteractiveSquare<T extends InteractiveSquareProps>(
     WrappedElement: DiagramElement<T>,
-    shapeFactory?: RectShapeFactory
+    shapeFactory?: SquareShapeFactory
 ): DiagramElement<T> {
     return (props) => {
         useInteractiveSquare(props, shapeFactory);

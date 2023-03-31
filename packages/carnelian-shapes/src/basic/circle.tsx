@@ -19,5 +19,5 @@ export const Circle: DiagramElement<CircleProps> = function(props) {
 }
 export const InteractiveCircle = withInteractiveCircle(
     Circle,
-    (x, y, width, height) => new CircleShape(x + width / 2, y + height / 2, width / 2)
+    (x, y, radius) => new CircleShape(x, y, radius)
 );

@@ -105,7 +105,7 @@ export function useInteractiveRect<T extends InteractiveRectProps>(props: Diagra
     );
 }
 
-export function useInteractiveRectControls<T extends InteractiveRectProps>(
+export function useInteractiveRectControls(
     x: number,
     y: number,
     width: number,
