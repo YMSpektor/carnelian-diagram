@@ -10,7 +10,7 @@ import {
     InteractiveTrapezoid as Trapezoid,
     InteractiveHexagon as Hexagon,
     InteractiveSquare as Square,
-    InteractiveAsSquareCircle as Circle,
+    InteractiveCircle as Circle,
 } from "@carnelian/shapes/basic";
 
 export const controller = new InteractionController();
