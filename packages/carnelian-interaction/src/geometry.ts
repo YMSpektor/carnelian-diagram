@@ -78,6 +78,18 @@ export function rectPoints(r: Rect): Point[] {
 }
 
 export namespace Collisions {
+    export function pointLine(p: Point, a: Point, b: Point, tolerance: number): boolean {
+        return segmentDistance(p, a, b) <= tolerance;
+    }
+
+    export function pointCircle(p: Point, c: Point, r: number): boolean {
+        return distanceSquared(p, c) <= sqr(r);
+    }
+
+    export function pointRect(p: Point, r: Rect) {
+        return p.x >= r.x && p.y >= r.y && p.x <= r.x + r.width && p.y <= r.y + r.height;
+    }
+
     export function pointPolygon(p: Point, polygon: Point[]): boolean {
         const { x, y } = p;
         let resuil = false;
@@ -92,18 +104,6 @@ export namespace Collisions {
         return resuil;
     }
 
-    export function pointLine(p: Point, a: Point, b: Point, tolerance: number): boolean {
-        return segmentDistance(p, a, b) <= tolerance;
-    }
-
-    export function pointCircle(p: Point, c: Point, r: number): boolean {
-        return distanceSquared(p, c) <= sqr(r);
-    }
-
-    export function pointRect(p: Point, r: Rect) {
-        return p.x >= r.x && p.y >= r.y && p.x <= r.x + r.width && p.y <= r.y + r.height;
-    }
-
     export function lineLine(a1: Point, b1: Point, a2: Point, b2: Point): boolean {
         const u1 = ((b2.x-a2.x)*(a1.y-a2.y) - (b2.y-a2.y)*(a1.x-a2.x)) / ((b2.y-a2.y)*(b1.x-a1.x) - (b2.x-a2.x)*(b1.y-a1.y));
         const u2 = ((b1.x-a1.x)*(a1.y-a2.y) - (b1.y-a1.y)*(a1.x-a2.x)) / ((b2.y-a2.y)*(b1.x-a1.x) - (b2.x-a2.x)*(b1.y-a1.y));
@@ -113,11 +113,11 @@ export namespace Collisions {
     export function lineRect(a: Point, b: Point, r: Rect): boolean {
         const points = rectPoints(r);
         return (
+            (pointRect(a, r) && pointRect(b, r)) ||
             lineLine(a, b, points[0], points[1]) ||
             lineLine(a, b, points[1], points[2]) ||
             lineLine(a, b, points[2], points[3]) ||
-            lineLine(a, b, points[3], points[0]) ||
-            (pointRect(a, r) && pointRect(b, r))
+            lineLine(a, b, points[3], points[0])
         );
     }
 
@@ -137,6 +137,19 @@ export namespace Collisions {
             }
         }
         return false;
+    }
+
+    export function circleRect(c: Point, r: number, rect: Rect): boolean {
+        const points = rectPoints(rect);
+        if (pointRect(c, rect) || rectPoints(rect).some(p => pointCircle(p, c, r))) {
+            return true;
+        }
+        return (
+            lineCircle(points[0], points[1], c, r) ||
+            lineCircle(points[1], points[2], c, r) ||
+            lineCircle(points[2], points[3], c, r) ||
+            lineCircle(points[3], points[0], c, r)
+        );
     }
 
     export function circlePolygon(c: Point, r: number, polygon: Point[]): boolean {
