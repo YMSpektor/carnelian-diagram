@@ -1,5 +1,5 @@
 import { DiagramElement } from "@carnelian/diagram";
-import { Point } from "@carnelian/diagram/geometry";
+import { Point } from "@carnelian/interaction/geometry";
 import { createContext } from "react";
 
 export type ElementFactory<T> = (p: Point, props: T) => T;

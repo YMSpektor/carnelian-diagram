@@ -1,7 +1,7 @@
 /** @jsxImportSource @carnelian/diagram */
 
 import { DiagramElement } from "@carnelian/diagram";
-import { clamp } from "@carnelian/diagram/geometry";
+import { clamp } from "@carnelian/interaction/geometry";
 import { RectBaseProps } from ".";
 import { withInteractiveRect, KnobController, withKnob } from "../interaction";
 import { convertPercentage, isPercentage, NumberOrPercentage } from "../utils";

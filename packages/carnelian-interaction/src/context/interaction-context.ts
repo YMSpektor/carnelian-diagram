@@ -1,11 +1,11 @@
 import { createContext } from "@carnelian/diagram";
-import { DiagramElementAction, DiagramElementBounds, DiagramElementControls, DiagramElementHitTest } from "..";
+import { DiagramElementAction, DiagramElementControls, DiagramElementHitTest, DiagramElementIntersectionTest } from "..";
 
 export interface InteractionContextType {
-    updateControls(controls?: DiagramElementControls, prevControls?: DiagramElementControls): void;
-    updateHitTests(hitTests?: DiagramElementHitTest, prevHitTests?: DiagramElementHitTest): void;
-    updateActions(action?: DiagramElementAction<any>, prevAction?: DiagramElementAction<any>): void;
-    updateBounds(bounds?: DiagramElementBounds, prevBounds?: DiagramElementBounds): void;
+    updateControls(newValue?: DiagramElementControls, prevValue?: DiagramElementControls): void;
+    updateHitTests(newValue?: DiagramElementHitTest, prevValue?: DiagramElementHitTest): void;
+    updateIntersectionTests(newValue?: DiagramElementIntersectionTest, prevValue?: DiagramElementIntersectionTest): void;
+    updateActions(newValue?: DiagramElementAction<any>, prevValue?: DiagramElementAction<any>): void;
 }
 
 export const InteractionContext = createContext<InteractionContextType | null>(null);

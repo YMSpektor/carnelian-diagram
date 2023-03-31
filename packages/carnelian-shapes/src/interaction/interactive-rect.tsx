@@ -3,14 +3,15 @@
 import { DiagramElement, DiagramElementProps } from "@carnelian/diagram";
 import { 
     useControls, 
-    useHitTest, 
-    useBounds, 
+    useHitTest,
     rectHitTest, 
     useAction, 
     MovementActionPayload, 
     ActionCallback, 
     EdgeControl, 
-    HandleControl 
+    HandleControl, 
+    useIntersectionTest,
+    rectIntersectionTest
 } from "@carnelian/interaction";
 
 export interface InteractiveRectProps {
@@ -162,8 +163,8 @@ export function useInteractiveRectControls(
             cursor: "move",
         },
     );
+    useIntersectionTest(rectIntersectionTest(x, y, width, height));
     useAction<MovementActionPayload>("move", move);
-    useBounds({x, y, width, height});
 
     useControls((transform, element) => {
         const handles = [

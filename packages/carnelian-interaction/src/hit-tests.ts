@@ -1,6 +1,6 @@
-import { DiagramNode, RenderContext, useContext } from "@carnelian/diagram";
+import { DiagramElementNode, RenderContext, useContext } from "@carnelian/diagram";
 import { CustomPropHook } from "@carnelian/diagram/utils/custom-prop-hook";
-import { distance, segmentDistance } from "@carnelian/diagram/geometry";
+import { distance, segmentDistance } from "./geometry";
 
 export type HitTestCallback = (point: DOMPointReadOnly, transform: DOMMatrixReadOnly) => boolean;
 
@@ -12,7 +12,7 @@ export interface HitArea {
 }
 
 export type HitInfo = {
-    element: DiagramNode;
+    element: DiagramElementNode;
     screenX: number;
     screenY: number;
     elementX: number;
@@ -21,19 +21,19 @@ export type HitInfo = {
 }
 
 export interface DiagramElementHitTest {
-    element: DiagramNode;
+    element: DiagramElementNode;
     callback: HitTestCallback;
     hitArea: HitArea
     priority: number;
 }
 
-export interface HitAreaCollection {
-    [priority: number]: Map<DiagramNode, DiagramElementHitTest[]> | undefined;
+export interface HitTestCollection {
+    [priority: number]: Map<DiagramElementNode, DiagramElementHitTest[]> | undefined;
 }
 
 export interface HitTestProps {
     __hitTest: {
-        element: DiagramNode;
+        element: DiagramElementNode;
         hitArea: HitArea;
     }
 }
@@ -44,7 +44,7 @@ export function hasHitTestProps(target: EventTarget): target is HitTestEventTarg
     return (target as HitTestEventTarget).__hitTest !== undefined;
 }
 
-export function createHitTestProps(hitArea: HitArea, element?: DiagramNode) {
+export function createHitTestProps(hitArea: HitArea, element?: DiagramElementNode) {
     const renderContext = useContext(RenderContext);
     const elem = element || renderContext?.currentElement;
     if (!elem) {
