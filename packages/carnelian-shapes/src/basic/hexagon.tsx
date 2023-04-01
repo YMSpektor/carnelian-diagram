@@ -1,6 +1,7 @@
 /** @jsxImportSource @carnelian/diagram */
 
 import { DiagramElement } from "@carnelian/diagram";
+import { PolygonCollider } from "@carnelian/interaction/collisions";
 import { clamp } from "@carnelian/interaction/geometry";
 import { RectBaseProps } from ".";
 import { withInteractiveRect, KnobController, withKnob } from "../interaction";
@@ -37,11 +38,11 @@ const knobController: KnobController<HexagonProps> = {
     }
 }
 
-export const Hexagon: DiagramElement<HexagonProps> = function(props) {
-    let { onChange, x, y, width, height, offset, ...rest } = props;
+function toPolygon(props: HexagonProps) {
+    let { x, y, width, height, offset } = props;
 
     offset = clamp(convertPercentage(offset, width), 0, width / 2);
-    const points = [
+    return [
         {x, y: y + height / 2},
         {x: x + offset, y},
         {x: x + width - offset, y},
@@ -49,6 +50,11 @@ export const Hexagon: DiagramElement<HexagonProps> = function(props) {
         {x: x + width - offset, y: y + height},
         {x: x + offset, y: y + height}
     ];
+};
+
+export const Hexagon: DiagramElement<HexagonProps> = function(props) {
+    let { onChange, x, y, width, height, offset, ...rest } = props;
+    const points = toPolygon(props);
 
     return (
         <polygon points={points.map(p => `${p.x},${p.y}`).join(" ")} {...rest} />
@@ -57,5 +63,6 @@ export const Hexagon: DiagramElement<HexagonProps> = function(props) {
 
 export const InteractiveHexagon = 
     withInteractiveRect(
-        withKnob(knobController, Hexagon)
+        withKnob(knobController, Hexagon),
+        (props) => PolygonCollider(toPolygon(props))
     );

@@ -1,4 +1,4 @@
-import { approximateEllipse, Circle, Collisions, Ellipse, intersectRect, intersectRects, Point, Polygon, Rect, rectPoints, unionRects } from "./geometry";
+import { approximateEllipse, Circle, Collisions, Ellipse, intersectRect, intersectRects, Point, Polygon, polygonBounds, Rect, rectPoints, unionRects } from "./geometry";
 
 export type ColliderType<T> = string | ((props: T, other: Collider<any>, tolerance: number) => boolean);
 
@@ -31,6 +31,10 @@ export function CircleCollider(circle: Circle): Collider<Circle> {
 
 export function RectCollider(rect: Rect): Collider<Rect> {
     return Collider("rect", rect, rect);
+}
+
+export function PolygonCollider(polygon: Polygon): Collider<Polygon> {
+    return Collider("polygon", polygon, polygonBounds(polygon) || {x: 0, y: 0, width: 0, height: 0});
 }
 
 export function EmptyCollider(): Collider<null> {

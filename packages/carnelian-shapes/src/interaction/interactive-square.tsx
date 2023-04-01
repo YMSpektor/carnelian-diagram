@@ -102,7 +102,7 @@ export function useInteractiveSquare<T extends InteractiveSquareProps>(
     }
 
     const collider = colliderFactory?.(props) || RectCollider({x: props.x, y: props.y, width: props.size, height: props.size});
-    useCollider(collider, { type: "in", action: "move", cursor: "move"});
+    useCollider(collider, { type: "in", action: "move", cursor: "move" });
     useAction<MovementActionPayload>("move", move);
 
     useInteractiveRectControls(

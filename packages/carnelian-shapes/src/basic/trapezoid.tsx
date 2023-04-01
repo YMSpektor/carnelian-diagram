@@ -1,6 +1,7 @@
 /** @jsxImportSource @carnelian/diagram */
 
 import { DiagramElement } from "@carnelian/diagram";
+import { PolygonCollider } from "@carnelian/interaction/collisions";
 import { clamp } from "@carnelian/interaction/geometry";
 import { RectBaseProps } from ".";
 import { withInteractiveRect, KnobController, withKnob } from "../interaction";
@@ -37,16 +38,21 @@ const knobController: KnobController<TrapezoidProps> = {
     }
 }
 
-export const Trapezoid: DiagramElement<TrapezoidProps> = function(props) {
-    let { onChange, x, y, width, height, offset, ...rest } = props;
+function toPolygon(props: TrapezoidProps) {
+    let { x, y, width, height, offset } = props;
 
     offset = clamp(convertPercentage(offset, width), 0, width / 2);
-    const points = [
+    return [
         {x: x + offset, y},
         {x: x + width - offset, y},
         {x: x + width, y: y + height},
         {x, y: y + height}
     ];
+}
+
+export const Trapezoid: DiagramElement<TrapezoidProps> = function(props) {
+    let { onChange, x, y, width, height, offset, ...rest } = props;
+    const points = toPolygon(props);
 
     return (
         <polygon points={points.map(p => `${p.x},${p.y}`).join(" ")} {...rest} />
@@ -55,5 +61,6 @@ export const Trapezoid: DiagramElement<TrapezoidProps> = function(props) {
 
 export const InteractiveTrapezoid = 
     withInteractiveRect(
-        withKnob(knobController, Trapezoid)
+        withKnob(knobController, Trapezoid),
+        (props) => PolygonCollider(toPolygon(props))
     );

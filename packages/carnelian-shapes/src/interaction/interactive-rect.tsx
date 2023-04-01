@@ -99,7 +99,7 @@ export function useInteractiveRect<T extends InteractiveRectProps>(props: Diagra
     }
 
     const collider = colliderFactory?.(props) || RectCollider(props);
-    useCollider(collider, { type: "in", action: "move", cursor: "move"});
+    useCollider(collider, { type: "in", action: "move", cursor: "move" });
     useAction<MovementActionPayload>("move", move);
 
     useInteractiveRectControls(

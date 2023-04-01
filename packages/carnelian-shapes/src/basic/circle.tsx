@@ -12,7 +12,7 @@ export interface CircleProps extends ClosedFigureStyleProps {
 }
 
 export const Circle: DiagramElement<CircleProps> = function(props) {
-    let { onChange, x, y, radius, ...rest } = props;
+    const { onChange, x, y, radius, ...rest } = props;
 
     return (
         <circle cx={x} cy={y} r={radius} {...rest} />

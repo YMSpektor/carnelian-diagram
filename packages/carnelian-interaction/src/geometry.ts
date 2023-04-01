@@ -89,8 +89,8 @@ export function intersectRect(a: Rect, b: Rect): Rect | null {
 export function unionRect(a: Rect, b: Rect): Rect {
     const x1 = Math.min(a.x, b.x);
     const y1 = Math.min(a.y, b.y);
-    const x2 = Math.max(a.x, b.x);
-    const y2 = Math.max(a.y, b.y);
+    const x2 = Math.max(a.x + a.width, b.x + b.width);
+    const y2 = Math.max(a.y + a.height, b.y + b.height);
 
     return {
         x: x1,
@@ -101,6 +101,7 @@ export function unionRect(a: Rect, b: Rect): Rect {
 }
 
 export function intersectRects(rects: Rect[]): Rect | null {
+    if (!rects) return null;
     const [first, ...rest] = rects;
     let result: Rect | null = first;
     for (let rect of rest) {
@@ -110,7 +111,8 @@ export function intersectRects(rects: Rect[]): Rect | null {
     return result;
 }
 
-export function unionRects(rects: Rect[]): Rect {
+export function unionRects(rects: Rect[]): Rect | null {
+    if (!rects) return null;
     let [result, ...rest] = rects;
     for (let rect of rest) {
         result = unionRect(result, rect);
@@ -125,6 +127,10 @@ export function rectPoints(r: Rect): Point[] {
         {x: r.x + r.width, y: r.y + r.height},
         {x: r.x, y: r.y + r.height}
     ]
+}
+
+export function polygonBounds(polygon: Polygon): Rect | null {
+    return unionRects(polygon.map(x => ({...x, width: 0, height: 0})));
 }
 
 export function approximateEllipse(ellipse: Ellipse, linesCount: number): Polygon {

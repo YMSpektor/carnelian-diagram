@@ -1,6 +1,7 @@
 /** @jsxImportSource @carnelian/diagram */
 
 import { DiagramElement } from "@carnelian/diagram";
+import { PolygonCollider } from "@carnelian/interaction/collisions";
 import { clamp } from "@carnelian/interaction/geometry";
 import { RectBaseProps } from ".";
 import { withInteractiveRect, KnobController, withKnob } from "../interaction";
@@ -35,16 +36,21 @@ const knobController: KnobController<ParallelogramProps> = {
     }
 }
 
-export const Parallelogram: DiagramElement<ParallelogramProps> = function(props) {
-    let { onChange, x, y, width, height, offset, ...rest } = props;
+function toPolygon(props: ParallelogramProps) {
+    let { x, y, width, height, offset } = props;
 
     offset = clamp(convertPercentage(offset, width), 0, width);
-    const points = [
+    return [
         {x: x + offset, y},
         {x: x + width, y},
         {x: x + width - offset, y: y + height},
         {x, y: y + height}
     ];
+}
+
+export const Parallelogram: DiagramElement<ParallelogramProps> = function(props) {
+    let { onChange, x, y, width, height, offset, ...rest } = props;
+    const points = toPolygon(props);
 
     return (
         <polygon points={points.map(p => `${p.x},${p.y}`).join(" ")} {...rest} />
@@ -53,5 +59,6 @@ export const Parallelogram: DiagramElement<ParallelogramProps> = function(props)
 
 export const InteractiveParallelogram = 
     withInteractiveRect(
-        withKnob(knobController, Parallelogram)
+        withKnob(knobController, Parallelogram),
+        (props) => PolygonCollider(toPolygon(props))
     );
