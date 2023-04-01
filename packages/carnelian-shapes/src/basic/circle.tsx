@@ -1,8 +1,9 @@
 /** @jsxImportSource @carnelian/diagram */
 
 import { DiagramElement } from "@carnelian/diagram";
+import { CircleCollider } from "@carnelian/interaction/collisions";
 import { ClosedFigureStyleProps } from ".";
-import { CircleShape, withInteractiveCircle} from "../interaction";
+import { withInteractiveCircle} from "../interaction";
 
 export interface CircleProps extends ClosedFigureStyleProps {
     x: number;
@@ -19,5 +20,5 @@ export const Circle: DiagramElement<CircleProps> = function(props) {
 }
 export const InteractiveCircle = withInteractiveCircle(
     Circle,
-    (x, y, radius) => new CircleShape(x, y, radius)
+    (props) => CircleCollider({center: {x: props.x, y: props.y}, radius: props.radius})
 );

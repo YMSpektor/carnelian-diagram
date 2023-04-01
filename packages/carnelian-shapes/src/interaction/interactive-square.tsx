@@ -1,8 +1,9 @@
 /** @jsxImportSource @carnelian/diagram */
 
 import { DiagramElement, DiagramElementProps } from "@carnelian/diagram";
-import { MovementActionPayload, Shape } from "@carnelian/interaction";
-import { RectShapeFactory, useInteractiveRectControls } from "./interactive-rect";
+import { MovementActionPayload, useAction, useCollider } from "@carnelian/interaction";
+import { Collider, RectCollider } from "@carnelian/interaction/collisions";
+import { useInteractiveRectControls } from "./interactive-rect";
 
 export interface InteractiveSquareProps {
     x: number;
@@ -10,11 +11,11 @@ export interface InteractiveSquareProps {
     size: number;
 }
 
-export type SquareShapeFactory = (x: number, y: number, size: number) => Shape;
+export type SquareColliderFactory<T extends InteractiveSquareProps> = (props: T) => Collider<any>;
 
 export function useInteractiveSquare<T extends InteractiveSquareProps>(
     props: DiagramElementProps<T>, 
-    shapeFactory?: SquareShapeFactory
+    colliderFactory?: SquareColliderFactory<T>
 ) {
     const { x, y, size, onChange } = props;
 
@@ -100,20 +101,22 @@ export function useInteractiveSquare<T extends InteractiveSquareProps>(
         }));
     }
 
-    const rectShapeFactory: RectShapeFactory | undefined = shapeFactory ? (x, y, width, height) => shapeFactory(x, y, width) : undefined;
+    const collider = colliderFactory?.(props) || RectCollider({x: props.x, y: props.y, width: props.size, height: props.size});
+    useCollider(collider, { type: "in", action: "move", cursor: "move"});
+    useAction<MovementActionPayload>("move", move);
 
     useInteractiveRectControls(
-        x, y, size, size, move, resizeTopLeft, resizeTopRight, resizeBottomLeft, resizeBottomRight,
-        resizeLeft, resizeTop, resizeRight, resizeBottom, rectShapeFactory
+        x, y, size, size, resizeTopLeft, resizeTopRight, resizeBottomLeft, resizeBottomRight,
+        resizeLeft, resizeTop, resizeRight, resizeBottom
     );    
 }
 
 export function withInteractiveSquare<T extends InteractiveSquareProps>(
     WrappedElement: DiagramElement<T>,
-    shapeFactory?: SquareShapeFactory
+    colliderFactory?: SquareColliderFactory<T>
 ): DiagramElement<T> {
     return (props) => {
-        useInteractiveSquare(props, shapeFactory);
+        useInteractiveSquare(props, colliderFactory);
         return <WrappedElement {...props} />;
     }
 }

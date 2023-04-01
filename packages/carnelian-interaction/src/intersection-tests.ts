@@ -14,5 +14,5 @@ export function rectIntersectionTest(x: number, y: number, width: number, height
 }
 
 export function circleIntersectionTest(x: number, y: number, radius: number): IntersectionTestCallback {
-    return (selectionRect) => Collisions.circleRect({x, y}, radius, selectionRect);
+    return (selectionRect) => Collisions.circleRect({center: {x, y}, radius}, selectionRect);
 }

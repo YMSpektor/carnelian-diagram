@@ -1,8 +1,8 @@
 /** @jsxImportSource @carnelian/diagram */
 
 import { DiagramElement, DiagramElementChangeHandler, DiagramElementProps } from "@carnelian/diagram";
-import { Shape } from "@carnelian/interaction";
-import { InteractiveSquareProps, SquareShapeFactory, useInteractiveSquare } from "./interactive-square";
+import { Collider } from "@carnelian/interaction/collisions";
+import { InteractiveSquareProps, SquareColliderFactory, useInteractiveSquare } from "./interactive-square";
 
 export interface InteractiveCircleProps {
     x: number;
@@ -10,11 +10,11 @@ export interface InteractiveCircleProps {
     radius: number;
 }
 
-export type CircleShapeFactory = (x: number, y: number, radius: number) => Shape;
+export type CircleColliderFactory<T extends InteractiveCircleProps> = (props: T) => Collider<any>;
 
 export function withInteractiveCircle<T extends InteractiveCircleProps>(
     WrappedElement: DiagramElement<T>,
-    shapeFactory?: CircleShapeFactory
+    colliderFactory?: CircleColliderFactory<T>
 ): DiagramElement<T> {
     return (props) => {
         const { x, y, radius, onChange } = props;
@@ -44,8 +44,9 @@ export function withInteractiveCircle<T extends InteractiveCircleProps>(
             size: radius * 2,
             onChange: squareOnChange
         };
-        const squareShapeFactory: SquareShapeFactory | undefined = shapeFactory ? (x, y, size) => shapeFactory(x + size / 2, y + size / 2, size / 2) : undefined;
-        useInteractiveSquare(squareProps, squareShapeFactory);
+        const squareColliderFactory: SquareColliderFactory<InteractiveSquareProps> | undefined = colliderFactory 
+            ? (_: InteractiveSquareProps) => colliderFactory(props) : undefined;
+        useInteractiveSquare(squareProps, squareColliderFactory);
         return <WrappedElement {...props} />
     }
 }

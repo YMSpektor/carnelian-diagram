@@ -7,11 +7,10 @@ import {
     MovementActionPayload, 
     ActionCallback, 
     EdgeControl, 
-    HandleControl, 
-    useShape,
-    Shape
+    HandleControl,
+    useCollider
 } from "@carnelian/interaction";
-import { RectShape } from "./shapes";
+import { Collider, RectCollider } from "@carnelian/interaction/collisions";
 
 export interface InteractiveRectProps {
     x: number;
@@ -20,9 +19,9 @@ export interface InteractiveRectProps {
     height: number;
 }
 
-export type RectShapeFactory = (x: number, y: number, width: number, height: number) => Shape;
+export type RectColliderFactory<T extends InteractiveRectProps> = (props: T) => Collider<any>;
 
-export function useInteractiveRect<T extends InteractiveRectProps>(props: DiagramElementProps<T>, shapeFactory?: RectShapeFactory) {
+export function useInteractiveRect<T extends InteractiveRectProps>(props: DiagramElementProps<T>, colliderFactory?: RectColliderFactory<T>) {
     const { x, y, width, height, onChange } = props;
 
     function move(payload: MovementActionPayload) {
@@ -99,9 +98,13 @@ export function useInteractiveRect<T extends InteractiveRectProps>(props: Diagra
         }));
     }
 
+    const collider = colliderFactory?.(props) || RectCollider(props);
+    useCollider(collider, { type: "in", action: "move", cursor: "move"});
+    useAction<MovementActionPayload>("move", move);
+
     useInteractiveRectControls(
-        x, y, width, height, move, resizeTopLeft, resizeTopRight, resizeBottomLeft, resizeBottomRight,
-        resizeLeft, resizeTop, resizeRight, resizeBottom, shapeFactory
+        x, y, width, height, resizeTopLeft, resizeTopRight, resizeBottomLeft, resizeBottomRight,
+        resizeLeft, resizeTop, resizeRight, resizeBottom
     );
 }
 
@@ -110,7 +113,6 @@ export function useInteractiveRectControls(
     y: number,
     width: number,
     height: number,
-    move: ActionCallback<MovementActionPayload>,
     resizeTopLeft: ActionCallback<MovementActionPayload>,
     resizeTopRight: ActionCallback<MovementActionPayload>,
     resizeBottomLeft: ActionCallback<MovementActionPayload>,
@@ -118,8 +120,7 @@ export function useInteractiveRectControls(
     resizeLeft: ActionCallback<MovementActionPayload>,
     resizeTop: ActionCallback<MovementActionPayload>,
     resizeRight: ActionCallback<MovementActionPayload>,
-    resizeBottom: ActionCallback<MovementActionPayload>,
-    shapeFactory?: RectShapeFactory
+    resizeBottom: ActionCallback<MovementActionPayload>
 ) {
     function createHandleControl(
         index: number, 
@@ -156,10 +157,6 @@ export function useInteractiveRectControls(
             dragHandler
         }
     }
-
-    const shape = shapeFactory?.(x, y, width, height) || new RectShape(x, y, width, height);
-    useShape(shape, { type: "in", action: "move", cursor: "move",});
-    useAction<MovementActionPayload>("move", move);
 
     useControls((transform, element) => {
         const handles = [
@@ -206,10 +203,10 @@ export function useInteractiveRectControls(
 
 export function withInteractiveRect<T extends InteractiveRectProps>(
     WrappedElement: DiagramElement<T>,
-    shapeFactory?: RectShapeFactory
+    colliderFactory?: RectColliderFactory<T>
 ): DiagramElement<T> {
     return (props) => {
-        useInteractiveRect(props, shapeFactory);
+        useInteractiveRect(props, colliderFactory);
         return <WrappedElement {...props} />;
     }
 }
