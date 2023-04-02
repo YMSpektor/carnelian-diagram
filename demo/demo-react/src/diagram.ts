@@ -11,6 +11,7 @@ import {
     InteractiveHexagon as Hexagon,
     InteractiveSquare as Square,
     InteractiveCircle as Circle,
+    InteractiveDonut as Donut,
 } from "@carnelian/shapes/basic";
 
 export const controller = new InteractionController();
@@ -128,6 +129,18 @@ addToPalette({
     elementProps: {x: 160, y: 160, radius: 150},
     viewBox: "0 0 340 340",
     title: "Circle",
+    factory: (point, props) => ({
+        ...props,
+        x: point.x,
+        y: point.y
+    }),
+});
+
+addToPalette({
+    elementType: Donut,
+    elementProps: {x: 160, y: 160, radius: 150, innerRadius: 100},
+    viewBox: "0 0 340 340",
+    title: "Donut",
     factory: (point, props) => ({
         ...props,
         x: point.x,

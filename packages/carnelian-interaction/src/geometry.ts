@@ -100,6 +100,10 @@ export function unionRect(a: Rect, b: Rect): Rect {
     }
 }
 
+export function containsRect(a: Rect, b: Rect): boolean {
+    return b.x >= a.x && b.x + b.width <= a.x + a.width && b.y >= a.y && b.y + b.height <= a.y + a.height;
+}
+
 export function intersectRects(rects: Rect[]): Rect | null {
     if (!rects) return null;
     const [first, ...rest] = rects;
@@ -145,131 +149,337 @@ export function approximateEllipse(ellipse: Ellipse, linesCount: number): Polygo
     return result;
 }
 
+export interface CollisionResult {
+    inside: boolean;
+    contains: boolean;
+    points: Point[];
+}
+
 export namespace Collisions {
-    export function pointPoint(p1: Point, p2: Point, tolerance: number): boolean {
-        return distanceSquared(p1, p2) <= sqr(tolerance);
+    export function pointPoint(p1: Point, p2: Point, tolerance: number): CollisionResult | null {
+        const result = distanceSquared(p1, p2) <= sqr(tolerance);
+        return result ? {
+            inside: true,
+            contains: true,
+            points: []
+        } : null
     }
 
-    export function pointLine(p: Point, line: Line, tolerance: number): boolean {
-        return segmentDistance(p, line.a, line.b) <= tolerance;
+    export function pointLine(p: Point, line: Line, tolerance: number): CollisionResult | null {
+        const result = segmentDistance(p, line.a, line.b) <= tolerance;
+        return result ? {
+            inside: true,
+            contains: true,
+            points: []
+        } : null
     }
 
-    export function pointCircle(p: Point, circle: Circle): boolean {
-        return distanceSquared(p, circle.center) <= sqr(circle.radius);
+    export function pointCircle(p: Point, circle: Circle): CollisionResult | null {
+        const result = distanceSquared(p, circle.center) <= sqr(circle.radius);
+        return result ? {
+            inside: true,
+            contains: true,
+            points: []
+        } : null
     }
 
-    export function pointRect(p: Point, r: Rect) {
-        return p.x >= r.x && p.y >= r.y && p.x <= r.x + r.width && p.y <= r.y + r.height;
+    export function pointRect(p: Point, r: Rect): CollisionResult | null {
+        const result = p.x >= r.x && p.y >= r.y && p.x <= r.x + r.width && p.y <= r.y + r.height;
+        return result ? {
+            inside: true,
+            contains: true,
+            points: []
+        } : null
     }
 
-    export function pointPolygon(p: Point, polygon: Polygon): boolean {
+    export function pointPolygon(p: Point, polygon: Polygon): CollisionResult | null {
         const { x, y } = p;
-        let resuil = false;
+        let result = false;
         for (let i = 0, j = polygon.length - 1; i < polygon.length; j = i++) {
             const xi = polygon[i].x, yi = polygon[i].y;
             const xj = polygon[j].x, yj = polygon[j].y;
             
             const intersect = ((yi > y) !== (yj > y)) && (x < (xj - xi) * (y - yi) / (yj - yi) + xi);
-            resuil = intersect ? !resuil : resuil;
+            result = intersect ? !result : result;
         }
         
-        return resuil;
+        return result ? {
+            inside: true,
+            contains: true,
+            points: []
+        } : null
     }
 
-    export function lineLine(l1: Line, l2: Line): boolean {
+    export function lineLine(l1: Line, l2: Line): CollisionResult | null {
         const {a: a1, b: b1} = l1;
         const {a: a2, b: b2} = l2;
-        const u1 = ((b2.x-a2.x)*(a1.y-a2.y) - (b2.y-a2.y)*(a1.x-a2.x)) / ((b2.y-a2.y)*(b1.x-a1.x) - (b2.x-a2.x)*(b1.y-a1.y));
-        const u2 = ((b1.x-a1.x)*(a1.y-a2.y) - (b1.y-a1.y)*(a1.x-a2.x)) / ((b2.y-a2.y)*(b1.x-a1.x) - (b2.x-a2.x)*(b1.y-a1.y));
-        return u1 >= 0 && u1 <= 1 && u2 >= 0 && u2 <= 1;
+        const d = ((b2.y-a2.y)*(b1.x-a1.x) - (b2.x-a2.x)*(b1.y-a1.y));
+        if (d === 0) {
+            return null;
+        }
+        const u1 = ((b2.x-a2.x)*(a1.y-a2.y) - (b2.y-a2.y)*(a1.x-a2.x)) / d;
+        const u2 = ((b1.x-a1.x)*(a1.y-a2.y) - (b1.y-a1.y)*(a1.x-a2.x)) / d;
+        const result = u1 >= 0 && u1 <= 1 && u2 >= 0 && u2 <= 1;
+        return result ? {
+            inside: false,
+            contains: false,
+            points: [{x: a1.x + (b1.x - a1.x) * u1, y: a1.y + (b1.y - a1.y) * u1}]
+        } : null;
     }
 
-    export function lineRect(line: Line, rect: Rect): boolean {
+    export function lineRect(line: Line, rect: Rect): CollisionResult | null {
+        if (pointRect(line.a, rect) && pointRect(line.b, rect)) {
+            return {
+                inside: true,
+                contains: false,
+                points: []
+            }
+        }
+        else {
+            const points = rectPoints(rect);
+            const pts = points.reduce<Point[]>((acc, p, i) => {
+                const next = i < points.length - 1 ? i + 1 : 0;
+                const result = lineLine({a: p, b: points[next]}, line);
+                return result ? acc.concat(result.points) : acc
+            }, []);
+            return pts.length ? {
+                inside: false,
+                contains: false,
+                points: pts
+            } : null
+        }
+    }
+
+    export function lineCircle(line: Line, circle: Circle): CollisionResult | null {
+        const { a, b } = line;
+        if (pointCircle(a, circle) && pointCircle(b, circle)) {
+            return {
+                inside: true,
+                contains: false,
+                points: []
+            }
+        }
+        else {
+            const { center: c, radius: r } = circle;
+            const l = distance(a, b);
+            if (l === 0) {
+                return pointCircle(a, circle);
+            }
+            const dx = (b.x - a.x) / l;
+            const dy = (b.y - a.y) / l;
+            const t = dx * (c.x - a.x) + dy * (c.y - a.y);
+            const ex = t * dx + a.x;
+            const ey = t * dy + a.y;
+            const d = distanceSquared(c, {x: ex, y: ey});
+            const rr = r * r;
+            let pts: Point[] = [];
+            if (d <= rr) {
+                const dt = Math.sqrt(rr - d);
+                if (t - dt >= 0 && t - dt <= 1) {
+                    pts.push({x: (t - dt) * dx + a.x, y: (t - dt) * dy + a.y});
+                }
+                if (dt !== 0 && t + dt >= 0 && t + dt <= 1) {
+                    pts.push({x: (t + dt) * dx + a.x, y: (t + dt) * dy + a.y});
+                }
+            }
+            return pts.length ? {
+                inside: false,
+                contains: false,
+                points: pts
+            } : null
+        } 
+    }
+
+    export function linePolygon(line: Line, polygon: Polygon): CollisionResult | null {
+        const pts = polygon.reduce<Point[]>((acc, p, i) => {
+            const next = i < polygon.length - 1 ? i + 1 : 0;
+            const result = lineLine(line, {a: p, b: polygon[next]});
+            return result ? acc.concat(result.points) : acc
+        }, []);
+
+        return {
+            inside: !pts.length && !!pointPolygon(line.a, polygon) && !!pointPolygon(line.b, polygon),
+            contains: false,
+            points: pts
+        }
+    }
+
+    export function circleCircle(c1: Circle, c2: Circle): CollisionResult | null {
+        const d = distance(c1.center, c2.center);
+        if (d > c1.radius + c2.radius) {
+            return null;
+        }
+        const inside = d <= c2.radius - c1.radius;
+        const contains = d <= c1.radius - c2.radius;
+        if (inside || contains) {
+            return {inside, contains, points: []}
+        }
+        else {
+            const a = (sqr(c1.radius) - sqr(c2.radius) + sqr(d)) / (2 * d);
+            const h = Math.sqrt(sqr(c1.radius) - sqr(a));
+            const p1 = {x: c1.center.x + a * (c2.center.x - c1.center.x) / d, y: c1.center.y + a * (c2.center.y - c1.center.y) / d };
+            const p2 = {x: p1.x + h * (c2.center.y - c1.center.y) / d, y: p1.y - h * (c2.center.x - c1.center.x) / d};
+            return {
+                inside: false,
+                contains: false,
+                points: [p1, p2]
+            };
+        }
+    }
+
+    export function circleRect(circle: Circle, rect: Rect): CollisionResult | null {
         const points = rectPoints(rect);
-        return (
-            (pointRect(line.a, rect) && pointRect(line.b, rect)) ||
-            lineLine(line, {a: points[0], b: points[1]}) ||
-            lineLine(line, {a: points[1], b: points[2]}) ||
-            lineLine(line, {a: points[2], b: points[3]}) ||
-            lineLine(line, {a: points[3], b: points[0]})
-        );
-    }
-
-    export function lineCircle(line: Line, circle: Circle): boolean {
-        const sc = segmentClosestPoint(circle.center, line.a, line.b);
-        return distanceSquared(circle.center, sc) <= sqr(circle.radius);   
-    }
-
-    export function linePolygon(line: Line, polygon: Polygon): boolean {
-        if (pointPolygon(line.a, polygon) || pointPolygon(line.b, polygon)) {
-            return true;
-        }
-        for (let i = 0; i < polygon.length; i++) {
-            const next = i < polygon.length - 1 ? i + 1 : 0;
-            if (lineLine(line, {a: polygon[i], b: polygon[next]})) {
-                return true;
+        const pts = points.reduce<Point[]>((acc, p, i) => {
+            const next = i < points.length - 1 ? i + 1 : 0;
+            const result = lineCircle({a: p, b: points[next]}, circle);
+            return result ? acc.concat(result.points) : acc
+        }, []);
+        if (!pts.length) {
+            if (pointRect(circle.center, rect)) {
+                return {
+                    inside: true,
+                    contains: false,
+                    points: pts
+                }
+            }
+            else if (points.some(p => pointCircle(p, circle))) {
+                return {
+                    inside: false,
+                    contains: true,
+                    points: pts
+                }
+            }
+            else {
+                return null
             }
         }
-        return false;
-    }
-
-    export function circleCircle(c1: Circle, c2: Circle) {
-        return distanceSquared(c1.center, c2.center) <= sqr(c1.radius + c2.radius);
-    }
-
-    export function circleRect(circle: Circle, rect: Rect): boolean {
-        const points = rectPoints(rect);
-        if (pointRect(circle.center, rect) || rectPoints(rect).some(p => pointCircle(p, circle))) {
-            return true;
+        else return {
+            inside: false,
+            contains: false,
+            points: pts
         }
-        return (
-            lineCircle({a: points[0], b: points[1]}, circle) ||
-            lineCircle({a: points[1], b: points[2]}, circle) ||
-            lineCircle({a: points[2], b: points[3]}, circle) ||
-            lineCircle({a: points[3], b: points[0]}, circle)
-        );
     }
 
-    export function circlePolygon(circle: Circle, polygon: Polygon): boolean {
-        if (pointPolygon(circle.center, polygon) || polygon.some(p => pointCircle(p, circle))) {
-            return true;
-        }
-        for (let i = 0; i < polygon.length; i++) {
+    export function circlePolygon(circle: Circle, polygon: Polygon): CollisionResult | null {
+        const pts = polygon.reduce<Point[]>((acc, p, i) => {
             const next = i < polygon.length - 1 ? i + 1 : 0;
-            if (lineCircle({a: polygon[i], b: polygon[next]}, circle)) {
-                return true;
+            const result = lineCircle({a: p, b: polygon[next]}, circle);
+            return result ? acc.concat(result.points) : acc
+        }, []);
+        if (!pts.length) {
+            if (pointPolygon(circle.center, polygon)) {
+                return {
+                    inside: true,
+                    contains: false,
+                    points: pts
+                }
+            }
+            else if (polygon.some(p => pointCircle(p, circle))) {
+                return {
+                    inside: false,
+                    contains: true,
+                    points: pts
+                }
+            }
+            else {
+                return null
             }
         }
-        return false;
-    }
-
-    export function rectRect(a: Rect, b: Rect): boolean {
-        return !!intersectRect(a, b);
-    }
-
-    export function rectPolygon(r: Rect, polygon: Polygon): boolean {
-        if (rectPoints(r).some(p => pointPolygon(p, polygon)) || polygon.some(p => pointRect(p, r))) {
-            return true;
+        else return {
+            inside: false,
+            contains: false,
+            points: pts
         }
-        for (let i = 0; i < polygon.length; i++) {
-            const next = i < polygon.length - 1 ? i + 1 : 0;
-            if (lineRect({a: polygon[i], b: polygon[next]}, r)) {
-                return true;
+    }
+
+    export function rectRect(a: Rect, b: Rect): CollisionResult | null {
+        const ir = intersectRect(a, b);
+        if (!ir) {
+            return null;
+        }
+        else {
+            const inside = containsRect(b, a);
+            const contains = containsRect(a, b);
+            if (inside || contains) {
+                return {inside, contains, points: []}
+            }
+            else {
+                const points = rectPoints(a);
+                const pts = points.reduce<Point[]>((acc, p, i) => {
+                    const next = i < points.length - 1 ? i + 1 : 0;
+                    const result = lineRect({a: p, b: points[next]}, b);
+                    return result ? acc.concat(result.points) : acc
+                }, []);
+                return pts.length ? {
+                    inside: false,
+                    contains: false,
+                    points: pts
+                } : null
             }
         }
-        return false;
     }
 
-    export function polygonPolygon(a: Polygon, b: Polygon): boolean {
-        if (a.some(p => pointPolygon(p, b)) || b.some(p => pointPolygon(p, a))) {
-            return true;
+    export function rectPolygon(r: Rect, polygon: Polygon): CollisionResult | null {
+        const pts = polygon.reduce<Point[]>((acc, p, i) => {
+            const next = i < polygon.length - 1 ? i + 1 : 0;
+            const result = lineRect({a: p, b: polygon[next]}, r);
+            return result ? acc.concat(result.points) : acc
+        }, []);
+        if (!pts.length) {
+            if (rectPoints(r).some(p => pointPolygon(p, polygon))) {
+                return {
+                    inside: true,
+                    contains: false,
+                    points: pts
+                }
+            }
+            else if (polygon.some(p => pointRect(p, r))) {
+                return {
+                    inside: false,
+                    contains: true,
+                    points: pts
+                }
+            }
+            else {
+                return null
+            }
         }
-        for (let i = 0; i < a.length; i++) {
+        else return {
+            inside: false,
+            contains: false,
+            points: pts
+        }
+    }
+
+    export function polygonPolygon(a: Polygon, b: Polygon): CollisionResult | null {
+        const pts = a.reduce<Point[]>((acc, p, i) => {
             const next = i < a.length - 1 ? i + 1 : 0;
-            if (linePolygon({a: a[i], b: a[next]}, b)) {
-                return true;
+            const result = linePolygon({a: p, b: a[next]}, b);
+            return result ? acc.concat(result.points) : acc
+        }, []);
+        if (!pts.length) {
+            if (a.some(p => pointPolygon(p, b))) {
+                return {
+                    inside: true,
+                    contains: false,
+                    points: pts
+                }
+            }
+            else if (b.some(p => pointPolygon(p, a))) {
+                return {
+                    inside: false,
+                    contains: true,
+                    points: pts
+                }
+            }
+            else {
+                return null
             }
         }
-        return false;
+        else return {
+            inside: false,
+            contains: false,
+            points: pts
+        }
     }
 }

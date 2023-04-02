@@ -7,6 +7,7 @@ export * from "./trapezoid";
 export * from "./hexagon";
 export * from "./square";
 export * from "./circle";
+export * from "./donut";
 
 export interface ClosedFigureStyleProps {
     style?: {
@@ -26,6 +27,12 @@ export interface RawSquareProps {
     x: number;
     y: number;
     size: number;
+}
+
+export interface RawCircleProps {
+    x: number;
+    y: number;
+    radius: number;
 }
 
 export interface RectBaseProps extends RawRectProps, ClosedFigureStyleProps {}

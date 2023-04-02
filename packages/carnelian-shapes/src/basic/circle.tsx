@@ -2,14 +2,10 @@
 
 import { DiagramElement } from "@carnelian/diagram";
 import { CircleCollider } from "@carnelian/interaction/collisions";
-import { ClosedFigureStyleProps } from ".";
+import { RawCircleProps } from ".";
 import { withInteractiveCircle} from "../interaction";
 
-export interface CircleProps extends ClosedFigureStyleProps {
-    x: number;
-    y: number;
-    radius: number;
-}
+export interface CircleProps extends RawCircleProps { }
 
 export const Circle: DiagramElement<CircleProps> = function(props) {
     const { onChange, x, y, radius, ...rest } = props;

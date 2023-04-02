@@ -1,6 +1,6 @@
-import { approximateEllipse, Circle, Collisions, Ellipse, intersectRect, intersectRects, Point, Polygon, polygonBounds, Rect, rectPoints, unionRects } from "./geometry";
+import { approximateEllipse, Circle, CollisionResult, Collisions, Ellipse, intersectRects, Point, Polygon, polygonBounds, Rect, rectPoints, unionRects } from "./geometry";
 
-export type ColliderType<T> = string | ((props: T, other: Collider<any>, tolerance: number) => boolean);
+export type ColliderType<T> = string | ((props: T, other: Collider<any>, tolerance: number) => CollisionResult | null);
 
 export interface Collider<T> {
     type: ColliderType<T>;
@@ -38,7 +38,7 @@ export function PolygonCollider(polygon: Polygon): Collider<Polygon> {
 }
 
 export function EmptyCollider(): Collider<null> {
-    return Collider(() => false, null, {x: 0, y: 0, width: 0, height: 0});
+    return Collider(() => null, null, {x: 0, y: 0, width: 0, height: 0});
 }
 
 export function isRectCollider(collider: Collider<any>): collider is Collider<Rect> {
@@ -62,22 +62,22 @@ export interface CombinedColliderProps {
     children: Collider<any>[];
 }
 
-export function CombinedCollider(operation: CombineOperation, children: Collider<any>[]): Collider<CombinedColliderProps> | Collider<null> {
-    const bounds = operation === CombineOperation.AND 
-        ? intersectRects(children.map(x => x.bounds))
-        : unionRects(children.map(x => x.bounds));
-    return bounds ? {
-        type: (props: CombinedColliderProps, other: Collider<CombinedColliderProps>, tolerance: number) => {
-            switch (props.operation) {
-                case CombineOperation.AND: return props.children.length ? props.children.every(child => collide(child, other, tolerance)) : false;
-                case CombineOperation.OR: return props.children.some(child => collide(child, other, tolerance));
-                default: return false;
-            }
-        },
-        props: {operation, children},
-        bounds
-    } : EmptyCollider();
-}
+// export function CombinedCollider(operation: CombineOperation, children: Collider<any>[]): Collider<CombinedColliderProps> | Collider<null> {
+//     const bounds = operation === CombineOperation.AND 
+//         ? intersectRects(children.map(x => x.bounds))
+//         : unionRects(children.map(x => x.bounds));
+//     return bounds ? {
+//         type: (props: CombinedColliderProps, other: Collider<CombinedColliderProps>, tolerance: number) => {
+//             switch (props.operation) {
+//                 case CombineOperation.AND: return props.children.length ? props.children.every(child => collide(child, other, tolerance)) : false;
+//                 case CombineOperation.OR: return props.children.some(child => collide(child, other, tolerance));
+//                 default: return false;
+//             }
+//         },
+//         props: {operation, children},
+//         bounds
+//     } : EmptyCollider();
+// }
 
 export interface ApproxPolygonOptions {
     linesCount?: number;
@@ -104,11 +104,7 @@ export function ApproxPolygonCollider<T>(collider: Collider<T>, options?: Approx
     return Collider("polygon", points, collider.bounds);
 }
 
-export enum CombinedPolygonOperation {
-    UNION, INTERSECT, DIFF
-}
-
-export function collide<A, B>(a: Collider<A>, b: Collider<B>, tolerance: number = 0): boolean {
+export function collide<A, B>(a: Collider<A>, b: Collider<B>, tolerance: number = 0): CollisionResult | null {
     if (typeof a.type === "function") {
         return a.type(a.props, b, tolerance);
     }
@@ -117,11 +113,11 @@ export function collide<A, B>(a: Collider<A>, b: Collider<B>, tolerance: number 
     }
     else {
         const algorythm = CollisionDetections.get(a.type, b.type);
-        return algorythm?.(a.props, b.props, tolerance) || false;
+        return algorythm?.(a.props, b.props, tolerance) || null;
     }
 }
 
-export type CollisionDetectionFunction<A, B> = (a: A, b: B, tolerance: number) => boolean;
+export type CollisionDetectionFunction<A, B> = (a: A, b: B, tolerance: number) => CollisionResult | null;
 
 export namespace CollisionDetections {
     const map = new Map<string, CollisionDetectionFunction<any, any>>();
@@ -136,7 +132,15 @@ export namespace CollisionDetections {
 
     export function register<A, B>(t1: string, t2: string, fn: CollisionDetectionFunction<A, B>) {
         map.set(key(t1, t2), fn);
-        map.set(key(t2, t1), (a, b, tolerance) => fn(b, a, tolerance));
+        map.set(key(t2, t1), (a, b, tolerance) => {
+            const result = fn(b, a, tolerance);
+            if (result) {
+                const {inside, contains} = result;
+                result.contains = inside;
+                result.inside = contains;
+            }
+            return result;
+        });
     }
 }
 
