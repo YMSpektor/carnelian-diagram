@@ -109,7 +109,6 @@ export function InverseCollider(child: Collider<any>): Collider<null> {
 }
 
 export function DiffCollider(a: Collider<any>, b: Collider<any>): Collider<null> {
-    console.log(11);
     return IntersectionCollider([a, InverseCollider(b)]);
 }
 
