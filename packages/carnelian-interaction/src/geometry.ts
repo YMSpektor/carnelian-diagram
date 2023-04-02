@@ -137,6 +137,30 @@ export function polygonBounds(polygon: Polygon): Rect | null {
     return unionRects(polygon.map(x => ({...x, width: 0, height: 0})));
 }
 
+export function pointOnSegment(p: Point, line: Line, tolerance: number) {
+    return segmentDistance(p, line.a, line.b) <= tolerance;
+}
+
+export function pointOnCircle(p: Point, circle: Circle, tolerance: number) {
+    return distanceSquared(p, circle.center) <= sqr(tolerance);
+}
+
+export function pointOnRect(p: Point, r: Rect, tolerance: number) {
+    return (
+        (Math.abs(p.x - r.x) <= tolerance && p.y >= r.y && p.y <= r.y + r.height) ||
+        (Math.abs(p.y - r.y) <= tolerance && p.x >= r.x && p.x <= r.x + r.width) ||
+        (Math.abs(p.x - r.x + r.width) <= tolerance && p.y >= r.y && p.y <= r.y + r.height) ||
+        (Math.abs(p.y - r.y + r.height) <= tolerance && p.x >= r.x && p.x <= r.x + r.width)
+    )
+}
+
+export function pointOnPolygon(p: Point, polygon: Polygon, tolerance: number) {
+    return polygon.some((x, i) => {
+        const next = i < polygon.length - 1 ? i + 1 : 0;
+        return pointOnSegment(p, {a: x, b: polygon[next]}, tolerance);
+    });
+}
+
 export function approximateEllipse(ellipse: Ellipse, linesCount: number): Polygon {
     const result: Point[] = new Array(linesCount);
     for (var i = 0; i < linesCount; i++) {
@@ -169,27 +193,36 @@ export namespace Collisions {
         const result = segmentDistance(p, line.a, line.b) <= tolerance;
         return result ? {
             inside: true,
-            contains: true,
+            contains: false,
             points: []
         } : null
     }
 
     export function pointCircle(p: Point, circle: Circle): CollisionResult | null {
         const result = distanceSquared(p, circle.center) <= sqr(circle.radius);
-        return result ? {
-            inside: true,
-            contains: true,
-            points: []
-        } : null
+        if (result) {
+            const inside = !pointOnCircle(p, circle, 0.01);
+            return {
+                inside,
+                contains: false,
+                points: inside ? [] : [p]
+            }
+        }
+        return null;
     }
 
     export function pointRect(p: Point, r: Rect): CollisionResult | null {
         const result = p.x >= r.x && p.y >= r.y && p.x <= r.x + r.width && p.y <= r.y + r.height;
-        return result ? {
-            inside: true,
-            contains: true,
-            points: []
-        } : null
+        if (result) {
+            const inside = !pointOnRect(p, r, 0.01);
+            return {
+                inside,
+                contains: false,
+                points: inside ? [] : [p]
+            }
+        }
+        return null;
+
     }
 
     export function pointPolygon(p: Point, polygon: Polygon): CollisionResult | null {
@@ -203,11 +236,15 @@ export namespace Collisions {
             result = intersect ? !result : result;
         }
         
-        return result ? {
-            inside: true,
-            contains: true,
-            points: []
-        } : null
+        if (result) {
+            const inside = !pointOnPolygon(p, polygon, 0.01);
+            return {
+                inside,
+                contains: false,
+                points: inside ? [] : [p]
+            }
+        }
+        return null;
     }
 
     export function lineLine(l1: Line, l2: Line): CollisionResult | null {

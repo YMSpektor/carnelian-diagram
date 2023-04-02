@@ -54,7 +54,7 @@ export function isCircleCollider(collider: Collider<any>): collider is Collider<
 }
 
 export enum CombineOperation {
-    AND, OR
+    OR, AND
 }
 
 export interface CombinedColliderProps {
@@ -62,22 +62,32 @@ export interface CombinedColliderProps {
     children: Collider<any>[];
 }
 
-// export function CombinedCollider(operation: CombineOperation, children: Collider<any>[]): Collider<CombinedColliderProps> | Collider<null> {
-//     const bounds = operation === CombineOperation.AND 
-//         ? intersectRects(children.map(x => x.bounds))
-//         : unionRects(children.map(x => x.bounds));
-//     return bounds ? {
-//         type: (props: CombinedColliderProps, other: Collider<CombinedColliderProps>, tolerance: number) => {
-//             switch (props.operation) {
-//                 case CombineOperation.AND: return props.children.length ? props.children.every(child => collide(child, other, tolerance)) : false;
-//                 case CombineOperation.OR: return props.children.some(child => collide(child, other, tolerance));
-//                 default: return false;
-//             }
-//         },
-//         props: {operation, children},
-//         bounds
-//     } : EmptyCollider();
-// }
+export function CombinedCollider(operation: CombineOperation, children: Collider<any>[]): Collider<CombinedColliderProps> | Collider<null> {
+    const bounds = operation === CombineOperation.AND 
+        ? intersectRects(children.map(x => x.bounds))
+        : unionRects(children.map(x => x.bounds));
+    return bounds ? {
+        type: (props: CombinedColliderProps, other: Collider<CombinedColliderProps>, tolerance: number) => {
+            const results = props.children.map(child => collide(child, other, tolerance));
+            switch (props.operation) {
+                case CombineOperation.OR:
+                    const hasResult = results.some(x => !!x);
+                    const points = results.reduce<Point[]>((acc, cur) => cur ? acc.concat(cur.points) : acc, []);
+                    return hasResult ? {
+                        inside: results.every(x => x && x.inside),
+                        contains: results.some(x => x && x.contains) || (!!points.length && points.every(p => {
+                            const results = props.children.map(child => collide(PointCollider(p), child));
+                            return results.some(x => x && x.inside);
+                        })),
+                        points: points
+                    } : null;
+            }
+            return null;
+        },
+        props: {operation, children},
+        bounds
+    } : EmptyCollider();
+}
 
 export interface ApproxPolygonOptions {
     linesCount?: number;
