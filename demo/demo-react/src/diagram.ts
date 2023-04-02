@@ -138,7 +138,7 @@ addToPalette({
 
 addToPalette({
     elementType: Donut,
-    elementProps: {x: 160, y: 160, radius: 150, innerRadius: 100},
+    elementProps: {x: 160, y: 160, radius: 150, innerRadius: "60%"},
     viewBox: "0 0 340 340",
     title: "Donut",
     factory: (point, props) => ({
