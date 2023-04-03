@@ -1,4 +1,5 @@
-import { approximateEllipse, Circle, CollisionResult, Collisions, Ellipse, flipCollisionResult, intersectRects, invertCollisionResult, Line, Point, Polygon, polygonBounds, Rect, rectPoints, unionRects } from "./geometry";
+import { Circle, intersectRects, Line, Point, Polygon, polygonBounds, Rect, unionRects } from "../geometry";
+import { CollisionResult, flipCollisionResult, invertCollisionResult, CollisionFunctions } from "./collisions";
 
 export type ColliderType<T> = string | ((props: T, other: Collider<any>, tolerance: number) => CollisionResult | null);
 
@@ -147,18 +148,18 @@ export namespace CollisionDetections {
     }
 }
 
-CollisionDetections.register("point", "point", Collisions.pointPoint);
-CollisionDetections.register("point", "line", Collisions.pointLine);
-CollisionDetections.register("point", "circle", Collisions.pointCircle);
-CollisionDetections.register("point", "rect", Collisions.pointRect);
-CollisionDetections.register("point", "polygon", Collisions.pointPolygon);
-CollisionDetections.register("line", "line", Collisions.lineLine);
-CollisionDetections.register("line", "circle", Collisions.lineCircle);
-CollisionDetections.register("line", "rect", Collisions.lineRect);
-CollisionDetections.register("line", "polygon", Collisions.linePolygon);
-CollisionDetections.register("circle", "circle", Collisions.circleCircle);
-CollisionDetections.register("circle", "rect", Collisions.circleRect);
-CollisionDetections.register("circle", "polygon", Collisions.circlePolygon);
-CollisionDetections.register("rect", "rect", Collisions.rectRect);
-CollisionDetections.register("rect", "polygon", Collisions.rectPolygon);
-CollisionDetections.register("polygon", "polygon", Collisions.polygonPolygon);
+CollisionDetections.register("point", "point", CollisionFunctions.pointPoint);
+CollisionDetections.register("point", "line", CollisionFunctions.pointLine);
+CollisionDetections.register("point", "circle", CollisionFunctions.pointCircle);
+CollisionDetections.register("point", "rect", CollisionFunctions.pointRect);
+CollisionDetections.register("point", "polygon", CollisionFunctions.pointPolygon);
+CollisionDetections.register("line", "line", CollisionFunctions.lineLine);
+CollisionDetections.register("line", "circle", CollisionFunctions.lineCircle);
+CollisionDetections.register("line", "rect", CollisionFunctions.lineRect);
+CollisionDetections.register("line", "polygon", CollisionFunctions.linePolygon);
+CollisionDetections.register("circle", "circle", CollisionFunctions.circleCircle);
+CollisionDetections.register("circle", "rect", CollisionFunctions.circleRect);
+CollisionDetections.register("circle", "polygon", CollisionFunctions.circlePolygon);
+CollisionDetections.register("rect", "rect", CollisionFunctions.rectRect);
+CollisionDetections.register("rect", "polygon", CollisionFunctions.rectPolygon);
+CollisionDetections.register("polygon", "polygon", CollisionFunctions.polygonPolygon);

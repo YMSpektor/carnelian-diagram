@@ -6,7 +6,7 @@ import { ControlsContextType, InteractionContextType } from "./context";
 import { CreateHitTestProps, DiagramElementHitTest, hasHitTestProps, HitArea, HitTestCollection, HitInfo } from "./hit-tests";
 import { renderEdgeDefault, renderHandleDefault } from "./controls";
 import { DiagramElementIntersectionTest } from "./intersection-tests";
-import { Collisions, Rect } from "./geometry";
+import { intersectRect, Rect } from "./geometry";
 
 export type RenderControlsCallback = (transform: DOMMatrixReadOnly, element: DiagramElementNode) => JSX.Element;
 
@@ -318,7 +318,7 @@ export class InteractionController {
 
                 // Broad phase
                 const tests = [...this.intersectionTests]
-                    .filter(x => x[1].some(test => !test.bounds || Collisions.rectRect(test.bounds, selectionRect)));
+                    .filter(x => x[1].some(test => !test.bounds || intersectRect(test.bounds, selectionRect)));
                 // Narrow phase
                 this.select(tests
                     .filter(x => x[1].some(test => test.callback(selectionRect)))

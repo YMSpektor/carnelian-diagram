@@ -1,5 +1,5 @@
 import { DiagramElementNode } from "@carnelian/diagram";
-import { collide, Collider, PointCollider, RectCollider } from "../collisions";
+import { collide, Collider, PointCollider, RectCollider } from "../collisions/colliders";
 import { HitArea, HitTestCallback } from "../hit-tests";
 import { useHitTest, useIntersectionTest } from ".";
 import { IntersectionTestCallback } from "../intersection-tests";
