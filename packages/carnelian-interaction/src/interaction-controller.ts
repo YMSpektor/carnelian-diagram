@@ -49,8 +49,17 @@ export type ControlProps = Partial<CreateHitTestProps> & {
 
 export type RenderHandleCallback = (kind: string, x: number, y: number, otherProps: ControlProps) => JSX.Element;
 export type RenderEdgeCallback = (kind: string, x1: number, y1: number, x2: number, y2: number, otherProps: ControlProps) => JSX.Element;
+export type DispatchActionCallback<T> = (elements: DiagramElementNode[], action: string, payload: T) => void;
 
 export interface InteractionControllerOptions {
+    dispatchAction?: (
+        controller: InteractionController, 
+        elements: DiagramElementNode[], 
+        action: string, 
+        payload: any,
+        dispatch: DispatchActionCallback<any>,
+        defaultDispatcher: DispatchActionCallback<any>
+    ) => void;
     renderHandleControl?: AddParameters<RenderHandleCallback, [RenderHandleCallback]>;
     renderEdgeControl?: AddParameters<RenderEdgeCallback, [RenderEdgeCallback]>;
 }
@@ -456,7 +465,7 @@ export class InteractionController {
         }
     }
 
-    dispatch<T>(elements: DiagramElementNode[], action: string, payload: T) {
+    private dispatchInternal<T>(elements: DiagramElementNode[], action: string, payload: T) {
         elements.forEach(element => {
             const callbacks = this.actions.get(element)
                 ?.filter(x => x.action === action)
@@ -465,5 +474,23 @@ export class InteractionController {
                 callbacks.forEach(cb => cb(payload));
             }
         });
+    }
+
+    private dispatchDefault<T>(elements: DiagramElementNode[], action: string, payload: T) {
+        if (action === "move") {
+            this.dispatchInternal([...this.selectedElements], action, payload);
+        }
+        else {
+            this.dispatchInternal(elements, action, payload);
+        }
+    }
+
+    dispatch<T>(elements: DiagramElementNode[], action: string, payload: T) {
+        if (this.options?.dispatchAction) {
+            this.options.dispatchAction(this, elements, action, payload, this.dispatchInternal, this.dispatchDefault);
+        }
+        else {
+            this.dispatchDefault(elements, action, payload);
+        }
     }
 }
