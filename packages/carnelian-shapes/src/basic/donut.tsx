@@ -1,7 +1,7 @@
 /** @jsxImportSource @carnelian/diagram */
 
 import { DiagramElement } from "@carnelian/diagram";
-import { CircleCollider, DiffCollider } from "@carnelian/interaction/collisions";
+import { CircleCollider, DiffCollider } from "@carnelian/interaction";
 import { clamp } from "@carnelian/interaction/geometry";
 import { RawCircleProps } from ".";
 import { KnobController, withInteractiveCircle, withKnob} from "../interaction";

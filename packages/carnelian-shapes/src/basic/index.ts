@@ -8,6 +8,7 @@ export * from "./hexagon";
 export * from "./square";
 export * from "./circle";
 export * from "./donut";
+export * from "./cross";
 
 export interface ClosedFigureStyleProps {
     style?: {

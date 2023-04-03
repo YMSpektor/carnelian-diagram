@@ -1,7 +1,7 @@
 /** @jsxImportSource @carnelian/diagram */
 
 import { DiagramElement } from "@carnelian/diagram";
-import { CircleCollider } from "@carnelian/interaction/collisions";
+import { CircleCollider } from "@carnelian/interaction";
 import { RawCircleProps } from ".";
 import { withInteractiveCircle} from "../interaction";
 

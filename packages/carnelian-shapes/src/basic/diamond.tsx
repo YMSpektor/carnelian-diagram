@@ -1,7 +1,7 @@
 /** @jsxImportSource @carnelian/diagram */
 
 import { DiagramElement } from "@carnelian/diagram";
-import { PolygonCollider } from "@carnelian/interaction/collisions";
+import { PolygonCollider } from "@carnelian/interaction";
 import { RectBaseProps } from ".";
 import { withInteractiveRect } from "../interaction";
 

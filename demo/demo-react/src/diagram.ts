@@ -12,6 +12,7 @@ import {
     InteractiveSquare as Square,
     InteractiveCircle as Circle,
     InteractiveDonut as Donut,
+    InteractiveCross as Cross
 } from "@carnelian/shapes/basic";
 
 export const controller = new InteractionController();
@@ -145,6 +146,18 @@ addToPalette({
         ...props,
         x: point.x,
         y: point.y
+    }),
+});
+
+addToPalette({
+    elementType: Cross,
+    elementProps: {x: 20, y: 20, width: 300, height: 300, offsetX: "25%", offsetY: "25%"},
+    viewBox: "0 0 340 340",
+    title: "Cross",
+    factory: (point, props) => ({
+        ...props,
+        x: point.x - props.width / 2,
+        y: point.y - props.height / 2
     }),
 });
 
