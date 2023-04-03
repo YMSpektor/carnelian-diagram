@@ -4,11 +4,12 @@ import { distance, Point, pointInPolygon, segmentDistance } from "./geometry";
 
 export type HitTestCallback = (point: DOMPointReadOnly, transform: DOMMatrixReadOnly) => boolean;
 
-export interface HitArea {
+export interface HitArea<T = any> {
     type: string;
     index?: number;
     action: string;
     cursor?: string;
+    data?: T;
 }
 
 export type HitInfo = {
