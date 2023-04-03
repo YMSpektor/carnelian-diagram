@@ -65,6 +65,37 @@ export function segmentDistance(p: Point, a: Point, b: Point): number {
     return Math.sqrt(segmentDistanceSquared(p, a, b));
 }
 
+export function segmentBounds(a: Point, b: Point) {
+    const x1 = Math.min(a.x, b.x);
+    const y1 = Math.min(a.y, b.y);
+    const x2 = Math.max(a.x, b.x);
+    const y2 = Math.max(a.y, b.y);
+
+    return {
+        x: x1,
+        y: y1,
+        width: x2 - x1,
+        height: y2 - y1
+    }
+}
+
+export function pointInPolygon(p: Point, polygon: Polygon): boolean {
+    const { x, y } = p;
+    let result = false;
+    for (let i = 0, j = polygon.length - 1; i < polygon.length; j = i++) {
+        const xi = polygon[i].x, yi = polygon[i].y;
+        const xj = polygon[j].x, yj = polygon[j].y;
+        
+        const intersect = ((yi > y) !== (yj > y)) && (x < (xj - xi) * (y - yi) / (yj - yi) + xi);
+        result = intersect ? !result : result;
+    }
+    return result;
+}
+
+export function pointInRect(p: Point, r: Rect): boolean {
+    return p.x >= r.x && p.y >= r.y && p.x <= r.x + r.width && p.y <= r.y + r.height;
+}
+
 export function intersectRect(a: Rect, b: Rect): Rect | null {
     const x1 = Math.max(a.x, b.x);
     const x2 = Math.min(a.x + a.width, b.x + b.width);
@@ -241,7 +272,7 @@ export namespace Collisions {
     }
 
     export function pointRect(p: Point, r: Rect): CollisionResult {
-        const result = p.x >= r.x && p.y >= r.y && p.x <= r.x + r.width && p.y <= r.y + r.height;
+        const result = pointInRect(p, r);
         if (result) {
             const inside = !pointOnRect(p, r, 0.01);
             return {
@@ -251,20 +282,10 @@ export namespace Collisions {
             }
         }
         return null;
-
     }
 
     export function pointPolygon(p: Point, polygon: Polygon): CollisionResult {
-        const { x, y } = p;
-        let result = false;
-        for (let i = 0, j = polygon.length - 1; i < polygon.length; j = i++) {
-            const xi = polygon[i].x, yi = polygon[i].y;
-            const xj = polygon[j].x, yj = polygon[j].y;
-            
-            const intersect = ((yi > y) !== (yj > y)) && (x < (xj - xi) * (y - yi) / (yj - yi) + xi);
-            result = intersect ? !result : result;
-        }
-        
+        let result = pointInPolygon(p, polygon);
         if (result) {
             const inside = !pointOnPolygon(p, polygon, 0.01);
             return {

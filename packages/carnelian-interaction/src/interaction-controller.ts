@@ -309,7 +309,7 @@ export class InteractionController {
 
                 // Broad phase
                 const tests = [...this.intersectionTests]
-                    .filter(x => x[1].some(test => Collisions.rectRect(test.bounds, selectionRect)));
+                    .filter(x => x[1].some(test => !test.bounds || Collisions.rectRect(test.bounds, selectionRect)));
                 // Narrow phase
                 this.select(tests
                     .filter(x => x[1].some(test => test.callback(selectionRect)))

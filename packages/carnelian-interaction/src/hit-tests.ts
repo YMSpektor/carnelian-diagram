@@ -1,6 +1,6 @@
 import { DiagramElementNode, RenderContext, useContext } from "@carnelian/diagram";
 import { CustomPropHook } from "@carnelian/diagram/utils/custom-prop-hook";
-import { Collisions, distance, Point, segmentDistance } from "./geometry";
+import { distance, Point, pointInPolygon, segmentDistance } from "./geometry";
 
 export type HitTestCallback = (point: DOMPointReadOnly, transform: DOMMatrixReadOnly) => boolean;
 
@@ -23,7 +23,7 @@ export type HitInfo = {
 export interface DiagramElementHitTest {
     element: DiagramElementNode;
     callback: HitTestCallback;
-    hitArea: HitArea
+    hitArea: HitArea,
     priority: number;
 }
 
@@ -96,6 +96,6 @@ export function lineHitTest(x1: number, y1: number, x2: number, y2: number, tole
 export function polygonHitTest(polygon: Point[]): HitTestCallback {
     return (point, transform) => {
         const elemPoint = point.matrixTransform(transform);
-        return Collisions.pointPolygon(elemPoint, polygon);
+        return pointInPolygon(elemPoint, polygon);
     }
 }

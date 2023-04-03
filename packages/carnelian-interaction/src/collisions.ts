@@ -5,7 +5,7 @@ export type ColliderType<T> = string | ((props: T, other: Collider<any>, toleran
 export interface Collider<T> {
     type: ColliderType<T>;
     props: T;
-    bounds: Rect;
+    bounds: Rect | null;
 }
 
 export function Collider<T>(type: ColliderType<T>, props: T, bounds: Rect): Collider<T> {
@@ -54,10 +54,11 @@ export function EmptyCollider(): Collider<null> {
     return Collider(() => null, null, {x: 0, y: 0, width: 0, height: 0});
 }
 
-export function UnionCollider(children: Collider<any>[]): Collider<null> {
-    const bounds = unionRects(children.map(x => x.bounds));
-    return bounds ? {
-        type: (_, other, tolerance) => {
+export function UnionCollider(children: Collider<any>[]): Collider<Collider<any>[]> {
+    const childrenBounds = children.map(x => x.bounds);
+    const bounds = childrenBounds.some(x => !x) ? null : unionRects(childrenBounds as Rect[]);
+    return {
+        type: (children, other, tolerance) => {
             const results = children.map(child => collide(child, other, tolerance));
             const points = results.reduce<Point[]>((acc, cur) => cur ? acc.concat(cur.points) : acc, []);
             return results.some(x => !!x) ? {
@@ -69,15 +70,15 @@ export function UnionCollider(children: Collider<any>[]): Collider<null> {
                 points: points
             } : null;
         },
-        props: null,
+        props: children,
         bounds
-    } : EmptyCollider()
+    }
 }
 
-export function IntersectionCollider(children: Collider<any>[]): Collider<null> {
-    const bounds = intersectRects(children.map(x => x.bounds));
-    return bounds ? {
-        type: (_, other, tolerance) => {
+export function IntersectionCollider(children: Collider<any>[]): Collider<Collider<any>[]> {
+    const bounds = intersectRects(children.filter(x => x.bounds).map(x => x.bounds!));
+    return {
+        type: (children, other, tolerance) => {
             const results = children.map(child => collide(child, other, tolerance));
             const points = results.reduce<Point[]>((acc, cur) => cur ? acc.concat(cur.points) : acc, []);
             return results.every(x => !!x) ? {
@@ -89,26 +90,21 @@ export function IntersectionCollider(children: Collider<any>[]): Collider<null> 
                 points
             } : null;
         },
-        props: null,
+        props: children,
         bounds
-    } : EmptyCollider()
-}
-
-// Fixme: Make inverse operation involutory: A == !!A
-export function InverseCollider(child: Collider<any>): Collider<null> {
-    return {
-        type: (_, other, tolerance) => invertCollisionResult(collide(child, other, tolerance)),
-        props: null,
-        bounds: {
-            x: -Number.MAX_VALUE,
-            y: -Number.MAX_VALUE,
-            width: Number.POSITIVE_INFINITY,
-            height: Number.POSITIVE_INFINITY
-        }
     }
 }
 
-export function DiffCollider(a: Collider<any>, b: Collider<any>): Collider<null> {
+// Fixme: Make inverse operation involutory: A == !!A
+export function InverseCollider(child: Collider<any>): Collider<Collider<any>> {
+    return {
+        type: (child, other, tolerance) => invertCollisionResult(collide(child, other, tolerance)),
+        props: child,
+        bounds: null
+    }
+}
+
+export function DiffCollider(a: Collider<any>, b: Collider<any>) {
     return IntersectionCollider([a, InverseCollider(b)]);
 }
 

@@ -2,7 +2,7 @@ import { RenderContext, useContext, useEffect, useRef } from "@carnelian/diagram
 import { DiagramElementIntersectionTest, InteractionContext, IntersectionTestCallback } from "..";
 import { Rect } from "../geometry";
 
-export function useIntersectionTest(callback: IntersectionTestCallback, bounds: Rect) {
+export function useIntersectionTest(callback: IntersectionTestCallback, bounds: Rect | null) {
     const renderContext = useContext(RenderContext);
     const curElement = renderContext?.currentElement();
     if (!curElement) {

@@ -101,7 +101,13 @@ export function useInteractiveSquare<T extends InteractiveSquareProps>(
         }));
     }
 
-    const collider = colliderFactory?.(props) || RectCollider({x: props.x, y: props.y, width: props.size, height: props.size});
+    function defaultCollider() {
+        const result = RectCollider({x: props.x, y: props.y, width: props.size, height: props.size});
+        result.bounds = null; // No need to perform broad phase testing for rect colliders
+        return result;
+    }
+
+    const collider = colliderFactory?.(props) || defaultCollider();
     useCollider(collider, { type: "in", action: "move", cursor: "move" });
     useAction<MovementActionPayload>("move", move);
 

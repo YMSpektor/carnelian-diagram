@@ -98,7 +98,13 @@ export function useInteractiveRect<T extends InteractiveRectProps>(props: Diagra
         }));
     }
 
-    const collider = colliderFactory?.(props) || RectCollider(props);
+    function defaultCollider() {
+        const result = RectCollider(props);
+        result.bounds = null; // No need to perform broad phase testing for rect colliders
+        return result;
+    }
+
+    const collider = colliderFactory?.(props) || defaultCollider();
     useCollider(collider, { type: "in", action: "move", cursor: "move" });
     useAction<MovementActionPayload>("move", move);
 
