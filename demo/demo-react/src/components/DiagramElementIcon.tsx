@@ -21,7 +21,7 @@ function DiagramElementIcon<T extends object>(props: DiagramElementIconProps<T> 
     useLayoutEffect(() => {
         if (svg.current) {
             const root = svg.current;
-            diagram.update(root, true);
+            diagram.render(root, true);
         }
     }, [diagram]);
 

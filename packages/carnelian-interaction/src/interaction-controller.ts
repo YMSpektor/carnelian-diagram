@@ -52,13 +52,13 @@ export type RenderEdgeCallback = (kind: string, x1: number, y1: number, x2: numb
 export type DispatchActionCallback<T> = (elements: DiagramElementNode[], action: string, payload: T) => void;
 
 export interface InteractionControllerOptions {
-    dispatchAction?: (
+    dispatchAction?: <T>(
         controller: InteractionController, 
         elements: DiagramElementNode[], 
         action: string, 
-        payload: any,
-        dispatch: DispatchActionCallback<any>,
-        defaultDispatcher: DispatchActionCallback<any>
+        payload: T,
+        dispatch: DispatchActionCallback<T>,
+        defaultDispatcher: DispatchActionCallback<T>
     ) => void;
     renderHandleControl?: AddParameters<RenderHandleCallback, [RenderHandleCallback]>;
     renderEdgeControl?: AddParameters<RenderEdgeCallback, [RenderEdgeCallback]>;
@@ -422,9 +422,6 @@ export class InteractionController {
         if (this.transform) {
             const transform = this.transform;
             const point = new DOMPoint(e.clientX, e.clientY);
-            // Warning: using native element hit testing will not work when the element is overlapped with any other
-            // Usually it's not desired behaviour - selected elements should have higher priority when hitTest is applied
-            // even when they are overlapped with not selected ones
             if (e.target && hasHitTestProps(e.target)) {
                 const elementPoint = this.clientToDiagram(point);
                 return {
@@ -437,10 +434,7 @@ export class InteractionController {
             }
             else {
                 const priorities = Object.keys(this.hitTests).map(x => parseInt(x)).reverse();
-                const reversedElements = this.elements.slice().reverse();
-                const sortedElements = reversedElements
-                    .filter(x => this.isSelected(x))
-                    .concat(reversedElements.filter(x => !this.isSelected(x)));  
+                const sortedElements = this.elements.slice().reverse();
                 for (let priority of priorities) {
                     let hit: DiagramElementHitTest | undefined;
                     for (let element of sortedElements) {

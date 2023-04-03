@@ -20,7 +20,7 @@ function App(props: AppProps) {
 
     return (
         <div css={{display: "flex", flexDirection: "column", height: "100vh"}}>
-            <DiagramToolbar scale={scale} onScaleChange={setScale} />
+            <DiagramToolbar diagram={diagram} controller={controller} scale={scale} onScaleChange={setScale} />
             <div css={{flex: 1, display: "flex", alignItems: "stretch", overflow: "hidden", backgroundColor: "#42a5f560"}}>
                 <div css={{flex: "0 0 auto", overflow: "auto"}}>
                     <Accordion defaultExpanded={true} css={{backgroundColor: "inherit"}}>
@@ -33,7 +33,7 @@ function App(props: AppProps) {
                     </Accordion>
                     <Accordion css={{backgroundColor: "inherit"}}>
                         <AccordionSummary expandIcon={<ExpandMoreIcon />}>
-                            <Typography>Advanced Shapes</Typography>
+                            <Typography>Examples</Typography>
                         </AccordionSummary>
                         <AccordionDetails>
                         </AccordionDetails>

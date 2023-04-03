@@ -132,8 +132,7 @@ export class Diagram {
     private createElementNode<P extends object>(type: DiagramElement<P>, props: P, key: Key): DiagramElementNode<P> {
         const onChange = (callback: (oldProps: DiagramElementProps<P>) => DiagramElementProps<P>) => {
             this.schedule(() => {
-                element.props = callback(element.props);
-                this.invalidate(element);
+                this.update(element, callback(element.props));
             });
         }
         const element = createElement(type, {...props, onChange}, key);
@@ -156,7 +155,7 @@ export class Diagram {
         }
     }
 
-    private render<P>(node: DiagramNode<P>, prevNode?: DiagramNode<P>, parent?: DiagramNode<any>): DiagramNode<P> {
+    private renderNode<P>(node: DiagramNode<P>, prevNode?: DiagramNode<P>, parent?: DiagramNode<any>): DiagramNode<P> {
         this.renderContext.currentNode = node;
         this.initNode(node, prevNode);
         node.parent = parent;
@@ -211,7 +210,7 @@ export class Diagram {
             prevChildren?.forEach(x => this.unmount(x));
         }
 
-        nodesToRender.forEach(x => this.render(x.node, x.prevNode, x.parent));
+        nodesToRender.forEach(x => this.renderNode(x.node, x.prevNode, x.parent));
         node.isValid = true;
 
         return node;
@@ -221,14 +220,14 @@ export class Diagram {
         return this.domBuilder.updateDOM(root, rootNode);
     }
 
-    update(root: SVGGraphicsElement, commitInvalid: boolean): SVGGraphicsElement {
+    render(root: SVGGraphicsElement, commitInvalid: boolean): SVGGraphicsElement {
         this.renderContext.currentDiagram = this;
         const rootNode = createElement(App, {
             renderContext: this.renderContext,
             diagramRoot: this.diagramRoot,
             diagramRootProps: {svg: root, children: this.elements}
         });
-        this.prevRootNode = this.render(rootNode, this.prevRootNode);
+        this.prevRootNode = this.renderNode(rootNode, this.prevRootNode);
         this.isValid = true;
         this.renderContext.invokePendingActions();
         this.renderContext.reset();
@@ -241,13 +240,13 @@ export class Diagram {
         }
         if (this.isValid) {
             this.isValid = false;
-            this.attachedRoot && this.scheduleUpdate(this.attachedRoot);
+            this.attachedRoot && this.scheduleRender(this.attachedRoot);
         }
     }
 
-    private scheduleUpdate(root: SVGGraphicsElement) {
+    private scheduleRender(root: SVGGraphicsElement) {
         this.scheduleTask(() => {
-            this.update(root, false);
+            this.render(root, false);
         });
     }
 
@@ -282,7 +281,7 @@ export class Diagram {
 
     attach(root: SVGGraphicsElement) {
         this.attachedRoot = root;
-        this.scheduleUpdate(root);
+        this.scheduleRender(root);
     }
 
     detach(clearDom: boolean) {
@@ -303,6 +302,11 @@ export class Diagram {
         this.elements.push(element);
         this.invalidate(element);
         return element;
+    }
+
+    update<T>(element: DiagramElementNode<T>, props: DiagramElementProps<T>) {
+        element.props = props;
+        this.invalidate(element);
     }
 
     delete(element: DiagramElementNode): void;
