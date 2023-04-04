@@ -1,4 +1,4 @@
-import { Circle, intersectRects, Line, Point, Polygon, polygonBounds, Rect, unionRects } from "../geometry";
+import { Circle, Ellipse, intersectRects, Line, Point, Polygon, polygonBounds, Rect, unionRects } from "../geometry";
 import { CollisionResult, flipCollisionResult, invertCollisionResult, CollisionFunctions } from "./collisions";
 
 export type ColliderType<T> = string | ((props: T, other: Collider<any>, tolerance: number) => CollisionResult | null);
@@ -34,6 +34,10 @@ export function PointCollider(point: Point): Collider<Point> {
     return Collider("point", point, {...point, width: 0, height: 0});
 }
 
+export function RectCollider(rect: Rect): Collider<Rect> {
+    return Collider("rect", rect, rect);
+}
+
 export function CircleCollider(circle: Circle): Collider<Circle> {
     return Collider("circle", circle, {
         x: circle.center.x - circle.radius,
@@ -43,8 +47,13 @@ export function CircleCollider(circle: Circle): Collider<Circle> {
     });
 }
 
-export function RectCollider(rect: Rect): Collider<Rect> {
-    return Collider("rect", rect, rect);
+export function EllipseCollider(ellipse: Ellipse): Collider<Ellipse> {
+    return Collider("ellipse", ellipse, {
+        x: ellipse.center.x - ellipse.rx,
+        y: ellipse.center.y - ellipse.ry,
+        width: ellipse.rx * 2,
+        height: ellipse.ry * 2
+    });
 }
 
 export function PolygonCollider(polygon: Polygon): Collider<Polygon> {
@@ -113,7 +122,7 @@ export function isPointCollider(collider: Collider<any>): collider is Collider<P
     return collider.type === "point";
 }
 
-export function isRectLineCollider(collider: Collider<any>): collider is Collider<Line> {
+export function isLineCollider(collider: Collider<any>): collider is Collider<Line> {
     return collider.type === "line";
 }
 
@@ -123,6 +132,10 @@ export function isRectCollider(collider: Collider<any>): collider is Collider<Re
 
 export function isCircleCollider(collider: Collider<any>): collider is Collider<Circle> {
     return collider.type === "circle";
+}
+
+export function isEllipseCollider(collider: Collider<any>): collider is Collider<Ellipse> {
+    return collider.type === "ellipse";
 }
 
 export function isPolygonCollider(collider: Collider<any>): collider is Collider<Polygon> {
@@ -151,15 +164,26 @@ export namespace CollisionDetections {
 CollisionDetections.register("point", "point", CollisionFunctions.pointPoint);
 CollisionDetections.register("point", "line", CollisionFunctions.pointLine);
 CollisionDetections.register("point", "circle", CollisionFunctions.pointCircle);
+CollisionDetections.register("point", "ellipse", CollisionFunctions.pointEllipse);
 CollisionDetections.register("point", "rect", CollisionFunctions.pointRect);
 CollisionDetections.register("point", "polygon", CollisionFunctions.pointPolygon);
+
 CollisionDetections.register("line", "line", CollisionFunctions.lineLine);
 CollisionDetections.register("line", "circle", CollisionFunctions.lineCircle);
+CollisionDetections.register("line", "ellipse", CollisionFunctions.lineEllipse);
 CollisionDetections.register("line", "rect", CollisionFunctions.lineRect);
 CollisionDetections.register("line", "polygon", CollisionFunctions.linePolygon);
+
 CollisionDetections.register("circle", "circle", CollisionFunctions.circleCircle);
+CollisionDetections.register("circle", "ellipse", CollisionFunctions.circleEllipse);
 CollisionDetections.register("circle", "rect", CollisionFunctions.circleRect);
 CollisionDetections.register("circle", "polygon", CollisionFunctions.circlePolygon);
+
+CollisionDetections.register("ellipse", "ellipse", CollisionFunctions.ellipseEllipse);
+CollisionDetections.register("ellipse", "rect", CollisionFunctions.ellipseRect);
+CollisionDetections.register("ellipse", "polygon", CollisionFunctions.ellipsePolygon);
+
 CollisionDetections.register("rect", "rect", CollisionFunctions.rectRect);
 CollisionDetections.register("rect", "polygon", CollisionFunctions.rectPolygon);
+
 CollisionDetections.register("polygon", "polygon", CollisionFunctions.polygonPolygon);

@@ -2,7 +2,7 @@
 
 import { DiagramElement } from "@carnelian/diagram";
 import { RectBaseProps } from ".";
-import { withInteractiveRect } from "@carnelian/interaction";
+import { EllipseCollider, withInteractiveRect } from "@carnelian/interaction";
 
 export interface EllipseProps extends RectBaseProps {}
 
@@ -18,4 +18,7 @@ export const Ellipse: DiagramElement<EllipseProps> = function(props) {
     );
 };
 
-export const InteractiveEllipse = withInteractiveRect(Ellipse);
+export const InteractiveEllipse = withInteractiveRect(
+    Ellipse,
+    (props) => EllipseCollider({center: {x: props.x + props.width / 2, y: props.y + props.height / 2}, rx: props.width / 2, ry: props.height / 2})
+);

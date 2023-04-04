@@ -79,6 +79,21 @@ export function segmentBounds(a: Point, b: Point) {
     }
 }
 
+export function pointInCircle(p: Point, circle: Circle): boolean {
+    return distanceSquared(p, circle.center) <= sqr(circle.radius);
+}
+
+export function pointInEllipse(p: Point, e: Ellipse): boolean {
+    if (e.rx === 0) {
+        return p.x == e.center.x && p.y >= e.center.y - e.ry && p.y <= e.center.y + e.ry;
+    }
+    if (e.ry === 0) {
+        return p.y == e.center.y && p.x >= e.center.x - e.rx && p.x <= e.center.x + e.rx;
+    }
+    const t = sqr(p.x - e.center.x) / sqr(e.rx) + sqr(p.y - e.center.y) / sqr(e.ry);
+    return t <= 1;
+}
+
 export function pointInPolygon(p: Point, polygon: Polygon): boolean {
     const { x, y } = p;
     let result = false;
@@ -173,7 +188,7 @@ export function pointOnSegment(p: Point, line: Line, tolerance: number) {
 }
 
 export function pointOnCircle(p: Point, circle: Circle, tolerance: number) {
-    return distanceSquared(p, circle.center) <= sqr(tolerance);
+    return Math.abs(distance(p, circle.center) - circle.radius) <= tolerance;
 }
 
 export function pointOnRect(p: Point, r: Rect, tolerance: number) {
@@ -183,6 +198,18 @@ export function pointOnRect(p: Point, r: Rect, tolerance: number) {
         (Math.abs(p.x - r.x + r.width) <= tolerance && p.y >= r.y && p.y <= r.y + r.height) ||
         (Math.abs(p.y - r.y + r.height) <= tolerance && p.x >= r.x && p.x <= r.x + r.width)
     )
+}
+
+export function pointOnEllipse(p: Point, e: Ellipse, tolerance: number): boolean {
+    if (e.rx <= tolerance) {
+        return Math.abs(p.x - e.center.x) <= tolerance && p.y >= e.center.y - e.ry && p.y <= e.center.y + e.ry;
+    }
+    if (e.ry <= tolerance) {
+        return Math.abs(p.y - e.center.y) <= tolerance && p.x >= e.center.x - e.rx && p.x <= e.center.x + e.rx;
+    }
+    const t1 = sqr(p.x - e.center.x) / sqr(e.rx - tolerance) + sqr(p.y - e.center.y) / sqr(e.ry - tolerance);
+    const t2 = sqr(p.x - e.center.x) / sqr(e.rx + tolerance) + sqr(p.y - e.center.y) / sqr(e.ry + tolerance);
+    return t1 >= 1 && t2 <= 1;
 }
 
 export function pointOnPolygon(p: Point, polygon: Polygon, tolerance: number) {
