@@ -1,9 +1,9 @@
 /** @jsxImportSource @carnelian/diagram */
 
 import { DiagramElement } from "@carnelian/diagram";
+import { withInteractiveRect, KnobController, withKnob } from "@carnelian/interaction";
 import { clamp } from "@carnelian/interaction/geometry";
 import { RectBaseProps } from ".";
-import { withInteractiveRect, KnobController, withKnob } from "../interaction";
 import { convertPercentage, isPercentage, NumberOrPercentage } from "../utils";
 
 export interface RoundedRectProps extends RectBaseProps {

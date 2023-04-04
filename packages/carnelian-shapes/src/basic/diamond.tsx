@@ -1,9 +1,8 @@
 /** @jsxImportSource @carnelian/diagram */
 
 import { DiagramElement } from "@carnelian/diagram";
-import { PolygonCollider } from "@carnelian/interaction";
+import { PolygonCollider, withInteractiveRect } from "@carnelian/interaction";
 import { RectBaseProps } from ".";
-import { withInteractiveRect } from "../interaction";
 
 export interface DiamondProps extends RectBaseProps {}
 

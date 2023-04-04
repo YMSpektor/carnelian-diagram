@@ -1,10 +1,9 @@
 /** @jsxImportSource @carnelian/diagram */
 
 import { DiagramElement } from "@carnelian/diagram";
-import { PolygonCollider } from "@carnelian/interaction";
+import { PolygonCollider, KnobController, withInteractiveRect, withKnob } from "@carnelian/interaction";
 import { clamp } from "@carnelian/interaction/geometry";
 import { RectBaseProps } from ".";
-import { KnobController, withInteractiveRect, withKnob } from "../interaction";
 import { convertPercentage, isPercentage, NumberOrPercentage } from "../utils";
 
 export interface CrossProps extends RectBaseProps {

@@ -10,12 +10,12 @@ import {
     SelectionContext
 } from "..";
 import { scheduleIdle } from "@carnelian/diagram/utils/schedule";
-import { Rect } from "@carnelian/diagram/geometry";
 import { JSX } from "@carnelian/diagram/jsx-runtime";
+import { Rect } from "../geometry";
 
-const DiagramElements = (props: { children: JSX.Element }) => {
+function DiagramElements<P>(props: { children: JSX.Element, rootProps: P }) {
     return (
-        <g>
+        <g {...props.rootProps}>
             {props.children}
         </g>
     );
@@ -26,7 +26,7 @@ interface DiagramControlsProps {
     controller: InteractionController;
 }
 
-const DiagramControls = (props: DiagramControlsProps) => {
+function DiagramControls(props: DiagramControlsProps) {
     const { matrix, controller } = props;
     const [rectSelection, setRectSelection] = useState<Rect | null>(null);
 
@@ -53,10 +53,11 @@ const DiagramControls = (props: DiagramControlsProps) => {
     );
 }
 
-export const withInteraction = ( 
+export function withInteractiveRoot<P>( 
     WrappedComponent: DiagramRootComponent,
-    controller: InteractionController
-): DiagramRootComponent => {
+    controller: InteractionController,
+    diagramElementRootProps?: P
+): DiagramRootComponent {
     return (props: DiagramRootProps) => {
         const [matrix, setMatrix] = useState<DOMMatrix | undefined>(undefined);
         const [selectedElements, setSelectedElements] = useState<DiagramElementNode[]>([]);
@@ -100,7 +101,7 @@ export const withInteraction = (
         return (
             <InteractionContext.Provider value={controller.interactionContext}>
                 <SelectionContext.Provider value={selectedElements}>
-                    <DiagramElements>
+                    <DiagramElements rootProps={diagramElementRootProps}>
                         <WrappedComponent {...props} />
                     </DiagramElements>
                     <DiagramControls matrix={matrix} controller={controller} />

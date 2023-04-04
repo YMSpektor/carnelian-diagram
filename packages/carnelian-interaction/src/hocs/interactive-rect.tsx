@@ -9,8 +9,8 @@ import {
     EdgeControl, 
     HandleControl,
     useCollider
-} from "@carnelian/interaction";
-import { Collider, RectCollider } from "@carnelian/interaction/collisions";
+} from "..";
+import { Collider, RectCollider } from "../collisions";
 
 export interface InteractiveRectProps {
     x: number;

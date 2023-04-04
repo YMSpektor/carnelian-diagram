@@ -1,5 +1,5 @@
 import { Diagram, DiagramRoot } from "@carnelian/diagram";
-import { InteractionController, withInteraction } from "@carnelian/interaction";
+import { InteractionController, withInteractiveRoot } from "@carnelian/interaction";
 import { DiagramPaletteElement } from "./components/DiagramPalette";
 import { 
     InteractiveRect as Rect, 
@@ -17,9 +17,10 @@ import {
 
 export const controller = new InteractionController();
 export const diagram = new Diagram(
-    withInteraction(
+    withInteractiveRoot(
         DiagramRoot, 
-        controller
+        controller,
+        {"stroke-width": 2.5}
     )
 );
 

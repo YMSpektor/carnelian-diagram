@@ -10,5 +10,5 @@
     }
   },
   "extends": "../../tsconfig",
-  "include": ["./src/**/*.ts", "./src/**/*.tsx"]
+  "include": ["./src/**/*.ts", "./src/**/*.tsx", "../carnelian-interaction/src/hocs/interactive-circle.tsx"]
 }

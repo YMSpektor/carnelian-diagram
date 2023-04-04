@@ -1,8 +1,8 @@
 /** @jsxImportSource @carnelian/diagram */
 
 import { DiagramElement, DiagramElementProps } from "@carnelian/diagram";
-import { MovementActionPayload, useAction, useCollider } from "@carnelian/interaction";
-import { Collider, RectCollider } from "@carnelian/interaction/collisions";
+import { MovementActionPayload, useAction, useCollider } from "..";
+import { Collider, RectCollider } from "../collisions";
 import { useInteractiveRectControls } from "./interactive-rect";
 
 export interface InteractiveSquareProps {

@@ -1,8 +1,8 @@
 /** @jsxImportSource @carnelian/diagram */
 
 import { DiagramElement } from "@carnelian/diagram";
+import { withInteractiveRect } from "@carnelian/interaction";
 import { RectBaseProps } from ".";
-import { withInteractiveRect } from "../interaction";
 
 export interface RectProps extends RectBaseProps {}
 
