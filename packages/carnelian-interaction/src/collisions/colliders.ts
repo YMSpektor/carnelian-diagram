@@ -9,7 +9,7 @@ export interface Collider<T> {
     bounds: Rect | null;
 }
 
-export function Collider<T>(type: ColliderType<T>, props: T, bounds: Rect): Collider<T> {
+export function Collider<T>(type: ColliderType<T>, props: T, bounds: Rect | null): Collider<T> {
     return {
         type,
         props,
@@ -58,6 +58,10 @@ export function EllipseCollider(ellipse: Ellipse): Collider<Ellipse> {
 
 export function PolygonCollider(polygon: Polygon): Collider<Polygon> {
     return Collider("polygon", polygon, polygonBounds(polygon) || {x: 0, y: 0, width: 0, height: 0});
+}
+
+export function HalfSpaceCollider(hs: Line): Collider<Line> {
+    return Collider("halfspace", hs, null);
 }
 
 export function EmptyCollider(): Collider<null> {
@@ -167,23 +171,31 @@ CollisionDetections.register("point", "circle", CollisionFunctions.pointCircle);
 CollisionDetections.register("point", "ellipse", CollisionFunctions.pointEllipse);
 CollisionDetections.register("point", "rect", CollisionFunctions.pointRect);
 CollisionDetections.register("point", "polygon", CollisionFunctions.pointPolygon);
+CollisionDetections.register("point", "halfspace", CollisionFunctions.pointHalfspace);
 
 CollisionDetections.register("line", "line", CollisionFunctions.lineLine);
 CollisionDetections.register("line", "circle", CollisionFunctions.lineCircle);
 CollisionDetections.register("line", "ellipse", CollisionFunctions.lineEllipse);
 CollisionDetections.register("line", "rect", CollisionFunctions.lineRect);
 CollisionDetections.register("line", "polygon", CollisionFunctions.linePolygon);
+CollisionDetections.register("line", "halfspace", CollisionFunctions.lineHalfspace);
 
 CollisionDetections.register("circle", "circle", CollisionFunctions.circleCircle);
 CollisionDetections.register("circle", "ellipse", CollisionFunctions.circleEllipse);
 CollisionDetections.register("circle", "rect", CollisionFunctions.circleRect);
 CollisionDetections.register("circle", "polygon", CollisionFunctions.circlePolygon);
+CollisionDetections.register("circle", "halfspace", CollisionFunctions.circleHalfspace);
 
 CollisionDetections.register("ellipse", "ellipse", CollisionFunctions.ellipseEllipse);
 CollisionDetections.register("ellipse", "rect", CollisionFunctions.ellipseRect);
 CollisionDetections.register("ellipse", "polygon", CollisionFunctions.ellipsePolygon);
+CollisionDetections.register("ellipse", "halfspace", CollisionFunctions.ellipseHalfspace);
 
 CollisionDetections.register("rect", "rect", CollisionFunctions.rectRect);
 CollisionDetections.register("rect", "polygon", CollisionFunctions.rectPolygon);
+CollisionDetections.register("rect", "halfspace", CollisionFunctions.rectHalfspace);
 
 CollisionDetections.register("polygon", "polygon", CollisionFunctions.polygonPolygon);
+CollisionDetections.register("polygon", "halfspace", CollisionFunctions.polygonHalfspace);
+
+CollisionDetections.register("halfspace", "halfspace", CollisionFunctions.halfspaceHalfspace);

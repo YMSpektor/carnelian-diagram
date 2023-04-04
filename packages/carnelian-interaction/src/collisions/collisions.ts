@@ -633,11 +633,11 @@ export namespace CollisionFunctions {
             }
         }
         else {
-            const inside = pointInHalfspace(a.a, b.a, b.b);
-            const contains = pointInHalfspace(b.a, a.a, a.b);
-            return inside || contains ? {
-                inside,
-                contains,
+            const AinB = pointInHalfspace(a.a, b.a, b.b);
+            const BinA = pointInHalfspace(b.a, a.a, a.b);
+            return AinB || BinA ? {
+                inside: AinB && !BinA,
+                contains: BinA && !AinB,
                 points: []
             } : null;
         }
