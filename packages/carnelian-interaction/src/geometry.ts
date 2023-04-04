@@ -36,12 +36,34 @@ export function clamp(x: number, a: number, b: number): number {
     return Math.max(a, Math.min(b, x));
 }
 
-export function distanceSquared(p1: Point, p2: Point): number{
+export function distanceSquared(p1: Point, p2: Point): number {
     return sqr(p1.x - p2.x) + sqr(p1.y - p2.y);
 }
 
 export function distance(p1: Point, p2: Point): number {
     return Math.sqrt(distanceSquared(p1, p2));
+}
+
+export function lineClosestPoint(p: Point, a: Point, b: Point): Point {
+    let l = distanceSquared(a, b);
+    if (l === 0) {
+        b = { ...b };
+        b.x = a.x + 1;
+        l = 1;
+    }
+    const t = ((p.x - a.x) * (b.x - a.x) + (p.y - a.y) * (b.y - a.y)) / l;
+    return {
+        x: a.x + t * (b.x - a.x),
+        y: a.y + t * (b.y - a.y)
+    };
+}
+
+export function lineDistanceSquared(p: Point, a: Point, b: Point): number {
+    return distanceSquared(p, lineClosestPoint(p, a, b));
+}
+
+export function lineDistance(p: Point, a: Point, b: Point): number {
+    return Math.sqrt(lineDistanceSquared(p, a, b));
 }
 
 export function segmentClosestPoint(p: Point, a: Point, b: Point): Point {
@@ -55,9 +77,6 @@ export function segmentClosestPoint(p: Point, a: Point, b: Point): Point {
 }
 
 export function segmentDistanceSquared(p: Point, a: Point, b: Point): number {
-    const l = distanceSquared(a, b);
-    if (l === 0) return distanceSquared(p, a);
-    const t = clamp(((p.x - a.x) * (b.x - a.x) + (p.y - a.y) * (b.y - a.y)) / l, 0, 1);
     return distanceSquared(p, segmentClosestPoint(p, a, b));
 }
 
@@ -76,6 +95,54 @@ export function segmentBounds(a: Point, b: Point) {
         y: y1,
         width: x2 - x1,
         height: y2 - y1
+    }
+}
+
+export function intersectLines(a: Line, b: Line, inf1: boolean, inf2: boolean): Point | null {
+    const { x: x1, y: y1 } = a.a;
+    const { x: x2, y: y2 } = a.b;
+    const { x: x3, y: y3 } = b.a;
+    const { x: x4, y: y4 } = b.b;
+    const d = (y4 - y3) * (x2 - x1) - (x4 - x3) * (y2 - y1);
+    if (d === 0) {
+        return null;
+    }
+    const ua = ((x4 - x3) * (y1 - y3) - (y4 - y3) * (x1 - x3)) / d;
+    const ub = ((x2 - x1) * (y1 - y3) - (y2 - y1) * (x1 - x3)) / d;
+    const p = { x: x1 + (x2 - x1) * ua, y: y1 + (y2 - y1) * ua };
+    return (
+        (inf1 && inf2) || 
+        (inf1 && ub >= 0 && ub <= 1) ||
+        (inf2 && ua >= 0 && ua <= 1) ||
+        (ua >= 0 && ua <= 1 && ub >= 0 && ub <= 1)
+    ) ? p : null;
+}
+
+export function extendLine(l: Line, r: Rect): Line {
+    function extend(a: Point, b: Point, r: Rect): Point {
+        const dx = b.x - a.x;
+        const dy = b.y - a.y;
+        const e = {
+            x: dx > 0 ? r.x + r.width : r.x,
+            y: dy > 0 ? r.y + r.height : r.y
+        }
+        if (dx === 0) {
+            return { x: a.x, y: e.y }
+        }
+        if (dy === 0) {
+            return { x: e.x, y: a.y }
+        }
+        const tx = (e.x - a.x) / dx;
+        const ty = (e.y - a.y) / dy;
+        return {
+            x: tx <= ty ? e.x : a.x + ty * dx,
+            y: tx <= ty ? a.y + tx * dy : e.y
+        }
+    }
+
+    return {
+        a: extend(l.b, l.a, r),
+        b: extend(l.a, l.b, r)
     }
 }
 
@@ -100,7 +167,7 @@ export function pointInPolygon(p: Point, polygon: Polygon): boolean {
     for (let i = 0, j = polygon.length - 1; i < polygon.length; j = i++) {
         const xi = polygon[i].x, yi = polygon[i].y;
         const xj = polygon[j].x, yj = polygon[j].y;
-        
+
         const intersect = ((yi > y) !== (yj > y)) && (x < (xj - xi) * (y - yi) / (yj - yi) + xi);
         result = intersect ? !result : result;
     }
@@ -109,6 +176,10 @@ export function pointInPolygon(p: Point, polygon: Polygon): boolean {
 
 export function pointInRect(p: Point, r: Rect): boolean {
     return p.x >= r.x && p.y >= r.y && p.x <= r.x + r.width && p.y <= r.y + r.height;
+}
+
+export function pointInHalfspace(p: Point, a: Point, b: Point): boolean {
+    return ((b.x - a.x) * (p.y - a.y) - (b.y - a.y) * (p.x - a.x)) >= 0;
 }
 
 export function intersectRect(a: Rect, b: Rect): Rect | null {
@@ -172,19 +243,41 @@ export function unionRects(rects: Rect[]): Rect | null {
 
 export function rectPoints(r: Rect): Point[] {
     return [
-        {x: r.x, y: r.y},
-        {x: r.x + r.width, y: r.y},
-        {x: r.x + r.width, y: r.y + r.height},
-        {x: r.x, y: r.y + r.height}
+        { x: r.x, y: r.y },
+        { x: r.x + r.width, y: r.y },
+        { x: r.x + r.width, y: r.y + r.height },
+        { x: r.x, y: r.y + r.height }
     ]
 }
 
+export function circleBounds(c: Circle): Rect {
+    return {
+        x: c.center.x - c.radius,
+        y: c.center.y - c.radius,
+        width: c.radius * 2,
+        height: c.radius * 2
+    }
+}
+
+export function ellipseBounds(e: Ellipse): Rect {
+    return {
+        x: e.center.x - e.rx,
+        y: e.center.y - e.ry,
+        width: e.rx * 2,
+        height: e.ry * 2
+    }
+}
+
 export function polygonBounds(polygon: Polygon): Rect | null {
-    return unionRects(polygon.map(x => ({...x, width: 0, height: 0})));
+    return unionRects(polygon.map(x => ({ ...x, width: 0, height: 0 })));
 }
 
 export function pointOnSegment(p: Point, line: Line, tolerance: number) {
     return segmentDistance(p, line.a, line.b) <= tolerance;
+}
+
+export function pointOnLine(p: Point, line: Line, tolerance: number) {
+    return lineDistance(p, line.a, line.b) <= tolerance;
 }
 
 export function pointOnCircle(p: Point, circle: Circle, tolerance: number) {
@@ -215,6 +308,6 @@ export function pointOnEllipse(p: Point, e: Ellipse, tolerance: number): boolean
 export function pointOnPolygon(p: Point, polygon: Polygon, tolerance: number) {
     return polygon.some((x, i) => {
         const next = i < polygon.length - 1 ? i + 1 : 0;
-        return pointOnSegment(p, {a: x, b: polygon[next]}, tolerance);
+        return pointOnSegment(p, { a: x, b: polygon[next] }, tolerance);
     });
 }
