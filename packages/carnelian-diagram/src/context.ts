@@ -47,7 +47,6 @@ export function createContext<T>(defaultValue: T): Context<T> {
                     subscriptions.delete(curNode);
                 }
                 cleanups.registerCleanup(storedCleanup.current);
-
             }
             return node?.contextValue || context.defaultValue;
         }

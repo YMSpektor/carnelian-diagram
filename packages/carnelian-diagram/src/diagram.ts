@@ -197,8 +197,8 @@ export class DiagramDOM {
     private prevRootNode?: DiagramNode;
 
     constructor(
-        public diagram: Diagram, 
-        public root: SVGGraphicsElement, 
+        private diagram: Diagram, 
+        private root: SVGGraphicsElement, 
         private diagramRoot: DiagramRootComponent
     ) {
         this.domBuilder = new DOMBuilder();
@@ -293,7 +293,6 @@ export class DiagramDOM {
     }
 
     render(commitInvalid: boolean = true) {
-        this.renderContext.currentDiagram = this.diagram;
         const rootNode = createElement(App, {
             renderContext: this.renderContext,
             diagramRoot: this.diagramRoot,
@@ -355,10 +354,6 @@ export class RenderContextType {
         }
     }
 
-    isRendering(): boolean {
-        return !!this.currentNode;
-    }
-
     private scheduleTask(task: () => void) {
         this.tasks.push(task);
         if (!this.unschedule) {
@@ -371,6 +366,10 @@ export class RenderContextType {
         }
     }
 
+    private isRendering(): boolean {
+        return !!this.currentNode;
+    }
+
     schedule(action: () => void) {
         if (this.isRendering()) {
             this.queue(action);
@@ -378,7 +377,6 @@ export class RenderContextType {
         else {
             this.scheduleTask(() => {
                 action();
-                this.reset();
             });
         }
     }
