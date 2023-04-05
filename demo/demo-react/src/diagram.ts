@@ -15,6 +15,9 @@ import {
     InteractiveCross as Cross,
     InteractivePie as Pie
 } from "@carnelian/shapes/basic";
+import {
+    InteractivePacman as Pacman
+} from "./examples"
 
 export const controller = new InteractionController();
 export const diagram = new Diagram(
@@ -32,6 +35,7 @@ function addToPalette<T extends object>(element: DiagramPaletteElement<T>) {
 }
 
 addToPalette({
+    category: "basic",
     elementType: Rect,
     elementProps: {x: 20, y: 20, width: 300, height: 200},
     viewBox: "0 0 340 240",
@@ -44,6 +48,7 @@ addToPalette({
 });
 
 addToPalette({
+    category: "basic",
     elementType: RoundedRect,
     elementProps: {x: 20, y: 20, width: 300, height: 200, radius: "50%"},
     viewBox: "0 0 340 240",
@@ -56,6 +61,7 @@ addToPalette({
 });
 
 addToPalette({
+    category: "basic",
     elementType: Ellipse,
     elementProps: {x: 20, y: 20, width: 300, height: 200},
     viewBox: "0 0 340 240",
@@ -68,6 +74,7 @@ addToPalette({
 });
 
 addToPalette({
+    category: "basic",
     elementType: Parallelogram,
     elementProps: {x: 20, y: 20, width: 300, height: 200, offset: "20%"},
     viewBox: "0 0 340 240",
@@ -80,6 +87,7 @@ addToPalette({
 });
 
 addToPalette({
+    category: "basic",
     elementType: Trapezoid,
     elementProps: {x: 20, y: 20, width: 300, height: 200, offset: "20%"},
     viewBox: "0 0 340 240",
@@ -92,6 +100,7 @@ addToPalette({
 });
 
 addToPalette({
+    category: "basic",
     elementType: Hexagon,
     elementProps: {x: 20, y: 20, width: 300, height: 200, offset: "20%"},
     viewBox: "0 0 340 240",
@@ -104,6 +113,7 @@ addToPalette({
 });
 
 addToPalette({
+    category: "basic",
     elementType: Diamond,
     elementProps: {x: 20, y: 20, width: 300, height: 300},
     viewBox: "0 0 340 340",
@@ -116,6 +126,7 @@ addToPalette({
 });
 
 addToPalette({
+    category: "basic",
     elementType: Square,
     elementProps: {x: 20, y: 20, size: 300},
     viewBox: "0 0 340 340",
@@ -128,6 +139,7 @@ addToPalette({
 });
 
 addToPalette({
+    category: "basic",
     elementType: Circle,
     elementProps: {x: 160, y: 160, radius: 150},
     viewBox: "0 0 340 340",
@@ -140,6 +152,7 @@ addToPalette({
 });
 
 addToPalette({
+    category: "basic",
     elementType: Donut,
     elementProps: {x: 160, y: 160, radius: 150, innerRadius: "60%"},
     viewBox: "0 0 340 340",
@@ -152,6 +165,7 @@ addToPalette({
 });
 
 addToPalette({
+    category: "basic",
     elementType: Cross,
     elementProps: {x: 20, y: 20, width: 300, height: 300, offsetX: "25%", offsetY: "25%"},
     viewBox: "0 0 340 340",
@@ -164,10 +178,24 @@ addToPalette({
 });
 
 addToPalette({
+    category: "basic",
     elementType: Pie,
     elementProps: {x: 160, y: 160, radius: 150, startAngle: 45, endAngle: -45},
     viewBox: "0 0 340 340",
     title: "Pie",
+    factory: (point, props) => ({
+        ...props,
+        x: point.x,
+        y: point.y
+    }),
+});
+
+addToPalette({
+    category: "examples",
+    elementType: Pacman,
+    elementProps: {x: 160, y: 160, radius: 150, mouthAngle: 90, eyeRadius: "25%"},
+    viewBox: "0 0 340 340",
+    title: "Pacman",
     factory: (point, props) => ({
         ...props,
         x: point.x,

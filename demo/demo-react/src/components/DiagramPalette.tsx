@@ -6,6 +6,7 @@ import Typography from "@mui/material/Typography";
 import { DragDropContext, ElementFactory } from "../context/DragDropContext";
 
 export interface DiagramPaletteElement<T extends object> {
+    category: string;
     elementType: DiagramElement<T>;
     elementProps: T;
     viewBox: string;

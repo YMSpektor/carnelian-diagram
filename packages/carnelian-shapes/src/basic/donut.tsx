@@ -44,8 +44,8 @@ export const Donut: DiagramElement<DonutProps> = function(props) {
     ir = calcInnerRadius(props);
 
     const path = `
-        M${x - or} ${y} a${or},${or} 0 1 0 ${or * 2} 0 a${or},${or} 0 1 0 -${or * 2} 0
-        M${x - ir} ${y} a${ir},${ir} 0 0 1 ${ir * 2} 0 a${ir},${ir} 0 0 1 -${ir * 2} 0`;
+        M${x - or} ${y} a${or} ${or} 0 1 0 ${or * 2} 0 a${or} ${or} 0 1 0 -${or * 2} 0
+        M${x - ir} ${y} a${ir} ${ir} 0 0 1 ${ir * 2} 0 a${ir} ${ir} 0 0 1 -${ir * 2} 0`;
 
     return (
         <path d={path} {...rest} />

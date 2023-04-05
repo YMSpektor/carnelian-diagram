@@ -28,7 +28,12 @@ function App(props: AppProps) {
                             <Typography>Basic Shapes</Typography>
                         </AccordionSummary>
                         <AccordionDetails>
-                            <DiagramPalette iconWidth={64} iconHeight={48} palette={palette} css={{width: 280}} />
+                            <DiagramPalette 
+                                iconWidth={64} 
+                                iconHeight={48} 
+                                palette={palette.filter(x => x.category === "basic")} 
+                                css={{width: 280}} 
+                            />
                         </AccordionDetails>
                     </Accordion>
                     <Accordion css={{backgroundColor: "inherit"}}>
@@ -36,6 +41,12 @@ function App(props: AppProps) {
                             <Typography>Examples</Typography>
                         </AccordionSummary>
                         <AccordionDetails>
+                        <DiagramPalette 
+                                iconWidth={64} 
+                                iconHeight={48} 
+                                palette={palette.filter(x => x.category === "examples")} 
+                                css={{width: 280}} 
+                            />
                         </AccordionDetails>
                     </Accordion>
                 </div>

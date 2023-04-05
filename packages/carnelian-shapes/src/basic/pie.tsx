@@ -29,7 +29,7 @@ function knobController(index: number): KnobController<PieProps> {
             const angle = index === 0 ? props.startAngle : props.endAngle;
             return getCirclePoint(props.x, props.y, props.radius, angle);
         },
-        setPosition(props, pos, hitArea) {
+        setPosition(props, pos) {
             const angle = radToDeg(Math.atan2(pos.y - props.y, pos.x - props.x));
             return {
                 ...props,
