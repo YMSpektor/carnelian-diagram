@@ -1,5 +1,5 @@
-import { Diagram, DiagramRoot } from "@carnelian/diagram";
-import { InteractionController, withInteractiveRoot } from "@carnelian/interaction";
+import { Diagram } from "@carnelian/diagram";
+import { InteractionController } from "@carnelian/interaction";
 import { DiagramPaletteElement } from "./components/DiagramPalette";
 import { 
     InteractiveRect as Rect, 
@@ -19,15 +19,8 @@ import {
     InteractivePacman as Pacman
 } from "./examples"
 
+export const diagram = new Diagram();
 export const controller = new InteractionController();
-export const diagram = new Diagram(
-    withInteractiveRoot(
-        DiagramRoot, 
-        controller,
-        {"stroke-width": 2.5}
-    )
-);
-
 export const palette: DiagramPaletteElement<any>[] = [];
 
 function addToPalette<T extends object>(element: DiagramPaletteElement<T>) {

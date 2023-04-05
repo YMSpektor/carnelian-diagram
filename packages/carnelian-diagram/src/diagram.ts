@@ -9,7 +9,7 @@ import {
     VirtualNode
 } from "./jsx-runtime";
 import { App } from "./components/app";
-import { DOMBuilder } from "./dom";
+import { DOMBuilder } from "./dom-builder";
 import { scheduleImmediate } from "./utils/schedule";
 import { WithThis } from "./utils/types";
 import { Context, createContext } from "./context";
@@ -119,24 +119,90 @@ export type DiagramRootComponent = DiagramComponent<DiagramRootProps>;
 export class Diagram {
     private lastElementId = 0;
     private elements: DiagramElementNode[] = [];
-    private renderContext = new RenderContextType(this);
-    private prevRootNode?: DiagramNode;
-    private domBuilder = new DOMBuilder();
     private isValid = false;
-    private unschedule?: () => void;
-    private attachedRoot: SVGGraphicsElement | null = null;
-    private tasks: Array<() => void> = [];
-
-    constructor(private diagramRoot: DiagramRootComponent) { }
+    private subscriptions: Array<() => void> = [];
 
     private createElementNode<P extends object>(type: DiagramElement<P>, props: P, key: Key): DiagramElementNode<P> {
         const onChange = (callback: (oldProps: DiagramElementProps<P>) => DiagramElementProps<P>) => {
-            this.schedule(() => {
-                this.update(element, callback(element.props));
-            });
+            this.update(element, callback(element.props));
         }
         const element = createElement(type, {...props, onChange}, key);
         return element;
+    }
+
+    isInvalid(): boolean {
+        return !this.isValid;
+    }
+
+    invalidate(node?: DiagramNode) {
+        if (node) {
+            node.isValid = false;
+        }
+        if (this.isValid) {
+            this.isValid = false;
+            this.subscriptions.forEach(cb => cb());
+        }
+    }
+
+    validate() {
+        this.isValid = true;
+    }
+
+    getElements(): DiagramElementNode[] {
+        return [...this.elements];
+    }
+
+    add<P extends object>(type: DiagramElement<P>, props: P): DiagramElementNode<P> {
+        const element = this.createElementNode(type, props, this.lastElementId++);
+        element.isElement = true;
+        this.elements.push(element);
+        this.invalidate(element);
+        return element;
+    }
+
+    update<T>(element: DiagramElementNode<T>, props: DiagramElementProps<T>) {
+        element.props = props;
+        this.invalidate(element);
+    }
+
+    delete(element: DiagramElementNode): void;
+    delete(elements: DiagramElementNode[]): void;
+    delete(elements: DiagramElementNode | DiagramElementNode[]) {
+        if (!Array.isArray(elements)) {
+            this.delete([elements]);
+        }
+        else {
+            this.elements = this.elements.filter(x => !elements.includes(x));
+            this.invalidate();
+        }
+    }
+
+    clear() {
+        this.elements = [];
+        this.invalidate();
+    }
+
+    subscribe(callback: () => void) {
+        this.subscriptions.push(callback);
+        return () => {
+            this.subscriptions = this.subscriptions.filter(x => x !== callback);
+        }
+    }
+}
+
+export class DiagramDOM {
+    private domBuilder: DOMBuilder;
+    private renderContext: RenderContextType;
+    private unsubscribe?: () => void;
+    private prevRootNode?: DiagramNode;
+
+    constructor(
+        public diagram: Diagram, 
+        public root: SVGGraphicsElement, 
+        private diagramRoot: DiagramRootComponent
+    ) {
+        this.domBuilder = new DOMBuilder();
+        this.renderContext = new RenderContextType(diagram);
     }
 
     private initNode<P>(node: DiagramNode<P>, prevNode?: DiagramNode<P>) {
@@ -216,119 +282,51 @@ export class Diagram {
         return node;
     }
 
-    private commit(root: SVGGraphicsElement, rootNode: DiagramNode): SVGGraphicsElement {
-        return this.domBuilder.updateDOM(root, rootNode);
+    private commit(rootNode: DiagramNode | null): SVGGraphicsElement {
+        return this.domBuilder.updateDOM(this.root, rootNode);
     }
 
-    render(root: SVGGraphicsElement, commitInvalid: boolean): SVGGraphicsElement {
-        this.renderContext.currentDiagram = this;
+    private scheduleRender() {
+        this.renderContext.schedule(() => {
+            this.render(false);
+        });
+    }
+
+    render(commitInvalid: boolean = true) {
+        this.renderContext.currentDiagram = this.diagram;
         const rootNode = createElement(App, {
             renderContext: this.renderContext,
             diagramRoot: this.diagramRoot,
-            diagramRootProps: {svg: root, children: this.elements}
+            diagramRootProps: {svg: this.root, children: this.diagram.getElements()}
         });
         this.prevRootNode = this.renderNode(rootNode, this.prevRootNode);
-        this.isValid = true;
+        this.diagram.validate();
         this.renderContext.invokePendingActions();
         this.renderContext.reset();
-        return this.isValid || commitInvalid ? this.commit(root, rootNode) : root;
-    }
-
-    invalidate(node?: DiagramNode) {
-        if (node) {
-            node.isValid = false;
-        }
-        if (this.isValid) {
-            this.isValid = false;
-            this.attachedRoot && this.scheduleRender(this.attachedRoot);
-        }
-    }
-
-    private scheduleRender(root: SVGGraphicsElement) {
-        this.scheduleTask(() => {
-            this.render(root, false);
-        });
-    }
-
-    private scheduleTask(task: () => void) {
-        this.tasks.push(task);
-        if (!this.unschedule) {
-            this.unschedule = scheduleImmediate(() => {
-                this.unschedule = undefined;
-                const tasks = [...this.tasks];
-                this.tasks = [];
-                tasks.forEach(task => task());
-            });
-        }
-    }
-
-    schedule(action: () => void) {
-        if (this.renderContext.isRendering()) {
-            this.renderContext.queue(action);
-        }
-        else {
-            this.scheduleTask(() => {
-                this.renderContext.currentDiagram = this;
-                action();
-                this.renderContext.reset();
-            });
-        }
-    }
-
-    isAttached() {
-        return !!this.attachedRoot;
-    }
-
-    attach(root: SVGGraphicsElement) {
-        this.attachedRoot = root;
-        this.scheduleRender(root);
-    }
-
-    detach(clearDom: boolean) {
-        if (this.attachedRoot) {
-            if (clearDom) {
-                this.domBuilder.updateDOM(this.attachedRoot, null);
-            }
-            this.attachedRoot = null;
-            this.unschedule?.();
-            this.unschedule = undefined;
-            this.invalidate();
-        }
-    }
-
-    add<P extends object>(type: DiagramElement<P>, props: P): DiagramElementNode<P> {
-        const element = this.createElementNode(type, props, this.lastElementId++);
-        element.isElement = true;
-        this.elements.push(element);
-        this.invalidate(element);
-        return element;
-    }
-
-    update<T>(element: DiagramElementNode<T>, props: DiagramElementProps<T>) {
-        element.props = props;
-        this.invalidate(element);
-    }
-
-    delete(element: DiagramElementNode): void;
-    delete(elements: DiagramElementNode[]): void;
-    delete(elements: DiagramElementNode | DiagramElementNode[]) {
-        if (!Array.isArray(elements)) {
-            this.delete([elements]);
-        }
-        else {
-            this.elements = this.elements.filter(x => !elements.includes(x));
-            this.invalidate();
-        }
+        return commitInvalid || !this.diagram.isInvalid() ? this.commit(rootNode) : this.root;
     }
 
     clear() {
-        this.elements = [];
-        this.invalidate();
+        this.commit(null);
+    }
+
+    attach() {
+        this.scheduleRender();
+        this.unsubscribe = this.diagram.subscribe(() => this.scheduleRender());
+    }
+
+    detach(clearDom: boolean) {
+        if (clearDom) {
+            this.clear();
+        }
+        this.unsubscribe?.();
     }
 }
 
 export class RenderContextType {
     private pendingActions: Array<() => void> = [];
+    private unschedule?: () => void;
+    private tasks: Array<() => void> = [];
     currentNode?: DiagramNode;
 
     constructor(public currentDiagram: Diagram) {}
@@ -359,6 +357,30 @@ export class RenderContextType {
 
     isRendering(): boolean {
         return !!this.currentNode;
+    }
+
+    private scheduleTask(task: () => void) {
+        this.tasks.push(task);
+        if (!this.unschedule) {
+            this.unschedule = scheduleImmediate(() => {
+                this.unschedule = undefined;
+                const tasks = [...this.tasks];
+                this.tasks = [];
+                tasks.forEach(task => task());
+            });
+        }
+    }
+
+    schedule(action: () => void) {
+        if (this.isRendering()) {
+            this.queue(action);
+        }
+        else {
+            this.scheduleTask(() => {
+                action();
+                this.reset();
+            });
+        }
     }
 }
 

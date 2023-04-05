@@ -1,5 +1,5 @@
 import { create, h } from "virtual-dom";
-import { Diagram, DiagramRoot, useState } from "@carnelian/diagram";
+import { Diagram, DiagramDOM, DiagramRoot, useState } from "@carnelian/diagram";
 
 function Test() {
     return <div className="test">Test</div>
@@ -20,9 +20,11 @@ function Hello(props: {name: string}) {
     )
 }
 
-const svg = create(h("svg", {xmlns: "http://www.w3.org/2000/svg"}, [])) as SVGSVGElement;
-const doc = new Diagram(DiagramRoot);
+const doc = new Diagram();
 doc.add(Hello, {name: "World"});
-doc.attach(svg);
+
+const svg = create(h("svg", {xmlns: "http://www.w3.org/2000/svg"}, [])) as SVGSVGElement;
+const dom = new DiagramDOM(doc, svg, DiagramRoot);
+dom.attach();
 
 setTimeout(() => console.log(svg.toString()), 10);

@@ -15,7 +15,7 @@ export function useState<T>(initialValue: T): [T, (newValue: T) => void] {
     const updateState = (newValue: T) => {
         const currentState = componentState.get<T>(hookIndex); // Don't use the currentState from closure, can work incorrectly inside useEffect and other callbacks
         if (!Object.is(currentState, newValue)) {
-            diagram?.schedule(() => {
+            renderContext?.schedule(() => {
                 componentState.set(hookIndex, newValue);
                 diagram?.invalidate(curNode);
             });
