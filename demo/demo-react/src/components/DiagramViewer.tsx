@@ -1,7 +1,7 @@
 /** @jsxImportSource @emotion/react */
 import { HTMLAttributes, useContext, useLayoutEffect, useRef } from "react";
-import { Diagram, DiagramDOM, DiagramRoot } from "@carnelian/diagram";
-import { InteractionController, withInteractiveRoot } from "@carnelian/interaction";
+import { Diagram } from "@carnelian/diagram";
+import { InteractionController } from "@carnelian/interaction";
 import { DragDropContext } from "../context/DragDropContext";
 import DiagramSvg from "./DiagramSvg";
 
@@ -26,17 +26,12 @@ function DiagramViewer(props: DiagramViewerProps & HTMLAttributes<HTMLDivElement
     const height = `${diagramSize.height * (scale / 100) * unitMultiplier}${unit}`;
 
     useLayoutEffect(() => {
-        const rootElement = controller 
-            ? withInteractiveRoot(DiagramRoot, controller, {"stroke-width": 2.5}) 
-            : DiagramRoot;
-
-        if (root.current && container.current) {
-            const diagramDom = new DiagramDOM(diagram, root.current, rootElement);
-            diagramDom.attach();
+        if (root.current && container.current && !diagram.isAttached()) {
+            diagram.attach(root.current);
             controller?.attach(diagram, container.current);
 
             return () => {
-                diagramDom.detach(true);
+                diagram.detach(false);
                 controller?.detach();
             }
         }

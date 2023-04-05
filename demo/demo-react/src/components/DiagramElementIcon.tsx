@@ -1,5 +1,5 @@
 import { SVGAttributes, useLayoutEffect, useRef, useState } from "react";
-import { Diagram, DiagramDOM, DiagramElement, DiagramRoot } from "@carnelian/diagram";
+import { Diagram, DiagramElement, DiagramRoot } from "@carnelian/diagram";
 import DiagramSvg from "./DiagramSvg";
 
 interface DiagramElementIconProps<T extends object> {
@@ -13,19 +13,15 @@ function DiagramElementIcon<T extends object>(props: DiagramElementIconProps<T> 
     const svg = useRef<SVGSVGElement>(null);
 
     function createDiagram() {
-        const diagram = new Diagram();
+        const diagram = new Diagram(DiagramRoot);
         diagram.add(props.elementType, props.elementProps);
         return diagram;
     }
     
     useLayoutEffect(() => {
         if (svg.current) {
-            const diagramDom = new DiagramDOM(diagram, svg.current, DiagramRoot);
-            diagramDom.render();
-
-            return () => {
-                diagramDom.clear();
-            }
+            const root = svg.current;
+            diagram.render(root, true);
         }
     }, [diagram]);
 

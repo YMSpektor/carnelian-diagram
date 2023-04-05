@@ -22,7 +22,7 @@ export function useEffect(effect: Effect, dependencies: any[] | undefined) {
     const [storedEffect] = useState<StoredEffect>({});
     if (!dependencies || !storedEffect.dependencies || !compareArrays(dependencies, storedEffect.dependencies)) {
         storedEffect.dependencies = dependencies;
-        renderContext?.schedule(() => {
+        diagram?.schedule(() => {
             storedEffect.cleanup && cleanups.invokeCleanup(storedEffect.cleanup);
             const cleanup = storedEffect.cleanup = effect();
             if (cleanup) {

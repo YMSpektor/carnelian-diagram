@@ -1,5 +1,5 @@
 import { ComponentChildren } from "./jsx-runtime";
-import { createProperties, diff, patch, VChild, VNode, VTree } from "virtual-dom";
+import { createProperties, diff, patch, VChild, VNode } from "virtual-dom";
 import { DiagramNode, isVirtualNode } from "./diagram";
 
 export type HyperscriptChild = undefined | null | VChild | HyperscriptChild[];
