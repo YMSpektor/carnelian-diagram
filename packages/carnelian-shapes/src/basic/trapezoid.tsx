@@ -60,6 +60,6 @@ export const Trapezoid: DiagramElement<TrapezoidProps> = function(props) {
 
 export const InteractiveTrapezoid = 
     withInteractiveRect(
-        withKnob(knobController, Trapezoid),
+        withKnob(Trapezoid, knobController),
         (props) => PolygonCollider(toPolygon(props))
     );

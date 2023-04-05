@@ -49,5 +49,5 @@ export const RoundedRect: DiagramElement<RoundedRectProps> = function(props) {
 
 export const InteractiveRoundedRect = 
     withInteractiveRect(
-        withKnob(knobController, RoundedRect)
+        withKnob(RoundedRect, knobController)
     );

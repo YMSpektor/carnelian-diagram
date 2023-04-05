@@ -12,7 +12,8 @@ import {
     InteractiveSquare as Square,
     InteractiveCircle as Circle,
     InteractiveDonut as Donut,
-    InteractiveCross as Cross
+    InteractiveCross as Cross,
+    InteractivePie as Pie
 } from "@carnelian/shapes/basic";
 
 export const controller = new InteractionController();
@@ -159,6 +160,18 @@ addToPalette({
         ...props,
         x: point.x - props.width / 2,
         y: point.y - props.height / 2
+    }),
+});
+
+addToPalette({
+    elementType: Pie,
+    elementProps: {x: 160, y: 160, radius: 150, startAngle: 45, endAngle: -45},
+    viewBox: "0 0 340 340",
+    title: "Pie",
+    factory: (point, props) => ({
+        ...props,
+        x: point.x,
+        y: point.y
     }),
 });
 

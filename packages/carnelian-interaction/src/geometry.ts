@@ -36,6 +36,14 @@ export function clamp(x: number, a: number, b: number): number {
     return Math.max(a, Math.min(b, x));
 }
 
+export function degToRad(angle: number): number {
+    return angle * Math.PI / 180;
+}
+
+export function radToDeg(angle: number): number {
+    return angle * 180 / Math.PI;
+}
+
 export function distanceSquared(p1: Point, p2: Point): number {
     return sqr(p1.x - p2.x) + sqr(p1.y - p2.y);
 }
@@ -178,7 +186,7 @@ export function pointInRect(p: Point, r: Rect): boolean {
     return p.x >= r.x && p.y >= r.y && p.x <= r.x + r.width && p.y <= r.y + r.height;
 }
 
-export function pointInHalfspace(p: Point, a: Point, b: Point): boolean {
+export function pointInHalfplane(p: Point, a: Point, b: Point): boolean {
     return ((b.x - a.x) * (p.y - a.y) - (b.y - a.y) * (p.x - a.x)) >= 0;
 }
 
@@ -214,6 +222,15 @@ export function unionRect(a: Rect, b: Rect): Rect {
         y: y1,
         width: x2 - x1,
         height: y2 - y1
+    }
+}
+
+export function inflateRect(r: Rect, value: number): Rect {
+    return {
+        x: r.x - value,
+        y: r.y - value,
+        width: r.width + value * 2,
+        height: r.height + value * 2
     }
 }
 

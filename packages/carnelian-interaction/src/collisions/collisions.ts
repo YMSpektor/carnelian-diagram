@@ -1,4 +1,4 @@
-import { Circle, circleBounds, containsRect, distance, distanceSquared, Ellipse, ellipseBounds, extendLine, intersectLines, intersectRect, Line, lineDistance, Point, pointInCircle, pointInEllipse, pointInHalfspace, pointInPolygon, pointInRect, pointOnCircle, pointOnEllipse, pointOnPolygon, pointOnRect, Polygon, polygonBounds, Rect, rectPoints, segmentDistance, sqr } from "../geometry";
+import { Circle, circleBounds, containsRect, distance, distanceSquared, Ellipse, ellipseBounds, extendLine, intersectLines, intersectRect, Line, lineDistance, Point, pointInCircle, pointInEllipse, pointInHalfplane, pointInPolygon, pointInRect, pointOnCircle, pointOnEllipse, pointOnPolygon, pointOnRect, Polygon, polygonBounds, Rect, rectPoints, segmentDistance, sqr } from "../geometry";
 import { Shapes, Intersection, Point2D } from "kld-intersections";
 
 export type CollisionResult = null | {
@@ -108,8 +108,8 @@ export namespace CollisionFunctions {
         return null;
     }
 
-    export function pointHalfspace(p: Point, hs: Line): CollisionResult {
-        const result = pointInHalfspace(p, hs.a, hs.b);
+    export function pointHalfplane(p: Point, hs: Line): CollisionResult {
+        const result = pointInHalfplane(p, hs.a, hs.b);
         if (result) {
             const inside = lineDistance(p, hs.a, hs.b) > 0.01
             return {
@@ -135,46 +135,46 @@ export namespace CollisionFunctions {
     }
 
     export function lineRect(line: Line, rect: Rect): CollisionResult {
-        if (pointInRect(line.a, rect) && pointInRect(line.b, rect)) {
+        const points = rectPoints(rect);
+        const pts = points.reduce<Point[]>((acc, p, i) => {
+            const next = i < points.length - 1 ? i + 1 : 0;
+            const result = lineLine({ a: p, b: points[next] }, line);
+            return result ? acc.concat(result.points) : acc
+        }, []);
+        if (pts.length) {
             return {
-                inside: true,
-                contains: false,
-                points: []
-            }
-        }
-        else {
-            const points = rectPoints(rect);
-            const pts = points.reduce<Point[]>((acc, p, i) => {
-                const next = i < points.length - 1 ? i + 1 : 0;
-                const result = lineLine({ a: p, b: points[next] }, line);
-                return result ? acc.concat(result.points) : acc
-            }, []);
-            return pts.length ? {
                 inside: false,
                 contains: false,
                 points: pts
-            } : null
+            }
+        }
+        else {
+            return pointInRect(line.a, rect) && pointInRect(line.b, rect) ? ({
+                inside: true,
+                contains: false,
+                points: []
+            }) : null
         }
     }
 
     export function lineCircle(line: Line, circle: Circle): CollisionResult {
         const { a, b } = line;
-        if (pointInCircle(a, circle) && pointInCircle(b, circle)) {
+        const shape1 = Shapes.line(new Point2D(a.x, a.y), new Point2D(b.x, b.y));
+        const shape2 = Shapes.circle(new Point2D(circle.center.x, circle.center.y), circle.radius);
+        const pts = Intersection.intersect(shape1, shape2).points;
+        if (pts.length) {
             return {
-                inside: true,
-                contains: false,
-                points: []
-            }
-        }
-        else {
-            const shape1 = Shapes.line(new Point2D(a.x, a.y), new Point2D(b.x, b.y));
-            const shape2 = Shapes.circle(new Point2D(circle.center.x, circle.center.y), circle.radius);
-            const pts = Intersection.intersect(shape1, shape2).points;
-            return pts.length ? {
                 inside: false,
                 contains: false,
                 points: pts.map(p => ({x: p.x, y: p.y}))
-            } : null
+            }
+        }
+        else {
+            return pointInCircle(a, circle) && pointInCircle(b, circle) ? ({
+                inside: true,
+                contains: false,
+                points: []
+            }) : null
         }
     }
 
@@ -185,23 +185,23 @@ export namespace CollisionFunctions {
         if (e.rx === 0) {
             return lineLine(line, {a: {y: e.center.y - e.ry, x: e.center.x}, b: {y: e.center.y + e.ry, x: e.center.x}})
         }
-        if (pointInEllipse(line.a, e) && pointInEllipse(line.b, e)) {
+        const { a, b } = line;
+        const shape1 = Shapes.line(new Point2D(a.x, a.y), new Point2D(b.x, b.y));
+        const shape2 = Shapes.ellipse(new Point2D(e.center.x, e.center.y), e.rx, e.ry);
+        const pts = Intersection.intersect(shape1, shape2).points;
+        if (pts.length) {
             return {
-                inside: true,
-                contains: false,
-                points: []
-            }
-        }
-        else {
-            const { a, b } = line;
-            const shape1 = Shapes.line(new Point2D(a.x, a.y), new Point2D(b.x, b.y));
-            const shape2 = Shapes.ellipse(new Point2D(e.center.x, e.center.y), e.rx, e.ry);
-            const pts = Intersection.intersect(shape1, shape2).points;
-            return pts.length ? {
                 inside: false,
                 contains: false,
                 points: pts.map(p => ({x: p.x, y: p.y}))
-            } : null
+            }
+        }
+        else {
+            return pointInEllipse(a, e) && pointInEllipse(b, e) ? ({
+                inside: true,
+                contains: false,
+                points: []
+            }) : null
         }
     }
 
@@ -229,7 +229,7 @@ export namespace CollisionFunctions {
         }
     }
 
-    export function lineHalfspace(line: Line, hs: Line): CollisionResult {
+    export function lineHalfplane(line: Line, hs: Line): CollisionResult {
         const p = intersectLines(line, hs, false, true);
         if (p) {
             return {
@@ -239,7 +239,7 @@ export namespace CollisionFunctions {
             }
         }
         else {
-            return pointInHalfspace(line.a, hs.a, hs.b) && pointInHalfspace(line.b, hs.a, hs.b) ? ({
+            return pointInHalfplane(line.a, hs.a, hs.b) && pointInHalfplane(line.b, hs.a, hs.b) ? ({
                 inside: true,
                 contains: false,
                 points: []
@@ -362,7 +362,7 @@ export namespace CollisionFunctions {
         }
     }
 
-    export function circleHalfspace(circle: Circle, hs: Line): CollisionResult {
+    export function circleHalfplane(circle: Circle, hs: Line): CollisionResult {
         const line = extendLine(hs, circleBounds(circle));
         const result = lineCircle(line, circle);
         if (result) {
@@ -373,7 +373,7 @@ export namespace CollisionFunctions {
             }
         }
         else {
-            return pointInHalfspace(circle.center, hs.a, hs.b) ? ({
+            return pointInHalfplane(circle.center, hs.a, hs.b) ? ({
                 inside: true,
                 contains: false,
                 points: []
@@ -472,7 +472,7 @@ export namespace CollisionFunctions {
         }
     }
 
-    export function ellipseHalfspace(e: Ellipse, hs: Line): CollisionResult {
+    export function ellipseHalfplane(e: Ellipse, hs: Line): CollisionResult {
         const line = extendLine(hs, ellipseBounds(e));
         const result = lineEllipse(line, e);
         if (result) {
@@ -483,7 +483,7 @@ export namespace CollisionFunctions {
             }
         }
         else {
-            return pointInHalfspace(e.center, hs.a, hs.b) ? ({
+            return pointInHalfplane(e.center, hs.a, hs.b) ? ({
                 inside: true,
                 contains: false,
                 points: []
@@ -551,7 +551,7 @@ export namespace CollisionFunctions {
         }
     }
 
-    export function rectHalfspace(r: Rect, hs: Line): CollisionResult {
+    export function rectHalfplane(r: Rect, hs: Line): CollisionResult {
         const line = extendLine(hs, r);
         const result = lineRect(line, r);
         if (result) {
@@ -562,7 +562,7 @@ export namespace CollisionFunctions {
             }
         }
         else {
-            return pointInHalfspace({x: r.x, y: r.y}, hs.a, hs.b) ? ({
+            return pointInHalfplane({x: r.x, y: r.y}, hs.a, hs.b) ? ({
                 inside: true,
                 contains: false,
                 points: []
@@ -603,7 +603,7 @@ export namespace CollisionFunctions {
         }
     }
 
-    export function polygonHalfspace(polygon: Polygon, hs: Line): CollisionResult {
+    export function polygonHalfplane(polygon: Polygon, hs: Line): CollisionResult {
         if (!polygon.length) return null;
         const line = extendLine(hs, polygonBounds(polygon)!);
         const result = linePolygon(line, polygon);
@@ -615,7 +615,7 @@ export namespace CollisionFunctions {
             }
         }
         else {
-            return pointInHalfspace(polygon[0], hs.a, hs.b) ? ({
+            return pointInHalfplane(polygon[0], hs.a, hs.b) ? ({
                 inside: true,
                 contains: false,
                 points: []
@@ -623,7 +623,7 @@ export namespace CollisionFunctions {
         }
     }
 
-    export function halfspaceHalfspace(a: Line, b: Line): CollisionResult {
+    export function halfplaneHalfplane(a: Line, b: Line): CollisionResult {
         const p = intersectLines(a, b, true, true);
         if (p) {
             return {
@@ -633,8 +633,8 @@ export namespace CollisionFunctions {
             }
         }
         else {
-            const AinB = pointInHalfspace(a.a, b.a, b.b);
-            const BinA = pointInHalfspace(b.a, a.a, a.b);
+            const AinB = pointInHalfplane(a.a, b.a, b.b);
+            const BinA = pointInHalfplane(b.a, a.a, a.b);
             return AinB || BinA ? {
                 inside: AinB && !BinA,
                 contains: BinA && !AinB,

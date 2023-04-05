@@ -9,6 +9,7 @@ export * from "./square";
 export * from "./circle";
 export * from "./donut";
 export * from "./cross";
+export * from "./pie";
 
 export interface ClosedFigureStyleProps {
     style?: {
@@ -38,3 +39,4 @@ export interface RawCircleProps {
 
 export interface RectBaseProps extends RawRectProps, ClosedFigureStyleProps {}
 export interface SquareBaseProps extends RawSquareProps, ClosedFigureStyleProps {}
+export interface CircleBaseProps extends RawCircleProps, ClosedFigureStyleProps {}

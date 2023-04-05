@@ -1,20 +1,13 @@
 /** @jsxImportSource @carnelian/diagram */
 
 import { DiagramElement, DiagramElementProps } from "@carnelian/diagram";
-import { HandleControl, HitArea, MovementActionPayload, useControls } from "@carnelian/interaction";
-import { Point } from "@carnelian/interaction/geometry";
+import { HandleControl, HitArea, MovementActionPayload, useControls } from "..";
+import { Point } from "../geometry";
 
 export interface KnobController<T extends object, D = any> {
     hitArea: HitArea<D> | ((props: T) => HitArea<D>);
     getPosition(props: T): Point;
     setPosition<D>(props: DiagramElementProps<T>, pos: Point, hitArea: HitArea<D>): DiagramElementProps<T>;
-}
-
-export function withKnob<T extends object>(knobController: KnobController<T>, WrappedElement: DiagramElement<T>): DiagramElement<T> {
-    return (props) => {
-        useKnob(knobController, props);        
-        return <WrappedElement {...props} />;
-    }
 }
 
 export function useKnob<T extends object>(knobController: KnobController<T>, props: DiagramElementProps<T>) {
@@ -37,4 +30,18 @@ export function useKnob<T extends object>(knobController: KnobController<T>, pro
             />
         )
     });
+}
+
+export function withKnob<T extends object>(WrappedElement: DiagramElement<T>, knobController: KnobController<T>): DiagramElement<T> {
+    return (props) => {
+        useKnob(knobController, props);        
+        return <WrappedElement {...props} />;
+    }
+}
+
+export function withKnobs<T extends object>(WrappedElement: DiagramElement<T>, ...knobControllers: KnobController<T>[]): DiagramElement<T> {
+    return (props) => {
+        knobControllers.forEach(knobController => useKnob(knobController, props));        
+        return <WrappedElement {...props} />;
+    }
 }

@@ -60,15 +60,15 @@ export function PolygonCollider(polygon: Polygon): Collider<Polygon> {
     return Collider("polygon", polygon, polygonBounds(polygon) || {x: 0, y: 0, width: 0, height: 0});
 }
 
-export function HalfSpaceCollider(hs: Line): Collider<Line> {
-    return Collider("halfspace", hs, null);
+export function HalfPlaneCollider(hs: Line): Collider<Line> {
+    return Collider("halfplane", hs, null);
 }
 
 export function EmptyCollider(): Collider<null> {
     return Collider(() => null, null, {x: 0, y: 0, width: 0, height: 0});
 }
 
-export function UnionCollider(children: Collider<any>[]): Collider<Collider<any>[]> {
+export function UnionCollider(...children: Collider<any>[]): Collider<Collider<any>[]> {
     const childrenBounds = children.map(x => x.bounds);
     const bounds = childrenBounds.some(x => !x) ? null : unionRects(childrenBounds as Rect[]);
     return {
@@ -89,20 +89,37 @@ export function UnionCollider(children: Collider<any>[]): Collider<Collider<any>
     }
 }
 
-export function IntersectionCollider(children: Collider<any>[]): Collider<Collider<any>[]> {
+export function IntersectionCollider(...children: Collider<any>[]): Collider<Collider<any>[]> {
     const bounds = intersectRects(children.filter(x => x.bounds).map(x => x.bounds!));
     return {
         type: (children, other, tolerance) => {
             const results = children.map(child => collide(child, other, tolerance));
-            const points = results.reduce<Point[]>((acc, cur) => cur ? acc.concat(cur.points) : acc, []);
-            return results.every(x => !!x) ? {
-                inside: results.some(x => x?.inside) || (!!points.length && points.every(p => {
+            if (results.some(x => !x)) {
+                return null;
+            }
+            // Filter only the points inside one of the children
+            const points = results
+                .reduce<Point[]>((acc, cur) => cur ? acc.concat(cur.points) : acc, [])
+                .filter(p => {
                     const results = children.map(child => collide(PointCollider(p), child));
-                    return results.every(x => x && !x.inside);
-                })),
-                contains: results.every(x => x?.contains),
-                points
-            } : null;
+                    return results.some(x => x && x.inside);
+                });
+            if (points.length) {
+                return {
+                    inside: false,
+                    contains: false,
+                    points
+                }
+            }
+            else {
+                const inside = results.some(x => x?.inside);
+                const contains = results.every(x => x?.contains);
+                return inside || contains ? {
+                    inside,
+                    contains,
+                    points
+                } : null
+            }
         },
         props: children,
         bounds
@@ -119,7 +136,7 @@ export function InverseCollider(child: Collider<any>): Collider<Collider<any>> {
 }
 
 export function DiffCollider(a: Collider<any>, b: Collider<any>) {
-    return IntersectionCollider([a, InverseCollider(b)]);
+    return IntersectionCollider(a, InverseCollider(b));
 }
 
 export function isPointCollider(collider: Collider<any>): collider is Collider<Point> {
@@ -171,31 +188,31 @@ CollisionDetections.register("point", "circle", CollisionFunctions.pointCircle);
 CollisionDetections.register("point", "ellipse", CollisionFunctions.pointEllipse);
 CollisionDetections.register("point", "rect", CollisionFunctions.pointRect);
 CollisionDetections.register("point", "polygon", CollisionFunctions.pointPolygon);
-CollisionDetections.register("point", "halfspace", CollisionFunctions.pointHalfspace);
+CollisionDetections.register("point", "halfplane", CollisionFunctions.pointHalfplane);
 
 CollisionDetections.register("line", "line", CollisionFunctions.lineLine);
 CollisionDetections.register("line", "circle", CollisionFunctions.lineCircle);
 CollisionDetections.register("line", "ellipse", CollisionFunctions.lineEllipse);
 CollisionDetections.register("line", "rect", CollisionFunctions.lineRect);
 CollisionDetections.register("line", "polygon", CollisionFunctions.linePolygon);
-CollisionDetections.register("line", "halfspace", CollisionFunctions.lineHalfspace);
+CollisionDetections.register("line", "halfplane", CollisionFunctions.lineHalfplane);
 
 CollisionDetections.register("circle", "circle", CollisionFunctions.circleCircle);
 CollisionDetections.register("circle", "ellipse", CollisionFunctions.circleEllipse);
 CollisionDetections.register("circle", "rect", CollisionFunctions.circleRect);
 CollisionDetections.register("circle", "polygon", CollisionFunctions.circlePolygon);
-CollisionDetections.register("circle", "halfspace", CollisionFunctions.circleHalfspace);
+CollisionDetections.register("circle", "halfplane", CollisionFunctions.circleHalfplane);
 
 CollisionDetections.register("ellipse", "ellipse", CollisionFunctions.ellipseEllipse);
 CollisionDetections.register("ellipse", "rect", CollisionFunctions.ellipseRect);
 CollisionDetections.register("ellipse", "polygon", CollisionFunctions.ellipsePolygon);
-CollisionDetections.register("ellipse", "halfspace", CollisionFunctions.ellipseHalfspace);
+CollisionDetections.register("ellipse", "halfplane", CollisionFunctions.ellipseHalfplane);
 
 CollisionDetections.register("rect", "rect", CollisionFunctions.rectRect);
 CollisionDetections.register("rect", "polygon", CollisionFunctions.rectPolygon);
-CollisionDetections.register("rect", "halfspace", CollisionFunctions.rectHalfspace);
+CollisionDetections.register("rect", "halfplane", CollisionFunctions.rectHalfplane);
 
 CollisionDetections.register("polygon", "polygon", CollisionFunctions.polygonPolygon);
-CollisionDetections.register("polygon", "halfspace", CollisionFunctions.polygonHalfspace);
+CollisionDetections.register("polygon", "halfplane", CollisionFunctions.polygonHalfplane);
 
-CollisionDetections.register("halfspace", "halfspace", CollisionFunctions.halfspaceHalfspace);
+CollisionDetections.register("halfplane", "halfplane", CollisionFunctions.halfplaneHalfplane);

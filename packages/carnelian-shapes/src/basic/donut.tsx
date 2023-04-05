@@ -3,10 +3,10 @@
 import { DiagramElement } from "@carnelian/diagram";
 import { CircleCollider, DiffCollider, KnobController, withInteractiveCircle, withKnob } from "@carnelian/interaction";
 import { clamp } from "@carnelian/interaction/geometry";
-import { RawCircleProps } from ".";
+import { CircleBaseProps } from ".";
 import { convertPercentage, isPercentage, NumberOrPercentage } from "../utils";
 
-export interface DonutProps extends RawCircleProps {
+export interface DonutProps extends CircleBaseProps {
     innerRadius: NumberOrPercentage;
 }
 
@@ -44,15 +44,15 @@ export const Donut: DiagramElement<DonutProps> = function(props) {
     ir = calcInnerRadius(props);
 
     const path = `
-        M${x - or},${y} a${or},${or} 0 1,0 ${or * 2},0 a${or},${or} 0 1,0 -${or * 2},0
-        M${x - ir},${y} a${ir},${ir} 0 0,1 ${ir * 2},0 a${ir},${ir} 0 0,1 -${ir * 2},0`;
+        M${x - or} ${y} a${or},${or} 0 1 0 ${or * 2} 0 a${or},${or} 0 1 0 -${or * 2} 0
+        M${x - ir} ${y} a${ir},${ir} 0 0 1 ${ir * 2} 0 a${ir},${ir} 0 0 1 -${ir * 2} 0`;
 
     return (
         <path d={path} {...rest} />
     );
 }
 export const InteractiveDonut = withInteractiveCircle(
-    withKnob(knobController, Donut),
+    withKnob(Donut, knobController),
     (props) => DiffCollider(
         CircleCollider({center: {x: props.x, y: props.y}, radius: props.radius}),
         CircleCollider({center: {x: props.x, y: props.y}, radius: calcInnerRadius(props)})

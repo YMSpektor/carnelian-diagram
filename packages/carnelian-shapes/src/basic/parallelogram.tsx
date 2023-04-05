@@ -65,6 +65,6 @@ export const Parallelogram: DiagramElement<ParallelogramProps> = function(props)
 
 export const InteractiveParallelogram = 
     withInteractiveRect(
-        withKnob(knobController, Parallelogram),
+        withKnob(Parallelogram, knobController),
         (props) => PolygonCollider(toPolygon(props))
     );

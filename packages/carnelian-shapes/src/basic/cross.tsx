@@ -78,6 +78,6 @@ export const Cross: DiagramElement<CrossProps> = function(props) {
 
 export const InteractiveCross = 
     withInteractiveRect(
-        withKnob(knobController, Cross),
+        withKnob(Cross, knobController),
         (props) => PolygonCollider(toPolygon(props))
     );

@@ -62,6 +62,6 @@ export const Hexagon: DiagramElement<HexagonProps> = function(props) {
 
 export const InteractiveHexagon = 
     withInteractiveRect(
-        withKnob(knobController, Hexagon),
+        withKnob(Hexagon, knobController),
         (props) => PolygonCollider(toPolygon(props))
     );
