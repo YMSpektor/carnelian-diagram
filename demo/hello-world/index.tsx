@@ -24,7 +24,7 @@ const svg = create(h("svg", {xmlns: "http://www.w3.org/2000/svg"}, [])) as SVGSV
 const diagram = new Diagram();
 diagram.add(Hello, {name: "World"});
 
-const dom = diagram.createDomRenderer(svg, DiagramRoot);
-dom.attach();
+const root = diagram.createRoot(svg, DiagramRoot);
+root.attach();
 
 setTimeout(() => console.log(svg.toString()), 10);

@@ -20,11 +20,11 @@ function DiagramElementIcon<T extends object>(props: DiagramElementIconProps<T> 
     
     useLayoutEffect(() => {
         if (svg.current) {
-            const diagramRenderer = diagram.createDomRenderer(svg.current, DiagramRoot);
-            diagramRenderer.render();
+            const diagramRoot = diagram.createRoot(svg.current, DiagramRoot);
+            diagramRoot.render();
 
             return () => {
-                diagramRenderer.clear();
+                diagramRoot.clear();
             }
         }
     }, [diagram]);

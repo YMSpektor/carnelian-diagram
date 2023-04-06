@@ -1,6 +1,6 @@
 /** @jsxImportSource @emotion/react */
 import { HTMLAttributes, useContext, useLayoutEffect, useRef, useState } from "react";
-import { Diagram, DiagramDOMRenderer, DiagramRoot } from "@carnelian/diagram";
+import { Diagram, DiagramRoot } from "@carnelian/diagram";
 import { InteractionController, withInteractiveRoot } from "@carnelian/interaction";
 import { DragDropContext } from "../context/DragDropContext";
 import DiagramSvg from "./DiagramSvg";
@@ -19,7 +19,7 @@ function DiagramViewer(props: DiagramViewerProps & HTMLAttributes<HTMLDivElement
     const root = useRef<SVGSVGElement>(null);
     const container = useRef<HTMLDivElement>(null);
     const dragDropContext = useContext(DragDropContext);
-    const [diagramRenderer, setDiagramRenderer] = useState<DiagramDOMRenderer | null>(null);
+    const [diagramRoot, setDiagramRoot] = useState<Diagram.Root | null>(null);
 
     unit = unit || "px";
     unitMultiplier = unitMultiplier || 1;
@@ -27,18 +27,18 @@ function DiagramViewer(props: DiagramViewerProps & HTMLAttributes<HTMLDivElement
     const height = `${diagramSize.height * (scale / 100) * unitMultiplier}${unit}`;
 
     useLayoutEffect(() => {
-        const diagramRoot = controller 
+        const rootComponent = controller 
             ? withInteractiveRoot(DiagramRoot, controller, {"stroke-width": 2.5})
             : DiagramRoot;
             
         if (root.current && container.current) {
-            const diagramRenderer = diagram.createDomRenderer(root.current, diagramRoot);
-            setDiagramRenderer(diagramRenderer);
-            diagramRenderer.attach();
+            const diagramRoot = diagram.createRoot(root.current, rootComponent);
+            setDiagramRoot(diagramRoot);
+            diagramRoot.attach();
             controller?.attach(diagram, container.current);
 
             return () => {
-                diagramRenderer.detach(true);
+                diagramRoot.detach(true);
                 controller?.detach();
             }
         }
@@ -46,8 +46,8 @@ function DiagramViewer(props: DiagramViewerProps & HTMLAttributes<HTMLDivElement
 
     useLayoutEffect(() => {
         // Render synchronously to avoid diagram control glitches when scale is changed
-        diagramRenderer?.render(true);
-    }, [diagramRenderer, scale]);
+        diagramRoot?.render(true);
+    }, [diagramRoot, scale]);
 
     function dragOverHandler(e: React.DragEvent) {
         if (controller && dragDropContext.draggedElement) {

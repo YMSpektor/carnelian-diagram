@@ -122,11 +122,13 @@ interface DiagramSubscription {
     unsubscribe: () => void;
 }
 
-export interface DiagramDOMRenderer {
-    render: (commitInvalid?: boolean) => void;
-    clear: () => void;
-    attach: () => void;
-    detach: (clearDom: boolean) => void;
+export namespace Diagram {
+    export interface Root {
+        render: (commitInvalid?: boolean) => void;
+        clear: () => void;
+        attach: () => void;
+        detach: (clearDom: boolean) => void;
+    }
 }
 
 export class Diagram {
@@ -204,7 +206,7 @@ export class Diagram {
         this.invalidate();
     }
 
-    createDomRenderer(root: SVGGraphicsElement, rootComponent: DiagramRootComponent): DiagramDOMRenderer {
+    createRoot(root: SVGGraphicsElement, rootComponent: DiagramRootComponent): Diagram.Root {
         const domBuilder = new DiagramDOMBuilder(root);
         let isAttached = false;
         let subscription: DiagramSubscription | undefined = undefined;
