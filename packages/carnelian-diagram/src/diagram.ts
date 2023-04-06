@@ -117,7 +117,6 @@ export interface DiagramRootProps {
 export type DiagramRootComponent = DiagramComponent<DiagramRootProps>;
 
 interface DiagramSubscription {
-    isValid: boolean;
     callback: () => void;
     unsubscribe: () => void;
 }
@@ -142,9 +141,8 @@ export class Diagram {
         return element;
     }
 
-    private subscribe(callback: () => void): DiagramSubscription {
+    subscribe(callback: () => void): DiagramSubscription {
         const subscription = {
-            isValid: false,
             callback,
             unsubscribe: () => {
                 this.subscriptions = this.subscriptions.filter(x => x !== subscription);
@@ -154,20 +152,11 @@ export class Diagram {
         return subscription;
     }
 
-    isValid() : boolean {
-        return this.subscriptions.every(x => x.isValid);
-    }
-
     invalidate(node?: DiagramNode) {
         if (node) {
             node.isValid = false;
         }
-        if (this.isValid()) {
-            this.subscriptions.forEach(s => {
-                s.isValid = false;
-                s.callback();
-            });
-        }
+        this.subscriptions.forEach(s => s.callback());
     }
 
     getElements(): DiagramElementNode[] {
@@ -203,13 +192,20 @@ export class Diagram {
         this.elements = [];
         this.invalidate();
     }
+}
 
-    createRoot(root: SVGGraphicsElement, rootComponent: DiagramRootComponent): DiagramRootRenderer {
+export namespace DiagramDOM {
+    export function createRoot(
+        diagram: Diagram,
+        root: SVGGraphicsElement, 
+        rootComponent: DiagramRootComponent
+    ): DiagramRootRenderer {
         const domBuilder = new DiagramDOMBuilder(root);
         let isAttached = false;
+        let isValid = false;
         let subscription: DiagramSubscription | undefined = undefined;
         let prevRootNode: DiagramNode | undefined = undefined;
-        const renderContext = new RenderContextType(this);
+        const renderContext = new RenderContextType(diagram);
     
         const initNode = <P>(node: DiagramNode<P>, prevNode?: DiagramNode<P>) => {
             node.state = prevNode?.state || node.state;
@@ -292,13 +288,13 @@ export class Diagram {
             const rootNode = createElement(App, {
                 renderContext,
                 diagramRoot: rootComponent,
-                diagramRootProps: {svg: root, children: this.elements}
+                diagramRootProps: {svg: root, children: diagram.getElements()}
             });
             prevRootNode = renderNode(rootNode, prevRootNode);
-            subscription && (subscription.isValid = true);
+            isValid = true;
             renderContext.invokePendingActions();
             renderContext.reset();
-            return subscription?.isValid || commitInvalid ? commit(rootNode) : root;
+            return isValid || commitInvalid ? commit(rootNode) : root;
         }
 
         const clear = () => {
@@ -313,7 +309,12 @@ export class Diagram {
             if (!isAttached) {
                 isAttached = true;
                 scheduleRender();
-                subscription = this.subscribe(() => scheduleRender());
+                subscription = diagram.subscribe(() => {
+                    if (isValid) {
+                        isValid = false;
+                        scheduleRender();
+                    }
+                });
             }
         }
 

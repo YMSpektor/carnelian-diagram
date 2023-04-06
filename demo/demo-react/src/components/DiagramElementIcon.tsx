@@ -1,5 +1,5 @@
 import { SVGAttributes, useLayoutEffect, useRef, useState } from "react";
-import { Diagram, DiagramElement, DiagramRoot } from "@carnelian/diagram";
+import { Diagram, DiagramDOM, DiagramElement, DiagramRoot } from "@carnelian/diagram";
 import DiagramSvg from "./DiagramSvg";
 
 interface DiagramElementIconProps<T extends object> {
@@ -20,7 +20,7 @@ function DiagramElementIcon<T extends object>(props: DiagramElementIconProps<T> 
     
     useLayoutEffect(() => {
         if (svg.current) {
-            const diagramRoot = diagram.createRoot(svg.current, DiagramRoot);
+            const diagramRoot = DiagramDOM.createRoot(diagram, svg.current, DiagramRoot);
             diagramRoot.render();
 
             return () => {

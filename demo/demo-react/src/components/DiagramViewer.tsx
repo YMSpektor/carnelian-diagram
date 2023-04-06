@@ -1,6 +1,6 @@
 /** @jsxImportSource @emotion/react */
 import { HTMLAttributes, useContext, useLayoutEffect, useRef, useState } from "react";
-import { Diagram, DiagramRoot, DiagramRootRenderer } from "@carnelian/diagram";
+import { Diagram, DiagramDOM, DiagramRoot, DiagramRootRenderer } from "@carnelian/diagram";
 import { InteractionController, withInteractiveRoot } from "@carnelian/interaction";
 import { DragDropContext } from "../context/DragDropContext";
 import DiagramSvg from "./DiagramSvg";
@@ -32,7 +32,7 @@ function DiagramViewer(props: DiagramViewerProps & HTMLAttributes<HTMLDivElement
             : DiagramRoot;
             
         if (root.current && container.current) {
-            const diagramRoot = diagram.createRoot(root.current, rootComponent);
+            const diagramRoot = DiagramDOM.createRoot(diagram, root.current, rootComponent);
             setDiagramRoot(diagramRoot);
             diagramRoot.attach();
             controller?.attach(diagram, container.current);
