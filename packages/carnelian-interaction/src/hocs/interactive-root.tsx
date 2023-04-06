@@ -65,6 +65,7 @@ export function withInteractiveRoot<P>(
         controller.elements = props.children;
 
         const handleSelect = (e: SelectEventArgs) => setSelectedElements(e.selectedElements);
+        const calcMatrix = () => props.svg.getScreenCTM?.()?.inverse();
 
         useEffect(() => {
             controller.onSelect.addListener(handleSelect);
@@ -78,7 +79,7 @@ export function withInteractiveRoot<P>(
             let curMatrix = matrix;
 
             const workloop = () => {
-                const newMatrix = props.svg.getScreenCTM?.()?.inverse() || undefined;
+                const newMatrix = calcMatrix() || undefined;
                 if ((newMatrix && !curMatrix) || 
                     (curMatrix && !newMatrix) || 
                     (newMatrix && curMatrix && (newMatrix.a !== curMatrix.a || newMatrix.b !== curMatrix.b || newMatrix.c !== curMatrix.c || newMatrix.d !== curMatrix.d || newMatrix.e !== curMatrix.e || newMatrix.f !== curMatrix.f)))
@@ -104,7 +105,7 @@ export function withInteractiveRoot<P>(
                     <DiagramElements rootProps={diagramElementRootProps}>
                         <WrappedComponent {...props} />
                     </DiagramElements>
-                    <DiagramControls matrix={matrix} controller={controller} />
+                    <DiagramControls matrix={calcMatrix()} controller={controller} />
                 </SelectionContext.Provider>
             </InteractionContext.Provider>
         )

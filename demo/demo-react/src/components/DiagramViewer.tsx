@@ -37,6 +37,11 @@ function DiagramViewer(props: DiagramViewerProps & HTMLAttributes<HTMLDivElement
         }
     }, [diagram, controller]);
 
+    useLayoutEffect(() => {
+        // Render synchronously to avoid diagram control glitches when scale is changed
+        root.current && diagram.render(root.current, true);
+    }, [diagram, scale]);
+
     function dragOverHandler(e: React.DragEvent) {
         if (controller && dragDropContext.draggedElement) {
             e.preventDefault();
