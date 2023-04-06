@@ -288,10 +288,10 @@ export class InteractionController {
         this.selecting = true;
         root.setPointerCapture(e.pointerId);
 
-        const startPoint = new DOMPoint(e.clientX, e.clientY);
+        const startPoint = new DOMPoint(e.offsetX, e.offsetY);
 
         const mouseMoveHandler = (e: PointerEvent) => {
-            const point = new DOMPoint(e.clientX, e.clientY)
+            const point = new DOMPoint(e.offsetX, e.offsetY)
 
             const selectionRect = {
                 x: Math.min(startPoint.x, point.x),
@@ -306,9 +306,9 @@ export class InteractionController {
         const mouseUpHandler = (e: PointerEvent) => {
             this.onRectSelection.emit({selectionRect: null});
 
-            if (startPoint.x !== e.clientX || startPoint.y !== e.clientY) {
+            if (startPoint.x !== e.offsetX || startPoint.y !== e.offsetY) {
                 const p1 = this.clientToDiagram(startPoint);
-                const p2 = this.clientToDiagram(new DOMPoint(e.clientX, e.clientY));
+                const p2 = this.clientToDiagram(new DOMPoint(e.offsetX, e.offsetY));
                 const selectionRect = {
                     x: Math.min(p1.x, p2.x),
                     y: Math.min(p1.y, p2.y),
@@ -343,11 +343,11 @@ export class InteractionController {
         this.dragging = true;
         root.setPointerCapture(e.pointerId);
 
-        let lastPoint = this.clientToDiagram(new DOMPoint(e.clientX, e.clientY));
+        let lastPoint = this.clientToDiagram(new DOMPoint(e.offsetX, e.offsetY));
 
         if (hitInfo.hitArea.action) {
             const mouseMoveHandler = (e: PointerEvent) => {
-                const point = new DOMPoint(e.clientX, e.clientY);
+                const point = new DOMPoint(e.offsetX, e.offsetY);
                 const elementPoint = this.clientToDiagram(point);
 
                 this.dispatch<MovementActionPayload>(
@@ -421,7 +421,7 @@ export class InteractionController {
     hitTest(e: MouseEvent) {
         if (this.transform) {
             const transform = this.transform;
-            const point = new DOMPoint(e.clientX, e.clientY);
+            const point = new DOMPoint(e.offsetX, e.offsetY);
             if (e.target && hasHitTestProps(e.target)) {
                 const elementPoint = this.clientToDiagram(point);
                 return {

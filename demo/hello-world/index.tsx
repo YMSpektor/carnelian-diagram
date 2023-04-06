@@ -21,8 +21,10 @@ function Hello(props: {name: string}) {
 }
 
 const svg = create(h("svg", {xmlns: "http://www.w3.org/2000/svg"}, [])) as SVGSVGElement;
-const doc = new Diagram(DiagramRoot);
-doc.add(Hello, {name: "World"});
-doc.attach(svg);
+const diagram = new Diagram();
+diagram.add(Hello, {name: "World"});
+
+const dom = diagram.createDomRenderer(svg, DiagramRoot);
+dom.attach();
 
 setTimeout(() => console.log(svg.toString()), 10);

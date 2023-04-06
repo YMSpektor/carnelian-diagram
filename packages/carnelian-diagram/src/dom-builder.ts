@@ -8,10 +8,10 @@ export type Hyperscript = (tagName: string, properties: createProperties, childr
 export const h: Hyperscript = require("virtual-dom/h");
 export const svg: Hyperscript = require("virtual-dom/virtual-hyperscript/svg");
 
-export class DOMBuilder {
+export class DiagramDOMBuilder {
     private lastTree: VNode;
     
-    constructor() {
+    constructor(private root: SVGGraphicsElement) {
         this.lastTree = svg("", {}, []);
     }
 
@@ -45,7 +45,7 @@ export class DOMBuilder {
         }
     }
 
-    updateDOM(rootElement: SVGGraphicsElement, rootNode: DiagramNode | null) {
+    updateDOM(rootNode: DiagramNode | null) {
         const props = rootNode ? this.transformProperties({
             className: "carnelian-diagram",
             stroke: "black",
@@ -55,6 +55,6 @@ export class DOMBuilder {
         const lastTree = this.lastTree;
         const patches = diff(lastTree, tree);
         this.lastTree = tree;
-        return patch(rootElement, patches);
+        return patch(this.root, patches);
     }
 }

@@ -13,15 +13,19 @@ function DiagramElementIcon<T extends object>(props: DiagramElementIconProps<T> 
     const svg = useRef<SVGSVGElement>(null);
 
     function createDiagram() {
-        const diagram = new Diagram(DiagramRoot);
+        const diagram = new Diagram();
         diagram.add(props.elementType, props.elementProps);
         return diagram;
     }
     
     useLayoutEffect(() => {
         if (svg.current) {
-            const root = svg.current;
-            diagram.render(root, true);
+            const diagramRenderer = diagram.createDomRenderer(svg.current, DiagramRoot);
+            diagramRenderer.render();
+
+            return () => {
+                diagramRenderer.clear();
+            }
         }
     }, [diagram]);
 
