@@ -1,6 +1,6 @@
 /** @jsxImportSource @emotion/react */
 import { HTMLAttributes, useContext, useLayoutEffect, useRef, useState } from "react";
-import { Diagram, DiagramRoot } from "@carnelian/diagram";
+import { Diagram, DiagramRoot, DiagramRootRenderer } from "@carnelian/diagram";
 import { InteractionController, withInteractiveRoot } from "@carnelian/interaction";
 import { DragDropContext } from "../context/DragDropContext";
 import DiagramSvg from "./DiagramSvg";
@@ -19,7 +19,7 @@ function DiagramViewer(props: DiagramViewerProps & HTMLAttributes<HTMLDivElement
     const root = useRef<SVGSVGElement>(null);
     const container = useRef<HTMLDivElement>(null);
     const dragDropContext = useContext(DragDropContext);
-    const [diagramRoot, setDiagramRoot] = useState<Diagram.Root | null>(null);
+    const [diagramRoot, setDiagramRoot] = useState<DiagramRootRenderer | null>(null);
 
     unit = unit || "px";
     unitMultiplier = unitMultiplier || 1;
