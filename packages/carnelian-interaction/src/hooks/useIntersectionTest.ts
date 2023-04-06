@@ -1,4 +1,4 @@
-import { RenderContext, useContext, useEffect, useRef } from "@carnelian/diagram";
+import { RenderContext, useContext, useEffect, useState } from "@carnelian/diagram";
 import { DiagramElementIntersectionTest, InteractionContext, IntersectionTestCallback } from "..";
 import { Rect } from "../geometry";
 
@@ -14,20 +14,18 @@ export function useIntersectionTest(callback: IntersectionTestCallback, bounds: 
         return;
     }
 
-    const storedIntersectionTest = useRef<DiagramElementIntersectionTest | undefined>(undefined);
+    const [key] = useState({});
 
     const intersectionTest: DiagramElementIntersectionTest = {
         element: curElement,
         callback,
         bounds
     }
-    interactions.updateIntersectionTests(intersectionTest, storedIntersectionTest.current);
-    storedIntersectionTest.current = intersectionTest; // Setting a state will cause an infinite loop
+    interactions.updateIntersectionTests(key, intersectionTest);
 
     useEffect(() => {
         return () => {
-            interactions.updateIntersectionTests(undefined, storedIntersectionTest.current);
-            storedIntersectionTest.current = undefined;
+            interactions.updateIntersectionTests(key, undefined);
         }
-    }, [interactions]);
+    }, []);
 }

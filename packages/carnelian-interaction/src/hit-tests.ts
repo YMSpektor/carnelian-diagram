@@ -29,7 +29,7 @@ export interface DiagramElementHitTest {
 }
 
 export interface HitTestCollection {
-    [priority: number]: Map<DiagramElementNode, DiagramElementHitTest[]> | undefined;
+    [priority: number]: Map<DiagramElementNode, Map<object, DiagramElementHitTest>> | undefined;
 }
 
 export interface HitTestProps {
