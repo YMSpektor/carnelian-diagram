@@ -64,6 +64,7 @@ export class ComponentCleanups {
 }
 
 export interface DiagramNode<P = any> extends VirtualNode<P> {
+    lastRoot?: DiagramNode;
     parent?: DiagramNode;
     children: ComponentChild[];
     state?: ComponentState;
@@ -204,14 +205,15 @@ export namespace DiagramDOM {
         let isAttached = false;
         let isValid = false;
         let subscription: DiagramSubscription | undefined = undefined;
-        let prevRootNode: DiagramNode | undefined = undefined;
+        let renderedRootNode: DiagramNode | undefined = undefined;
+        let storedRootNode: DiagramNode | undefined = undefined;
         const renderContext = new RenderContextType(diagram);
     
         const initNode = <P>(node: DiagramNode<P>, prevNode?: DiagramNode<P>) => {
             node.state = prevNode?.state || node.state;
             node.cleanups = prevNode?.cleanups || node.cleanups;
-            node.context = node.context || prevNode?.context;
-            node.contextValue = node.contextValue || prevNode?.contextValue;
+            node.context = prevNode?.context || node.context;
+            node.contextValue = prevNode?.contextValue || node.contextValue;
             node.subscriptions = prevNode?.subscriptions || node.subscriptions;
             node.state?.reset();
         }
@@ -223,16 +225,21 @@ export namespace DiagramDOM {
             }
         }
     
-        const renderNode = <P>(node: DiagramNode<P>, prevNode?: DiagramNode<P>, parent?: DiagramNode<any>): DiagramNode<P> => {
+        const renderNode = <P>(node: DiagramNode<P>, lastRoot?: DiagramNode, prevNode?: DiagramNode<P>, parent?: DiagramNode): DiagramNode<P> => {
             renderContext.currentNode = node;
             initNode(node, prevNode);
+            // If the node renders to another DOM it must be invalidated
+            if (node.isValid && node.lastRoot !== lastRoot) {
+                node.isValid = false;
+            }
             node.parent = parent;
             
             const nodesToRender: {node: DiagramNode<unknown>, prevNode?: DiagramNode<unknown>, parent?: DiagramNode<P>}[] = [];
             if (node.isValid) {
-                node.children.forEach(child => {
+                node.children.forEach((child, i) => {
                     if (isDiagramNode(child)) {
-                        nodesToRender.push({node: child, prevNode: child, parent: node});
+                        const prevChild = prevNode?.children[i] as DiagramNode;
+                        nodesToRender.push({node: child, prevNode: prevChild, parent: node});
                     }
                 });
             }
@@ -278,10 +285,19 @@ export namespace DiagramDOM {
                 prevChildren?.forEach(x => unmount(x));
             }
     
-            nodesToRender.forEach(x => renderNode(x.node, x.prevNode, x.parent));
+            nodesToRender.forEach(x => renderNode(x.node, lastRoot, x.prevNode, x.parent));
             node.isValid = true;
     
             return node;
+        }
+
+        // Stores the node state to avoid sudden changes when it has been rendered to another DOM
+        function updateLastRootAndStore(node: DiagramNode, lastRoot?: DiagramNode, parent?: DiagramNode): DiagramNode {
+            node.lastRoot = lastRoot;
+            const result = {...node};
+            result.parent = parent;
+            result.children = node.children.map(x => isDiagramNode(x) ? updateLastRootAndStore(x, lastRoot, result) : x);
+            return result;
         }
 
         const render = (commitInvalid: boolean = true): SVGGraphicsElement => {
@@ -290,7 +306,8 @@ export namespace DiagramDOM {
                 diagramRoot: rootComponent,
                 diagramRootProps: {svg: root, children: diagram.getElements()}
             });
-            prevRootNode = renderNode(rootNode, prevRootNode);
+            renderedRootNode = renderNode(rootNode, renderedRootNode, storedRootNode);
+            storedRootNode = updateLastRootAndStore(renderedRootNode, renderedRootNode);
             isValid = true;
             renderContext.invokePendingActions();
             renderContext.reset();
