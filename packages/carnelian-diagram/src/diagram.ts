@@ -210,11 +210,11 @@ export namespace DiagramDOM {
         const renderContext = new RenderContextType(diagram);
     
         const initNode = <P>(node: DiagramNode<P>, prevNode?: DiagramNode<P>) => {
-            node.state = prevNode?.state || node.state;
-            node.cleanups = prevNode?.cleanups || node.cleanups;
-            node.context = prevNode?.context || node.context;
-            node.contextValue = prevNode?.contextValue || node.contextValue;
-            node.subscriptions = prevNode?.subscriptions || node.subscriptions;
+            node.state = prevNode?.state;
+            node.cleanups = prevNode?.cleanups;
+            node.context = prevNode?.context;
+            node.contextValue = prevNode?.contextValue;
+            node.subscriptions = prevNode?.subscriptions;
             node.state?.reset();
         }
     
