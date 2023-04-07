@@ -118,11 +118,13 @@ export interface DiagramRootProps {
 export type DiagramRootComponent = DiagramComponent<DiagramRootProps>;
 
 interface DiagramSubscription {
-    callback: () => void;
+    callback: (node?: DiagramNode) => void;
     unsubscribe: () => void;
 }
 
 export interface DiagramRootRenderer {
+    isValid: () => boolean;
+    invalidate: (node?: DiagramNode) => void;
     render: (commitInvalid?: boolean) => void;
     clear: () => void;
     attach: () => void;
@@ -142,7 +144,7 @@ export class Diagram {
         return element;
     }
 
-    subscribe(callback: () => void): DiagramSubscription {
+    subscribe(callback: (node?: DiagramNode) => void): DiagramSubscription {
         const subscription = {
             callback,
             unsubscribe: () => {
@@ -154,10 +156,7 @@ export class Diagram {
     }
 
     invalidate(node?: DiagramNode) {
-        if (node) {
-            node.isValid = false;
-        }
-        this.subscriptions.forEach(s => s.callback());
+        this.subscriptions.forEach(s => s.callback(node));
     }
 
     getElements(): DiagramElementNode[] {
@@ -207,7 +206,7 @@ export namespace DiagramDOM {
         let subscription: DiagramSubscription | undefined = undefined;
         let renderedRootNode: DiagramNode | undefined = undefined;
         let storedRootNode: DiagramNode | undefined = undefined;
-        const renderContext = new RenderContextType(diagram);
+        const renderContext = new RenderContextType((node) => invalidate(node));
     
         const initNode = <P>(node: DiagramNode<P>, prevNode?: DiagramNode<P>) => {
             node.state = prevNode?.state;
@@ -322,16 +321,21 @@ export namespace DiagramDOM {
             return domBuilder.updateDOM(node);
         }
 
+        const invalidate = (node?: DiagramNode) => {
+            if (node) {
+                node.isValid = false;
+            }
+            if (isValid) {
+                isValid = false;
+                scheduleRender();
+            }
+        }
+
         const attach = () => {
             if (!isAttached) {
                 isAttached = true;
                 scheduleRender();
-                subscription = diagram.subscribe(() => {
-                    if (isValid) {
-                        isValid = false;
-                        scheduleRender();
-                    }
-                });
+                subscription = diagram.subscribe((node) => invalidate(node));
             }
         }
 
@@ -353,6 +357,8 @@ export namespace DiagramDOM {
         }
 
         return {
+            isValid: () => isValid,
+            invalidate,
             render,
             clear,
             attach,
@@ -367,7 +373,7 @@ export class RenderContextType {
     private tasks: Array<() => void> = [];
     currentNode?: DiagramNode;
 
-    constructor(public currentDiagram: Diagram) {}
+    constructor(public invalidate: (node?: DiagramNode) => void) {}
 
     schedule(task: () => void) {
         this.tasks.push(task);
