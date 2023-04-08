@@ -34,13 +34,17 @@ export interface SelectEventArgs {
     selectedElements: DiagramElementNode[];
 }
 
+export interface DeleteEventArg {
+    elements: DiagramElementNode[];
+    requestConfirmation(promise: Promise<boolean>): void;
+}
+
 export interface RectSelectionEventArgs {
     selectionRect: Rect | null;
 }
 
-export interface DeleteEventArg {
-    elements: DiagramElementNode[];
-    requestConfirmation(promise: Promise<boolean>): void;
+export interface PaperChangeEventArgs {
+    paper: PaperOptions | undefined;
 }
 
 export type ControlProps = Partial<CreateHitTestProps> & {
@@ -50,6 +54,13 @@ export type ControlProps = Partial<CreateHitTestProps> & {
 export type RenderHandleCallback = (kind: string, x: number, y: number, otherProps: ControlProps) => JSX.Element;
 export type RenderEdgeCallback = (kind: string, x1: number, y1: number, x2: number, y2: number, otherProps: ControlProps) => JSX.Element;
 export type DispatchActionCallback<T> = (elements: DiagramElementNode[], action: string, payload: T) => void;
+
+export interface PaperOptions {
+    x: number;
+    y: number;
+    width: number;
+    height: number;
+}
 
 export interface InteractionControllerOptions {
     dispatchAction?: <T>(
@@ -62,6 +73,7 @@ export interface InteractionControllerOptions {
     ) => void;
     renderHandleControl?: AddParameters<RenderHandleCallback, [RenderHandleCallback]>;
     renderEdgeControl?: AddParameters<RenderEdgeCallback, [RenderEdgeCallback]>;
+    paper?: PaperOptions;
 }
 
 export class InteractionController {
@@ -73,18 +85,21 @@ export class InteractionController {
     private dragging = false;
     private selecting = false;
     private selectedElements = new Set<DiagramElementNode>();
+    private paper?: PaperOptions;
     elements: DiagramElementNode[] = [];
     transform?: DOMMatrixReadOnly;
     interactionContext: InteractionContextType;
     controlsContext: ControlsContextType;
 
     onSelect = new Event<SelectEventArgs>();
-    onRectSelection = new Event<RectSelectionEventArgs>();
     onDelete = new Event<DeleteEventArg>();
+    onRectSelection = new Event<RectSelectionEventArgs>();
+    onPaperChange = new Event<PaperChangeEventArgs>();
 
-    constructor(public options?: InteractionControllerOptions) {
+    constructor(private options?: InteractionControllerOptions) {
         this.interactionContext = this.createInteractionContext();
         this.controlsContext = this.createControlsContext();
+        this.paper = options?.paper;
     }
 
     attach(diagram: Diagram, root: HTMLElement) {
@@ -483,5 +498,14 @@ export class InteractionController {
         else {
             this.dispatchDefault(elements, action, payload);
         }
+    }
+
+    getPaperOptions(): PaperOptions | undefined {
+        return this.paper;
+    }
+
+    updatePaper(paper: PaperOptions | undefined) {
+        this.paper = paper;
+        this.onPaperChange.emit({paper});
     }
 }

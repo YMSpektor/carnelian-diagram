@@ -126,6 +126,7 @@ export interface DiagramRootRenderer {
     invalidate: (node?: DiagramNode) => void;
     render: (commitInvalid?: boolean) => void;
     clear: () => void;
+    isAttached: () => boolean;
     attach: () => void;
     detach: (clearDom: boolean) => void;
 }   
@@ -362,6 +363,7 @@ export namespace DiagramDOM {
             invalidate,
             render,
             clear,
+            isAttached: () => isAttached,
             attach,
             detach
         }

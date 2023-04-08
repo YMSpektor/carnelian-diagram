@@ -5,6 +5,8 @@ import {
     ControlsContext,
     InteractionContext, 
     InteractionController, 
+    PaperChangeEventArgs, 
+    PaperOptions, 
     RectSelectionEventArgs, 
     SelectEventArgs, 
     SelectionContext
@@ -12,6 +14,14 @@ import {
 import { scheduleIdle } from "@carnelian/diagram/utils/schedule";
 import { JSX } from "@carnelian/diagram/jsx-runtime";
 import { Rect } from "../geometry";
+
+function DiagramPaper(props: PaperOptions) {
+    return (
+        <g className="paper-container">
+            <rect className="paper" {...props} />
+        </g>
+    )
+}
 
 function DiagramElements<P>(props: { children: JSX.Element, rootProps: P }) {
     return (
@@ -53,24 +63,33 @@ function DiagramControls(props: DiagramControlsProps) {
     );
 }
 
+export interface InteractiveRootOptions<P> {
+    elementsRootProps?: P;
+}
+
 export function withInteractiveRoot<P>( 
     WrappedComponent: DiagramRootComponent,
     controller: InteractionController,
-    diagramElementRootProps?: P
+    options?: InteractiveRootOptions<P>
 ): DiagramRootComponent {
     return (props: DiagramRootProps) => {
         const [matrix, setMatrix] = useState<DOMMatrix | undefined>(undefined);
         const [selectedElements, setSelectedElements] = useState<DiagramElementNode[]>([]);
+        const [paper, setPaper] = useState(controller.getPaperOptions());
 
         controller.elements = props.children;
 
         const handleSelect = (e: SelectEventArgs) => setSelectedElements(e.selectedElements);
+        const handlePaperChange = (e: PaperChangeEventArgs) => setPaper(e.paper);
         const calcMatrix = () => props.svg.getCTM?.()?.inverse();
 
         useEffect(() => {
             controller.onSelect.addListener(handleSelect);
+            controller.onPaperChange.addListener(handlePaperChange);
+
             return () => {
                 controller.onSelect.removeListener(handleSelect);
+                controller.onPaperChange.removeListener(handlePaperChange);
             }
         }, [controller]);
 
@@ -102,7 +121,8 @@ export function withInteractiveRoot<P>(
         return (
             <InteractionContext.Provider value={controller.interactionContext}>
                 <SelectionContext.Provider value={selectedElements}>
-                    <DiagramElements rootProps={diagramElementRootProps}>
+                    {paper && <DiagramPaper {...paper} />}
+                    <DiagramElements rootProps={options?.elementsRootProps}>
                         <WrappedComponent {...props} />
                     </DiagramElements>
                     <DiagramControls matrix={calcMatrix()} controller={controller} />
