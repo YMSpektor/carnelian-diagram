@@ -53,16 +53,18 @@ export function createContext<T>(defaultValue: T): Context<T> {
     }
 
     context.provide = (node: DiagramNode, value: T) => {
-        if (value !== node.contextValue) {
-            node.subscriptions?.forEach(x => x.isValid = false);
-        }
         node.context = context;
         node.contextValue = value;
         // Root element context must be RenderContext
-        while (node.parent) {
-            node = node.parent;
+        let root = node;
+        while (root.parent) {
+            root = root.parent;
         }
-        context.renderContext = node.contextValue;
+        context.renderContext = root.contextValue;
+
+        if (value !== node.contextValue) {
+            node.subscriptions?.forEach(x => x.isValid = false);
+        }
     }
 
     context.Provider = function(props) {

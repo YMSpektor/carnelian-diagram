@@ -64,7 +64,6 @@ export class ComponentCleanups {
 }
 
 export interface DiagramNode<P = any> extends VirtualNode<P> {
-    lastRoot?: DiagramNode;
     parent?: DiagramNode;
     children: ComponentChild[];
     state?: ComponentState;
@@ -204,9 +203,9 @@ export namespace DiagramDOM {
         let isAttached = false;
         let isValid = false;
         let subscription: DiagramSubscription | undefined = undefined;
-        let renderedRootNode: DiagramNode | undefined = undefined;
         let storedRootNode: DiagramNode | undefined = undefined;
         const renderContext = new RenderContextType((node) => invalidate(node));
+        const storedNodesMap = new Map<DiagramNode, DiagramNode>();
     
         const initNode = <P>(node: DiagramNode<P>, prevNode?: DiagramNode<P>) => {
             node.state = prevNode?.state;
@@ -214,6 +213,9 @@ export namespace DiagramDOM {
             node.context = prevNode?.context;
             node.contextValue = prevNode?.contextValue;
             node.subscriptions = prevNode?.subscriptions;
+            if (node.isValid !== undefined) { //  Newly created nodes should be always invalid
+                node.isValid = prevNode?.isValid;
+            }
             node.state?.reset();
         }
     
@@ -224,13 +226,9 @@ export namespace DiagramDOM {
             }
         }
     
-        const renderNode = <P>(node: DiagramNode<P>, lastRoot?: DiagramNode, prevNode?: DiagramNode<P>, parent?: DiagramNode): DiagramNode<P> => {
+        const renderNode = <P>(node: DiagramNode<P>, prevNode?: DiagramNode<P>, parent?: DiagramNode): DiagramNode<P> => {
             renderContext.currentNode = node;
             initNode(node, prevNode);
-            // If the node renders to another DOM it must be invalidated
-            if (node.isValid && node.lastRoot !== lastRoot) {
-                node.isValid = false;
-            }
             node.parent = parent;
             
             const nodesToRender: {node: DiagramNode<unknown>, prevNode?: DiagramNode<unknown>, parent?: DiagramNode<P>}[] = [];
@@ -284,19 +282,24 @@ export namespace DiagramDOM {
                 prevChildren?.forEach(x => unmount(x));
             }
     
-            nodesToRender.forEach(x => renderNode(x.node, lastRoot, x.prevNode, x.parent));
+            nodesToRender.forEach(x => renderNode(x.node, x.prevNode, x.parent));
             node.isValid = true;
     
             return node;
         }
 
         // Stores the node state to avoid sudden changes when it has been rendered to another DOM
-        function updateLastRootAndStore(node: DiagramNode, lastRoot?: DiagramNode, parent?: DiagramNode): DiagramNode {
-            node.lastRoot = lastRoot;
-            const result = {...node};
-            result.parent = parent;
-            result.children = node.children.map(x => isDiagramNode(x) ? updateLastRootAndStore(x, lastRoot, result) : x);
-            return result;
+        function storeRootNode(node: DiagramNode, parent?: DiagramNode): DiagramNode {
+            function storeNode(node: DiagramNode, parent?: DiagramNode) {
+                const result = {...node};
+                result.parent = parent;
+                result.children = node.children.map(x => isDiagramNode(x) ? storeNode(x, result) : x);
+                storedNodesMap.set(node, result);
+                return result;
+            }
+            
+            storedNodesMap.clear();
+            return storeNode(node, parent);
         }
 
         const render = (commitInvalid: boolean = true): SVGGraphicsElement => {
@@ -305,8 +308,7 @@ export namespace DiagramDOM {
                 diagramRoot: rootComponent,
                 diagramRootProps: {svg: root, children: diagram.getElements()}
             });
-            renderedRootNode = renderNode(rootNode, renderedRootNode, storedRootNode);
-            storedRootNode = updateLastRootAndStore(renderedRootNode, renderedRootNode);
+            storedRootNode = storeRootNode(renderNode(rootNode, storedRootNode));
             isValid = true;
             renderContext.invokePendingActions();
             renderContext.reset();
@@ -322,9 +324,8 @@ export namespace DiagramDOM {
         }
 
         const invalidate = (node?: DiagramNode) => {
-            if (node) {
-                node.isValid = false;
-            }
+            const storedNode = storedRootNode && storedNodesMap.get(node || storedRootNode);
+            storedNode && (storedNode.isValid = false);
             if (isValid) {
                 isValid = false;
                 scheduleRender();
