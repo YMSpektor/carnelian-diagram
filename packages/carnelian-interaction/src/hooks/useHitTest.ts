@@ -1,4 +1,4 @@
-import { DiagramElementNode, RenderContext, useContext, useEffect, useRef } from "@carnelian/diagram";
+import { DiagramElementNode, RenderContext, useContext, useEffect, useState } from "@carnelian/diagram";
 import { InteractionContext } from "..";
 import { DiagramElementHitTest, HitArea, HitTestCallback } from "../hit-tests";
 
@@ -14,7 +14,9 @@ export function useHitTest(callback: HitTestCallback, hitArea: HitArea, priority
         return;
     }
 
-    const storedHitTest = useRef<DiagramElementHitTest | undefined>(undefined);
+    const [key] = useState({priority, element: curElement});
+    key.priority = priority;
+    key.element = curElement;
 
     const hitTest: DiagramElementHitTest = {
         element: curElement,
@@ -22,13 +24,11 @@ export function useHitTest(callback: HitTestCallback, hitArea: HitArea, priority
         hitArea,
         priority
     }
-    interactions.updateHitTests(hitTest, storedHitTest.current);
-    storedHitTest.current = hitTest; // Setting a state will cause an infinite loop
+    interactions.updateHitTests(key, hitTest);
 
     useEffect(() => {
         return () => {
-            interactions.updateHitTests(undefined, storedHitTest.current);
-            storedHitTest.current = undefined;
+            interactions.updateHitTests(key, undefined);
         }
-    }, [interactions]);
+    }, []);
 }

@@ -65,7 +65,7 @@ export function withInteractiveRoot<P>(
         controller.elements = props.children;
 
         const handleSelect = (e: SelectEventArgs) => setSelectedElements(e.selectedElements);
-        const calcMatrix = () => props.svg.getScreenCTM?.()?.inverse();
+        const calcMatrix = () => props.svg.getCTM?.()?.inverse();
 
         useEffect(() => {
             controller.onSelect.addListener(handleSelect);

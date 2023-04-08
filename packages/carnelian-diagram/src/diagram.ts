@@ -9,7 +9,7 @@ import {
     VirtualNode
 } from "./jsx-runtime";
 import { App } from "./components/app";
-import { DOMBuilder } from "./dom-builder";
+import { DiagramDOMBuilder } from "./dom-builder";
 import { scheduleImmediate } from "./utils/schedule";
 import { WithThis } from "./utils/types";
 import { Context, createContext } from "./context";
@@ -116,184 +116,50 @@ export interface DiagramRootProps {
 
 export type DiagramRootComponent = DiagramComponent<DiagramRootProps>;
 
+interface DiagramSubscription {
+    callback: (node?: DiagramNode) => void;
+    unsubscribe: () => void;
+}
+
+export interface DiagramRootRenderer {
+    isValid: () => boolean;
+    invalidate: (node?: DiagramNode) => void;
+    render: (commitInvalid?: boolean) => void;
+    clear: () => void;
+    attach: () => void;
+    detach: (clearDom: boolean) => void;
+}   
+
 export class Diagram {
     private lastElementId = 0;
     private elements: DiagramElementNode[] = [];
-    private renderContext = new RenderContextType(this);
-    private prevRootNode?: DiagramNode;
-    private domBuilder = new DOMBuilder();
-    private isValid = false;
-    private unschedule?: () => void;
-    private attachedRoot: SVGGraphicsElement | null = null;
-    private tasks: Array<() => void> = [];
-
-    constructor(private diagramRoot: DiagramRootComponent) { }
+    private subscriptions: DiagramSubscription[] = [];
 
     private createElementNode<P extends object>(type: DiagramElement<P>, props: P, key: Key): DiagramElementNode<P> {
         const onChange = (callback: (oldProps: DiagramElementProps<P>) => DiagramElementProps<P>) => {
-            this.schedule(() => {
-                this.update(element, callback(element.props));
-            });
+            this.update(element, callback(element.props));
         }
         const element = createElement(type, {...props, onChange}, key);
         return element;
     }
 
-    private initNode<P>(node: DiagramNode<P>, prevNode?: DiagramNode<P>) {
-        node.state = prevNode?.state || node.state;
-        node.cleanups = prevNode?.cleanups || node.cleanups;
-        node.context = node.context || prevNode?.context;
-        node.contextValue = node.contextValue || prevNode?.contextValue;
-        node.subscriptions = prevNode?.subscriptions || node.subscriptions;
-        node.state?.reset();
-    }
-
-    private unmount(node: ComponentChild) {
-        if (isDiagramNode(node)) {
-            node.children.forEach(x => this.unmount(x));
-            node.cleanups?.cleanupAll();
+    subscribe(callback: (node?: DiagramNode) => void): DiagramSubscription {
+        const subscription = {
+            callback,
+            unsubscribe: () => {
+                this.subscriptions = this.subscriptions.filter(x => x !== subscription);
+            }
         }
-    }
-
-    private renderNode<P>(node: DiagramNode<P>, prevNode?: DiagramNode<P>, parent?: DiagramNode<any>): DiagramNode<P> {
-        this.renderContext.currentNode = node;
-        this.initNode(node, prevNode);
-        node.parent = parent;
-        
-        const nodesToRender: {node: DiagramNode<unknown>, prevNode?: DiagramNode<unknown>, parent?: DiagramNode<P>}[] = [];
-        if (node.isValid) {
-            node.children.forEach(child => {
-                if (isDiagramNode(child)) {
-                    nodesToRender.push({node: child, prevNode: child, parent: node});
-                }
-            });
-        }
-        else {
-            let children: ComponentChildren;
-            const prevChildren = prevNode?.children?.slice();
-            if (typeof node.type === 'function') {
-                children = node.type.call(node, node.props);
-            }
-            else {
-                children = node.props.children;
-            }
-
-            if (children) {
-                if (Array.isArray(children)) {
-                    // @ts-ignore
-                    node.children = children.flat(Infinity);
-                }
-                else {
-                    node.children = [children];
-                }
-            }
-            else {
-                node.children = [];
-            }
-
-            node.children.forEach(child => {
-                if (isDiagramNode(child)) {
-                    let prevChild: DiagramNode<unknown> | undefined;
-                    if (prevChildren) {
-                        const prevChildIndex = prevChildren
-                            .findIndex(x => isDiagramNode(x) && x.type === child.type && x.key === child.key);
-                        if (prevChildIndex >= 0) {
-                            prevChild = prevChildren[prevChildIndex] as DiagramNode<unknown>;
-                            prevChildren.splice(prevChildIndex, 1);
-                        }
-                    }
-                    // First unmount then render
-                    nodesToRender.push({node: child, prevNode: prevChild, parent: node});
-                }
-            });
-
-            prevChildren?.forEach(x => this.unmount(x));
-        }
-
-        nodesToRender.forEach(x => this.renderNode(x.node, x.prevNode, x.parent));
-        node.isValid = true;
-
-        return node;
-    }
-
-    private commit(root: SVGGraphicsElement, rootNode: DiagramNode): SVGGraphicsElement {
-        return this.domBuilder.updateDOM(root, rootNode);
-    }
-
-    render(root: SVGGraphicsElement, commitInvalid: boolean): SVGGraphicsElement {
-        this.renderContext.currentDiagram = this;
-        const rootNode = createElement(App, {
-            renderContext: this.renderContext,
-            diagramRoot: this.diagramRoot,
-            diagramRootProps: {svg: root, children: this.elements}
-        });
-        this.prevRootNode = this.renderNode(rootNode, this.prevRootNode);
-        this.isValid = true;
-        this.renderContext.invokePendingActions();
-        this.renderContext.reset();
-        return this.isValid || commitInvalid ? this.commit(root, rootNode) : root;
+        this.subscriptions.push(subscription);
+        return subscription;
     }
 
     invalidate(node?: DiagramNode) {
-        if (node) {
-            node.isValid = false;
-        }
-        if (this.isValid) {
-            this.isValid = false;
-            this.attachedRoot && this.scheduleRender(this.attachedRoot);
-        }
+        this.subscriptions.forEach(s => s.callback(node));
     }
 
-    private scheduleRender(root: SVGGraphicsElement) {
-        this.scheduleTask(() => {
-            this.render(root, false);
-        });
-    }
-
-    private scheduleTask(task: () => void) {
-        this.tasks.push(task);
-        if (!this.unschedule) {
-            this.unschedule = scheduleImmediate(() => {
-                this.unschedule = undefined;
-                const tasks = [...this.tasks];
-                this.tasks = [];
-                tasks.forEach(task => task());
-            });
-        }
-    }
-
-    schedule(action: () => void) {
-        if (this.renderContext.isRendering()) {
-            this.renderContext.queue(action);
-        }
-        else {
-            this.scheduleTask(() => {
-                this.renderContext.currentDiagram = this;
-                action();
-                this.renderContext.reset();
-            });
-        }
-    }
-
-    isAttached() {
-        return !!this.attachedRoot;
-    }
-
-    attach(root: SVGGraphicsElement) {
-        this.attachedRoot = root;
-        this.scheduleRender(root);
-    }
-
-    detach(clearDom: boolean) {
-        if (this.attachedRoot) {
-            if (clearDom) {
-                this.domBuilder.updateDOM(this.attachedRoot, null);
-            }
-            this.attachedRoot = null;
-            this.unschedule?.();
-            this.unschedule = undefined;
-            this.invalidate();
-        }
+    getElements(): DiagramElementNode[] {
+        return [...this.elements];
     }
 
     add<P extends object>(type: DiagramElement<P>, props: P): DiagramElementNode<P> {
@@ -327,18 +193,214 @@ export class Diagram {
     }
 }
 
+export namespace DiagramDOM {
+    export function createRoot(
+        diagram: Diagram,
+        root: SVGGraphicsElement, 
+        rootComponent: DiagramRootComponent
+    ): DiagramRootRenderer {
+        const domBuilder = new DiagramDOMBuilder(root);
+        let isAttached = false;
+        let isValid = false;
+        let subscription: DiagramSubscription | undefined = undefined;
+        let storedRootNode: DiagramNode | undefined = undefined;
+        const renderContext = new RenderContextType((node) => invalidate(node));
+        const storedNodesMap = new Map<DiagramNode, DiagramNode>();
+    
+        const initNode = <P>(node: DiagramNode<P>, prevNode?: DiagramNode<P>) => {
+            node.state = prevNode?.state;
+            node.cleanups = prevNode?.cleanups;
+            node.context = prevNode?.context;
+            node.contextValue = prevNode?.contextValue;
+            node.subscriptions = prevNode?.subscriptions;
+            if (node.isValid !== undefined) { //  Newly created nodes should be always invalid
+                node.isValid = prevNode?.isValid;
+            }
+            node.state?.reset();
+        }
+    
+        const unmount = (node: ComponentChild) => {
+            if (isDiagramNode(node)) {
+                node.children.forEach(x => unmount(x));
+                node.cleanups?.cleanupAll();
+            }
+        }
+    
+        const renderNode = <P>(node: DiagramNode<P>, prevNode?: DiagramNode<P>, parent?: DiagramNode): DiagramNode<P> => {
+            renderContext.currentNode = node;
+            initNode(node, prevNode);
+            node.parent = parent;
+            
+            const nodesToRender: {node: DiagramNode<unknown>, prevNode?: DiagramNode<unknown>, parent?: DiagramNode<P>}[] = [];
+            if (node.isValid) {
+                node.children.forEach((child, i) => {
+                    if (isDiagramNode(child)) {
+                        const prevChild = prevNode?.children[i] as DiagramNode;
+                        nodesToRender.push({node: child, prevNode: prevChild, parent: node});
+                    }
+                });
+            }
+            else {
+                let children: ComponentChildren;
+                const prevChildren = prevNode?.children?.slice();
+                if (typeof node.type === 'function') {
+                    children = node.type.call(node, node.props);
+                }
+                else {
+                    children = node.props.children;
+                }
+    
+                if (children) {
+                    if (Array.isArray(children)) {
+                        // @ts-ignore
+                        node.children = children.flat(Infinity);
+                    }
+                    else {
+                        node.children = [children];
+                    }
+                }
+                else {
+                    node.children = [];
+                }
+    
+                node.children.forEach(child => {
+                    if (isDiagramNode(child)) {
+                        let prevChild: DiagramNode<unknown> | undefined;
+                        if (prevChildren) {
+                            const prevChildIndex = prevChildren
+                                .findIndex(x => isDiagramNode(x) && x.type === child.type && x.key === child.key);
+                            if (prevChildIndex >= 0) {
+                                prevChild = prevChildren[prevChildIndex] as DiagramNode<unknown>;
+                                prevChildren.splice(prevChildIndex, 1);
+                            }
+                        }
+                        // First unmount then render
+                        nodesToRender.push({node: child, prevNode: prevChild, parent: node});
+                    }
+                });
+    
+                prevChildren?.forEach(x => unmount(x));
+            }
+    
+            nodesToRender.forEach(x => renderNode(x.node, x.prevNode, x.parent));
+            node.isValid = true;
+    
+            return node;
+        }
+
+        // Stores the node state to avoid sudden changes when it has been rendered to another DOM
+        function storeRootNode(node: DiagramNode, parent?: DiagramNode): DiagramNode {
+            function storeNode(node: DiagramNode, parent?: DiagramNode) {
+                const result = {...node};
+                result.parent = parent;
+                result.children = node.children.map(x => isDiagramNode(x) ? storeNode(x, result) : x);
+                storedNodesMap.set(node, result);
+                return result;
+            }
+            
+            storedNodesMap.clear();
+            return storeNode(node, parent);
+        }
+
+        const render = (commitInvalid: boolean = true): SVGGraphicsElement => {
+            const rootNode = createElement(App, {
+                renderContext,
+                diagramRoot: rootComponent,
+                diagramRootProps: {svg: root, children: diagram.getElements()}
+            });
+            storedRootNode = storeRootNode(renderNode(rootNode, storedRootNode));
+            isValid = true;
+            renderContext.invokePendingActions();
+            renderContext.reset();
+            return isValid || commitInvalid ? commit(rootNode) : root;
+        }
+
+        const clear = () => {
+            domBuilder.updateDOM(null);
+        }
+
+        const commit = (node: DiagramNode | null): SVGGraphicsElement => {
+            return domBuilder.updateDOM(node);
+        }
+
+        const invalidate = (node?: DiagramNode) => {
+            const storedNode = storedRootNode && storedNodesMap.get(node || storedRootNode);
+            storedNode && (storedNode.isValid = false);
+            if (isValid) {
+                isValid = false;
+                scheduleRender();
+            }
+        }
+
+        const attach = () => {
+            if (!isAttached) {
+                isAttached = true;
+                scheduleRender();
+                subscription = diagram.subscribe((node) => invalidate(node));
+            }
+        }
+
+        const detach = (clearDom: boolean) => {
+            if (isAttached) {
+                isAttached = false;
+                if (clearDom) {
+                    clear();
+                }
+                subscription?.unsubscribe();
+                subscription = undefined;
+            }
+        }
+
+        const scheduleRender = () => {
+            renderContext.schedule(() => {
+                isAttached && render(false);
+            });
+        }
+
+        return {
+            isValid: () => isValid,
+            invalidate,
+            render,
+            clear,
+            attach,
+            detach
+        }
+    }
+}
+
 export class RenderContextType {
     private pendingActions: Array<() => void> = [];
+    private unschedule?: () => void;
+    private tasks: Array<() => void> = [];
     currentNode?: DiagramNode;
 
-    constructor(public currentDiagram: Diagram) {}
+    constructor(public invalidate: (node?: DiagramNode) => void) {}
 
-    reset() {
-        this.currentNode = undefined;
+    schedule(task: () => void) {
+        this.tasks.push(task);
+        if (!this.unschedule) {
+            this.unschedule = scheduleImmediate(() => {
+                this.unschedule = undefined;
+                const tasks = [...this.tasks];
+                this.tasks = [];
+                tasks.forEach(task => task());
+            });
+        }
     }
 
     queue(action: () => void) {
-        this.pendingActions.push(action);
+        if (this.isRendering()) {
+            this.pendingActions.push(action);
+        }
+        else {
+            this.schedule(() => {
+                action();
+            });
+        }
+    }
+
+    reset() {
+        this.currentNode = undefined;
     }
 
     currentElement(): DiagramElementNode<unknown> | undefined {

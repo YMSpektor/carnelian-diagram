@@ -1,4 +1,4 @@
-import { DiagramElementNode, RenderContext, useContext, useEffect, useRef } from "@carnelian/diagram";
+import { DiagramElementNode, RenderContext, useContext, useEffect, useState } from "@carnelian/diagram";
 import { ActionCallback, DiagramElementAction, InteractionContext } from "..";
 
 export function useAction<T>(actionType: string, callback: ActionCallback<T>, element?: DiagramElementNode) {
@@ -13,20 +13,18 @@ export function useAction<T>(actionType: string, callback: ActionCallback<T>, el
         return;
     }
 
-    const storedActions = useRef<DiagramElementAction<T> | undefined>(undefined);
+    const [key] = useState({});
 
     const action: DiagramElementAction<T> = {
         element: curElement,
         callback,
         action: actionType
     }
-    interactions.updateActions(action, storedActions.current);
-    storedActions.current = action; // Setting a state will cause an infinite loop
+    interactions.updateActions(key, action);
 
     useEffect(() => {
         return () => {
-            interactions.updateActions(undefined, storedActions.current);
-            storedActions.current = undefined;
+            interactions.updateActions(key, undefined);
         }
-    }, [interactions]);
+    }, []);
 }

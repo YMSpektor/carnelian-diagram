@@ -66,10 +66,10 @@ export interface InteractionControllerOptions {
 
 export class InteractionController {
     private diagram: Diagram | null = null;
-    private controls: DiagramElementControls[] = [];
+    private controls = new Map<object, DiagramElementControls>();
     private hitTests: HitTestCollection = {};
-    private intersectionTests = new Map<DiagramElementNode, DiagramElementIntersectionTest[]>;
-    private actions = new Map<DiagramElementNode, DiagramElementAction<any>[]>();
+    private intersectionTests = new Map<object, DiagramElementIntersectionTest>;
+    private actions = new Map<object, DiagramElementAction<any>>();
     private dragging = false;
     private selecting = false;
     private selectedElements = new Set<DiagramElementNode>();
@@ -125,51 +125,48 @@ export class InteractionController {
     detach() {};
 
     private createInteractionContext(): InteractionContextType {
-        const updateControls = (newControls?: DiagramElementControls, prevControls?: DiagramElementControls) => {
-            let newValue = prevControls ? this.controls.filter(x => x !== prevControls) : this.controls;
-            newValue = newControls ? newValue.concat(newControls) : newValue;
-            this.controls = newValue;
+        const updateControls = (key: {}, controls?: DiagramElementControls) => {
+            if (controls) {
+                this.controls.set(key, controls);
+            }
+            else {
+                this.controls.delete(key);
+            }
         }
     
-        const updateHitTests = (newValue?: DiagramElementHitTest, prevValue?: DiagramElementHitTest) => {
-            if (prevValue) {
-                const map = this.hitTests[prevValue.priority];
-                let arr = map?.get(prevValue.element);
-                arr = arr?.filter(x => x !== prevValue);
-                if (arr && arr.length) {
-                    map?.set(prevValue.element, arr);
-                }
-                else {
-                    map?.delete(prevValue.element);
-                }
+        const updateHitTests = (key: {priority: number, element: DiagramElementNode}, hitTest?: DiagramElementHitTest) => {
+            let map = this.hitTests[key.priority];
+            if (!map) {
+                map = this.hitTests[key.priority] = new Map<DiagramElementNode, Map<object, DiagramElementHitTest>>();
             }
-            if (newValue) {
-                let map = this.hitTests[newValue.priority];
-                if (!map) {
-                    map = new Map<DiagramElementNode, DiagramElementHitTest[]>();
-                    this.hitTests[newValue.priority] = map;
-                }
-                let arr = map.get(newValue.element) || [];
-                arr = arr.concat(newValue);
-                map.set(newValue.element, arr);
+            let hitTestMap = map.get(key.element);
+            if (!hitTestMap) {
+                hitTestMap = new Map<object, DiagramElementHitTest>();
+                map.set(key.element, hitTestMap);
+            }
+            if (hitTest) {
+                hitTestMap.set(key, hitTest);
+            }
+            else {
+                hitTestMap.delete(key);
             }
         }
 
-        const updateIntersectionTests = (newValue?: DiagramElementIntersectionTest, prevValue?: DiagramElementIntersectionTest) => {
-            if (prevValue) {
-                this.intersectionTests.set(prevValue.element, this.intersectionTests.get(prevValue.element)?.filter(x => x !== prevValue) || []);
+        const updateIntersectionTests = (key: {}, intersectionTest?: DiagramElementIntersectionTest) => {
+            if (intersectionTest) {
+                this.intersectionTests.set(key, intersectionTest);
             }
-            if (newValue) {
-                this.intersectionTests.set(newValue.element, (this.intersectionTests.get(newValue.element) || []).concat(newValue));
+            else {
+                this.intersectionTests.delete(key);
             }
         }
     
-        const updateActions = (newValue?: DiagramElementAction<any>, prevValue?: DiagramElementAction<any>) => {
-            if (prevValue) {
-                this.actions.set(prevValue.element, this.actions.get(prevValue.element)?.filter(x => x !== prevValue) || []);
+        const updateActions = (key: {}, action?: DiagramElementAction<any>) => {
+            if (action) {
+                this.actions.set(key, action);
             }
-            if (newValue) {
-                this.actions.set(newValue.element, (this.actions.get(newValue.element) || []).concat(newValue));
+            else {
+                this.actions.delete(key);
             }
         }
     
@@ -219,7 +216,7 @@ export class InteractionController {
     }
 
     private mouseDownHandler(root: HTMLElement, e: PointerEvent) {
-        if (this.dragging || this.selecting) return;
+         if (this.dragging || this.selecting) return;
 
         const hitInfo = this.hitTest(e);
         if (hitInfo) {
@@ -288,10 +285,10 @@ export class InteractionController {
         this.selecting = true;
         root.setPointerCapture(e.pointerId);
 
-        const startPoint = new DOMPoint(e.clientX, e.clientY);
+        const startPoint = new DOMPoint(e.offsetX, e.offsetY);
 
         const mouseMoveHandler = (e: PointerEvent) => {
-            const point = new DOMPoint(e.clientX, e.clientY)
+            const point = new DOMPoint(e.offsetX, e.offsetY)
 
             const selectionRect = {
                 x: Math.min(startPoint.x, point.x),
@@ -306,9 +303,9 @@ export class InteractionController {
         const mouseUpHandler = (e: PointerEvent) => {
             this.onRectSelection.emit({selectionRect: null});
 
-            if (startPoint.x !== e.clientX || startPoint.y !== e.clientY) {
+            if (startPoint.x !== e.offsetX || startPoint.y !== e.offsetY) {
                 const p1 = this.clientToDiagram(startPoint);
-                const p2 = this.clientToDiagram(new DOMPoint(e.clientX, e.clientY));
+                const p2 = this.clientToDiagram(new DOMPoint(e.offsetX, e.offsetY));
                 const selectionRect = {
                     x: Math.min(p1.x, p2.x),
                     y: Math.min(p1.y, p2.y),
@@ -317,12 +314,12 @@ export class InteractionController {
                 };
 
                 // Broad phase
-                const tests = [...this.intersectionTests]
-                    .filter(x => x[1].some(test => !test.bounds || intersectRect(test.bounds, selectionRect)));
+                const tests = [...this.intersectionTests.values()]
+                    .filter(test => !test.bounds || intersectRect(test.bounds, selectionRect));
                 // Narrow phase
                 this.select(tests
-                    .filter(x => x[1].some(test => test.callback(selectionRect)))
-                    .map(x => x[0])
+                    .filter(test => test.callback(selectionRect))
+                    .map(test => test.element)
                 );
             }
 
@@ -343,11 +340,11 @@ export class InteractionController {
         this.dragging = true;
         root.setPointerCapture(e.pointerId);
 
-        let lastPoint = this.clientToDiagram(new DOMPoint(e.clientX, e.clientY));
+        let lastPoint = this.clientToDiagram(new DOMPoint(e.offsetX, e.offsetY));
 
         if (hitInfo.hitArea.action) {
             const mouseMoveHandler = (e: PointerEvent) => {
-                const point = new DOMPoint(e.clientX, e.clientY);
+                const point = new DOMPoint(e.offsetX, e.offsetY);
                 const elementPoint = this.clientToDiagram(point);
 
                 this.dispatch<MovementActionPayload>(
@@ -413,7 +410,7 @@ export class InteractionController {
     }
 
     renderControls(transform: DOMMatrixReadOnly): JSX.Element {
-        return this.controls
+        return [...this.controls.values()]
             .filter(x => this.isSelected(x.element))
             .map(x => x.callback(transform, x.element));
     }
@@ -421,7 +418,7 @@ export class InteractionController {
     hitTest(e: MouseEvent) {
         if (this.transform) {
             const transform = this.transform;
-            const point = new DOMPoint(e.clientX, e.clientY);
+            const point = new DOMPoint(e.offsetX, e.offsetY);
             if (e.target && hasHitTestProps(e.target)) {
                 const elementPoint = this.clientToDiagram(point);
                 return {
@@ -438,9 +435,8 @@ export class InteractionController {
                 for (let priority of priorities) {
                     let hit: DiagramElementHitTest | undefined;
                     for (let element of sortedElements) {
-                        hit = this.hitTests[priority]
-                            ?.get(element)
-                            ?.find(x => x.callback(point, transform));
+                        const list = [...(this.hitTests[priority]?.get(element)?.values() || [])];
+                        hit = list.find(x => x.callback(point, transform));
                         if (hit) break;
                     }
                     if (hit) {
@@ -460,10 +456,11 @@ export class InteractionController {
     }
 
     private dispatchInternal<T>(elements: DiagramElementNode[], action: string, payload: T) {
+        const actions = [...this.actions.values()];
         elements.forEach(element => {
-            const callbacks = this.actions.get(element)
-                ?.filter(x => x.action === action)
-                ?.map(x => x.callback);
+            const callbacks = actions
+                .filter(x => x.element === element && x.action === action)
+                .map(x => x.callback);
             if (callbacks) {
                 callbacks.forEach(cb => cb(payload));
             }
