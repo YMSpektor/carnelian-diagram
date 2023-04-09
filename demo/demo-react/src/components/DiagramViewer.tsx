@@ -50,12 +50,14 @@ function DiagramViewer(props: DiagramViewerProps & HTMLAttributes<HTMLDivElement
     }, [diagramRoot, scale]);
 
     useEffect(() => {
-        controller?.updatePaper({
-            x: 0,
-            y: 0,
-            width: diagramSize.width,
-            height: diagramSize.height
-        })
+        if (controller) {
+            const paper = controller.getPaperOptions();
+            paper && controller.updatePaper({
+                ...paper,
+                width: diagramSize.width,
+                height: diagramSize.height
+            });
+        }
     }, [controller, diagramSize.width, diagramSize.height]);
 
     function dragOverHandler(e: React.DragEvent) {

@@ -60,6 +60,10 @@ export interface PaperOptions {
     y: number;
     width: number;
     height: number;
+    majorGridSize?: number;
+    majorGridColor?: string;
+    minorGridSize?: number;
+    minorGridColor?: string;
 }
 
 export interface InteractionControllerOptions {
@@ -303,7 +307,7 @@ export class InteractionController {
         const startPoint = new DOMPoint(e.offsetX, e.offsetY);
 
         const mouseMoveHandler = (e: PointerEvent) => {
-            const point = new DOMPoint(e.offsetX, e.offsetY)
+            const point = new DOMPoint(e.offsetX, e.offsetY);
 
             const selectionRect = {
                 x: Math.min(startPoint.x, point.x),
@@ -424,7 +428,8 @@ export class InteractionController {
         return false;
     }
 
-    renderControls(transform: DOMMatrixReadOnly): JSX.Element {
+    renderControls(): JSX.Element {
+        const transform = this.transform?.inverse() || new DOMMatrix();
         return [...this.controls.values()]
             .filter(x => this.isSelected(x.element))
             .map(x => x.callback(transform, x.element));

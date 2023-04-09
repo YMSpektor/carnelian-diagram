@@ -15,11 +15,59 @@ import { scheduleIdle } from "@carnelian/diagram/utils/schedule";
 import { JSX } from "@carnelian/diagram/jsx-runtime";
 import { Rect } from "../geometry";
 
-function DiagramPaper(props: PaperOptions) {
+function getTransformAttribute(matrix?: DOMMatrixReadOnly) {
+    return matrix 
+        ? `matrix(${matrix.a} ${matrix.b} ${matrix.c} ${matrix.d} ${matrix.e} ${matrix.f})`
+        : undefined;
+}
+
+function DiagramPaper(props: PaperOptions & {matrix?: DOMMatrixReadOnly}) {
+    let { x, y, width, height, matrix } = props;
+    const inverseMatrix = matrix?.inverse();
+    const p1 = new DOMPoint(x, y).matrixTransform(inverseMatrix);
+    const p2 = new DOMPoint(x + width, y + height).matrixTransform(inverseMatrix);
+    const scale = matrix ? 1 / matrix.a : 1;
+    x = p1.x;
+    y = p1.y;
+    width = p2.x - p1.x;
+    height = p2.y - p1.y;
+    
+    const patternSize = Math.max(props.majorGridSize || 0, props.minorGridSize || 0) * scale;
+    const minorGridSize = props.minorGridSize ? props.minorGridSize * scale : props.minorGridSize;
+    const majorGridSize = props.majorGridSize ? props.majorGridSize * scale : props.majorGridSize;
+
+    function drawGridLines(gridSize: number, color: string) {
+        const lines: JSX.Element[] = [];
+        let x = 0;
+        let y = 0;
+        while (x < patternSize) {
+            lines.push(
+                <line x1={x} y1={0} x2={x} y2={patternSize} stroke={color} />
+            );
+            x += gridSize;
+        }
+        while (y < patternSize) {
+            lines.push(
+                <line x1={0} y1={y} x2={patternSize} y2={y} stroke={color} />
+            );
+            y += gridSize;
+        }
+        return lines;
+    }
+
     return (
-        <g className="paper-container">
-            <rect className="paper" {...props} />
-        </g>
+        <>
+            {patternSize > 0 && <defs>
+                <pattern id="paper-grid" x={0} y={0} width={patternSize} height={patternSize} patternUnits="userSpaceOnUse">
+                    <rect x={0} y={0} width={patternSize} height={patternSize} fill="white" stroke="none" />
+                    {minorGridSize && drawGridLines(minorGridSize, props.minorGridColor || "#eee")}
+                    {majorGridSize && drawGridLines(majorGridSize, props.majorGridColor || "#bbb")}
+                </pattern>
+            </defs>}
+            <g className="paper-container" transform={getTransformAttribute(props.matrix)}>
+                <rect x={x} y={y} width={width} height={height} className="paper" fill="url(#paper-grid)" />
+            </g>
+        </>
     )
 }
 
@@ -49,16 +97,12 @@ function DiagramControls(props: DiagramControlsProps) {
         }
     }, [controller]);
 
-    const transform = matrix 
-        ? `matrix(${matrix.a} ${matrix.b} ${matrix.c} ${matrix.d} ${matrix.e} ${matrix.f})`
-        : undefined;
-
     return (
         <ControlsContext.Provider value={controller.controlsContext}>
-            {matrix && <g transform={transform}>
-                {controller.renderControls(matrix.inverse())}
+            <g transform={getTransformAttribute(matrix)}>
+                {controller.renderControls()}
                 {rectSelection && <rect className="selection-rect" {...rectSelection} fill="none" stroke="black" stroke-dasharray="4" />}
-            </g>}
+            </g>
         </ControlsContext.Provider>
     );
 }
@@ -121,7 +165,7 @@ export function withInteractiveRoot<P>(
         return (
             <InteractionContext.Provider value={controller.interactionContext}>
                 <SelectionContext.Provider value={selectedElements}>
-                    {paper && <DiagramPaper {...paper} />}
+                    {paper && <DiagramPaper {...paper} matrix={calcMatrix()} />}
                     <DiagramElements rootProps={options?.elementsRootProps}>
                         <WrappedComponent {...props} />
                     </DiagramElements>

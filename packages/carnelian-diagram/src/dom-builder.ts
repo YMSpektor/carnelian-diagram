@@ -11,13 +11,9 @@ export const svg: Hyperscript = require("virtual-dom/virtual-hyperscript/svg");
 export class DiagramDOMBuilder {
     private lastTree: VNode;
     private oldClass?: string | null;
-    private oldStroke?: string | null;
-    private oldFill?: string | null;
     
     constructor(private root: SVGGraphicsElement) {
         this.oldClass = root.attributes?.getNamedItem("class")?.nodeValue;
-        this.oldStroke = root.attributes?.getNamedItem("stroke")?.nodeValue;
-        this.oldFill = root.attributes?.getNamedItem("fill")?.nodeValue;
         this.lastTree = svg("", {}, []);
     }
 
@@ -54,8 +50,8 @@ export class DiagramDOMBuilder {
     updateDOM(rootNode: DiagramNode | null) {
         const props = rootNode ? this.transformProperties({
             className: this.oldClass ? `${this.oldClass} carnelian-diagram` : "carnelian-diagram",
-            stroke: this.oldStroke || "black",
-            fill: this.oldFill || "white"
+            stroke: "black",
+            fill: "white"
         }): {};
         const tree = svg("", props, this.transformNode(rootNode));
         const lastTree = this.lastTree;
