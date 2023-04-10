@@ -130,7 +130,7 @@ export function withInteractiveRoot<P>(
     return (props: DiagramRootProps) => {
         const [matrix, setMatrix] = useState<DOMMatrix | undefined>(undefined);
         const [selectedElements, setSelectedElements] = useState<DiagramElementNode[]>([]);
-        const [paper, setPaper] = useState(controller.getPaperOptions());
+        const [paper, setPaper] = useState(controller.getPaper());
 
         controller.elements = props.children;
 

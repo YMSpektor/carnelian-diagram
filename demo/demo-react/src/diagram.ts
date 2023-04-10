@@ -1,7 +1,8 @@
 import { Diagram } from "@carnelian/diagram";
 import { InteractionController } from "@carnelian/interaction";
 import { DiagramPaletteElement } from "./components/DiagramPalette";
-import { 
+import {
+    InteractiveLine as Line,
     InteractiveRect as Rect, 
     InteractiveEllipse as Ellipse, 
     InteractiveDiamond as Diamond,
@@ -192,6 +193,21 @@ addToPalette({
         ...props,
         x: point.x,
         y: point.y
+    }),
+});
+
+addToPalette({
+    category: "basic",
+    elementType: Line,
+    elementProps: {x1: 20, y1: 20, x2: 320, y2: 220},
+    viewBox: "0 0 340 240",
+    title: "Line",
+    factory: (point, props) => ({
+        ...props,
+        x1: point.x - (props.x2 - props.x1) / 2,
+        y1: point.y - (props.y2 - props.y1) / 2,
+        x2: point.x + (props.x2 - props.x1) / 2,
+        y2: point.y + (props.y2 - props.y1) / 2
     }),
 });
 

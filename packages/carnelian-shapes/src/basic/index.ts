@@ -1,3 +1,6 @@
+import { Point } from "@carnelian/interaction/geometry";
+
+export * from "./line";
 export * from "./rect";
 export * from "./ellipse";
 export * from "./diamond";
@@ -11,11 +14,28 @@ export * from "./donut";
 export * from "./cross";
 export * from "./pie";
 
+export interface LineFigureStyleProps {
+    style?: {
+        stroke?: string;
+    }
+}
+
 export interface ClosedFigureStyleProps {
     style?: {
         stroke?: string;
         fill?: string;
     }
+}
+
+export interface RawLineProps {
+    x1: number;
+    y1: number;
+    x2: number;
+    y2: number;
+}
+
+export interface RawPolylineProps {
+    points: Point[];
 }
 
 export interface RawRectProps {
@@ -37,6 +57,10 @@ export interface RawCircleProps {
     radius: number;
 }
 
+export interface LineBaseProps extends RawLineProps, LineFigureStyleProps {}
+export interface PolylineBaseProps extends RawPolylineProps, LineFigureStyleProps {}
+
 export interface RectBaseProps extends RawRectProps, ClosedFigureStyleProps {}
 export interface SquareBaseProps extends RawSquareProps, ClosedFigureStyleProps {}
 export interface CircleBaseProps extends RawCircleProps, ClosedFigureStyleProps {}
+export interface PolygonBaseProps extends RawPolylineProps, ClosedFigureStyleProps {}

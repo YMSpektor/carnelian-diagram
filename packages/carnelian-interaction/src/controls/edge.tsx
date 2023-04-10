@@ -12,7 +12,7 @@ export interface EdgeControlProps {
     y2: number;
     hitArea: HitArea;
     transform: DOMMatrixReadOnly;
-    onDrag: ActionCallback<MovementActionPayload>;
+    onDrag?: ActionCallback<MovementActionPayload>;
 }
 
 export function EdgeControl(props: EdgeControlProps) {
@@ -25,11 +25,11 @@ export function EdgeControl(props: EdgeControlProps) {
         props.element
     );
 
-    useAction<MovementActionPayload>(props.hitArea.action, (payload) => {
+    useAction<MovementActionPayload>(props.hitArea.action, props.onDrag && ((payload) => {
         if (props.hitArea.index === payload.hitArea.index) {
-            props.onDrag(payload);
+            props.onDrag?.(payload);
         }
-    }, props.element);
+    }), props.element);
 
     const controlsContext = useContext(ControlsContext);
 

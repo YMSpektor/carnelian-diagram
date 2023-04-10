@@ -1,4 +1,4 @@
-import { Circle, Ellipse, intersectRects, Line, Point, Polygon, polygonBounds, Rect, unionRects } from "../geometry";
+import { Circle, circleBounds, Ellipse, ellipseBounds, intersectRects, Line, lineBounds, Point, Polygon, polygonBounds, Rect, unionRects } from "../geometry";
 import { CollisionResult, flipCollisionResult, invertCollisionResult, CollisionFunctions } from "./collisions";
 
 export type ColliderType<T> = string | ((props: T, other: Collider<any>, tolerance: number) => CollisionResult | null);
@@ -34,26 +34,20 @@ export function PointCollider(point: Point): Collider<Point> {
     return Collider("point", point, {...point, width: 0, height: 0});
 }
 
+export function LineCollider(line: Line): Collider<Line> {
+    return Collider("line", line, lineBounds(line));
+}
+
 export function RectCollider(rect: Rect): Collider<Rect> {
     return Collider("rect", rect, rect);
 }
 
 export function CircleCollider(circle: Circle): Collider<Circle> {
-    return Collider("circle", circle, {
-        x: circle.center.x - circle.radius,
-        y: circle.center.y - circle.radius,
-        width: circle.radius * 2,
-        height: circle.radius * 2
-    });
+    return Collider("circle", circle, circleBounds(circle));
 }
 
 export function EllipseCollider(ellipse: Ellipse): Collider<Ellipse> {
-    return Collider("ellipse", ellipse, {
-        x: ellipse.center.x - ellipse.rx,
-        y: ellipse.center.y - ellipse.ry,
-        width: ellipse.rx * 2,
-        height: ellipse.ry * 2
-    });
+    return Collider("ellipse", ellipse, ellipseBounds(ellipse));
 }
 
 export function PolygonCollider(polygon: Polygon): Collider<Polygon> {

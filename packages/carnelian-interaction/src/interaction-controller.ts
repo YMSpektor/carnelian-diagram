@@ -557,7 +557,7 @@ export class InteractionController {
         }
     }
 
-    getPaperOptions(): PaperOptions | undefined {
+    getPaper(): PaperOptions | undefined {
         return this.paper;
     }
 

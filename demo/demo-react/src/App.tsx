@@ -17,8 +17,7 @@ interface AppProps {
 function App(props: AppProps) {
     const { controller, diagram, palette } = props;
     const [scale, setScale] = useState(100);
-
-    const paper = controller.getPaperOptions();
+    const paper = controller.getPaper();
 
     return (
         <div css={{display: "flex", flexDirection: "column", height: "100vh"}}>
