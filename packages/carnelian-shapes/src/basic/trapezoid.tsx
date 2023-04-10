@@ -24,9 +24,9 @@ const knobController: KnobController<TrapezoidProps> = {
             y: props.y
         }
     },
-    setPosition(props, pos) {
+    setPosition(props, {position}) {
         const base = props.width;
-        let offset: NumberOrPercentage = clamp(pos.x - props.x, 0, base / 2);
+        let offset: NumberOrPercentage = clamp(position.x - props.x, 0, base / 2);
         offset = isPercentage(props.offset) 
             ? base > 0 ? `${offset / base * 100}%` : props.offset
             : offset

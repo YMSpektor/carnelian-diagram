@@ -40,14 +40,13 @@ const mouthKnobController: KnobController<PacmanProps> = {
         type: "mouth_knob_handle",
         cursor: "default",
         action: "mouth_knob_move",
-        overrideGridSnapping: (snapGridSize) => snapGridSize ? snapGridSize / 2 : null
     },
     getPosition(props) {
         const mouthAngle = clamp(props.mouthAngle, 0, MAX_MOUTH_ANGLE);
         return getCirclePoint(props.x, props.y, props.radius, mouthAngle / 2);
     },
-    setPosition(props, pos) {
-        const angle = radToDeg(Math.atan2(pos.y - props.y, pos.x - props.x));
+    setPosition(props, {rawPosition: position, snapAngle, snapToGrid}) {
+        const angle = snapToGrid(radToDeg(Math.atan2(position.y - props.y, position.x - props.x)), snapAngle);
         return {
             ...props,
             mouthAngle: clamp(angle * 2, 0, MAX_MOUTH_ANGLE)
@@ -60,7 +59,6 @@ const eyeKnobController: KnobController<PacmanProps> = {
         type: "eye_knob_handle",
         cursor: "default",
         action: "eye_knob_move",
-        overrideGridSnapping: () => null
     },
     getPosition(props) {
         const eyeCenter = getEyeCenter(props);
@@ -69,9 +67,9 @@ const eyeKnobController: KnobController<PacmanProps> = {
             y: eyeCenter.y - calcEyeRadius(props)
         }
     },
-    setPosition(props, pos) {
+    setPosition(props, {rawPosition: position}) {
         const eyeCenter = getEyeCenter(props);
-        let eyeRadius: NumberOrPercentage = clampEyeRadius(eyeCenter.y - pos.y, props.radius);
+        let eyeRadius: NumberOrPercentage = clampEyeRadius(eyeCenter.y - position.y, props.radius);
         eyeRadius = isPercentage(props.eyeRadius)
             ? props.radius > 0 ? `${eyeRadius / props.radius * 2 * 100}%` : props.eyeRadius
             : eyeRadius;

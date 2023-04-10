@@ -24,9 +24,9 @@ const knobController: KnobController<ParallelogramProps, number> = {
             y: offset >= 0 ? props.y : props.y + props.height
         }
     },
-    setPosition(props, pos, hitArea) {
+    setPosition(props, {position}, hitArea) {
         const sign = hitArea.data === 0 ? 1 : -1;
-        let offset: NumberOrPercentage = clamp(pos.x - props.x, -props.width, props.width) * sign;
+        let offset: NumberOrPercentage = clamp(position.x - props.x, -props.width, props.width) * sign;
         offset = isPercentage(props.offset) 
             ? props.width > 0 ? `${offset / props.width * 100}%` : props.offset
             : offset

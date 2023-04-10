@@ -27,11 +27,11 @@ const knobController: KnobController<CrossProps> = {
             y: props.y + offsetY
         }
     },
-    setPosition(props, pos) {
+    setPosition(props, {position}) {
         const baseX = props.width;
         const baseY = props.height;
-        let offsetX: NumberOrPercentage = clamp(pos.x - props.x, 0, baseX / 2);
-        let offsetY: NumberOrPercentage = clamp(pos.y - props.y, 0, baseY / 2);
+        let offsetX: NumberOrPercentage = clamp(position.x - props.x, 0, baseX / 2);
+        let offsetY: NumberOrPercentage = clamp(position.y - props.y, 0, baseY / 2);
         offsetX = isPercentage(props.offsetX) 
             ? baseX > 0 ? `${offsetX / baseX * 100}%` : props.offsetX
             : offsetX;

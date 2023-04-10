@@ -9,7 +9,6 @@ export interface HitArea<T = any> {
     index?: number;
     action: string;
     cursor?: string;
-    overrideGridSnapping?: (snapGridSize: number | null) => number | null;
     data?: T;
 }
 

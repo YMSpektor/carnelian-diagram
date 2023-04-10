@@ -27,8 +27,16 @@ export interface MovementActionPayload {
     position: DOMPointReadOnly;
     deltaX: number;
     deltaY: number;
+    rawPosition: DOMPointReadOnly;
+    rawDeltaX: number;
+    rawDeltaY: number;
     hitArea: HitArea;
     snapGridSize: number | null;
+    snapAngle: number | null;
+    snapToGrid: {
+        (value: number, snapGridSize?: number | null): number;
+        (point: DOMPointReadOnly, snapGridSize?: number | null): DOMPointReadOnly;
+    }
 }
 
 export interface SelectEventArgs {
@@ -80,6 +88,7 @@ export interface InteractionControllerOptions {
     renderEdgeControl?: AddParameters<RenderEdgeCallback, [RenderEdgeCallback]>;
     paper?: PaperOptions;
     snapGridSize?: number | null;
+    snapAngle?: number | null;
 }
 
 export class InteractionController {
@@ -97,6 +106,7 @@ export class InteractionController {
     interactionContext: InteractionContextType;
     controlsContext: ControlsContextType;
     snapGridSize: number | null = null;
+    snapAngle: number | null = null;
 
     onSelect = new Event<SelectEventArgs>();
     onDelete = new Event<DeleteEventArg>();
@@ -108,6 +118,7 @@ export class InteractionController {
         this.controlsContext = this.createControlsContext();
         this.paper = options?.paper;
         this.snapGridSize = options?.snapGridSize || null;
+        this.snapAngle = options?.snapAngle || null;
     }
 
     attach(diagram: Diagram, root: HTMLElement) {
@@ -379,21 +390,24 @@ export class InteractionController {
         if (hitInfo.hitArea.action) {
             const mouseMoveHandler = (e: PointerEvent) => {
                 const point = new DOMPoint(e.clientX, e.clientY);
-                let snapGridSize = this.snapGridSize && !e.altKey ? this.snapGridSize : null;
-                if (hitInfo.hitArea.overrideGridSnapping) {
-                    snapGridSize = hitInfo.hitArea.overrideGridSnapping(snapGridSize);
-                }
-                const elementPoint = this.snapToGrid(this.clientToDiagram(point), snapGridSize);
+                const snapGridSize = !e.altKey ? this.snapGridSize : null;
+                const elementPoint = this.clientToDiagram(point);
+                const snappedElementPoint = this.snapToGrid(elementPoint, snapGridSize);
 
                 this.dispatch<MovementActionPayload>(
                     [hitInfo.element],
                     hitInfo.hitArea.action,
                     {
-                        position: elementPoint,
-                        deltaX: this.snapToGrid(elementPoint.x - lastPoint.x, snapGridSize),
-                        deltaY: this.snapToGrid(elementPoint.y - lastPoint.y, snapGridSize),
+                        position: snappedElementPoint,
+                        deltaX: this.snapToGrid(snappedElementPoint.x - lastPoint.x, snapGridSize),
+                        deltaY: this.snapToGrid(snappedElementPoint.y - lastPoint.y, snapGridSize),
+                        rawPosition: elementPoint,
+                        rawDeltaX: elementPoint.x - lastPoint.x,
+                        rawDeltaY: elementPoint.y - lastPoint.y,
                         hitArea: hitInfo.hitArea,
-                        snapGridSize
+                        snapGridSize,
+                        snapAngle: !e.altKey ? this.snapAngle : null,
+                        snapToGrid: this.snapToGrid.bind(this)
                     });
 
                 lastPoint = elementPoint;
