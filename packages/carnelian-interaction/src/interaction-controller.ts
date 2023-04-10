@@ -92,7 +92,6 @@ export class InteractionController {
     private paper?: PaperOptions;
     elements: DiagramElementNode[] = [];
     screenCTM?: DOMMatrixReadOnly;
-    CTM?: DOMMatrixReadOnly;
     interactionContext: InteractionContextType;
     controlsContext: ControlsContextType;
 
@@ -223,14 +222,6 @@ export class InteractionController {
 
     diagramToClient(point: DOMPointReadOnly): DOMPointReadOnly {
         return point.matrixTransform(this.screenCTM);
-    }
-
-    offsetToDiagram(point: DOMPointReadOnly): DOMPointReadOnly {
-        return point.matrixTransform(this.CTM?.inverse());
-    }
-
-    diagramToOffset(point: DOMPointReadOnly): DOMPointReadOnly {
-        return point.matrixTransform(this.CTM);
     }
 
     select(element: DiagramElementNode): void;
@@ -436,8 +427,7 @@ export class InteractionController {
         return false;
     }
 
-    renderControls(): JSX.Element {
-        const transform = this.CTM || new DOMMatrix();
+    renderControls(transform: DOMMatrixReadOnly): JSX.Element {
         return [...this.controls.values()]
             .filter(x => this.isSelected(x.element))
             .map(x => x.callback(transform, x.element));

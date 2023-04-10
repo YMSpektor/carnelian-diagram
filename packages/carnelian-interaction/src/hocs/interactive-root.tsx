@@ -23,10 +23,9 @@ function getTransformAttribute(matrix?: DOMMatrixReadOnly) {
 
 function DiagramPaper(props: PaperOptions & {matrix?: DOMMatrixReadOnly}) {
     let { x, y, width, height, matrix } = props;
-    const inverseMatrix = matrix?.inverse();
-    const p1 = new DOMPoint(x, y).matrixTransform(inverseMatrix);
-    const p2 = new DOMPoint(x + width, y + height).matrixTransform(inverseMatrix);
-    const scale = matrix ? 1 / matrix.a : 1;
+    const p1 = new DOMPoint(x, y).matrixTransform(matrix);
+    const p2 = new DOMPoint(x + width, y + height).matrixTransform(matrix);
+    const scale = matrix ? matrix.a : 1;
     x = p1.x;
     y = p1.y;
     width = p2.x - p1.x;
@@ -64,7 +63,7 @@ function DiagramPaper(props: PaperOptions & {matrix?: DOMMatrixReadOnly}) {
                     {majorGridSize && drawGridLines(majorGridSize, props.majorGridColor || "#bbb")}
                 </pattern>
             </defs>}
-            <g className="paper-container" transform={getTransformAttribute(props.matrix)}>
+            <g className="paper-container" transform={getTransformAttribute(matrix?.inverse())}>
                 <rect x={x} y={y} width={width} height={height} className="paper" fill="url(#paper-grid)" />
             </g>
         </>
@@ -90,8 +89,8 @@ function DiagramControls(props: DiagramControlsProps) {
     
     let rect: DOMRectInit | null = null;
     if (rectSelection) {
-        const p1 = controller.diagramToOffset(new DOMPoint(rectSelection.x, rectSelection.y));
-        const p2 = controller.diagramToOffset(new DOMPoint(rectSelection.x + rectSelection.width, rectSelection.y + rectSelection.height));
+        const p1 = new DOMPoint(rectSelection.x, rectSelection.y).matrixTransform(matrix);
+        const p2 = new DOMPoint(rectSelection.x + rectSelection.width, rectSelection.y + rectSelection.height).matrixTransform(matrix);
         rect = {
             x: p1.x,
             y: p1.y,
@@ -111,8 +110,8 @@ function DiagramControls(props: DiagramControlsProps) {
 
     return (
         <ControlsContext.Provider value={controller.controlsContext}>
-            <g transform={getTransformAttribute(matrix)}>
-                {controller.renderControls()}
+            <g transform={getTransformAttribute(matrix?.inverse())}>
+                {controller.renderControls(matrix || new DOMMatrix())}
                 {rect && <rect className="selection-rect" {...rect} fill="none" stroke="black" stroke-dasharray="4" />}
             </g>
         </ControlsContext.Provider>
@@ -139,7 +138,7 @@ export function withInteractiveRoot<P>(
         const handlePaperChange = (e: PaperChangeEventArgs) => setPaper(e.paper);
         const calcCTM = () => props.svg.getCTM?.() || undefined;
         const calcScreenCTM = () => props.svg.getScreenCTM?.() || undefined;
-        const ctmInverse = calcCTM()?.inverse();
+        const ctm = calcCTM();
 
         useEffect(() => {
             controller.onSelect.addListener(handleSelect);
@@ -162,7 +161,6 @@ export function withInteractiveRoot<P>(
                     (CMT && curMatrix && (CMT.a !== curMatrix.a || CMT.b !== curMatrix.b || CMT.c !== curMatrix.c || CMT.d !== curMatrix.d || CMT.e !== curMatrix.e || CMT.f !== curMatrix.f)))
                 {
                     curMatrix = CMT;
-                    controller.CTM = CMT;
                     setMatrix(CMT);
                 }
                 controller.screenCTM = calcScreenCTM();
@@ -180,11 +178,11 @@ export function withInteractiveRoot<P>(
         return (
             <InteractionContext.Provider value={controller.interactionContext}>
                 <SelectionContext.Provider value={selectedElements}>
-                    {paper && <DiagramPaper {...paper} matrix={ctmInverse} />}
+                    {paper && <DiagramPaper {...paper} matrix={ctm} />}
                     <DiagramElements rootProps={options?.elementsRootProps}>
                         <WrappedComponent {...props} />
                     </DiagramElements>
-                    <DiagramControls matrix={ctmInverse} controller={controller} />
+                    <DiagramControls matrix={ctm} controller={controller} />
                 </SelectionContext.Provider>
             </InteractionContext.Provider>
         )
