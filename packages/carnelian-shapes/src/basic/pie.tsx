@@ -24,6 +24,7 @@ function knobController(index: number): KnobController<PieProps> {
             index,
             cursor: "default",
             action: "knob_move",
+            overrideGridSnapping: (snapGridSize) => snapGridSize ? snapGridSize / 2 : null
         },
         getPosition(props) {
             const angle = index === 0 ? props.startAngle : props.endAngle;

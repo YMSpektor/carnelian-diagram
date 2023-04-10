@@ -28,6 +28,7 @@ export interface MovementActionPayload {
     deltaX: number;
     deltaY: number;
     hitArea: HitArea;
+    snapGridSize: number | null;
 }
 
 export interface SelectEventArgs {
@@ -78,6 +79,7 @@ export interface InteractionControllerOptions {
     renderHandleControl?: AddParameters<RenderHandleCallback, [RenderHandleCallback]>;
     renderEdgeControl?: AddParameters<RenderEdgeCallback, [RenderEdgeCallback]>;
     paper?: PaperOptions;
+    snapGridSize?: number | null;
 }
 
 export class InteractionController {
@@ -94,6 +96,7 @@ export class InteractionController {
     screenCTM?: DOMMatrixReadOnly;
     interactionContext: InteractionContextType;
     controlsContext: ControlsContextType;
+    snapGridSize: number | null = null;
 
     onSelect = new Event<SelectEventArgs>();
     onDelete = new Event<DeleteEventArg>();
@@ -104,6 +107,7 @@ export class InteractionController {
         this.interactionContext = this.createInteractionContext();
         this.controlsContext = this.createControlsContext();
         this.paper = options?.paper;
+        this.snapGridSize = options?.snapGridSize || null;
     }
 
     attach(diagram: Diagram, root: HTMLElement) {
@@ -222,6 +226,18 @@ export class InteractionController {
 
     diagramToClient(point: DOMPointReadOnly): DOMPointReadOnly {
         return point.matrixTransform(this.screenCTM);
+    }
+
+    snapToGrid(value: number, snapGridSize?: number | null): number;
+    snapToGrid(point: DOMPointReadOnly, snapGridSize?: number | null): DOMPointReadOnly;
+    snapToGrid(value: DOMPointReadOnly | number, snapGridSize?: number | null): DOMPointReadOnly | number {
+        snapGridSize = snapGridSize !== undefined ? snapGridSize : this.snapGridSize;
+        if (typeof value === "number") {
+            return snapGridSize ? Math.round(value / snapGridSize) * snapGridSize : value
+        }
+        else {
+            return snapGridSize ? new DOMPoint(this.snapToGrid(value.x, snapGridSize), this.snapToGrid(value.y, snapGridSize)) : value;
+        }
     }
 
     select(element: DiagramElementNode): void;
@@ -363,16 +379,21 @@ export class InteractionController {
         if (hitInfo.hitArea.action) {
             const mouseMoveHandler = (e: PointerEvent) => {
                 const point = new DOMPoint(e.clientX, e.clientY);
-                const elementPoint = this.clientToDiagram(point);
+                let snapGridSize = this.snapGridSize && !e.altKey ? this.snapGridSize : null;
+                if (hitInfo.hitArea.overrideGridSnapping) {
+                    snapGridSize = hitInfo.hitArea.overrideGridSnapping(snapGridSize);
+                }
+                const elementPoint = this.snapToGrid(this.clientToDiagram(point), snapGridSize);
 
                 this.dispatch<MovementActionPayload>(
                     [hitInfo.element],
                     hitInfo.hitArea.action,
                     {
                         position: elementPoint,
-                        deltaX: elementPoint.x - lastPoint.x,
-                        deltaY: elementPoint.y - lastPoint.y,
+                        deltaX: this.snapToGrid(elementPoint.x - lastPoint.x, snapGridSize),
+                        deltaY: this.snapToGrid(elementPoint.y - lastPoint.y, snapGridSize),
                         hitArea: hitInfo.hitArea,
+                        snapGridSize
                     });
 
                 lastPoint = elementPoint;

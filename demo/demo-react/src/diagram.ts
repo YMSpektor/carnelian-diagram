@@ -27,7 +27,8 @@ export const controller = new InteractionController({
         height: 2970,
         majorGridSize: 200,
         minorGridSize: 50
-    }
+    },
+    snapGridSize: 50
 });
 export const diagram = new Diagram();
 

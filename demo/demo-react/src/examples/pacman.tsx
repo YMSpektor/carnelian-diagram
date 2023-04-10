@@ -40,6 +40,7 @@ const mouthKnobController: KnobController<PacmanProps> = {
         type: "mouth_knob_handle",
         cursor: "default",
         action: "mouth_knob_move",
+        overrideGridSnapping: (snapGridSize) => snapGridSize ? snapGridSize / 2 : null
     },
     getPosition(props) {
         const mouthAngle = clamp(props.mouthAngle, 0, MAX_MOUTH_ANGLE);
@@ -59,6 +60,7 @@ const eyeKnobController: KnobController<PacmanProps> = {
         type: "eye_knob_handle",
         cursor: "default",
         action: "eye_knob_move",
+        overrideGridSnapping: () => null
     },
     getPosition(props) {
         const eyeCenter = getEyeCenter(props);
