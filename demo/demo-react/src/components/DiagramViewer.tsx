@@ -72,7 +72,7 @@ function DiagramViewer(props: DiagramViewerProps & HTMLAttributes<HTMLDivElement
             e.preventDefault();
             
             const draggedElement = dragDropContext.draggedElement;
-            const point = controller.clientToDiagram(new DOMPoint(e.nativeEvent.offsetX, e.nativeEvent.offsetY));
+            const point = controller.clientToDiagram(new DOMPoint(e.clientX, e.clientY));
             const props = draggedElement.factory(point, draggedElement.elementProps);
             const element = diagram.add(draggedElement.elementType, props);
             controller.select(element);

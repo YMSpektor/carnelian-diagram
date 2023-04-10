@@ -91,7 +91,8 @@ export class InteractionController {
     private selectedElements = new Set<DiagramElementNode>();
     private paper?: PaperOptions;
     elements: DiagramElementNode[] = [];
-    transform?: DOMMatrixReadOnly;
+    screenCTM?: DOMMatrixReadOnly;
+    CTM?: DOMMatrixReadOnly;
     interactionContext: InteractionContextType;
     controlsContext: ControlsContextType;
 
@@ -217,11 +218,19 @@ export class InteractionController {
     }
 
     clientToDiagram(point: DOMPointReadOnly): DOMPointReadOnly {
-        return point.matrixTransform(this.transform);
+        return point.matrixTransform(this.screenCTM?.inverse());
     }
 
     diagramToClient(point: DOMPointReadOnly): DOMPointReadOnly {
-        return point.matrixTransform(this.transform?.inverse());
+        return point.matrixTransform(this.screenCTM);
+    }
+
+    offsetToDiagram(point: DOMPointReadOnly): DOMPointReadOnly {
+        return point.matrixTransform(this.CTM?.inverse());
+    }
+
+    diagramToOffset(point: DOMPointReadOnly): DOMPointReadOnly {
+        return point.matrixTransform(this.CTM);
     }
 
     select(element: DiagramElementNode): void;
@@ -304,10 +313,10 @@ export class InteractionController {
         this.selecting = true;
         root.setPointerCapture(e.pointerId);
 
-        const startPoint = new DOMPoint(e.offsetX, e.offsetY);
+        const startPoint = this.clientToDiagram(new DOMPoint(e.clientX, e.clientY));
 
         const mouseMoveHandler = (e: PointerEvent) => {
-            const point = new DOMPoint(e.offsetX, e.offsetY);
+            const point = this.clientToDiagram(new DOMPoint(e.clientX, e.clientY));
 
             const selectionRect = {
                 x: Math.min(startPoint.x, point.x),
@@ -321,15 +330,14 @@ export class InteractionController {
 
         const mouseUpHandler = (e: PointerEvent) => {
             this.onRectSelection.emit({selectionRect: null});
+            const point = this.clientToDiagram(new DOMPoint(e.clientX, e.clientY));
 
-            if (startPoint.x !== e.offsetX || startPoint.y !== e.offsetY) {
-                const p1 = this.clientToDiagram(startPoint);
-                const p2 = this.clientToDiagram(new DOMPoint(e.offsetX, e.offsetY));
+            if (startPoint.x !== point.x || startPoint.y !== point.y) {
                 const selectionRect = {
-                    x: Math.min(p1.x, p2.x),
-                    y: Math.min(p1.y, p2.y),
-                    width: Math.max(p1.x, p2.x) - Math.min(p1.x, p2.x),
-                    height: Math.max(p1.y, p2.y) - Math.min(p1.y, p2.y),
+                    x: Math.min(startPoint.x, point.x),
+                    y: Math.min(startPoint.y, point.y),
+                    width: Math.max(startPoint.x, point.x) - Math.min(startPoint.x, point.x),
+                    height: Math.max(startPoint.y, point.y) - Math.min(startPoint.y, point.y),
                 };
 
                 // Broad phase
@@ -359,11 +367,11 @@ export class InteractionController {
         this.dragging = true;
         root.setPointerCapture(e.pointerId);
 
-        let lastPoint = this.clientToDiagram(new DOMPoint(e.offsetX, e.offsetY));
+        let lastPoint = this.clientToDiagram(new DOMPoint(e.clientX, e.clientY));
 
         if (hitInfo.hitArea.action) {
             const mouseMoveHandler = (e: PointerEvent) => {
-                const point = new DOMPoint(e.offsetX, e.offsetY);
+                const point = new DOMPoint(e.clientX, e.clientY);
                 const elementPoint = this.clientToDiagram(point);
 
                 this.dispatch<MovementActionPayload>(
@@ -429,16 +437,16 @@ export class InteractionController {
     }
 
     renderControls(): JSX.Element {
-        const transform = this.transform?.inverse() || new DOMMatrix();
+        const transform = this.CTM || new DOMMatrix();
         return [...this.controls.values()]
             .filter(x => this.isSelected(x.element))
             .map(x => x.callback(transform, x.element));
     }
 
     hitTest(e: MouseEvent) {
-        if (this.transform) {
-            const transform = this.transform;
-            const point = new DOMPoint(e.offsetX, e.offsetY);
+        if (this.screenCTM) {
+            const transform = this.screenCTM.inverse();
+            const point = new DOMPoint(e.clientX, e.clientY);
             if (e.target && hasHitTestProps(e.target)) {
                 const elementPoint = this.clientToDiagram(point);
                 return {

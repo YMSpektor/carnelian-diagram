@@ -87,6 +87,18 @@ interface DiagramControlsProps {
 function DiagramControls(props: DiagramControlsProps) {
     const { matrix, controller } = props;
     const [rectSelection, setRectSelection] = useState<Rect | null>(null);
+    
+    let rect: DOMRectInit | null = null;
+    if (rectSelection) {
+        const p1 = controller.diagramToOffset(new DOMPoint(rectSelection.x, rectSelection.y));
+        const p2 = controller.diagramToOffset(new DOMPoint(rectSelection.x + rectSelection.width, rectSelection.y + rectSelection.height));
+        rect = {
+            x: p1.x,
+            y: p1.y,
+            width: p2.x - p1.x,
+            height: p2.y - p1.y
+        }
+    }
 
     const handleRectSelection = (e: RectSelectionEventArgs) => setRectSelection(e.selectionRect);
 
@@ -101,7 +113,7 @@ function DiagramControls(props: DiagramControlsProps) {
         <ControlsContext.Provider value={controller.controlsContext}>
             <g transform={getTransformAttribute(matrix)}>
                 {controller.renderControls()}
-                {rectSelection && <rect className="selection-rect" {...rectSelection} fill="none" stroke="black" stroke-dasharray="4" />}
+                {rect && <rect className="selection-rect" {...rect} fill="none" stroke="black" stroke-dasharray="4" />}
             </g>
         </ControlsContext.Provider>
     );
@@ -125,7 +137,9 @@ export function withInteractiveRoot<P>(
 
         const handleSelect = (e: SelectEventArgs) => setSelectedElements(e.selectedElements);
         const handlePaperChange = (e: PaperChangeEventArgs) => setPaper(e.paper);
-        const calcMatrix = () => props.svg.getCTM?.()?.inverse();
+        const calcCTM = () => props.svg.getCTM?.() || undefined;
+        const calcScreenCTM = () => props.svg.getScreenCTM?.() || undefined;
+        const ctmInverse = calcCTM()?.inverse();
 
         useEffect(() => {
             controller.onSelect.addListener(handleSelect);
@@ -142,15 +156,16 @@ export function withInteractiveRoot<P>(
             let curMatrix = matrix;
 
             const workloop = () => {
-                const newMatrix = calcMatrix() || undefined;
-                if ((newMatrix && !curMatrix) || 
-                    (curMatrix && !newMatrix) || 
-                    (newMatrix && curMatrix && (newMatrix.a !== curMatrix.a || newMatrix.b !== curMatrix.b || newMatrix.c !== curMatrix.c || newMatrix.d !== curMatrix.d || newMatrix.e !== curMatrix.e || newMatrix.f !== curMatrix.f)))
+                const CMT = calcCTM();
+                if ((CMT && !curMatrix) || 
+                    (curMatrix && !CMT) || 
+                    (CMT && curMatrix && (CMT.a !== curMatrix.a || CMT.b !== curMatrix.b || CMT.c !== curMatrix.c || CMT.d !== curMatrix.d || CMT.e !== curMatrix.e || CMT.f !== curMatrix.f)))
                 {
-                    curMatrix = newMatrix;
-                    controller.transform = newMatrix;
-                    setMatrix(newMatrix);
+                    curMatrix = CMT;
+                    controller.CTM = CMT;
+                    setMatrix(CMT);
                 }
+                controller.screenCTM = calcScreenCTM();
 
                 cancelSchedule = scheduleIdle(workloop);
             }
@@ -165,11 +180,11 @@ export function withInteractiveRoot<P>(
         return (
             <InteractionContext.Provider value={controller.interactionContext}>
                 <SelectionContext.Provider value={selectedElements}>
-                    {paper && <DiagramPaper {...paper} matrix={calcMatrix()} />}
+                    {paper && <DiagramPaper {...paper} matrix={ctmInverse} />}
                     <DiagramElements rootProps={options?.elementsRootProps}>
                         <WrappedComponent {...props} />
                     </DiagramElements>
-                    <DiagramControls matrix={calcMatrix()} controller={controller} />
+                    <DiagramControls matrix={ctmInverse} controller={controller} />
                 </SelectionContext.Provider>
             </InteractionContext.Provider>
         )
