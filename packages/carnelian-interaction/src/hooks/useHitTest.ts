@@ -14,9 +14,7 @@ export function useHitTest(callback: HitTestCallback, hitArea: HitArea, priority
         return;
     }
 
-    const [key] = useState({priority, element: curElement});
-    key.priority = priority;
-    key.element = curElement;
+    const [key] = useState({});
 
     const hitTest: DiagramElementHitTest = {
         element: curElement,
@@ -24,11 +22,11 @@ export function useHitTest(callback: HitTestCallback, hitArea: HitArea, priority
         hitArea,
         priority
     }
-    interactions.updateHitTests(key, hitTest);
+    interactions.updateHitTests(curElement, priority, key, hitTest);
 
     useEffect(() => {
         return () => {
-            interactions.updateHitTests(key, undefined);
+            interactions.updateHitTests(curElement, priority, key, undefined);
         }
     }, []);
 }

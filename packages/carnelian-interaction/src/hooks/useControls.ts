@@ -20,11 +20,11 @@ export function useControls(callback: RenderControlsCallback) {
         element: curElement,
         callback
     }
-    interactions.updateControls(key, controls);
+    interactions.updateControls(curElement, key, controls);
 
     useEffect(() => {
         return () => {
-            interactions.updateControls(key, undefined);
+            interactions.updateControls(curElement, key, undefined);
         }
     }, []);
 }

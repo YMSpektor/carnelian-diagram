@@ -1,5 +1,5 @@
 import { Diagram, DiagramElementNode } from "@carnelian/diagram";
-import { JSX } from "@carnelian/diagram/jsx-runtime";
+import { createElement, Fragment, JSX } from "@carnelian/diagram/jsx-runtime";
 import { Event } from "@carnelian/diagram/utils/events";
 import { AddParameters } from "@carnelian/diagram/utils/types";
 import { ControlsContextType, InteractionContextType } from "./context";
@@ -93,7 +93,7 @@ export interface InteractionControllerOptions {
 
 export class InteractionController {
     private diagram: Diagram | null = null;
-    private controls = new Map<object, DiagramElementControls>();
+    private controls = new Map<DiagramElementNode, Map<object, DiagramElementControls>>();
     private hitTests: HitTestCollection = {};
     private intersectionTests = new Map<object, DiagramElementIntersectionTest>;
     private actions = new Map<object, DiagramElementAction<any>>();
@@ -159,30 +159,41 @@ export class InteractionController {
     detach() {};
 
     private createInteractionContext(): InteractionContextType {
-        const updateControls = (key: {}, controls?: DiagramElementControls) => {
+        const updateControls = (element: DiagramElementNode, key: {}, controls?: DiagramElementControls) => {
+            let map = this.controls.get(element);
+            if (!map) {
+                map = new Map<object, DiagramElementControls>();
+                this.controls.set(element, map);
+            }
             if (controls) {
-                this.controls.set(key, controls);
+                map.set(key, controls);
             }
             else {
-                this.controls.delete(key);
+                map.delete(key);
+                if (map.size === 0) {
+                    this.controls.delete(element);
+                }
             }
         }
     
-        const updateHitTests = (key: {priority: number, element: DiagramElementNode}, hitTest?: DiagramElementHitTest) => {
-            let map = this.hitTests[key.priority];
+        const updateHitTests = (element: DiagramElementNode, priority: number, key: {}, hitTest?: DiagramElementHitTest) => {
+            let map = this.hitTests[priority];
             if (!map) {
-                map = this.hitTests[key.priority] = new Map<DiagramElementNode, Map<object, DiagramElementHitTest>>();
+                map = this.hitTests[priority] = new Map<DiagramElementNode, Map<object, DiagramElementHitTest>>();
             }
-            let hitTestMap = map.get(key.element);
+            let hitTestMap = map.get(element);
             if (!hitTestMap) {
                 hitTestMap = new Map<object, DiagramElementHitTest>();
-                map.set(key.element, hitTestMap);
+                map.set(element, hitTestMap);
             }
             if (hitTest) {
                 hitTestMap.set(key, hitTest);
             }
             else {
                 hitTestMap.delete(key);
+                if (hitTestMap.size === 0) {
+                    map.delete(element);
+                }
             }
         }
 
@@ -463,9 +474,17 @@ export class InteractionController {
     }
 
     renderControls(transform: DOMMatrixReadOnly): JSX.Element {
-        return [...this.controls.values()]
-            .filter(x => this.isSelected(x.element))
-            .map(x => x.callback(transform, x.element));
+        return [...this.controls]
+            .filter(x => this.isSelected(x[0]))
+            .map(x => {
+                const key = x[0].key;
+                const controls = [...x[1].values()];
+                return createElement(
+                    Fragment, 
+                    { children: controls.map(x => x.callback(transform, x.element)) }, 
+                    key
+                );
+            });
     }
 
     hitTest(e: MouseEvent) {
