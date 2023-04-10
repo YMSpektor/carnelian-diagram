@@ -24,9 +24,9 @@ const knobController: KnobController<RoundedRectProps> = {
             y: props.y
         }
     },
-    setPosition(props, pos) {
+    setPosition(props, {position}) {
         const base = Math.min(props.width, props.height) / 2;
-        let radius: NumberOrPercentage = clamp(pos.x - props.x, 0, base);
+        let radius: NumberOrPercentage = clamp(position.x - props.x, 0, base);
         radius = isPercentage(props.radius) 
             ? base > 0 ? `${radius / base * 100}%` : props.radius
             : radius

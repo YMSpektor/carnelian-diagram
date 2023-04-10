@@ -27,8 +27,8 @@ const knobController: KnobController<DonutProps> = {
             y: props.y - ir
         }
     },
-    setPosition(props, pos) {
-        let ir: NumberOrPercentage = clamp(props.y - pos.y, 0, props.radius);
+    setPosition(props, {position}) {
+        let ir: NumberOrPercentage = clamp(props.y - position.y, 0, props.radius);
         ir = isPercentage(props.innerRadius)
             ? props.radius > 0 ? `${ir / props.radius * 100}%` : props.innerRadius
             : ir;

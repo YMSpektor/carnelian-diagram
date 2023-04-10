@@ -18,6 +18,8 @@ function App(props: AppProps) {
     const { controller, diagram, palette } = props;
     const [scale, setScale] = useState(100);
 
+    const paper = controller.getPaperOptions();
+
     return (
         <div css={{display: "flex", flexDirection: "column", height: "100vh"}}>
             <DiagramToolbar diagram={diagram} controller={controller} scale={scale} onScaleChange={setScale} />
@@ -53,7 +55,7 @@ function App(props: AppProps) {
                 <DiagramViewer
                     css={{flex: 1, backgroundColor: "#c5c5ff"}}
                     diagram={diagram} controller={controller}
-                    diagramSize={{width: 2100, height: 2970}} 
+                    diagramSize={{width: paper?.width || 0, height: paper?.height || 0}} 
                     scale={scale} unit="mm" unitMultiplier={0.1} 
                 />
             </div>

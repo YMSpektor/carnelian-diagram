@@ -1,5 +1,5 @@
 /** @jsxImportSource @emotion/react */
-import { HTMLAttributes, useContext, useLayoutEffect, useRef, useState } from "react";
+import { HTMLAttributes, useContext, useEffect, useLayoutEffect, useRef, useState } from "react";
 import { Diagram, DiagramDOM, DiagramRoot, DiagramRootRenderer } from "@carnelian/diagram";
 import { InteractionController, withInteractiveRoot } from "@carnelian/interaction";
 import { DragDropContext } from "../context/DragDropContext";
@@ -28,7 +28,7 @@ function DiagramViewer(props: DiagramViewerProps & HTMLAttributes<HTMLDivElement
 
     useLayoutEffect(() => {
         const rootComponent = controller 
-            ? withInteractiveRoot(DiagramRoot, controller, {"stroke-width": 2.5})
+            ? withInteractiveRoot(DiagramRoot, controller, {elementsRootProps: {"stroke-width": 2.5}})
             : DiagramRoot;
             
         if (root.current && container.current) {
@@ -46,8 +46,19 @@ function DiagramViewer(props: DiagramViewerProps & HTMLAttributes<HTMLDivElement
 
     useLayoutEffect(() => {
         // Render synchronously to avoid diagram control glitches when scale is changed
-        diagramRoot?.render(true);
+        diagramRoot?.isAttached() && diagramRoot.render(true);
     }, [diagramRoot, scale]);
+
+    useEffect(() => {
+        if (controller) {
+            const paper = controller.getPaperOptions();
+            paper && controller.updatePaper({
+                ...paper,
+                width: diagramSize.width,
+                height: diagramSize.height
+            });
+        }
+    }, [controller, diagramSize.width, diagramSize.height]);
 
     function dragOverHandler(e: React.DragEvent) {
         if (controller && dragDropContext.draggedElement) {
@@ -61,7 +72,7 @@ function DiagramViewer(props: DiagramViewerProps & HTMLAttributes<HTMLDivElement
             e.preventDefault();
             
             const draggedElement = dragDropContext.draggedElement;
-            const point = controller.clientToDiagram(new DOMPoint(e.nativeEvent.offsetX, e.nativeEvent.offsetY));
+            const point = controller.snapToGrid(controller.clientToDiagram(new DOMPoint(e.clientX, e.clientY)));
             const props = draggedElement.factory(point, draggedElement.elementProps);
             const element = diagram.add(draggedElement.elementType, props);
             controller.select(element);
@@ -78,19 +89,11 @@ function DiagramViewer(props: DiagramViewerProps & HTMLAttributes<HTMLDivElement
                 onDragOver={dragOverHandler}
                 onDrop={dropHandler}
             >
-                <DiagramSvg
+                <DiagramSvg ref={root}
                     viewBox={[0, 0, diagramSize.width, diagramSize.height].join(' ')}
                     {...{width, height}}
                     css={{flex: "1 0 auto", margin: "auto", overflow: "visible"}}
-                >
-                    <g>
-                        <rect 
-                            x={0} y={0} width={diagramSize.width} height={diagramSize.height}
-                            css={{fill: "white", stroke: "black"}}
-                        />
-                    </g>
-                    <g ref={root} />
-                </DiagramSvg>
+                />
             </div>
         </div>
     );

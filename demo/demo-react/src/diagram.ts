@@ -19,7 +19,18 @@ import {
     InteractivePacman as Pacman
 } from "./examples"
 
-export const controller = new InteractionController();
+export const controller = new InteractionController({
+    paper: {
+        x: 0,
+        y: 0,
+        width: 2100,
+        height: 2970,
+        majorGridSize: 200,
+        minorGridSize: 50
+    },
+    snapGridSize: 50,
+    snapAngle: 5
+});
 export const diagram = new Diagram();
 
 export const palette: DiagramPaletteElement<any>[] = [];

@@ -27,20 +27,33 @@ export interface MovementActionPayload {
     position: DOMPointReadOnly;
     deltaX: number;
     deltaY: number;
+    rawPosition: DOMPointReadOnly;
+    rawDeltaX: number;
+    rawDeltaY: number;
     hitArea: HitArea;
+    snapGridSize: number | null;
+    snapAngle: number | null;
+    snapToGrid: {
+        (value: number, snapGridSize?: number | null): number;
+        (point: DOMPointReadOnly, snapGridSize?: number | null): DOMPointReadOnly;
+    }
 }
 
 export interface SelectEventArgs {
     selectedElements: DiagramElementNode[];
 }
 
+export interface DeleteEventArg {
+    elements: DiagramElementNode[];
+    requestConfirmation(promise: Promise<boolean>): void;
+}
+
 export interface RectSelectionEventArgs {
     selectionRect: Rect | null;
 }
 
-export interface DeleteEventArg {
-    elements: DiagramElementNode[];
-    requestConfirmation(promise: Promise<boolean>): void;
+export interface PaperChangeEventArgs {
+    paper: PaperOptions | undefined;
 }
 
 export type ControlProps = Partial<CreateHitTestProps> & {
@@ -50,6 +63,17 @@ export type ControlProps = Partial<CreateHitTestProps> & {
 export type RenderHandleCallback = (kind: string, x: number, y: number, otherProps: ControlProps) => JSX.Element;
 export type RenderEdgeCallback = (kind: string, x1: number, y1: number, x2: number, y2: number, otherProps: ControlProps) => JSX.Element;
 export type DispatchActionCallback<T> = (elements: DiagramElementNode[], action: string, payload: T) => void;
+
+export interface PaperOptions {
+    x: number;
+    y: number;
+    width: number;
+    height: number;
+    majorGridSize?: number;
+    majorGridColor?: string;
+    minorGridSize?: number;
+    minorGridColor?: string;
+}
 
 export interface InteractionControllerOptions {
     dispatchAction?: <T>(
@@ -62,6 +86,9 @@ export interface InteractionControllerOptions {
     ) => void;
     renderHandleControl?: AddParameters<RenderHandleCallback, [RenderHandleCallback]>;
     renderEdgeControl?: AddParameters<RenderEdgeCallback, [RenderEdgeCallback]>;
+    paper?: PaperOptions;
+    snapGridSize?: number | null;
+    snapAngle?: number | null;
 }
 
 export class InteractionController {
@@ -73,18 +100,25 @@ export class InteractionController {
     private dragging = false;
     private selecting = false;
     private selectedElements = new Set<DiagramElementNode>();
+    private paper?: PaperOptions;
     elements: DiagramElementNode[] = [];
-    transform?: DOMMatrixReadOnly;
+    screenCTM?: DOMMatrixReadOnly;
     interactionContext: InteractionContextType;
     controlsContext: ControlsContextType;
+    snapGridSize: number | null = null;
+    snapAngle: number | null = null;
 
     onSelect = new Event<SelectEventArgs>();
-    onRectSelection = new Event<RectSelectionEventArgs>();
     onDelete = new Event<DeleteEventArg>();
+    onRectSelection = new Event<RectSelectionEventArgs>();
+    onPaperChange = new Event<PaperChangeEventArgs>();
 
-    constructor(public options?: InteractionControllerOptions) {
+    constructor(private options?: InteractionControllerOptions) {
         this.interactionContext = this.createInteractionContext();
         this.controlsContext = this.createControlsContext();
+        this.paper = options?.paper;
+        this.snapGridSize = options?.snapGridSize || null;
+        this.snapAngle = options?.snapAngle || null;
     }
 
     attach(diagram: Diagram, root: HTMLElement) {
@@ -198,11 +232,23 @@ export class InteractionController {
     }
 
     clientToDiagram(point: DOMPointReadOnly): DOMPointReadOnly {
-        return point.matrixTransform(this.transform);
+        return point.matrixTransform(this.screenCTM?.inverse());
     }
 
     diagramToClient(point: DOMPointReadOnly): DOMPointReadOnly {
-        return point.matrixTransform(this.transform?.inverse());
+        return point.matrixTransform(this.screenCTM);
+    }
+
+    snapToGrid(value: number, snapGridSize?: number | null): number;
+    snapToGrid(point: DOMPointReadOnly, snapGridSize?: number | null): DOMPointReadOnly;
+    snapToGrid(value: DOMPointReadOnly | number, snapGridSize?: number | null): DOMPointReadOnly | number {
+        snapGridSize = snapGridSize !== undefined ? snapGridSize : this.snapGridSize;
+        if (typeof value === "number") {
+            return snapGridSize ? Math.round(value / snapGridSize) * snapGridSize : value
+        }
+        else {
+            return snapGridSize ? new DOMPoint(this.snapToGrid(value.x, snapGridSize), this.snapToGrid(value.y, snapGridSize)) : value;
+        }
     }
 
     select(element: DiagramElementNode): void;
@@ -285,10 +331,10 @@ export class InteractionController {
         this.selecting = true;
         root.setPointerCapture(e.pointerId);
 
-        const startPoint = new DOMPoint(e.offsetX, e.offsetY);
+        const startPoint = this.clientToDiagram(new DOMPoint(e.clientX, e.clientY));
 
         const mouseMoveHandler = (e: PointerEvent) => {
-            const point = new DOMPoint(e.offsetX, e.offsetY)
+            const point = this.clientToDiagram(new DOMPoint(e.clientX, e.clientY));
 
             const selectionRect = {
                 x: Math.min(startPoint.x, point.x),
@@ -302,15 +348,14 @@ export class InteractionController {
 
         const mouseUpHandler = (e: PointerEvent) => {
             this.onRectSelection.emit({selectionRect: null});
+            const point = this.clientToDiagram(new DOMPoint(e.clientX, e.clientY));
 
-            if (startPoint.x !== e.offsetX || startPoint.y !== e.offsetY) {
-                const p1 = this.clientToDiagram(startPoint);
-                const p2 = this.clientToDiagram(new DOMPoint(e.offsetX, e.offsetY));
+            if (startPoint.x !== point.x || startPoint.y !== point.y) {
                 const selectionRect = {
-                    x: Math.min(p1.x, p2.x),
-                    y: Math.min(p1.y, p2.y),
-                    width: Math.max(p1.x, p2.x) - Math.min(p1.x, p2.x),
-                    height: Math.max(p1.y, p2.y) - Math.min(p1.y, p2.y),
+                    x: Math.min(startPoint.x, point.x),
+                    y: Math.min(startPoint.y, point.y),
+                    width: Math.max(startPoint.x, point.x) - Math.min(startPoint.x, point.x),
+                    height: Math.max(startPoint.y, point.y) - Math.min(startPoint.y, point.y),
                 };
 
                 // Broad phase
@@ -340,21 +385,29 @@ export class InteractionController {
         this.dragging = true;
         root.setPointerCapture(e.pointerId);
 
-        let lastPoint = this.clientToDiagram(new DOMPoint(e.offsetX, e.offsetY));
+        let lastPoint = this.clientToDiagram(new DOMPoint(e.clientX, e.clientY));
 
         if (hitInfo.hitArea.action) {
             const mouseMoveHandler = (e: PointerEvent) => {
-                const point = new DOMPoint(e.offsetX, e.offsetY);
+                const point = new DOMPoint(e.clientX, e.clientY);
+                const snapGridSize = !e.altKey ? this.snapGridSize : null;
                 const elementPoint = this.clientToDiagram(point);
+                const snappedElementPoint = this.snapToGrid(elementPoint, snapGridSize);
 
                 this.dispatch<MovementActionPayload>(
                     [hitInfo.element],
                     hitInfo.hitArea.action,
                     {
-                        position: elementPoint,
-                        deltaX: elementPoint.x - lastPoint.x,
-                        deltaY: elementPoint.y - lastPoint.y,
+                        position: snappedElementPoint,
+                        deltaX: this.snapToGrid(snappedElementPoint.x - lastPoint.x, snapGridSize),
+                        deltaY: this.snapToGrid(snappedElementPoint.y - lastPoint.y, snapGridSize),
+                        rawPosition: elementPoint,
+                        rawDeltaX: elementPoint.x - lastPoint.x,
+                        rawDeltaY: elementPoint.y - lastPoint.y,
                         hitArea: hitInfo.hitArea,
+                        snapGridSize,
+                        snapAngle: !e.altKey ? this.snapAngle : null,
+                        snapToGrid: this.snapToGrid.bind(this)
                     });
 
                 lastPoint = elementPoint;
@@ -416,9 +469,9 @@ export class InteractionController {
     }
 
     hitTest(e: MouseEvent) {
-        if (this.transform) {
-            const transform = this.transform;
-            const point = new DOMPoint(e.offsetX, e.offsetY);
+        if (this.screenCTM) {
+            const transform = this.screenCTM.inverse();
+            const point = new DOMPoint(e.clientX, e.clientY);
             if (e.target && hasHitTestProps(e.target)) {
                 const elementPoint = this.clientToDiagram(point);
                 return {
@@ -483,5 +536,14 @@ export class InteractionController {
         else {
             this.dispatchDefault(elements, action, payload);
         }
+    }
+
+    getPaperOptions(): PaperOptions | undefined {
+        return this.paper;
+    }
+
+    updatePaper(paper: PaperOptions | undefined) {
+        this.paper = paper;
+        this.onPaperChange.emit({paper});
     }
 }

@@ -7,7 +7,7 @@ import { Point } from "../geometry";
 export interface KnobController<T extends object, D = any> {
     hitArea: HitArea<D> | ((props: T) => HitArea<D>);
     getPosition(props: T): Point;
-    setPosition<D>(props: DiagramElementProps<T>, pos: Point, hitArea: HitArea<D>): DiagramElementProps<T>;
+    setPosition<D>(props: DiagramElementProps<T>, payload: MovementActionPayload, hitArea: HitArea<D>): DiagramElementProps<T>;
 }
 
 export function useKnob<T extends object>(knobController: KnobController<T>, props: DiagramElementProps<T>) {
@@ -15,7 +15,7 @@ export function useKnob<T extends object>(knobController: KnobController<T>, pro
     const hitArea = typeof knobController.hitArea === "function" ? knobController.hitArea(props) : knobController.hitArea;
 
     function dragHandler(payload: MovementActionPayload) {
-        props.onChange(props => knobController.setPosition(props, payload.position, payload.hitArea));
+        props.onChange(props => knobController.setPosition(props, payload, payload.hitArea));
     }
 
     useControls((transform, element) => {
