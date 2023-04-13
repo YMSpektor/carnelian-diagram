@@ -1,7 +1,7 @@
 /** @jsxImportSource @carnelian/diagram */
 
 import { DiagramElement, DiagramElementProps } from "@carnelian/diagram";
-import { Collider, HandleControl, LineCollider, lineHitTest, MovementActionPayload, useAction, useCollider, useControls } from "..";
+import { Collider, DrawingActionPayload, HandleControl, LineCollider, MovementActionPayload, PlacingPointActionPayload, useAction, useCollider, useControls } from "..";
 
 export interface InteractiveLineProps {
     x1: number;
@@ -42,6 +42,34 @@ export function useInteractiveLine<T extends InteractiveLineProps>(
     useCollider(collider, { type: "in", cursor: "move", action: "move" }, 0, 2);
     useAction<MovementActionPayload>("move", move);
     useAction<MovementActionPayload>("vertex_move", moveVertex);
+
+    useAction<PlacingPointActionPayload>("draw_point:place", (payload) => {
+        if (payload.pointIndex === 0) {
+            onChange(props => ({
+                ...props,
+                x1: payload.position.x,
+                y1: payload.position.y,
+                x2: payload.position.x,
+                y2: payload.position.y,
+            }));
+        }
+        else {
+            onChange(props => ({
+                ...props,
+                x2: payload.position.x,
+                y2: payload.position.y,
+            }));
+        }
+        payload.result.current = payload.pointIndex > 0;
+    });
+
+    useAction<DrawingActionPayload>("draw_point:move", (payload) => {
+        onChange(props => ({
+            ...props,
+            x2: payload.position.x,
+            y2: payload.position.y,
+        }));
+    });
 
     function createHandleControl(
         index: number, 

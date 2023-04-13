@@ -1,7 +1,7 @@
 import { Diagram, DiagramElementNode } from "@carnelian/diagram";
 import { createElement, Fragment, JSX } from "@carnelian/diagram/jsx-runtime";
 import { Event } from "@carnelian/diagram/utils/events";
-import { AddParameters } from "@carnelian/diagram/utils/types";
+import { AddParameters, MutableRefObject } from "@carnelian/diagram/utils/types";
 import { ControlsContextType, InteractionContextType } from "./context";
 import { CreateHitTestProps, DiagramElementHitTest, hasHitTestProps, HitArea, HitTestCollection, HitInfo } from "./hit-tests";
 import { renderEdgeDefault, renderHandleDefault } from "./controls";
@@ -37,6 +37,22 @@ export interface MovementActionPayload {
         (value: number, snapGridSize?: number | null): number;
         (point: DOMPointReadOnly, snapGridSize?: number | null): DOMPointReadOnly;
     }
+}
+
+export interface DrawingActionPayload {
+    position: DOMPointReadOnly;
+    rawPosition: DOMPointReadOnly;
+    snapGridSize: number | null;
+    snapAngle: number | null;
+    snapToGrid: {
+        (value: number, snapGridSize?: number | null): number;
+        (point: DOMPointReadOnly, snapGridSize?: number | null): DOMPointReadOnly;
+    }
+    pointIndex: number;
+}
+
+export interface PlacingPointActionPayload extends DrawingActionPayload {
+    result: MutableRefObject<boolean>;
 }
 
 export interface SelectEventArgs {
@@ -75,6 +91,8 @@ export interface PaperOptions {
     minorGridColor?: string;
 }
 
+export type DrawingModeElementFactory = (diagram: Diagram, x: number, y: number) => DiagramElementNode;
+
 export interface InteractionControllerOptions {
     dispatchAction?: <T>(
         controller: InteractionController, 
@@ -99,8 +117,10 @@ export class InteractionController {
     private actions = new Map<object, DiagramElementAction<any>>();
     private dragging = false;
     private selecting = false;
+    private drawing = false;
     private selectedElements = new Set<DiagramElementNode>();
     private paper?: PaperOptions;
+    private drawingModeFactory: DrawingModeElementFactory | null = null;
     elements: DiagramElementNode[] = [];
     screenCTM?: DOMMatrixReadOnly;
     interactionContext: InteractionContextType;
@@ -127,11 +147,9 @@ export class InteractionController {
        
         const mouseDownHandler = (e: PointerEvent) => this.mouseDownHandler(root, e);
         const mouseMoveHandler = (e: PointerEvent) => this.mouseMoveHandler(root, e);
-        const mouseUpHandler = (e: PointerEvent) => this.mouseUpHandler(root, e);
         const keyDownHandler = (e: KeyboardEvent) => this.keyDownHandler(root, e);
         root.addEventListener("pointerdown", mouseDownHandler);
         root.addEventListener("pointermove", mouseMoveHandler);
-        root.addEventListener("pointerup", mouseUpHandler);
         root.addEventListener("keydown", keyDownHandler);
 
         const tabIndex = root.getAttribute("tabindex");
@@ -144,7 +162,6 @@ export class InteractionController {
             this.detach = () => {};
             root.removeEventListener("pointerdown", mouseDownHandler);
             root.removeEventListener("pointermove", mouseMoveHandler);
-            root.removeEventListener("pointerup", mouseUpHandler);
             root.removeEventListener("keydown", keyDownHandler);
             
             if (!tabIndex) {
@@ -273,57 +290,58 @@ export class InteractionController {
     }
 
     private mouseDownHandler(root: HTMLElement, e: PointerEvent) {
-         if (this.dragging || this.selecting) return;
+        if (this.dragging || this.selecting || this.drawing) return;
 
-        const hitInfo = this.hitTest(e);
-        if (hitInfo) {
-            const isSelected = this.selectedElements.has(hitInfo.element);
-
-            if (e.shiftKey) {
-                if (isSelected) {
-                    this.selectedElements.delete(hitInfo.element);
-                    root.style.cursor = "";
-                }
-                else {
-                    this.selectedElements.add(hitInfo.element);
-                    root.style.cursor = hitInfo.hitArea.cursor || "";
-                }
-                this.onSelect.emit({selectedElements: [...this.selectedElements]});
-            } 
-            else {
-                if (!isSelected) {
-                    root.style.cursor = hitInfo.hitArea.cursor || "";
-                    this.select(hitInfo.element);
-                }
-                else {
-                    this.beginDrag(root, e, hitInfo);
-                }
-            }
+        if (this.drawingModeFactory && this.diagram) {
+            this.beginDraw(root, e, this.diagram, this.drawingModeFactory);
         }
         else {
-            if (this.selectedElements.size > 0) {
-                root.style.cursor = "";
-                this.select([]);
+            const hitInfo = this.hitTest(e);
+            if (hitInfo) {
+                const isSelected = this.selectedElements.has(hitInfo.element);
+
+                if (e.shiftKey) {
+                    if (isSelected) {
+                        this.selectedElements.delete(hitInfo.element);
+                        root.style.cursor = "";
+                    }
+                    else {
+                        this.selectedElements.add(hitInfo.element);
+                        root.style.cursor = hitInfo.hitArea.cursor || "";
+                    }
+                    this.onSelect.emit({selectedElements: [...this.selectedElements]});
+                } 
+                else {
+                    if (!isSelected) {
+                        root.style.cursor = hitInfo.hitArea.cursor || "";
+                        this.select(hitInfo.element);
+                    }
+                    else {
+                        this.beginDrag(root, e, hitInfo);
+                    }
+                }
             }
-            this.beginSelect(root, e);
+            else {
+                if (this.selectedElements.size > 0) {
+                    root.style.cursor = "";
+                    this.select([]);
+                }
+                this.beginSelect(root, e);
+            }
         }
     }
 
     private mouseMoveHandler(root: HTMLElement, e: PointerEvent) {
-        if (!this.dragging && !this.selecting) {
-            const hitInfo = this.hitTest(e);
-            const isSelected = hitInfo && this.selectedElements.has(hitInfo.element);
+        if (!this.dragging && !this.selecting && !this.drawing) {
+            if (this.drawingModeFactory) {
+                root.style.cursor = "copy";
+            }
+            else {
+                const hitInfo = this.hitTest(e);
+                const isSelected = hitInfo && this.selectedElements.has(hitInfo.element);
 
-            root.style.cursor = isSelected ? hitInfo?.hitArea.cursor || "" : "";
-        }
-    }
-
-    private mouseUpHandler(root: HTMLElement, e: PointerEvent) {
-        if (this.dragging) {
-            this.endDrag(root, e);
-        }
-        if (this.selecting) {
-            this.endSelect(root, e);
+                root.style.cursor = isSelected ? hitInfo?.hitArea.cursor || "" : "";
+            }
         }
     }
 
@@ -379,17 +397,15 @@ export class InteractionController {
                 );
             }
 
+            this.selecting = false;
+            root.releasePointerCapture(e.pointerId);
+
             root.removeEventListener("pointermove", mouseMoveHandler);
             root.removeEventListener("pointerup", mouseUpHandler);
         }
 
         root.addEventListener("pointermove", mouseMoveHandler);
         root.addEventListener("pointerup", mouseUpHandler);
-    }
-
-    private endSelect(root: HTMLElement, e: PointerEvent) {
-        this.selecting = false;
-        root.releasePointerCapture(e.pointerId);
     }
 
     private beginDrag(root: HTMLElement, e: PointerEvent, hitInfo: HitInfo) {
@@ -425,6 +441,9 @@ export class InteractionController {
             }
 
             const mouseUpHandler = (e: PointerEvent) => {
+                this.dragging = false;
+                root.releasePointerCapture(e.pointerId);
+
                 root.removeEventListener("pointermove", mouseMoveHandler);
                 root.removeEventListener("pointerup", mouseUpHandler);
             }
@@ -434,9 +453,70 @@ export class InteractionController {
         }
     }
 
-    private endDrag(root: HTMLElement, e: PointerEvent) {
-        this.dragging = false;
-        root.releasePointerCapture(e.pointerId);
+    private beginDraw(root: HTMLElement, e: PointerEvent, diagram: Diagram, factory: DrawingModeElementFactory) {
+        this.drawing = true;
+        root.setPointerCapture(e.pointerId);
+        root.style.cursor = "";
+
+        const point = new DOMPoint(e.clientX, e.clientY);
+        const snapGridSize = !e.altKey ? this.snapGridSize : null;
+        const elementPoint = this.clientToDiagram(point);
+        const snappedElementPoint = this.snapToGrid(elementPoint, snapGridSize);
+        const element = factory(diagram, snappedElementPoint.x, snappedElementPoint.y);
+        this.select(element);
+
+        let pointIndex = 0;
+        const result: MutableRefObject<boolean> = { current: false };
+        const drawPoint = (e: PointerEvent) => {
+            const point = new DOMPoint(e.clientX, e.clientY);
+            const snapGridSize = !e.altKey ? this.snapGridSize : null;
+            const elementPoint = this.clientToDiagram(point);
+            const snappedElementPoint = this.snapToGrid(elementPoint, snapGridSize);
+
+            this.dispatch<PlacingPointActionPayload>([element], "draw_point:place", {
+                position: snappedElementPoint,
+                rawPosition: elementPoint,
+                snapGridSize,
+                snapAngle: !e.altKey ? this.snapAngle : null,
+                snapToGrid: this.snapToGrid.bind(this),
+                pointIndex,
+                result
+            });
+            pointIndex++;
+
+            if (result.current) {
+                this.drawing = false;
+                root.releasePointerCapture(e.pointerId);
+
+                root.removeEventListener("pointermove", mouseMoveHandler);
+                root.removeEventListener("pointerdown", mouseDownHandler);
+            }
+        }
+
+        const mouseMoveHandler = (e: PointerEvent) => {
+            const point = new DOMPoint(e.clientX, e.clientY);
+            const snapGridSize = !e.altKey ? this.snapGridSize : null;
+            const elementPoint = this.clientToDiagram(point);
+            const snappedElementPoint = this.snapToGrid(elementPoint, snapGridSize);
+
+            this.dispatch<DrawingActionPayload>([element], "draw_point:move", {
+                position: snappedElementPoint,
+                rawPosition: elementPoint,
+                snapGridSize,
+                snapAngle: !e.altKey ? this.snapAngle : null,
+                snapToGrid: this.snapToGrid.bind(this),
+                pointIndex
+            });
+        }
+
+        const mouseDownHandler = (e: PointerEvent) => {
+            drawPoint(e);
+        }
+
+        root.addEventListener("pointermove", mouseMoveHandler);
+        root.addEventListener("pointerdown", mouseDownHandler);
+
+        drawPoint(e);
     }
 
     isSelected(element: DiagramElementNode) {
@@ -525,6 +605,10 @@ export class InteractionController {
                 }
             }
         }
+    }
+
+    switchDrawingMode(elementFactory: DrawingModeElementFactory | null) {
+        this.drawingModeFactory = elementFactory;
     }
 
     private dispatchInternal<T>(elements: DiagramElementNode[], action: string, payload: T) {

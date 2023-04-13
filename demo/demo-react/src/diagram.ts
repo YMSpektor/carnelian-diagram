@@ -197,21 +197,6 @@ addToPalette({
 });
 
 addToPalette({
-    category: "basic",
-    elementType: Line,
-    elementProps: {x1: 20, y1: 20, x2: 320, y2: 220},
-    viewBox: "0 0 340 240",
-    title: "Line",
-    factory: (point, props) => ({
-        ...props,
-        x1: point.x - (props.x2 - props.x1) / 2,
-        y1: point.y - (props.y2 - props.y1) / 2,
-        x2: point.x + (props.x2 - props.x1) / 2,
-        y2: point.y + (props.y2 - props.y1) / 2
-    }),
-});
-
-addToPalette({
     category: "examples",
     elementType: Pacman,
     elementProps: {x: 160, y: 160, radius: 150, mouthAngle: 90, eyeRadius: "25%"},
