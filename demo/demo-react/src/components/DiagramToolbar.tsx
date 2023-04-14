@@ -11,7 +11,8 @@ import { DrawingModeElementFactory, InteractionController } from "@carnelian/int
 import { ClosedFigureStyleProps } from "@carnelian/shapes/basic";
 import { Diagram, DiagramElementNode, DiagramElementProps } from "@carnelian/diagram";
 import {
-    InteractiveLine as Line
+    InteractiveLine as Line,
+    InteractivePolyline as Polyline
 } from "@carnelian/shapes/basic";
 
 interface DiagramToolbarProps {
@@ -33,6 +34,14 @@ function LineIcon() {
     return (
         <SvgIcon>
             <path d="M15,3V7.59L7.59,15H3V21H9V16.42L16.42,9H21V3M17,5H19V7H17M5,17H7V19H5" />
+        </SvgIcon>
+    );
+}
+
+function PolylineIcon() {
+    return (
+        <SvgIcon>
+            <path d="M2 3V9H4.95L6.95 15H6V21H12V16.41L17.41 11H22V5H16V9.57L10.59 15H9.06L7.06 9H8V3M4 5H6V7H4M18 7H20V9H18M8 17H10V19H8Z" />
         </SvgIcon>
     );
 }
@@ -112,10 +121,17 @@ function DiagramToolbar(props: DiagramToolbarProps) {
         return diagram.add(Line, {x1: x, y1: y, x2: x, y2: y});
     }
 
+    const polylineFactory: DrawingModeElementFactory = (diagram, x, y) => {
+        return diagram.add(Polyline, {points: [{x, y}]});
+    }
+
     function changeDrawinMode(e: React.MouseEvent<HTMLElement>, value: string) {
         switch (value) {
             case "line": 
                 props.controller.switchDrawingMode(lineFactory);
+                break;
+            case "polyline": 
+                props.controller.switchDrawingMode(polylineFactory);
                 break;
             default:
                 props.controller.switchDrawingMode(null);
@@ -170,6 +186,9 @@ function DiagramToolbar(props: DiagramToolbarProps) {
                     </ToggleButton>
                     <ToggleButton value="line" sx={{color: "inherit !important"}}>
                         <LineIcon />
+                    </ToggleButton>
+                    <ToggleButton value="polyline" sx={{color: "inherit !important"}}>
+                        <PolylineIcon />
                     </ToggleButton>
                 </ToggleButtonGroup>
             </Toolbar>

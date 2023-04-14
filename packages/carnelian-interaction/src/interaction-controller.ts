@@ -15,6 +15,11 @@ export interface DiagramElementControls {
     callback: RenderControlsCallback;
 }
 
+interface PendingAction<T> {
+    action: string;
+    payload: T;
+}
+
 export type ActionCallback<T> = (payload: T) => void;
 
 export interface DiagramElementAction<T> {
@@ -22,6 +27,8 @@ export interface DiagramElementAction<T> {
     element: DiagramElementNode;
     callback: ActionCallback<T>;
 }
+
+export type EmptyActionPayload = {}
 
 export interface MovementActionPayload {
     position: DOMPointReadOnly;
@@ -99,6 +106,7 @@ export interface InteractionControllerOptions {
         elements: DiagramElementNode[], 
         action: string, 
         payload: T,
+        isPendingAction: boolean,
         dispatch: DispatchActionCallback<T>,
         defaultDispatcher: DispatchActionCallback<T>
     ) => void;
@@ -115,6 +123,7 @@ export class InteractionController {
     private hitTests: HitTestCollection = {};
     private intersectionTests = new Map<object, DiagramElementIntersectionTest>;
     private actions = new Map<object, DiagramElementAction<any>>();
+    private pendingActions = new Map<DiagramElementNode, PendingAction<any>[]>();
     private dragging = false;
     private selecting = false;
     private drawing = false;
@@ -226,6 +235,20 @@ export class InteractionController {
         const updateActions = (key: {}, action?: DiagramElementAction<any>) => {
             if (action) {
                 this.actions.set(key, action);
+                let pendingActions = this.pendingActions.get(action.element);
+                if (pendingActions) {
+                    pendingActions = pendingActions.filter(x => {
+                        if (x.action === action.action) {
+                            action.callback(x.payload);
+                            return false;
+                        }
+                        return true;
+                    });
+                    this.pendingActions.set(action.element, pendingActions);
+                    if (!pendingActions.length) {
+                        this.pendingActions.delete(action.element);
+                    }
+                }
             }
             else {
                 this.actions.delete(key);
@@ -290,7 +313,7 @@ export class InteractionController {
     }
 
     private mouseDownHandler(root: HTMLElement, e: PointerEvent) {
-        if (this.dragging || this.selecting || this.drawing) return;
+        if (this.dragging || this.selecting || this.drawing || e.button !== 0) return;
 
         if (this.drawingModeFactory && this.diagram) {
             this.beginDraw(root, e, this.diagram, this.drawingModeFactory);
@@ -465,9 +488,18 @@ export class InteractionController {
         const element = factory(diagram, snappedElementPoint.x, snappedElementPoint.y);
         this.select(element);
 
+        const endDraw = () => {
+            this.drawing = false;
+            root.releasePointerCapture(e.pointerId);
+
+            root.removeEventListener("pointermove", mouseMoveHandler);
+            root.removeEventListener("pointerdown", mouseDownHandler);
+            root.removeEventListener("keydown", keyDownHandler);
+        }
+
         let pointIndex = 0;
         const result: MutableRefObject<boolean> = { current: false };
-        const drawPoint = (e: PointerEvent) => {
+        const drawPoint = (e: PointerEvent, dispatchPending: boolean) => {
             const point = new DOMPoint(e.clientX, e.clientY);
             const snapGridSize = !e.altKey ? this.snapGridSize : null;
             const elementPoint = this.clientToDiagram(point);
@@ -481,15 +513,11 @@ export class InteractionController {
                 snapToGrid: this.snapToGrid.bind(this),
                 pointIndex,
                 result
-            });
+            }, dispatchPending);
             pointIndex++;
 
             if (result.current) {
-                this.drawing = false;
-                root.releasePointerCapture(e.pointerId);
-
-                root.removeEventListener("pointermove", mouseMoveHandler);
-                root.removeEventListener("pointerdown", mouseDownHandler);
+                endDraw();
             }
         }
 
@@ -510,13 +538,29 @@ export class InteractionController {
         }
 
         const mouseDownHandler = (e: PointerEvent) => {
-            drawPoint(e);
+            if (e.button === 0) {
+                drawPoint(e, false);
+            }
+            else if (e.button === 2) {
+                this.dispatch<EmptyActionPayload>([element], "draw_point:cancel", {});
+                endDraw();
+            }            
+        }
+
+        const keyDownHandler = (e: KeyboardEvent) => {
+            // Firefox 36 and earlier uses "Esc" instead of "Escape" for the Esc key
+            // https://developer.mozilla.org/en-US/docs/Web/API/UI_Events/Keyboard_event_key_values
+            if (e.key === "Escape" || e.key === "Esc") {
+                this.dispatch<EmptyActionPayload>([element], "draw_point:cancel", {});
+                endDraw();
+            }
         }
 
         root.addEventListener("pointermove", mouseMoveHandler);
         root.addEventListener("pointerdown", mouseDownHandler);
+        root.addEventListener("keydown", keyDownHandler);
 
-        drawPoint(e);
+        drawPoint(e, true);
     }
 
     isSelected(element: DiagramElementNode) {
@@ -611,33 +655,45 @@ export class InteractionController {
         this.drawingModeFactory = elementFactory;
     }
 
-    private dispatchInternal<T>(elements: DiagramElementNode[], action: string, payload: T) {
-        const actions = [...this.actions.values()];
-        elements.forEach(element => {
-            const callbacks = actions
-                .filter(x => x.element === element && x.action === action)
-                .map(x => x.callback);
-            if (callbacks) {
-                callbacks.forEach(cb => cb(payload));
-            }
-        });
+    private dispatchInternal<T>(elements: DiagramElementNode[], action: string, payload: T, isPendingAction = false) {
+        if (isPendingAction) {
+            elements.forEach(element => {
+                let pendingActions = this.pendingActions.get(element);
+                if (!pendingActions) {
+                    pendingActions = [];
+                    this.pendingActions.set(element, pendingActions);
+                }
+                pendingActions.push({ action, payload });
+            });
+        }
+        else {
+            const actions = [...this.actions.values()];
+            elements.forEach(element => {
+                const callbacks = actions
+                    .filter(x => x.element === element && x.action === action)
+                    .map(x => x.callback);
+                if (callbacks) {
+                    callbacks.forEach(cb => cb(payload));
+                }
+            });
+        }
     }
 
-    private dispatchDefault<T>(elements: DiagramElementNode[], action: string, payload: T) {
+    private dispatchDefault<T>(elements: DiagramElementNode[], action: string, payload: T, isPendingAction = false) {
         if (action === "move") {
-            this.dispatchInternal([...this.selectedElements], action, payload);
+            this.dispatchInternal([...this.selectedElements], action, payload, isPendingAction);
         }
         else {
-            this.dispatchInternal(elements, action, payload);
+            this.dispatchInternal(elements, action, payload, isPendingAction);
         }
     }
 
-    dispatch<T>(elements: DiagramElementNode[], action: string, payload: T) {
+    dispatch<T>(elements: DiagramElementNode[], action: string, payload: T, isPendingAction = false) {
         if (this.options?.dispatchAction) {
-            this.options.dispatchAction(this, elements, action, payload, this.dispatchInternal, this.dispatchDefault);
+            this.options.dispatchAction(this, elements, action, payload, isPendingAction, this.dispatchInternal, this.dispatchDefault);
         }
         else {
-            this.dispatchDefault(elements, action, payload);
+            this.dispatchDefault(elements, action, payload, isPendingAction);
         }
     }
 

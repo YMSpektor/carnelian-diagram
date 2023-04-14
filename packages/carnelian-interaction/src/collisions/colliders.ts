@@ -51,7 +51,7 @@ export function EllipseCollider(ellipse: Ellipse): Collider<Ellipse> {
 }
 
 export function PolygonCollider(polygon: Polygon): Collider<Polygon> {
-    return Collider("polygon", polygon, polygonBounds(polygon) || {x: 0, y: 0, width: 0, height: 0});
+    return Collider("polygon", polygon, polygonBounds(polygon));
 }
 
 export function HalfPlaneCollider(hs: Line): Collider<Line> {
