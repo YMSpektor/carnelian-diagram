@@ -1,7 +1,7 @@
 /** @jsxImportSource @carnelian/diagram */
 
 import { DiagramElement, DiagramElementProps } from "@carnelian/diagram";
-import { ACT_MOVE, DraggingActionPayload, useAction, useCollider } from "..";
+import { ACT_DRAW_POINT_MOVE, ACT_DRAW_POINT_MOVE_Payload, ACT_DRAW_POINT_PLACE, ACT_DRAW_POINT_PLACE_Payload, ACT_MOVE, DraggingActionPayload, useAction, useCollider } from "..";
 import { Collider, RectCollider } from "../collisions";
 import { useInteractiveRectControls } from "./interactive-rect";
 
@@ -110,6 +110,33 @@ export function useInteractiveSquare<T extends InteractiveSquareProps>(
     const collider = colliderFactory?.(props) || defaultCollider();
     useCollider(collider, { type: "in", action: ACT_MOVE, cursor: "move" });
     useAction(ACT_MOVE, move);
+
+    useAction<ACT_DRAW_POINT_PLACE_Payload>(ACT_DRAW_POINT_PLACE, (payload) => {
+        if (payload.pointIndex === 0) {
+            onChange(props => ({
+                ...props,
+                x: payload.position.x,
+                y: payload.position.y,
+                size: 0
+            }));
+        }
+        else {
+            const d = Math.max(payload.position.x - props.x - props.size, payload.position.y - props.y - props.size);
+            onChange(props => ({
+                ...props,
+                size: Math.max(0, props.size + d)
+            }));
+        }
+        payload.result.current = payload.pointIndex > 0;
+    });
+
+    useAction<ACT_DRAW_POINT_MOVE_Payload>(ACT_DRAW_POINT_MOVE, (payload) => {
+        const d = Math.max(payload.position.x - props.x - props.size, payload.position.y - props.y - props.size);
+        onChange(props => ({
+            ...props,
+            size: Math.max(0, props.size + d)
+        }));
+    });
 
     useInteractiveRectControls(
         x, y, size, size, resizeTopLeft, resizeTopRight, resizeBottomLeft, resizeBottomRight,

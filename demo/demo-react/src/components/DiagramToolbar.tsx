@@ -6,13 +6,16 @@ import ZoomOutIcon from '@mui/icons-material/ZoomOut';
 import BorderColorIcon from '@mui/icons-material/BorderColor';
 import FormatColorFillIcon from '@mui/icons-material/FormatColorFill';
 import LineWeightIcon from '@mui/icons-material/LineWeight';
+import CircleOutlinedIcon from '@mui/icons-material/CircleOutlined';
 import { CompactPicker } from 'react-color';
 import { DrawingModeElementFactory, InteractionController } from "@carnelian/interaction";
 import { ClosedFigureStyleProps } from "@carnelian/shapes/basic";
 import { Diagram, DiagramElementNode, DiagramElementProps } from "@carnelian/diagram";
 import {
     InteractiveLine as Line,
-    InteractivePolyline as Polyline
+    InteractivePolyline as Polyline,
+    InteractiveRect as Rect,
+    InteractiveCircle as Circle,
 } from "@carnelian/shapes/basic";
 
 interface DiagramToolbarProps {
@@ -42,6 +45,14 @@ function PolylineIcon() {
     return (
         <SvgIcon>
             <path d="M2 3V9H4.95L6.95 15H6V21H12V16.41L17.41 11H22V5H16V9.57L10.59 15H9.06L7.06 9H8V3M4 5H6V7H4M18 7H20V9H18M8 17H10V19H8Z" />
+        </SvgIcon>
+    );
+}
+
+function RectIcon() {
+    return (
+        <SvgIcon>
+            <path d="M2,4H8V6H16V4H22V10H20V14H22V20H16V18H8V20H2V14H4V10H2V4M16,10V8H8V10H6V14H8V16H16V14H18V10H16M4,6V8H6V6H4M18,6V8H20V6H18M4,16V18H6V16H4M18,16V18H20V16H18Z" />
         </SvgIcon>
     );
 }
@@ -78,7 +89,7 @@ function DiagramToolbar(props: DiagramToolbarProps) {
     const setElementColor = (color: string) => {
         setColor(color);
         props.controller.getSelectedElements().forEach(element => {
-            updateElement<ClosedFigureStyleProps>(element, {...element.props, style: {...element.props.style, [colorProperty]: color}});
+            updateElement<ClosedFigureStyleProps>(element, { ...element.props, style: { ...element.props.style, [colorProperty]: color } });
         });
     }
 
@@ -88,14 +99,14 @@ function DiagramToolbar(props: DiagramToolbarProps) {
         setColorPopoverAnchorEl(anchor);
         setColorProperty("stroke");
     }
-    
+
     const openBackgroundColorPicker = (anchor: HTMLElement) => {
         const color = (props.controller.getSelectedElements()[0]?.props as ClosedFigureStyleProps)?.style?.fill || "white";
         setColor(colorToHex(color));
         setColorPopoverAnchorEl(anchor);
         setColorProperty("fill");
     }
-    
+
     const closeColorPopover = () => {
         setColorPopoverAnchorEl(null);
     }
@@ -118,20 +129,34 @@ function DiagramToolbar(props: DiagramToolbarProps) {
     }
 
     const lineFactory: DrawingModeElementFactory = (diagram, x, y) => {
-        return diagram.add(Line, {x1: x, y1: y, x2: x, y2: y});
+        return diagram.add(Line, { x1: x, y1: y, x2: x, y2: y });
     }
 
     const polylineFactory: DrawingModeElementFactory = (diagram, x, y) => {
-        return diagram.add(Polyline, {points: [{x, y}]});
+        return diagram.add(Polyline, { points: [{ x, y }] });
+    }
+
+    const rectFactory: DrawingModeElementFactory = (diagram, x, y) => {
+        return diagram.add(Rect, { x, y, width: 0, height: 0 });
+    }
+
+    const circleFactory: DrawingModeElementFactory = (diagram, x, y) => {
+        return diagram.add(Circle, { x, y, radius: 0 });
     }
 
     function changeDrawinMode(e: React.MouseEvent<HTMLElement>, value: string) {
         switch (value) {
-            case "line": 
+            case "line":
                 props.controller.switchDrawingMode(lineFactory);
                 break;
-            case "polyline": 
+            case "polyline":
                 props.controller.switchDrawingMode(polylineFactory);
+                break;
+            case "rect":
+                props.controller.switchDrawingMode(rectFactory);
+                break;
+            case "circle":
+                props.controller.switchDrawingMode(circleFactory);
                 break;
             default:
                 props.controller.switchDrawingMode(null);
@@ -145,9 +170,9 @@ function DiagramToolbar(props: DiagramToolbarProps) {
                 <Button sx={{ color: 'inherit' }} endIcon={<KeyboardArrowDownIcon />} onClick={(e) => setScaleMenuAnchorEl(e.currentTarget)}>
                     {props.scale}%
                 </Button>
-                <Menu 
-                    anchorEl={scaleMenuAnchorEl} 
-                    open={!!scaleMenuAnchorEl} 
+                <Menu
+                    anchorEl={scaleMenuAnchorEl}
+                    open={!!scaleMenuAnchorEl}
                     onClose={() => closeScaleMenu()}
                 >
                     {scaleOptions.map(scale => (
@@ -170,8 +195,8 @@ function DiagramToolbar(props: DiagramToolbarProps) {
                     <LineWeightIcon />
                 </IconButton>
                 <Popover
-                    anchorEl={colorPopoverAnchorEl} 
-                    open={!!colorPopoverAnchorEl} 
+                    anchorEl={colorPopoverAnchorEl}
+                    open={!!colorPopoverAnchorEl}
                     onClose={() => closeColorPopover()}
                     anchorOrigin={{
                         vertical: 'bottom',
@@ -181,14 +206,20 @@ function DiagramToolbar(props: DiagramToolbarProps) {
                     <CompactPicker color={color} onChange={(color) => setElementColor(color.hex)} />
                 </Popover>
                 <ToggleButtonGroup exclusive value={drawingMode} onChange={changeDrawinMode}>
-                    <ToggleButton value="" sx={{color: "inherit !important"}}>
+                    <ToggleButton value="" sx={{ color: "inherit !important" }}>
                         <DefaultCursorIcon />
                     </ToggleButton>
-                    <ToggleButton value="line" sx={{color: "inherit !important"}}>
+                    <ToggleButton value="line" sx={{ color: "inherit !important" }}>
                         <LineIcon />
                     </ToggleButton>
-                    <ToggleButton value="polyline" sx={{color: "inherit !important"}}>
+                    <ToggleButton value="polyline" sx={{ color: "inherit !important" }}>
                         <PolylineIcon />
+                    </ToggleButton>
+                    <ToggleButton value="rect" sx={{ color: "inherit !important" }}>
+                        <RectIcon />
+                    </ToggleButton>
+                    <ToggleButton value="circle" sx={{ color: "inherit !important" }}>
+                        <CircleOutlinedIcon />
                     </ToggleButton>
                 </ToggleButtonGroup>
             </Toolbar>

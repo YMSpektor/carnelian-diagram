@@ -9,7 +9,11 @@ import {
     EdgeControl, 
     HandleControl,
     useCollider,
-    ACT_MOVE
+    ACT_MOVE,
+    ACT_DRAW_POINT_PLACE_Payload,
+    ACT_DRAW_POINT_PLACE,
+    ACT_DRAW_POINT_MOVE,
+    ACT_DRAW_POINT_MOVE_Payload
 } from "..";
 import { Collider, RectCollider } from "../collisions";
 
@@ -108,6 +112,34 @@ export function useInteractiveRect<T extends InteractiveRectProps>(props: Diagra
     const collider = colliderFactory?.(props) || defaultCollider();
     useCollider(collider, { type: "in", action: ACT_MOVE, cursor: "move" });
     useAction(ACT_MOVE, move);
+
+    useAction<ACT_DRAW_POINT_PLACE_Payload>(ACT_DRAW_POINT_PLACE, (payload) => {
+        if (payload.pointIndex === 0) {
+            onChange(props => ({
+                ...props,
+                x: payload.position.x,
+                y: payload.position.y,
+                width: 0,
+                height: 0
+            }));
+        }
+        else {
+            onChange(props => ({
+                ...props,
+                width: Math.max(0, payload.position.x - props.x), 
+                height: Math.max(0, payload.position.y - props.y)
+            }));
+        }
+        payload.result.current = payload.pointIndex > 0;
+    });
+
+    useAction<ACT_DRAW_POINT_MOVE_Payload>(ACT_DRAW_POINT_MOVE, (payload) => {
+        onChange(props => ({
+            ...props,
+            width: Math.max(0, payload.position.x - props.x), 
+            height: Math.max(0, payload.position.y - props.y)
+        }));
+    });
 
     useInteractiveRectControls(
         x, y, width, height, resizeTopLeft, resizeTopRight, resizeBottomLeft, resizeBottomRight,
