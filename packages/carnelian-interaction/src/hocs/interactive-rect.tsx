@@ -4,11 +4,12 @@ import { DiagramElement, DiagramElementProps } from "@carnelian/diagram";
 import { 
     useControls, 
     useAction, 
-    MovementActionPayload, 
+    DraggingActionPayload, 
     ActionCallback, 
     EdgeControl, 
     HandleControl,
-    useCollider
+    useCollider,
+    ACT_MOVE
 } from "..";
 import { Collider, RectCollider } from "../collisions";
 
@@ -24,7 +25,7 @@ export type RectColliderFactory<T extends InteractiveRectProps> = (props: T) => 
 export function useInteractiveRect<T extends InteractiveRectProps>(props: DiagramElementProps<T>, colliderFactory?: RectColliderFactory<T>) {
     const { x, y, width, height, onChange } = props;
 
-    function move(payload: MovementActionPayload) {
+    function move(payload: DraggingActionPayload) {
         onChange(props => ({
             ...props,
             x: props.x + payload.deltaX,
@@ -32,7 +33,7 @@ export function useInteractiveRect<T extends InteractiveRectProps>(props: Diagra
         }));
     }
 
-    function resizeTopLeft(payload: MovementActionPayload) {
+    function resizeTopLeft(payload: DraggingActionPayload) {
         onChange(props => ({
             ...props,
             x: Math.min(payload.position.x, props.x + props.width), 
@@ -42,7 +43,7 @@ export function useInteractiveRect<T extends InteractiveRectProps>(props: Diagra
         }));
     }
 
-    function resizeTopRight(payload: MovementActionPayload) {
+    function resizeTopRight(payload: DraggingActionPayload) {
         onChange(props => ({
             ...props,
             y: Math.min(payload.position.y, props.y + props.height), 
@@ -51,7 +52,7 @@ export function useInteractiveRect<T extends InteractiveRectProps>(props: Diagra
         }));
     }
 
-    function resizeBottomLeft(payload: MovementActionPayload) {
+    function resizeBottomLeft(payload: DraggingActionPayload) {
         onChange(props => ({
             ...props,
             x: Math.min(payload.position.x, props.x + props.width), 
@@ -60,7 +61,7 @@ export function useInteractiveRect<T extends InteractiveRectProps>(props: Diagra
         }));
     }
 
-    function resizeBottomRight(payload: MovementActionPayload) {
+    function resizeBottomRight(payload: DraggingActionPayload) {
         onChange(props => ({
             ...props,
             width: Math.max(0, payload.position.x - props.x), 
@@ -68,7 +69,7 @@ export function useInteractiveRect<T extends InteractiveRectProps>(props: Diagra
         }));
     }
 
-    function resizeLeft(payload: MovementActionPayload) {
+    function resizeLeft(payload: DraggingActionPayload) {
         onChange(props => ({
             ...props,
             x: Math.min(payload.position.x, props.x + props.width), 
@@ -76,7 +77,7 @@ export function useInteractiveRect<T extends InteractiveRectProps>(props: Diagra
         }));
     }
 
-    function resizeTop(payload: MovementActionPayload) {
+    function resizeTop(payload: DraggingActionPayload) {
         onChange(props => ({
             ...props, 
             y: Math.min(payload.position.y, props.y + props.height), 
@@ -84,14 +85,14 @@ export function useInteractiveRect<T extends InteractiveRectProps>(props: Diagra
         }));
     }
 
-    function resizeRight(payload: MovementActionPayload) {
+    function resizeRight(payload: DraggingActionPayload) {
         onChange(props => ({
             ...props,
             width: Math.max(0, payload.position.x - props.x), 
         }));
     }
 
-    function resizeBottom(payload: MovementActionPayload) {
+    function resizeBottom(payload: DraggingActionPayload) {
         onChange(props => ({
             ...props,
             height: Math.max(0, payload.position.y - props.y)
@@ -105,8 +106,8 @@ export function useInteractiveRect<T extends InteractiveRectProps>(props: Diagra
     }
 
     const collider = colliderFactory?.(props) || defaultCollider();
-    useCollider(collider, { type: "in", action: "move", cursor: "move" });
-    useAction<MovementActionPayload>("move", move);
+    useCollider(collider, { type: "in", action: ACT_MOVE, cursor: "move" });
+    useAction(ACT_MOVE, move);
 
     useInteractiveRectControls(
         x, y, width, height, resizeTopLeft, resizeTopRight, resizeBottomLeft, resizeBottomRight,
@@ -119,20 +120,20 @@ export function useInteractiveRectControls(
     y: number,
     width: number,
     height: number,
-    resizeTopLeft: ActionCallback<MovementActionPayload>,
-    resizeTopRight: ActionCallback<MovementActionPayload>,
-    resizeBottomLeft: ActionCallback<MovementActionPayload>,
-    resizeBottomRight: ActionCallback<MovementActionPayload>,
-    resizeLeft: ActionCallback<MovementActionPayload>,
-    resizeTop: ActionCallback<MovementActionPayload>,
-    resizeRight: ActionCallback<MovementActionPayload>,
-    resizeBottom: ActionCallback<MovementActionPayload>
+    resizeTopLeft: ActionCallback<DraggingActionPayload>,
+    resizeTopRight: ActionCallback<DraggingActionPayload>,
+    resizeBottomLeft: ActionCallback<DraggingActionPayload>,
+    resizeBottomRight: ActionCallback<DraggingActionPayload>,
+    resizeLeft: ActionCallback<DraggingActionPayload>,
+    resizeTop: ActionCallback<DraggingActionPayload>,
+    resizeRight: ActionCallback<DraggingActionPayload>,
+    resizeBottom: ActionCallback<DraggingActionPayload>
 ) {
     function createHandleControl(
         index: number, 
         x: number, y: number, 
         cursor: string, 
-        dragHandler: ActionCallback<MovementActionPayload>
+        dragHandler: ActionCallback<DraggingActionPayload>
     ) {
         return {
             x, y,
@@ -150,7 +151,7 @@ export function useInteractiveRectControls(
         index: number,
         x1: number, y1: number, x2: number, y2: number,
         cursor: string,
-        dragHandler: ActionCallback<MovementActionPayload>
+        dragHandler: ActionCallback<DraggingActionPayload>
     ) {
         return {
             x1, y1, x2, y2,

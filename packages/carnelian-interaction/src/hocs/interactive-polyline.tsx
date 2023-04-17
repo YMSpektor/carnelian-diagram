@@ -1,7 +1,7 @@
 /** @jsxImportSource @carnelian/diagram */
 
 import { DiagramElement, DiagramElementProps } from "@carnelian/diagram";
-import { Collider, DrawingActionPayload, EmptyActionPayload, HandleControl, LineCollider, MovementActionPayload, PlacingPointActionPayload, UnionCollider, useAction, useCollider, useControls } from "..";
+import { ACT_DRAW_POINT_CANCEL, ACT_DRAW_POINT_CANCEL_Payload, ACT_DRAW_POINT_MOVE, ACT_DRAW_POINT_MOVE_Payload, ACT_DRAW_POINT_PLACE, ACT_DRAW_POINT_PLACE_Payload, ACT_MOVE, Collider, DraggingActionPayload, HandleControl, LineCollider, UnionCollider, useAction, useCollider, useControls } from "..";
 import { Line, Point } from "../geometry";
 
 export interface InteractivePolylineProps {
@@ -23,14 +23,14 @@ export function useInteractivePolyline<T extends InteractivePolylineProps>(
 ) {
     const { points, onChange } = props;
 
-    function move(payload: MovementActionPayload) {
+    function move(payload: DraggingActionPayload) {
         onChange(props => ({
             ...props,
             points: points.map(p => ({ x: p.x + payload.deltaX, y: p.y + payload.deltaY }))
         }));
     }
 
-    function moveVertex(payload: MovementActionPayload) {
+    function moveVertex(payload: DraggingActionPayload) {
         onChange(props => ({
             ...props,
             points: points.map((p, i) => i !== payload.hitArea.index ? p : { x: payload.position.x, y: payload.position.y })
@@ -38,25 +38,25 @@ export function useInteractivePolyline<T extends InteractivePolylineProps>(
     }
 
     const collider = colliderFactory?.(props) || PolylineCollider(points);
-    useCollider(collider, { type: "in", cursor: "move", action: "move" }, 0, 2);
-    useAction<MovementActionPayload>("move", move);
-    useAction<MovementActionPayload>("vertex_move", moveVertex);
+    useCollider(collider, { type: "in", cursor: "move", action: ACT_MOVE }, 0, 2);
+    useAction(ACT_MOVE, move);
+    useAction("vertex_move", moveVertex);
 
-    useAction<PlacingPointActionPayload>("draw_point:place", (payload) => {
+    useAction<ACT_DRAW_POINT_PLACE_Payload>(ACT_DRAW_POINT_PLACE, (payload) => {
         onChange(props => ({
             ...props,
             points: props.points.concat({ x: payload.position.x, y: payload.position.y })
         }));
     });
 
-    useAction<DrawingActionPayload>("draw_point:move", (payload) => {
+    useAction<ACT_DRAW_POINT_MOVE_Payload>(ACT_DRAW_POINT_MOVE, (payload) => {
         onChange(props => ({
             ...props,
             points: props.points.map((p, i) => i !== payload.pointIndex ? p : { x: payload.position.x, y: payload.position.y })
         }));
     });
 
-    useAction<EmptyActionPayload>("draw_point:cancel", (payload) => {
+    useAction<ACT_DRAW_POINT_CANCEL_Payload>(ACT_DRAW_POINT_CANCEL, () => {
         onChange(props => ({
             ...props,
             points: props.points.slice(0, props.points.length - 1)

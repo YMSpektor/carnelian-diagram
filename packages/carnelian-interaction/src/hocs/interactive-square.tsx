@@ -1,7 +1,7 @@
 /** @jsxImportSource @carnelian/diagram */
 
 import { DiagramElement, DiagramElementProps } from "@carnelian/diagram";
-import { MovementActionPayload, useAction, useCollider } from "..";
+import { ACT_MOVE, DraggingActionPayload, useAction, useCollider } from "..";
 import { Collider, RectCollider } from "../collisions";
 import { useInteractiveRectControls } from "./interactive-rect";
 
@@ -19,7 +19,7 @@ export function useInteractiveSquare<T extends InteractiveSquareProps>(
 ) {
     const { x, y, size, onChange } = props;
 
-    function move(payload: MovementActionPayload) {
+    function move(payload: DraggingActionPayload) {
         onChange(props => ({
             ...props,
             x: props.x + payload.deltaX,
@@ -27,7 +27,7 @@ export function useInteractiveSquare<T extends InteractiveSquareProps>(
         }));
     }
 
-    function resizeTopLeft(payload: MovementActionPayload) {
+    function resizeTopLeft(payload: DraggingActionPayload) {
         onChange(props => {
             const d = Math.max(props.x - payload.position.x, props.y - payload.position.y);
             return {
@@ -39,7 +39,7 @@ export function useInteractiveSquare<T extends InteractiveSquareProps>(
         });
     }
 
-    function resizeTopRight(payload: MovementActionPayload) {
+    function resizeTopRight(payload: DraggingActionPayload) {
         onChange(props => {
             const d = Math.max(payload.position.x - props.x - props.size, props.y - payload.position.y);
             return {
@@ -50,7 +50,7 @@ export function useInteractiveSquare<T extends InteractiveSquareProps>(
         });
     }
 
-    function resizeBottomLeft(payload: MovementActionPayload) {
+    function resizeBottomLeft(payload: DraggingActionPayload) {
         onChange(props => {
             const d = Math.max(props.x - payload.position.x, payload.position.y - props.y - props.size);
             return {
@@ -61,7 +61,7 @@ export function useInteractiveSquare<T extends InteractiveSquareProps>(
         });
     }
 
-    function resizeBottomRight(payload: MovementActionPayload) {
+    function resizeBottomRight(payload: DraggingActionPayload) {
         onChange(props => {
             const d = Math.max(payload.position.x - props.x - props.size, payload.position.y - props.y - props.size);
             return {
@@ -71,7 +71,7 @@ export function useInteractiveSquare<T extends InteractiveSquareProps>(
         });
     }
 
-    function resizeLeft(payload: MovementActionPayload) {
+    function resizeLeft(payload: DraggingActionPayload) {
         onChange(props => ({
             ...props,
             x: Math.min(payload.position.x, props.x + props.size), 
@@ -79,7 +79,7 @@ export function useInteractiveSquare<T extends InteractiveSquareProps>(
         }));
     }
 
-    function resizeTop(payload: MovementActionPayload) {
+    function resizeTop(payload: DraggingActionPayload) {
         onChange(props => ({
             ...props, 
             y: Math.min(payload.position.y, props.y + props.size), 
@@ -87,14 +87,14 @@ export function useInteractiveSquare<T extends InteractiveSquareProps>(
         }));
     }
 
-    function resizeRight(payload: MovementActionPayload) {
+    function resizeRight(payload: DraggingActionPayload) {
         onChange(props => ({
             ...props,
             size: Math.max(0, payload.position.x - props.x),
         }));
     }
 
-    function resizeBottom(payload: MovementActionPayload) {
+    function resizeBottom(payload: DraggingActionPayload) {
         onChange(props => ({
             ...props,
             size: Math.max(0, payload.position.y - props.y)
@@ -108,8 +108,8 @@ export function useInteractiveSquare<T extends InteractiveSquareProps>(
     }
 
     const collider = colliderFactory?.(props) || defaultCollider();
-    useCollider(collider, { type: "in", action: "move", cursor: "move" });
-    useAction<MovementActionPayload>("move", move);
+    useCollider(collider, { type: "in", action: ACT_MOVE, cursor: "move" });
+    useAction(ACT_MOVE, move);
 
     useInteractiveRectControls(
         x, y, size, size, resizeTopLeft, resizeTopRight, resizeBottomLeft, resizeBottomRight,

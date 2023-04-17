@@ -1,7 +1,7 @@
 /** @jsxImportSource @carnelian/diagram */
 
 import { DiagramElement, DiagramElementProps } from "@carnelian/diagram";
-import { Collider, DrawingActionPayload, HandleControl, LineCollider, MovementActionPayload, PlacingPointActionPayload, useAction, useCollider, useControls } from "..";
+import { ACT_DRAW_POINT_MOVE, ACT_DRAW_POINT_MOVE_Payload, ACT_DRAW_POINT_PLACE, ACT_DRAW_POINT_PLACE_Payload, ACT_MOVE, Collider, DraggingActionPayload, HandleControl, LineCollider, useAction, useCollider, useControls } from "..";
 
 export interface InteractiveLineProps {
     x1: number;
@@ -18,7 +18,7 @@ export function useInteractiveLine<T extends InteractiveLineProps>(
 ) {
     const { x1, y1, x2, y2, onChange } = props;
 
-    function move(payload: MovementActionPayload) {
+    function move(payload: DraggingActionPayload) {
         onChange(props => ({
             ...props,
             x1: props.x1 + payload.deltaX,
@@ -28,7 +28,7 @@ export function useInteractiveLine<T extends InteractiveLineProps>(
         }));
     }
 
-    function moveVertex(payload: MovementActionPayload) {
+    function moveVertex(payload: DraggingActionPayload) {
         onChange(props => ({
             ...props,
             x1: payload.hitArea.index === 0 ? payload.position.x : props.x1,
@@ -39,11 +39,11 @@ export function useInteractiveLine<T extends InteractiveLineProps>(
     }
 
     const collider = colliderFactory?.(props) || LineCollider({a: {x: x1, y: y1}, b: {x: x2, y: y2}});
-    useCollider(collider, { type: "in", cursor: "move", action: "move" }, 0, 2);
-    useAction<MovementActionPayload>("move", move);
-    useAction<MovementActionPayload>("vertex_move", moveVertex);
+    useCollider(collider, { type: "in", cursor: "move", action: ACT_MOVE }, 0, 2);
+    useAction(ACT_MOVE, move);
+    useAction("vertex_move", moveVertex);
 
-    useAction<PlacingPointActionPayload>("draw_point:place", (payload) => {
+    useAction<ACT_DRAW_POINT_PLACE_Payload>(ACT_DRAW_POINT_PLACE, (payload) => {
         if (payload.pointIndex === 0) {
             onChange(props => ({
                 ...props,
@@ -63,7 +63,7 @@ export function useInteractiveLine<T extends InteractiveLineProps>(
         payload.result.current = payload.pointIndex > 0;
     });
 
-    useAction<DrawingActionPayload>("draw_point:move", (payload) => {
+    useAction<ACT_DRAW_POINT_MOVE_Payload>(ACT_DRAW_POINT_MOVE, (payload) => {
         onChange(props => ({
             ...props,
             x2: payload.position.x,

@@ -3,10 +3,11 @@ import { createElement, Fragment, JSX } from "@carnelian/diagram/jsx-runtime";
 import { Event } from "@carnelian/diagram/utils/events";
 import { AddParameters, MutableRefObject } from "@carnelian/diagram/utils/types";
 import { ControlsContextType, InteractionContextType } from "./context";
-import { CreateHitTestProps, DiagramElementHitTest, hasHitTestProps, HitArea, HitTestCollection, HitInfo } from "./hit-tests";
+import { CreateHitTestProps, DiagramElementHitTest, hasHitTestProps, HitTestCollection, HitInfo } from "./hit-tests";
 import { renderEdgeDefault, renderHandleDefault } from "./controls";
 import { DiagramElementIntersectionTest } from "./intersection-tests";
 import { intersectRect, Rect } from "./geometry";
+import { ACT_DRAW_POINT_CANCEL, ACT_DRAW_POINT_CANCEL_Payload, ACT_DRAW_POINT_MOVE, ACT_DRAW_POINT_MOVE_Payload, ACT_DRAW_POINT_PLACE, ACT_DRAW_POINT_PLACE_Payload, ACT_MOVE, DraggingActionPayload } from "./actions";
 
 export type RenderControlsCallback = (transform: DOMMatrixReadOnly, element: DiagramElementNode) => JSX.Element;
 
@@ -26,40 +27,6 @@ export interface DiagramElementAction<T> {
     action: string;
     element: DiagramElementNode;
     callback: ActionCallback<T>;
-}
-
-export type EmptyActionPayload = {}
-
-export interface MovementActionPayload {
-    position: DOMPointReadOnly;
-    deltaX: number;
-    deltaY: number;
-    rawPosition: DOMPointReadOnly;
-    rawDeltaX: number;
-    rawDeltaY: number;
-    hitArea: HitArea;
-    snapGridSize: number | null;
-    snapAngle: number | null;
-    snapToGrid: {
-        (value: number, snapGridSize?: number | null): number;
-        (point: DOMPointReadOnly, snapGridSize?: number | null): DOMPointReadOnly;
-    }
-}
-
-export interface DrawingActionPayload {
-    position: DOMPointReadOnly;
-    rawPosition: DOMPointReadOnly;
-    snapGridSize: number | null;
-    snapAngle: number | null;
-    snapToGrid: {
-        (value: number, snapGridSize?: number | null): number;
-        (point: DOMPointReadOnly, snapGridSize?: number | null): DOMPointReadOnly;
-    }
-    pointIndex: number;
-}
-
-export interface PlacingPointActionPayload extends DrawingActionPayload {
-    result: MutableRefObject<boolean>;
 }
 
 export interface SelectEventArgs {
@@ -444,7 +411,7 @@ export class InteractionController {
                 const elementPoint = this.clientToDiagram(point);
                 const snappedElementPoint = this.snapToGrid(elementPoint, snapGridSize);
 
-                this.dispatch<MovementActionPayload>(
+                this.dispatch<DraggingActionPayload>(
                     [hitInfo.element],
                     hitInfo.hitArea.action,
                     {
@@ -505,7 +472,7 @@ export class InteractionController {
             const elementPoint = this.clientToDiagram(point);
             const snappedElementPoint = this.snapToGrid(elementPoint, snapGridSize);
 
-            this.dispatch<PlacingPointActionPayload>([element], "draw_point:place", {
+            this.dispatch<ACT_DRAW_POINT_PLACE_Payload>([element], ACT_DRAW_POINT_PLACE, {
                 position: snappedElementPoint,
                 rawPosition: elementPoint,
                 snapGridSize,
@@ -527,7 +494,7 @@ export class InteractionController {
             const elementPoint = this.clientToDiagram(point);
             const snappedElementPoint = this.snapToGrid(elementPoint, snapGridSize);
 
-            this.dispatch<DrawingActionPayload>([element], "draw_point:move", {
+            this.dispatch<ACT_DRAW_POINT_MOVE_Payload>([element], ACT_DRAW_POINT_MOVE, {
                 position: snappedElementPoint,
                 rawPosition: elementPoint,
                 snapGridSize,
@@ -542,7 +509,7 @@ export class InteractionController {
                 drawPoint(e, false);
             }
             else if (e.button === 2) {
-                this.dispatch<EmptyActionPayload>([element], "draw_point:cancel", {});
+                this.dispatch<ACT_DRAW_POINT_CANCEL_Payload>([element], ACT_DRAW_POINT_CANCEL, {});
                 endDraw();
             }            
         }
@@ -551,7 +518,7 @@ export class InteractionController {
             // Firefox 36 and earlier uses "Esc" instead of "Escape" for the Esc key
             // https://developer.mozilla.org/en-US/docs/Web/API/UI_Events/Keyboard_event_key_values
             if (e.key === "Escape" || e.key === "Esc") {
-                this.dispatch<EmptyActionPayload>([element], "draw_point:cancel", {});
+                this.dispatch<ACT_DRAW_POINT_CANCEL_Payload>([element], ACT_DRAW_POINT_CANCEL, {});
                 endDraw();
             }
         }
@@ -680,7 +647,7 @@ export class InteractionController {
     }
 
     private dispatchDefault<T>(elements: DiagramElementNode[], action: string, payload: T, isPendingAction = false) {
-        if (action === "move") {
+        if (action === ACT_MOVE) {
             this.dispatchInternal([...this.selectedElements], action, payload, isPendingAction);
         }
         else {
