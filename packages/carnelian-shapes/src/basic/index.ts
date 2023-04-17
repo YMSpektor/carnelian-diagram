@@ -2,6 +2,7 @@ import { Point } from "@carnelian/interaction/geometry";
 
 export * from "./line";
 export * from "./polyline";
+export * from "./polygon";
 export * from "./rect";
 export * from "./ellipse";
 export * from "./diamond";

@@ -14,6 +14,7 @@ import { Diagram, DiagramElementNode, DiagramElementProps } from "@carnelian/dia
 import {
     InteractiveLine as Line,
     InteractivePolyline as Polyline,
+    InteractivePolygon as Polygon,
     InteractiveRect as Rect,
     InteractiveCircle as Circle,
 } from "@carnelian/shapes/basic";
@@ -45,6 +46,14 @@ function PolylineIcon() {
     return (
         <SvgIcon>
             <path d="M2 3V9H4.95L6.95 15H6V21H12V16.41L17.41 11H22V5H16V9.57L10.59 15H9.06L7.06 9H8V3M4 5H6V7H4M18 7H20V9H18M8 17H10V19H8Z" />
+        </SvgIcon>
+    );
+}
+
+function PolygonIcon() {
+    return (
+        <SvgIcon>
+            <path d="M22 8V2H16V5.8L14.4 8H9.6L8 5.8V2H2V8H4V16H2V22H8V20H16V22H22V16H20V8H22M11 10H13V12H11V10M4 4H6V6H4V4M6 20H4V18H6V20M16 18H8V16H6V8H7.1L9 10.6V14H15V10.6L16.9 8H18V16H16V18M20 20H18V18H20V20M18 6V4H20V6H18Z" />
         </SvgIcon>
     );
 }
@@ -136,6 +145,10 @@ function DiagramToolbar(props: DiagramToolbarProps) {
         return diagram.add(Polyline, { points: [{ x, y }] });
     }
 
+    const polygonFactory: DrawingModeElementFactory = (diagram, x, y) => {
+        return diagram.add(Polygon, { points: [{ x, y }] });
+    }
+
     const rectFactory: DrawingModeElementFactory = (diagram, x, y) => {
         return diagram.add(Rect, { x, y, width: 0, height: 0 });
     }
@@ -151,6 +164,9 @@ function DiagramToolbar(props: DiagramToolbarProps) {
                 break;
             case "polyline":
                 props.controller.switchDrawingMode(polylineFactory);
+                break;
+            case "polygon":
+                props.controller.switchDrawingMode(polygonFactory);
                 break;
             case "rect":
                 props.controller.switchDrawingMode(rectFactory);
@@ -214,6 +230,9 @@ function DiagramToolbar(props: DiagramToolbarProps) {
                     </ToggleButton>
                     <ToggleButton value="polyline" sx={{ color: "inherit !important" }}>
                         <PolylineIcon />
+                    </ToggleButton>
+                    <ToggleButton value="polygon" sx={{ color: "inherit !important" }}>
+                        <PolygonIcon />
                     </ToggleButton>
                     <ToggleButton value="rect" sx={{ color: "inherit !important" }}>
                         <RectIcon />
