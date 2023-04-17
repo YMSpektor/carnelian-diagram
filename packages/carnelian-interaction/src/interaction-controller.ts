@@ -73,7 +73,6 @@ export interface InteractionControllerOptions {
         elements: DiagramElementNode[], 
         action: string, 
         payload: T,
-        isPendingAction: boolean,
         dispatch: DispatchActionCallback<T>,
         defaultDispatcher: DispatchActionCallback<T>
     ) => void;
@@ -466,7 +465,7 @@ export class InteractionController {
 
         let pointIndex = 0;
         const result: MutableRefObject<boolean> = { current: false };
-        const drawPoint = (e: PointerEvent, dispatchPending: boolean) => {
+        const drawPoint = (e: PointerEvent) => {
             const point = new DOMPoint(e.clientX, e.clientY);
             const snapGridSize = !e.altKey ? this.snapGridSize : null;
             const elementPoint = this.clientToDiagram(point);
@@ -480,7 +479,7 @@ export class InteractionController {
                 snapToGrid: this.snapToGrid.bind(this),
                 pointIndex,
                 result
-            }, dispatchPending);
+            });
             pointIndex++;
 
             if (result.current) {
@@ -506,7 +505,7 @@ export class InteractionController {
 
         const mouseDownHandler = (e: PointerEvent) => {
             if (e.button === 0) {
-                drawPoint(e, false);
+                drawPoint(e);
             }
             else if (e.button === 2) {
                 this.dispatch<ACT_DRAW_POINT_CANCEL_Payload>([element], ACT_DRAW_POINT_CANCEL, {});
@@ -527,7 +526,7 @@ export class InteractionController {
         root.addEventListener("pointerdown", mouseDownHandler);
         root.addEventListener("keydown", keyDownHandler);
 
-        drawPoint(e, true);
+        drawPoint(e);
     }
 
     isSelected(element: DiagramElementNode) {
@@ -622,45 +621,43 @@ export class InteractionController {
         this.drawingModeFactory = elementFactory;
     }
 
-    private dispatchInternal<T>(elements: DiagramElementNode[], action: string, payload: T, isPendingAction = false) {
-        if (isPendingAction) {
-            elements.forEach(element => {
+    private dispatchInternal<T>(elements: DiagramElementNode[], action: string, payload: T) {
+        const actions = [...this.actions.values()];
+        elements.forEach(element => {
+            if (!element.parent) {  // Newly added element, never rendered
                 let pendingActions = this.pendingActions.get(element);
                 if (!pendingActions) {
                     pendingActions = [];
                     this.pendingActions.set(element, pendingActions);
                 }
                 pendingActions.push({ action, payload });
-            });
-        }
-        else {
-            const actions = [...this.actions.values()];
-            elements.forEach(element => {
+            }
+            else {
                 const callbacks = actions
                     .filter(x => x.element === element && x.action === action)
                     .map(x => x.callback);
                 if (callbacks) {
                     callbacks.forEach(cb => cb(payload));
                 }
-            });
-        }
+            }
+        });
     }
 
-    private dispatchDefault<T>(elements: DiagramElementNode[], action: string, payload: T, isPendingAction = false) {
+    private dispatchDefault<T>(elements: DiagramElementNode[], action: string, payload: T) {
         if (action === ACT_MOVE) {
-            this.dispatchInternal([...this.selectedElements], action, payload, isPendingAction);
+            this.dispatchInternal([...this.selectedElements], action, payload);
         }
         else {
-            this.dispatchInternal(elements, action, payload, isPendingAction);
+            this.dispatchInternal(elements, action, payload);
         }
     }
 
-    dispatch<T>(elements: DiagramElementNode[], action: string, payload: T, isPendingAction = false) {
+    dispatch<T>(elements: DiagramElementNode[], action: string, payload: T) {
         if (this.options?.dispatchAction) {
-            this.options.dispatchAction(this, elements, action, payload, isPendingAction, this.dispatchInternal, this.dispatchDefault);
+            this.options.dispatchAction(this, elements, action, payload, this.dispatchInternal, this.dispatchDefault);
         }
         else {
-            this.dispatchDefault(elements, action, payload, isPendingAction);
+            this.dispatchDefault(elements, action, payload);
         }
     }
 
