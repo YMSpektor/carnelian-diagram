@@ -49,4 +49,7 @@ export interface ACT_DRAW_POINT_MOVE_Payload {
     pointIndex: number;
 }
 
-export interface ACT_DRAW_POINT_CANCEL_Payload {}
+export interface ACT_DRAW_POINT_CANCEL_Payload {
+    pointIndex: number;
+    result: MutableRefObject<boolean>;
+}

@@ -13,7 +13,9 @@ import {
     ACT_DRAW_POINT_PLACE_Payload,
     ACT_DRAW_POINT_PLACE,
     ACT_DRAW_POINT_MOVE,
-    ACT_DRAW_POINT_MOVE_Payload
+    ACT_DRAW_POINT_MOVE_Payload,
+    ACT_DRAW_POINT_CANCEL,
+    ACT_DRAW_POINT_CANCEL_Payload
 } from "..";
 import { Collider, RectCollider } from "../collisions";
 
@@ -139,6 +141,10 @@ export function useInteractiveRect<T extends InteractiveRectProps>(props: Diagra
             width: Math.max(0, payload.position.x - props.x), 
             height: Math.max(0, payload.position.y - props.y)
         }));
+    });
+
+    useAction<ACT_DRAW_POINT_CANCEL_Payload>(ACT_DRAW_POINT_CANCEL, (payload) => {
+        payload.result.current = false;
     });
 
     useInteractiveRectControls(

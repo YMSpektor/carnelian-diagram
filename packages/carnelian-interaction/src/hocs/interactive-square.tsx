@@ -1,7 +1,7 @@
 /** @jsxImportSource @carnelian/diagram */
 
 import { DiagramElement, DiagramElementProps } from "@carnelian/diagram";
-import { ACT_DRAW_POINT_MOVE, ACT_DRAW_POINT_MOVE_Payload, ACT_DRAW_POINT_PLACE, ACT_DRAW_POINT_PLACE_Payload, ACT_MOVE, DraggingActionPayload, useAction, useCollider } from "..";
+import { ACT_DRAW_POINT_CANCEL, ACT_DRAW_POINT_CANCEL_Payload, ACT_DRAW_POINT_MOVE, ACT_DRAW_POINT_MOVE_Payload, ACT_DRAW_POINT_PLACE, ACT_DRAW_POINT_PLACE_Payload, ACT_MOVE, DraggingActionPayload, useAction, useCollider } from "..";
 import { Collider, RectCollider } from "../collisions";
 import { useInteractiveRectControls } from "./interactive-rect";
 
@@ -136,6 +136,10 @@ export function useInteractiveSquare<T extends InteractiveSquareProps>(
             ...props,
             size: Math.max(0, props.size + d)
         }));
+    });
+
+    useAction<ACT_DRAW_POINT_CANCEL_Payload>(ACT_DRAW_POINT_CANCEL, (payload) => {
+        payload.result.current = false;
     });
 
     useInteractiveRectControls(

@@ -21,4 +21,4 @@ export const Polyline: DiagramElement<PolylineProps> = function(props) {
     );
 };
 
-export const InteractivePolyline = withInteractivePolyline(Polyline);
+export const InteractivePolyline = withInteractivePolyline(Polyline, 2);

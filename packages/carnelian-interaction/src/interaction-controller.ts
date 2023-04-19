@@ -454,9 +454,14 @@ export class InteractionController {
         const element = factory(diagram, snappedElementPoint.x, snappedElementPoint.y);
         this.select(element);
 
-        const endDraw = () => {
+        const endDraw = (element: DiagramElementNode, result: boolean) => {
             this.drawing = false;
             root.releasePointerCapture(e.pointerId);
+
+            if (!result) {
+                this.diagram?.delete(element);
+                root.style.cursor = "";
+            }
 
             root.removeEventListener("pointermove", mouseMoveHandler);
             root.removeEventListener("pointerdown", mouseDownHandler);
@@ -483,7 +488,7 @@ export class InteractionController {
             pointIndex++;
 
             if (result.current) {
-                endDraw();
+                endDraw(element, true);
             }
         }
 
@@ -508,8 +513,9 @@ export class InteractionController {
                 drawPoint(e);
             }
             else if (e.button === 2) {
-                this.dispatch<ACT_DRAW_POINT_CANCEL_Payload>([element], ACT_DRAW_POINT_CANCEL, {});
-                endDraw();
+                const result: MutableRefObject<boolean> = { current: true };
+                this.dispatch<ACT_DRAW_POINT_CANCEL_Payload>([element], ACT_DRAW_POINT_CANCEL, { pointIndex, result });
+                endDraw(element, result.current);
             }            
         }
 
@@ -517,8 +523,9 @@ export class InteractionController {
             // Firefox 36 and earlier uses "Esc" instead of "Escape" for the Esc key
             // https://developer.mozilla.org/en-US/docs/Web/API/UI_Events/Keyboard_event_key_values
             if (e.key === "Escape" || e.key === "Esc") {
-                this.dispatch<ACT_DRAW_POINT_CANCEL_Payload>([element], ACT_DRAW_POINT_CANCEL, {});
-                endDraw();
+                const result: MutableRefObject<boolean> = { current: true };
+                this.dispatch<ACT_DRAW_POINT_CANCEL_Payload>([element], ACT_DRAW_POINT_CANCEL, { pointIndex, result });
+                endDraw(element, result.current);
             }
         }
 

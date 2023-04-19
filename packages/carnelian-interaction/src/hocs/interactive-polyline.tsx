@@ -18,7 +18,8 @@ export function PolylineCollider(points: Point[]) {
 export type PolylineColliderFactory<T extends InteractivePolylineProps> = (props: T) => Collider<any>;
 
 export function useInteractivePolyline<T extends InteractivePolylineProps>(
-    props: DiagramElementProps<T>, 
+    props: DiagramElementProps<T>,
+    minPoints: number,
     colliderFactory?: PolylineColliderFactory<T>
 ) {
     const { points, onChange } = props;
@@ -56,11 +57,16 @@ export function useInteractivePolyline<T extends InteractivePolylineProps>(
         }));
     });
 
-    useAction<ACT_DRAW_POINT_CANCEL_Payload>(ACT_DRAW_POINT_CANCEL, () => {
-        onChange(props => ({
-            ...props,
-            points: props.points.slice(0, props.points.length - 1)
-        }));
+    useAction<ACT_DRAW_POINT_CANCEL_Payload>(ACT_DRAW_POINT_CANCEL, (payload) => {
+        if (payload.pointIndex < minPoints) {
+            payload.result.current = false;
+        }
+        else {
+            onChange(props => ({
+                ...props,
+                points: props.points.slice(0, props.points.length - 1)
+            }));
+        }
     });
 
     function createHandleControl(
@@ -99,10 +105,11 @@ export function useInteractivePolyline<T extends InteractivePolylineProps>(
 
 export function withInteractivePolyline<T extends InteractivePolylineProps>(
     WrappedElement: DiagramElement<T>,
+    minPoints: number,
     colliderFactory?: PolylineColliderFactory<T>
 ): DiagramElement<T> {
     return (props) => {
-        useInteractivePolyline(props, colliderFactory);
+        useInteractivePolyline(props, minPoints, colliderFactory);
         return <WrappedElement {...props} />;
     }
 }
