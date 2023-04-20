@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useState } from "react";
-import { AppBar, Button, IconButton, Menu, MenuItem, Popover, SvgIcon, ToggleButton, ToggleButtonGroup, Toolbar } from "@mui/material";
+import { AppBar, Button, Divider, IconButton, Menu, MenuItem, Popover, SvgIcon, ToggleButton, ToggleButtonGroup, Toolbar } from "@mui/material";
 import KeyboardArrowDownIcon from '@mui/icons-material/KeyboardArrowDown';
 import ZoomInIcon from '@mui/icons-material/ZoomIn';
 import ZoomOutIcon from '@mui/icons-material/ZoomOut';
@@ -23,6 +23,8 @@ interface DiagramToolbarProps {
     diagram: Diagram;
     controller: InteractionController;
     scale: number;
+    unit: string;
+    unitMultiplier: number;
     onScaleChange: (value: number) => void;
 }
 
@@ -68,9 +70,11 @@ function RectIcon() {
 
 function DiagramToolbar(props: DiagramToolbarProps) {
     const scaleOptions = [25, 50, 100, 200, 500];
+    const lineWeightOptions = [0.1, 0.25, 0.5, 1, 2, 5];
 
     const [scaleMenuAnchorEl, setScaleMenuAnchorEl] = useState<null | HTMLElement>(null);
     const [colorPopoverAnchorEl, setColorPopoverAnchorEl] = useState<null | HTMLElement>(null);
+    const [lineWeightMenuAnchorEl, setLineWeightMenuAnchorEl] = useState<null | HTMLElement>(null);
     const [color, setColor] = useState<string>("black");
     const [colorProperty, setColorProperty] = useState<"fill" | "stroke">("fill");
     const [drawingMode, setDrawingMode] = useState("");
@@ -119,6 +123,15 @@ function DiagramToolbar(props: DiagramToolbarProps) {
             props.onScaleChange(value);
         }
         setScaleMenuAnchorEl(null);
+    };
+
+    const closeLineWeightMenu = (value?: number | null) => {
+        if (value !== undefined) {
+            props.controller.getSelectedElements().forEach(element => {
+                updateElement<ClosedFigureStyleProps>(element, { ...element.props, style: { ...element.props.style, "stroke-width": value !== null ? value / props.unitMultiplier : undefined } });
+            });
+        }
+        setLineWeightMenuAnchorEl(null);
     };
 
     const colorToHex = (color: string) => {
@@ -219,9 +232,20 @@ function DiagramToolbar(props: DiagramToolbarProps) {
                 <IconButton color="inherit" onClick={(e) => openBackgroundColorPicker(e.currentTarget)}>
                     <FormatColorFillIcon />
                 </IconButton>
-                <IconButton color="inherit">
+                <IconButton color="inherit" onClick={(e) => setLineWeightMenuAnchorEl(e.currentTarget)}>
                     <LineWeightIcon />
                 </IconButton>
+                <Menu
+                    anchorEl={lineWeightMenuAnchorEl}
+                    open={!!lineWeightMenuAnchorEl}
+                    onClose={() => closeLineWeightMenu()}
+                >
+                    <MenuItem onClick={() => closeLineWeightMenu(null)}>Default</MenuItem>
+                    <Divider />
+                    {lineWeightOptions.map(lineWeight => (
+                        <MenuItem key={lineWeight} onClick={() => closeLineWeightMenu(lineWeight)}>{lineWeight} {props.unit}</MenuItem>
+                    ))}
+                </Menu>
                 <Popover
                     anchorEl={colorPopoverAnchorEl}
                     open={!!colorPopoverAnchorEl}
@@ -233,7 +257,7 @@ function DiagramToolbar(props: DiagramToolbarProps) {
                 >
                     <CompactPicker color={color} onChange={(color) => setElementColor(color.hex)} />
                 </Popover>
-                <ToggleButtonGroup exclusive value={drawingMode} onChange={(e, value) => changeDrawinMode(value)}>
+                <ToggleButtonGroup exclusive size="small" value={drawingMode} onChange={(e, value) => changeDrawinMode(value)}>
                     <ToggleButton value="" sx={{ color: "inherit !important" }}>
                         <DefaultCursorIcon />
                     </ToggleButton>

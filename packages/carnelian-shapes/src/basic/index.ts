@@ -19,12 +19,16 @@ export * from "./pie";
 export interface LineFigureStyleProps {
     style?: {
         stroke?: string;
+        "stroke-width"?: number | string;
+        "stroke-dasharray"?: string;
     }
 }
 
 export interface ClosedFigureStyleProps {
     style?: {
         stroke?: string;
+        "stroke-width"?: number | string;
+        "stroke-dasharray"?: string;
         fill?: string;
     }
 }
