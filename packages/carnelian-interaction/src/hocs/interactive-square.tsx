@@ -1,7 +1,7 @@
 /** @jsxImportSource @carnelian/diagram */
 
 import { DiagramElement, DiagramElementProps } from "@carnelian/diagram";
-import { MovementActionPayload, useAction, useCollider } from "..";
+import { ACT_DRAW_POINT_CANCEL, ACT_DRAW_POINT_CANCEL_Payload, ACT_DRAW_POINT_MOVE, ACT_DRAW_POINT_MOVE_Payload, ACT_DRAW_POINT_PLACE, ACT_DRAW_POINT_PLACE_Payload, ACT_MOVE, DragActionPayload, useAction, useCollider } from "..";
 import { Collider, RectCollider } from "../collisions";
 import { useInteractiveRectControls } from "./interactive-rect";
 
@@ -19,7 +19,7 @@ export function useInteractiveSquare<T extends InteractiveSquareProps>(
 ) {
     const { x, y, size, onChange } = props;
 
-    function move(payload: MovementActionPayload) {
+    function move(payload: DragActionPayload) {
         onChange(props => ({
             ...props,
             x: props.x + payload.deltaX,
@@ -27,7 +27,7 @@ export function useInteractiveSquare<T extends InteractiveSquareProps>(
         }));
     }
 
-    function resizeTopLeft(payload: MovementActionPayload) {
+    function resizeTopLeft(payload: DragActionPayload) {
         onChange(props => {
             const d = Math.max(props.x - payload.position.x, props.y - payload.position.y);
             return {
@@ -39,7 +39,7 @@ export function useInteractiveSquare<T extends InteractiveSquareProps>(
         });
     }
 
-    function resizeTopRight(payload: MovementActionPayload) {
+    function resizeTopRight(payload: DragActionPayload) {
         onChange(props => {
             const d = Math.max(payload.position.x - props.x - props.size, props.y - payload.position.y);
             return {
@@ -50,7 +50,7 @@ export function useInteractiveSquare<T extends InteractiveSquareProps>(
         });
     }
 
-    function resizeBottomLeft(payload: MovementActionPayload) {
+    function resizeBottomLeft(payload: DragActionPayload) {
         onChange(props => {
             const d = Math.max(props.x - payload.position.x, payload.position.y - props.y - props.size);
             return {
@@ -61,7 +61,7 @@ export function useInteractiveSquare<T extends InteractiveSquareProps>(
         });
     }
 
-    function resizeBottomRight(payload: MovementActionPayload) {
+    function resizeBottomRight(payload: DragActionPayload) {
         onChange(props => {
             const d = Math.max(payload.position.x - props.x - props.size, payload.position.y - props.y - props.size);
             return {
@@ -71,7 +71,7 @@ export function useInteractiveSquare<T extends InteractiveSquareProps>(
         });
     }
 
-    function resizeLeft(payload: MovementActionPayload) {
+    function resizeLeft(payload: DragActionPayload) {
         onChange(props => ({
             ...props,
             x: Math.min(payload.position.x, props.x + props.size), 
@@ -79,7 +79,7 @@ export function useInteractiveSquare<T extends InteractiveSquareProps>(
         }));
     }
 
-    function resizeTop(payload: MovementActionPayload) {
+    function resizeTop(payload: DragActionPayload) {
         onChange(props => ({
             ...props, 
             y: Math.min(payload.position.y, props.y + props.size), 
@@ -87,14 +87,14 @@ export function useInteractiveSquare<T extends InteractiveSquareProps>(
         }));
     }
 
-    function resizeRight(payload: MovementActionPayload) {
+    function resizeRight(payload: DragActionPayload) {
         onChange(props => ({
             ...props,
             size: Math.max(0, payload.position.x - props.x),
         }));
     }
 
-    function resizeBottom(payload: MovementActionPayload) {
+    function resizeBottom(payload: DragActionPayload) {
         onChange(props => ({
             ...props,
             size: Math.max(0, payload.position.y - props.y)
@@ -108,8 +108,39 @@ export function useInteractiveSquare<T extends InteractiveSquareProps>(
     }
 
     const collider = colliderFactory?.(props) || defaultCollider();
-    useCollider(collider, { type: "in", action: "move", cursor: "move" });
-    useAction<MovementActionPayload>("move", move);
+    useCollider(collider, { type: "in", action: ACT_MOVE, cursor: "move" });
+    useAction(ACT_MOVE, move);
+
+    useAction<ACT_DRAW_POINT_PLACE_Payload>(ACT_DRAW_POINT_PLACE, (payload) => {
+        if (payload.pointIndex === 0) {
+            onChange(props => ({
+                ...props,
+                x: payload.position.x,
+                y: payload.position.y,
+                size: 0
+            }));
+        }
+        else {
+            const d = Math.max(payload.position.x - props.x - props.size, payload.position.y - props.y - props.size);
+            onChange(props => ({
+                ...props,
+                size: Math.max(0, props.size + d)
+            }));
+        }
+        payload.result.current = payload.pointIndex > 0;
+    });
+
+    useAction<ACT_DRAW_POINT_MOVE_Payload>(ACT_DRAW_POINT_MOVE, (payload) => {
+        const d = Math.max(payload.position.x - props.x - props.size, payload.position.y - props.y - props.size);
+        onChange(props => ({
+            ...props,
+            size: Math.max(0, props.size + d)
+        }));
+    });
+
+    useAction<ACT_DRAW_POINT_CANCEL_Payload>(ACT_DRAW_POINT_CANCEL, (payload) => {
+        payload.result.current = false;
+    });
 
     useInteractiveRectControls(
         x, y, size, size, resizeTopLeft, resizeTopRight, resizeBottomLeft, resizeBottomRight,

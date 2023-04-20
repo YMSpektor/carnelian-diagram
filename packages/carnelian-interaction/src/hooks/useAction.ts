@@ -1,7 +1,7 @@
 import { DiagramElementNode, RenderContext, useContext, useEffect, useState } from "@carnelian/diagram";
 import { ActionCallback, DiagramElementAction, InteractionContext } from "..";
 
-export function useAction<T>(actionType: string, callback: ActionCallback<T>, element?: DiagramElementNode) {
+export function useAction<T>(actionType: string, callback?: ActionCallback<T>, element?: DiagramElementNode) {
     const renderContext = useContext(RenderContext);
     const curElement = element || renderContext?.currentElement();
     if (!curElement) {
@@ -15,11 +15,11 @@ export function useAction<T>(actionType: string, callback: ActionCallback<T>, el
 
     const [key] = useState({});
 
-    const action: DiagramElementAction<T> = {
+    const action: DiagramElementAction<T> | undefined = callback ? {
         element: curElement,
         callback,
         action: actionType
-    }
+    } : undefined;
     interactions.updateActions(key, action);
 
     useEffect(() => {

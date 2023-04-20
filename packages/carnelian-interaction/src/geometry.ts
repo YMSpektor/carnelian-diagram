@@ -267,6 +267,20 @@ export function rectPoints(r: Rect): Point[] {
     ]
 }
 
+export function lineBounds(line: Line) {
+    const x1 = Math.min(line.a.x, line.b.x);
+    const y1 = Math.min(line.a.y, line.b.y);
+    const x2 = Math.max(line.a.x, line.b.x);
+    const y2 = Math.max(line.a.y, line.b.y);
+
+    return {
+        x: x1,
+        y: y1,
+        width: x2 - x1,
+        height: y2 - y1
+    }
+}
+
 export function circleBounds(c: Circle): Rect {
     return {
         x: c.center.x - c.radius,

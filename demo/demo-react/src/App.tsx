@@ -17,12 +17,11 @@ interface AppProps {
 function App(props: AppProps) {
     const { controller, diagram, palette } = props;
     const [scale, setScale] = useState(100);
-
-    const paper = controller.getPaperOptions();
+    const paper = controller.getPaper();
 
     return (
         <div css={{display: "flex", flexDirection: "column", height: "100vh"}}>
-            <DiagramToolbar diagram={diagram} controller={controller} scale={scale} onScaleChange={setScale} />
+            <DiagramToolbar diagram={diagram} controller={controller} scale={scale} onScaleChange={setScale} unit="mm" unitMultiplier={0.1} />
             <div css={{flex: 1, display: "flex", alignItems: "stretch", overflow: "hidden", backgroundColor: "#42a5f560"}}>
                 <div css={{flex: "0 0 auto", overflow: "auto"}}>
                     <Accordion defaultExpanded={true} css={{backgroundColor: "inherit"}}>

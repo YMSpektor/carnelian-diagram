@@ -1,20 +1,20 @@
 /** @jsxImportSource @carnelian/diagram */
 
 import { DiagramElement, DiagramElementProps } from "@carnelian/diagram";
-import { HandleControl, HitArea, MovementActionPayload, useControls } from "..";
+import { HandleControl, HitArea, DragActionPayload, useControls } from "..";
 import { Point } from "../geometry";
 
 export interface KnobController<T extends object, D = any> {
     hitArea: HitArea<D> | ((props: T) => HitArea<D>);
     getPosition(props: T): Point;
-    setPosition<D>(props: DiagramElementProps<T>, payload: MovementActionPayload, hitArea: HitArea<D>): DiagramElementProps<T>;
+    setPosition<D>(props: DiagramElementProps<T>, payload: DragActionPayload, hitArea: HitArea<D>): DiagramElementProps<T>;
 }
 
 export function useKnob<T extends object>(knobController: KnobController<T>, props: DiagramElementProps<T>) {
     const pos = knobController.getPosition(props);
     const hitArea = typeof knobController.hitArea === "function" ? knobController.hitArea(props) : knobController.hitArea;
 
-    function dragHandler(payload: MovementActionPayload) {
+    function dragHandler(payload: DragActionPayload) {
         props.onChange(props => knobController.setPosition(props, payload, payload.hitArea));
     }
 
