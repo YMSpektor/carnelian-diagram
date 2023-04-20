@@ -46,6 +46,11 @@ export interface PaperChangeEventArgs {
     paper: PaperOptions | undefined;
 }
 
+export interface DrawElementEventArgs {
+    element: DiagramElementNode;
+    result: boolean;
+}
+
 export type ControlProps = Partial<CreateHitTestProps> & {
     className: string;
 }
@@ -107,6 +112,7 @@ export class InteractionController {
     onDelete = new Event<DeleteEventArg>();
     onRectSelection = new Event<RectSelectionEventArgs>();
     onPaperChange = new Event<PaperChangeEventArgs>();
+    onDrawElement = new Event<DrawElementEventArgs>();
 
     constructor(private options?: InteractionControllerOptions) {
         this.interactionContext = this.createInteractionContext();
@@ -487,14 +493,17 @@ export class InteractionController {
             this.drawing = false;
             root.releasePointerCapture(e.pointerId);
 
+            
             if (!result) {
                 this.diagram?.delete(element);
                 root.style.cursor = "";
             }
-
+            
             root.removeEventListener("pointermove", mouseMoveHandler);
             root.removeEventListener("pointerdown", mouseDownHandler);
             root.removeEventListener("keydown", keyDownHandler);
+            
+            this.onDrawElement.emit({ element, result });
         }
 
         let pointIndex = 0;

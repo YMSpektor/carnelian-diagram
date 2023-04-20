@@ -1,7 +1,7 @@
 /** @jsxImportSource @carnelian/diagram */
 
 import { DiagramElement, DiagramElementProps } from "@carnelian/diagram";
-import { ACT_DRAW_POINT_CANCEL, ACT_DRAW_POINT_CANCEL_Payload, ACT_DRAW_POINT_MOVE, ACT_DRAW_POINT_MOVE_Payload, ACT_DRAW_POINT_PLACE, ACT_DRAW_POINT_PLACE_Payload, ACT_MOVE, ClickActionPayload, Collider, DragActionPayload, EdgeControl, HandleControl, LineCollider, UnionCollider, useAction, useCollider, useControls } from "..";
+import { ACT_DRAW_POINT_CANCEL, ACT_DRAW_POINT_CANCEL_Payload, ACT_DRAW_POINT_MOVE, ACT_DRAW_POINT_MOVE_Payload, ACT_DRAW_POINT_PLACE, ACT_DRAW_POINT_PLACE_Payload, ACT_MOVE, ClickActionPayload, Collider, DragActionPayload, EdgeControl, HandleControl, LineCollider, PointCollider, UnionCollider, useAction, useCollider, useControls } from "..";
 import { Line, Point } from "../geometry";
 
 export interface InteractivePolylineProps {
@@ -9,6 +9,9 @@ export interface InteractivePolylineProps {
 }
 
 export function PolylineCollider(points: Point[]) {
+    if (points.length === 1) {
+        return PointCollider(points[0]);
+    }
     const lines = points.reduce<Line[]>((acc, cur, i) => {
         return i > 0 ? acc.concat({ a: points[i - 1], b: cur }) : acc;
     }, []);

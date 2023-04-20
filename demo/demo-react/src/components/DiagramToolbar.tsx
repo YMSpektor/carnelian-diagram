@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { AppBar, Button, IconButton, Menu, MenuItem, Popover, SvgIcon, ToggleButton, ToggleButtonGroup, Toolbar } from "@mui/material";
 import KeyboardArrowDownIcon from '@mui/icons-material/KeyboardArrowDown';
 import ZoomInIcon from '@mui/icons-material/ZoomIn';
@@ -74,6 +74,41 @@ function DiagramToolbar(props: DiagramToolbarProps) {
     const [color, setColor] = useState<string>("black");
     const [colorProperty, setColorProperty] = useState<"fill" | "stroke">("fill");
     const [drawingMode, setDrawingMode] = useState("");
+
+    const changeDrawinMode = useCallback((value: string) => {
+        switch (value) {
+            case "line":
+                props.controller.switchDrawingMode(lineFactory);
+                break;
+            case "polyline":
+                props.controller.switchDrawingMode(polylineFactory);
+                break;
+            case "polygon":
+                props.controller.switchDrawingMode(polygonFactory);
+                break;
+            case "rect":
+                props.controller.switchDrawingMode(rectFactory);
+                break;
+            case "circle":
+                props.controller.switchDrawingMode(circleFactory);
+                break;
+            default:
+                props.controller.switchDrawingMode(null);
+        }
+        setDrawingMode(value);
+    }, [props.controller]);
+
+    const drawElementHandler = useCallback(() => {
+        changeDrawinMode("");
+    }, [changeDrawinMode]);
+
+    useEffect(() => {
+        props.controller.onDrawElement.addListener(drawElementHandler);
+
+        return () => {
+            props.controller.onDrawElement.removeListener(drawElementHandler);
+        }
+    }, [props.controller, drawElementHandler])
 
     function updateElement<T>(element: DiagramElementNode<T>, elementProps: DiagramElementProps<T>) {
         props.diagram.update(element, elementProps);
@@ -157,29 +192,6 @@ function DiagramToolbar(props: DiagramToolbarProps) {
         return diagram.add(Circle, { x, y, radius: 0 });
     }
 
-    function changeDrawinMode(e: React.MouseEvent<HTMLElement>, value: string) {
-        switch (value) {
-            case "line":
-                props.controller.switchDrawingMode(lineFactory);
-                break;
-            case "polyline":
-                props.controller.switchDrawingMode(polylineFactory);
-                break;
-            case "polygon":
-                props.controller.switchDrawingMode(polygonFactory);
-                break;
-            case "rect":
-                props.controller.switchDrawingMode(rectFactory);
-                break;
-            case "circle":
-                props.controller.switchDrawingMode(circleFactory);
-                break;
-            default:
-                props.controller.switchDrawingMode(null);
-        }
-        setDrawingMode(value);
-    }
-
     return (
         <AppBar position="static">
             <Toolbar>
@@ -221,7 +233,7 @@ function DiagramToolbar(props: DiagramToolbarProps) {
                 >
                     <CompactPicker color={color} onChange={(color) => setElementColor(color.hex)} />
                 </Popover>
-                <ToggleButtonGroup exclusive value={drawingMode} onChange={changeDrawinMode}>
+                <ToggleButtonGroup exclusive value={drawingMode} onChange={(e, value) => changeDrawinMode(value)}>
                     <ToggleButton value="" sx={{ color: "inherit !important" }}>
                         <DefaultCursorIcon />
                     </ToggleButton>
