@@ -1,3 +1,4 @@
+export * from "./actions";
 export * from "./hit-tests";
 export * from "./intersection-tests";
 export * from "./interaction-controller";

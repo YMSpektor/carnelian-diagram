@@ -1,7 +1,8 @@
 import { Diagram } from "@carnelian/diagram";
 import { InteractionController } from "@carnelian/interaction";
 import { DiagramPaletteElement } from "./components/DiagramPalette";
-import { 
+import {
+    InteractiveLine as Line,
     InteractiveRect as Rect, 
     InteractiveEllipse as Ellipse, 
     InteractiveDiamond as Diamond,

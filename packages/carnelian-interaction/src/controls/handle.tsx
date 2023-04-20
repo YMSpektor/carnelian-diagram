@@ -1,7 +1,7 @@
 /** @jsxImportSource @carnelian/diagram */
 
 import { DiagramNode, useContext } from "@carnelian/diagram";
-import { ActionCallback, ControlsContext, createHitTestProps, HitArea, MovementActionPayload, RenderHandleCallback, useAction } from "..";
+import { ActionCallback, ControlsContext, createHitTestProps, HitArea, DragActionPayload, RenderHandleCallback, useAction } from "..";
 
 export interface HandleControlProps {
     element: DiagramNode;
@@ -10,18 +10,18 @@ export interface HandleControlProps {
     y: number;
     hitArea: HitArea,
     transform: DOMMatrixReadOnly;
-    onDrag: ActionCallback<MovementActionPayload>;
+    onDrag?: ActionCallback<DragActionPayload>;
 }
 
 export function HandleControl(props: HandleControlProps) {
     const p = new DOMPoint(props.x, props.y).matrixTransform(props.transform);
     const hitTestProps = createHitTestProps(props.hitArea, props.element);
     
-    useAction<MovementActionPayload>(props.hitArea.action, (payload) => {
+    useAction<DragActionPayload>(props.hitArea.action, props.onDrag && ((payload) => {
         if (props.hitArea.index === payload.hitArea.index) {
-            props.onDrag(payload);
+            props.onDrag?.(payload);
         }
-    }, props.element);
+    }), props.element);
     
     const controlsContext = useContext(ControlsContext);
 

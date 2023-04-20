@@ -51,7 +51,7 @@ function DiagramViewer(props: DiagramViewerProps & HTMLAttributes<HTMLDivElement
 
     useEffect(() => {
         if (controller) {
-            const paper = controller.getPaperOptions();
+            const paper = controller.getPaper();
             paper && controller.updatePaper({
                 ...paper,
                 width: diagramSize.width,

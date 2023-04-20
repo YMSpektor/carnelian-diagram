@@ -57,7 +57,7 @@ function DiagramPaper(props: PaperOptions & {matrix?: DOMMatrixReadOnly}) {
     return (
         <>
             {patternSize > 0 && <defs>
-                <pattern id="paper-grid" x={0} y={0} width={patternSize} height={patternSize} patternUnits="userSpaceOnUse">
+                <pattern id="paper-grid" x={x} y={y} width={patternSize} height={patternSize} patternUnits="userSpaceOnUse">
                     <rect x={0} y={0} width={patternSize} height={patternSize} fill="white" stroke="none" />
                     {minorGridSize && drawGridLines(minorGridSize, props.minorGridColor || "#eee")}
                     {majorGridSize && drawGridLines(majorGridSize, props.majorGridColor || "#bbb")}
@@ -130,7 +130,7 @@ export function withInteractiveRoot<P>(
     return (props: DiagramRootProps) => {
         const [matrix, setMatrix] = useState<DOMMatrix | undefined>(undefined);
         const [selectedElements, setSelectedElements] = useState<DiagramElementNode[]>([]);
-        const [paper, setPaper] = useState(controller.getPaperOptions());
+        const [paper, setPaper] = useState(controller.getPaper());
 
         controller.elements = props.children;
 

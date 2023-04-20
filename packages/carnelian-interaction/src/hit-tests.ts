@@ -7,8 +7,9 @@ export type HitTestCallback = (point: DOMPointReadOnly, transform: DOMMatrixRead
 export interface HitArea<T = any> {
     type: string;
     index?: number;
-    action: string;
     cursor?: string;
+    action?: string;
+    dblClickAction?: string;
     data?: T;
 }
 
