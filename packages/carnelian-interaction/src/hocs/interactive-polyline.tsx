@@ -1,7 +1,7 @@
 /** @jsxImportSource @carnelian/diagram */
 
 import { DiagramElement, DiagramElementProps } from "@carnelian/diagram";
-import { ACT_DRAW_POINT_CANCEL, ACT_DRAW_POINT_CANCEL_Payload, ACT_DRAW_POINT_MOVE, ACT_DRAW_POINT_MOVE_Payload, ACT_DRAW_POINT_PLACE, ACT_DRAW_POINT_PLACE_Payload, ACT_MOVE, Collider, DraggingActionPayload, HandleControl, LineCollider, UnionCollider, useAction, useCollider, useControls } from "..";
+import { ACT_DRAW_POINT_CANCEL, ACT_DRAW_POINT_CANCEL_Payload, ACT_DRAW_POINT_MOVE, ACT_DRAW_POINT_MOVE_Payload, ACT_DRAW_POINT_PLACE, ACT_DRAW_POINT_PLACE_Payload, ACT_MOVE, ClickActionPayload, Collider, DragActionPayload, EdgeControl, HandleControl, LineCollider, UnionCollider, useAction, useCollider, useControls } from "..";
 import { Line, Point } from "../geometry";
 
 export interface InteractivePolylineProps {
@@ -19,19 +19,20 @@ export type PolylineColliderFactory<T extends InteractivePolylineProps> = (props
 
 export function useInteractivePolyline<T extends InteractivePolylineProps>(
     props: DiagramElementProps<T>,
+    isClosed: boolean,
     minPoints: number,
     colliderFactory?: PolylineColliderFactory<T>
 ) {
     const { points, onChange } = props;
 
-    function move(payload: DraggingActionPayload) {
+    function move(payload: DragActionPayload) {
         onChange(props => ({
             ...props,
             points: points.map(p => ({ x: p.x + payload.deltaX, y: p.y + payload.deltaY }))
         }));
     }
 
-    function moveVertex(payload: DraggingActionPayload) {
+    function moveVertex(payload: DragActionPayload) {
         onChange(props => ({
             ...props,
             points: points.map((p, i) => i !== payload.hitArea.index ? p : { x: payload.position.x, y: payload.position.y })
@@ -69,6 +70,27 @@ export function useInteractivePolyline<T extends InteractivePolylineProps>(
         }
     });
 
+    useAction<ClickActionPayload>("vertex_remove", (payload) => {
+        if (typeof payload.hitArea.index === "number" && points.length > minPoints) {
+            onChange(props => ({
+                ...props,
+                points: props.points.filter((x, i) => i !== payload.hitArea.index)
+            }));
+        }
+    });
+
+    useAction<ClickActionPayload>("vertex_insert", (payload) => {
+        if (typeof payload.hitArea.index === "number") {
+            const index = payload.hitArea.index;
+            const newPoints = [...props.points];
+            newPoints.splice(index + 1, 0, { x: payload.position.x, y: payload.position.y });
+            onChange(props => ({
+                ...props,
+                points: newPoints
+            }));
+        }
+    });
+
     function createHandleControl(
         index: number, 
         x: number, y: number, 
@@ -79,16 +101,51 @@ export function useInteractivePolyline<T extends InteractivePolylineProps>(
                 type: "vertex_handle",
                 index,
                 cursor: "move",
-                action: "vertex_move"
+                action: "vertex_move",
+                dblClickAction: "vertex_remove"
             }
+        }
+    }
+
+    function createEdgeControl(
+        index: number,
+        x1: number, y1: number, x2: number, y2: number,
+    ) {
+        return {
+            x1, y1, x2, y2,
+            hitArea: {
+                type: "edge",
+                index,
+                cursor: "move",
+                action: ACT_MOVE,
+                dblClickAction: "vertex_insert"
+            },
         }
     }
 
     useControls((transform, element) => {
         const handles = points.map((p, i) => createHandleControl(i, p.x, p.y));
+        const lines = points.reduce<Line[]>((acc, cur, i) => {
+            return i < points.length - 1 
+                ? acc.concat({ a: cur, b: points[i + 1] })
+                : isClosed 
+                    ? acc.concat({ a: cur, b: points[0] })
+                    : acc;
+        }, []);
+        const edges = lines.map((l, i) => createEdgeControl(i, l.a.x, l.a.y, l.b.x, l.b.y));
 
         return (
             <>
+                { edges.map(control => (
+                    <EdgeControl
+                        key={control.hitArea.index}
+                        kind="default"
+                        x1={control.x1} y1={control.y1} x2={control.x2} y2={control.y2}
+                        hitArea={control.hitArea}
+                        transform={transform}
+                        element={element}
+                    />
+                ))}
                 { handles.map(control => (
                     <HandleControl
                         key={control.hitArea.index}
@@ -105,11 +162,12 @@ export function useInteractivePolyline<T extends InteractivePolylineProps>(
 
 export function withInteractivePolyline<T extends InteractivePolylineProps>(
     WrappedElement: DiagramElement<T>,
+    isClosed: boolean,
     minPoints: number,
     colliderFactory?: PolylineColliderFactory<T>
 ): DiagramElement<T> {
     return (props) => {
-        useInteractivePolyline(props, minPoints, colliderFactory);
+        useInteractivePolyline(props, isClosed, minPoints, colliderFactory);
         return <WrappedElement {...props} />;
     }
 }

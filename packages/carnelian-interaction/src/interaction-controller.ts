@@ -7,7 +7,7 @@ import { CreateHitTestProps, DiagramElementHitTest, hasHitTestProps, HitTestColl
 import { renderEdgeDefault, renderHandleDefault } from "./controls";
 import { DiagramElementIntersectionTest } from "./intersection-tests";
 import { intersectRect, Rect } from "./geometry";
-import { ACT_DRAW_POINT_CANCEL, ACT_DRAW_POINT_CANCEL_Payload, ACT_DRAW_POINT_MOVE, ACT_DRAW_POINT_MOVE_Payload, ACT_DRAW_POINT_PLACE, ACT_DRAW_POINT_PLACE_Payload, ACT_MOVE, DraggingActionPayload } from "./actions";
+import { ACT_DRAW_POINT_CANCEL, ACT_DRAW_POINT_CANCEL_Payload, ACT_DRAW_POINT_MOVE, ACT_DRAW_POINT_MOVE_Payload, ACT_DRAW_POINT_PLACE, ACT_DRAW_POINT_PLACE_Payload, ACT_MOVE, ClickActionPayload, DragActionPayload } from "./actions";
 
 export type RenderControlsCallback = (transform: DOMMatrixReadOnly, element: DiagramElementNode) => JSX.Element;
 
@@ -122,9 +122,11 @@ export class InteractionController {
        
         const mouseDownHandler = (e: PointerEvent) => this.mouseDownHandler(root, e);
         const mouseMoveHandler = (e: PointerEvent) => this.mouseMoveHandler(root, e);
+        const dblClickHandler = (e: MouseEvent) => this.dblClickHandler(root, e);
         const keyDownHandler = (e: KeyboardEvent) => this.keyDownHandler(root, e);
         root.addEventListener("pointerdown", mouseDownHandler);
         root.addEventListener("pointermove", mouseMoveHandler);
+        root.addEventListener("dblclick", dblClickHandler);
         root.addEventListener("keydown", keyDownHandler);
 
         const tabIndex = root.getAttribute("tabindex");
@@ -137,6 +139,7 @@ export class InteractionController {
             this.detach = () => {};
             root.removeEventListener("pointerdown", mouseDownHandler);
             root.removeEventListener("pointermove", mouseMoveHandler);
+            root.removeEventListener("dblclick", dblClickHandler);
             root.removeEventListener("keydown", keyDownHandler);
             
             if (!tabIndex) {
@@ -334,6 +337,30 @@ export class InteractionController {
         }
     }
 
+    private dblClickHandler(root: HTMLElement, e: MouseEvent) {
+        if (this.dragging || this.selecting || this.drawing || e.button !== 0) return;
+
+        const hitInfo = this.hitTest(e);
+        if (hitInfo && hitInfo.hitArea.dblClickAction) {
+            const point = new DOMPoint(e.clientX, e.clientY);
+            const snapGridSize = !e.altKey ? this.snapGridSize : null;
+            const elementPoint = this.clientToDiagram(point);
+            const snappedElementPoint = this.snapToGrid(elementPoint, snapGridSize);
+
+            this.dispatch<ClickActionPayload>(
+                [hitInfo.element],
+                hitInfo.hitArea.dblClickAction,
+                {
+                    position: snappedElementPoint,
+                    rawPosition: elementPoint,
+                    hitArea: hitInfo.hitArea,
+                    snapGridSize,
+                    snapAngle: !e.altKey ? this.snapAngle : null,
+                    snapToGrid: this.snapToGrid.bind(this)
+                });
+        }
+    }
+
     private async keyDownHandler(root: HTMLElement, e: KeyboardEvent) {
         // Firefox 36 and earlier uses "Del" instead of "Delete" for the Del key
         // https://developer.mozilla.org/en-US/docs/Web/API/UI_Events/Keyboard_event_key_values
@@ -399,20 +426,22 @@ export class InteractionController {
 
     private beginDrag(root: HTMLElement, e: PointerEvent, hitInfo: HitInfo) {
         this.dragging = true;
-        root.setPointerCapture(e.pointerId);
+        const targetElement = e.target as HTMLElement;
+        targetElement.setPointerCapture(e.pointerId);  // Set capture to target element to receive dblclick events for this target
 
         let lastPoint = this.clientToDiagram(new DOMPoint(e.clientX, e.clientY));
+        const action = hitInfo.hitArea.action;
 
-        if (hitInfo.hitArea.action) {
+        if (action) {
             const mouseMoveHandler = (e: PointerEvent) => {
                 const point = new DOMPoint(e.clientX, e.clientY);
                 const snapGridSize = !e.altKey ? this.snapGridSize : null;
                 const elementPoint = this.clientToDiagram(point);
                 const snappedElementPoint = this.snapToGrid(elementPoint, snapGridSize);
 
-                this.dispatch<DraggingActionPayload>(
+                this.dispatch<DragActionPayload>(
                     [hitInfo.element],
-                    hitInfo.hitArea.action,
+                    action,
                     {
                         position: snappedElementPoint,
                         deltaX: this.snapToGrid(snappedElementPoint.x - lastPoint.x, snapGridSize),
@@ -431,14 +460,14 @@ export class InteractionController {
 
             const mouseUpHandler = (e: PointerEvent) => {
                 this.dragging = false;
-                root.releasePointerCapture(e.pointerId);
+                targetElement.releasePointerCapture(e.pointerId);
 
-                root.removeEventListener("pointermove", mouseMoveHandler);
-                root.removeEventListener("pointerup", mouseUpHandler);
+                targetElement.removeEventListener("pointermove", mouseMoveHandler);
+                targetElement.removeEventListener("pointerup", mouseUpHandler);
             }
 
-            root.addEventListener("pointermove", mouseMoveHandler);
-            root.addEventListener("pointerup", mouseUpHandler);
+            targetElement.addEventListener("pointermove", mouseMoveHandler);
+            targetElement.addEventListener("pointerup", mouseUpHandler);
         }
     }
 

@@ -1,7 +1,7 @@
 /** @jsxImportSource @carnelian/diagram */
 
 import { DiagramNode, useContext } from "@carnelian/diagram";
-import { ActionCallback, ControlsContext, HitArea, lineHitTest, DraggingActionPayload, RenderEdgeCallback, useAction, useHitTest } from "..";
+import { ActionCallback, ControlsContext, HitArea, lineHitTest, DragActionPayload, RenderEdgeCallback, useAction, useHitTest } from "..";
 
 export interface EdgeControlProps {
     element: DiagramNode;
@@ -12,7 +12,7 @@ export interface EdgeControlProps {
     y2: number;
     hitArea: HitArea;
     transform: DOMMatrixReadOnly;
-    onDrag?: ActionCallback<DraggingActionPayload>;
+    onDrag?: ActionCallback<DragActionPayload>;
 }
 
 export function EdgeControl(props: EdgeControlProps) {
@@ -25,7 +25,7 @@ export function EdgeControl(props: EdgeControlProps) {
         props.element
     );
 
-    useAction<DraggingActionPayload>(props.hitArea.action, props.onDrag && ((payload) => {
+    useAction<DragActionPayload>(props.hitArea.action, props.onDrag && ((payload) => {
         if (props.hitArea.index === payload.hitArea.index) {
             props.onDrag?.(payload);
         }

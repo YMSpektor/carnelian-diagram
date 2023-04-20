@@ -6,7 +6,7 @@ export const ACT_DRAW_POINT_PLACE = "draw_point:place";
 export const ACT_DRAW_POINT_MOVE = "draw_point:move";
 export const ACT_DRAW_POINT_CANCEL = "draw_point:cancel";
 
-export interface DraggingActionPayload {
+export interface DragActionPayload {
     position: DOMPointReadOnly;
     deltaX: number;
     deltaY: number;
@@ -22,7 +22,19 @@ export interface DraggingActionPayload {
     }
 }
 
-export type ACT_MOVE_Payload = DraggingActionPayload;
+export interface ClickActionPayload {
+    position: DOMPointReadOnly;
+    rawPosition: DOMPointReadOnly;
+    hitArea: HitArea;
+    snapGridSize: number | null;
+    snapAngle: number | null;
+    snapToGrid: {
+        (value: number, snapGridSize?: number | null): number;
+        (point: DOMPointReadOnly, snapGridSize?: number | null): DOMPointReadOnly;
+    }
+}
+
+export type ACT_MOVE_Payload = DragActionPayload;
 
 export interface ACT_DRAW_POINT_PLACE_Payload {
     position: DOMPointReadOnly;

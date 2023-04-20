@@ -1,7 +1,7 @@
 /** @jsxImportSource @carnelian/diagram */
 
 import { DiagramElement, DiagramElementProps } from "@carnelian/diagram";
-import { ACT_DRAW_POINT_CANCEL, ACT_DRAW_POINT_CANCEL_Payload, ACT_DRAW_POINT_MOVE, ACT_DRAW_POINT_MOVE_Payload, ACT_DRAW_POINT_PLACE, ACT_DRAW_POINT_PLACE_Payload, ACT_MOVE, Collider, DraggingActionPayload, HandleControl, LineCollider, useAction, useCollider, useControls } from "..";
+import { ACT_DRAW_POINT_CANCEL, ACT_DRAW_POINT_CANCEL_Payload, ACT_DRAW_POINT_MOVE, ACT_DRAW_POINT_MOVE_Payload, ACT_DRAW_POINT_PLACE, ACT_DRAW_POINT_PLACE_Payload, ACT_MOVE, Collider, DragActionPayload, HandleControl, LineCollider, useAction, useCollider, useControls } from "..";
 
 export interface InteractiveLineProps {
     x1: number;
@@ -18,7 +18,7 @@ export function useInteractiveLine<T extends InteractiveLineProps>(
 ) {
     const { x1, y1, x2, y2, onChange } = props;
 
-    function move(payload: DraggingActionPayload) {
+    function move(payload: DragActionPayload) {
         onChange(props => ({
             ...props,
             x1: props.x1 + payload.deltaX,
@@ -28,7 +28,7 @@ export function useInteractiveLine<T extends InteractiveLineProps>(
         }));
     }
 
-    function moveVertex(payload: DraggingActionPayload) {
+    function moveVertex(payload: DragActionPayload) {
         onChange(props => ({
             ...props,
             x1: payload.hitArea.index === 0 ? payload.position.x : props.x1,
