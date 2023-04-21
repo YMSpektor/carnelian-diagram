@@ -15,7 +15,7 @@ export function isGridSnappingService(service: InteractionServive): service is G
 export class DefaultGridSnappingService implements GridSnappingService {
     type: "grid_snapping_service" = "grid_snapping_service";
 
-    constructor(public snapGridSize: number | null, public snapAngle: number | null) {}
+    constructor(public snapGridSize: number | null = null, public snapAngle: number | null = null) {}
 
     snapToGrid(value: number, snapGridSize?: number | null): number;
     snapToGrid(point: DOMPointReadOnly, snapGridSize?: number | null): DOMPointReadOnly;

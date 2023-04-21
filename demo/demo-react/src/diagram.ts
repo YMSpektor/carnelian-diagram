@@ -1,8 +1,7 @@
 import { Diagram } from "@carnelian/diagram";
-import { InteractionController } from "@carnelian/interaction";
+import { InteractionController, isGridSnappingService } from "@carnelian/interaction";
 import { DiagramPaletteElement } from "./components/DiagramPalette";
 import {
-    InteractiveLine as Line,
     InteractiveRect as Rect, 
     InteractiveEllipse as Ellipse, 
     InteractiveDiamond as Diamond,
@@ -29,8 +28,12 @@ export const controller = new InteractionController({
         majorGridSize: 200,
         minorGridSize: 50
     },
-    snapGridSize: 50,
-    snapAngle: 5
+}, (services) => {
+    const gridSnappingService = services.find(isGridSnappingService);
+    if (gridSnappingService) {
+        gridSnappingService.snapGridSize = 50;
+        gridSnappingService.snapAngle = 5;
+    }
 });
 export const diagram = new Diagram();
 

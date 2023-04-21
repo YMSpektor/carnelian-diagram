@@ -62,8 +62,6 @@ export interface PaperOptions {
 
 export interface InteractionControllerOptions {
     paper?: PaperOptions;
-    snapGridSize?: number | null;
-    snapAngle?: number | null;
 }
 
 export class InteractionController {
@@ -86,17 +84,21 @@ export class InteractionController {
     onPaperChange = new Event<PaperChangeEventArgs>();
     onDrawElement = new Event<DrawElementEventArgs>();
 
-    constructor(private options?: InteractionControllerOptions) {
+    constructor(
+        options?: InteractionControllerOptions,
+        configureServices?: (services: InteractionServive[]) => void
+    ) {
         this.interactionContext = this.createInteractionContext();
         this.paper = options?.paper;
         this.services = [
-            new DefaultGridSnappingService(options?.snapGridSize || null, options?.snapAngle || null),
+            new DefaultGridSnappingService(),
             new DefaultSelectionService(this),
             new DefaultElementInteractionService(this),
             new DefaultDeletionService(this),
             new DefaultElementDrawingService(this),
             new DefaultControlRenderingService(),
         ];
+        configureServices?.(this.services);
     }
 
     attach(diagram: Diagram, root: HTMLElement) {
