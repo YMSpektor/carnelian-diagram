@@ -5,6 +5,7 @@ import {
     ControlsContext,
     InteractionContext, 
     InteractionController, 
+    isControlRenderingService, 
     PaperChangeEventArgs, 
     PaperOptions, 
     RectSelectionEventArgs, 
@@ -108,8 +109,10 @@ function DiagramControls(props: DiagramControlsProps) {
         }
     }, [controller]);
 
+    const renderControlsContext = controller.getService(isControlRenderingService)?.controlsContext || ControlsContext.defaultValue;
+
     return (
-        <ControlsContext.Provider value={controller.controlsContext}>
+        <ControlsContext.Provider value={renderControlsContext}>
             <g transform={getTransformAttribute(matrix?.inverse())}>
                 {controller.renderControls(matrix || new DOMMatrix())}
                 {rect && <rect className="selection-rect" {...rect} fill="none" stroke="black" stroke-dasharray="4" />}

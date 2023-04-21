@@ -20,3 +20,4 @@ export * from "./element-interaction-service";
 export * from "./grid-snapping-service";
 export * from "./deletion-service";
 export * from "./element-drawing-service";
+export * from "./control-rendering-service";

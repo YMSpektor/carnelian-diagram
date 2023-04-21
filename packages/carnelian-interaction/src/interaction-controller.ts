@@ -1,13 +1,11 @@
 import { Diagram, DiagramElementNode } from "@carnelian/diagram";
 import { createElement, Fragment, JSX } from "@carnelian/diagram/jsx-runtime";
 import { Event } from "@carnelian/diagram/utils/events";
-import { AddParameters } from "@carnelian/diagram/utils/types";
-import { ControlsContextType, InteractionContextType } from "./context";
-import { CreateHitTestProps, DiagramElementHitTest, hasHitTestProps, HitTestCollection, HitInfo, addHitTestProps } from "./hit-tests";
-import { renderEdgeDefault, renderHandleDefault } from "./controls";
+import { InteractionContextType } from "./context";
+import { DiagramElementHitTest, hasHitTestProps, HitTestCollection, HitInfo, addHitTestProps } from "./hit-tests";
 import { DiagramElementIntersectionTest } from "./intersection-tests";
 import { intersectRect, Rect } from "./geometry";
-import { DefaultDeletionService, DefaultElementDrawingService, DefaultElementInteractionService, DefaultGridSnappingService, DefaultSelectionService, InteractionServive } from "./services";
+import { DefaultControlRenderingService, DefaultDeletionService, DefaultElementDrawingService, DefaultElementInteractionService, DefaultGridSnappingService, DefaultSelectionService, InteractionServive } from "./services";
 
 export type RenderControlsCallback = (transform: DOMMatrixReadOnly, element: DiagramElementNode) => JSX.Element;
 
@@ -51,13 +49,6 @@ export interface DrawElementEventArgs {
     result: boolean;
 }
 
-export type ControlProps = Partial<CreateHitTestProps> & {
-    className: string;
-}
-
-export type RenderHandleCallback = (kind: string, x: number, y: number, otherProps: ControlProps) => JSX.Element;
-export type RenderEdgeCallback = (kind: string, x1: number, y1: number, x2: number, y2: number, otherProps: ControlProps) => JSX.Element;
-
 export interface PaperOptions {
     x: number;
     y: number;
@@ -70,8 +61,6 @@ export interface PaperOptions {
 }
 
 export interface InteractionControllerOptions {
-    renderHandleControl?: AddParameters<RenderHandleCallback, [RenderHandleCallback]>;
-    renderEdgeControl?: AddParameters<RenderEdgeCallback, [RenderEdgeCallback]>;
     paper?: PaperOptions;
     snapGridSize?: number | null;
     snapAngle?: number | null;
@@ -90,7 +79,6 @@ export class InteractionController {
     private serviceCapture: InteractionServive | null = null;
     screenCTM?: DOMMatrixReadOnly;
     interactionContext: InteractionContextType;
-    controlsContext: ControlsContextType;
 
     onSelect = new Event<SelectEventArgs>();
     onDelete = new Event<DeleteEventArg>();
@@ -100,14 +88,14 @@ export class InteractionController {
 
     constructor(private options?: InteractionControllerOptions) {
         this.interactionContext = this.createInteractionContext();
-        this.controlsContext = this.createControlsContext();
         this.paper = options?.paper;
         this.services = [
             new DefaultGridSnappingService(options?.snapGridSize || null, options?.snapAngle || null),
             new DefaultSelectionService(this),
             new DefaultElementInteractionService(this),
             new DefaultDeletionService(this),
-            new DefaultElementDrawingService(this)
+            new DefaultElementDrawingService(this),
+            new DefaultControlRenderingService(),
         ];
     }
 
@@ -243,25 +231,6 @@ export class InteractionController {
             updateHitTests,
             updateIntersectionTests,
             updateActions
-        }
-    }
-
-    private createControlsContext(): ControlsContextType {
-        const renderHandle: RenderHandleCallback = (kind, x, y, otherProps) => {
-            return this.options?.renderHandleControl
-                ? this.options.renderHandleControl(kind, x, y, otherProps, renderHandleDefault)
-                : renderHandleDefault(kind, x, y, otherProps);
-        }
-
-        const renderEdge: RenderEdgeCallback = (kind, x1, y1, x2, y2, otherProps) => {
-            return this.options?.renderEdgeControl
-                ? this.options.renderEdgeControl(kind, x1, y1, x2, y2, otherProps, renderEdgeDefault)
-                : renderEdgeDefault(kind, x1, y1, x2, y2, otherProps);
-        }
-
-        return {
-            renderHandle,
-            renderEdge
         }
     }
 

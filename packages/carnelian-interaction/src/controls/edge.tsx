@@ -1,7 +1,7 @@
 /** @jsxImportSource @carnelian/diagram */
 
 import { DiagramNode, useContext } from "@carnelian/diagram";
-import { ActionCallback, ControlsContext, HitArea, lineHitTest, DragActionPayload, RenderEdgeCallback, useAction, useHitTest } from "..";
+import { ActionCallback, ControlsContext, HitArea, lineHitTest, DragActionPayload, useAction, useHitTest } from "..";
 
 export interface EdgeControlProps {
     element: DiagramNode;
@@ -36,10 +36,4 @@ export function EdgeControl(props: EdgeControlProps) {
     return controlsContext.renderEdge(props.kind, p1.x, p1.y, p2.x, p2.y, {
         className: `control-edge control-edge-${props.kind}`
     });
-}
-
-export const renderEdgeDefault: RenderEdgeCallback = (kind, x1, y1, x2, y2, otherProps) => {
-    return (
-        <line x1={x1} y1={y1} x2={x2} y2={y2} stroke-dasharray={4} {...otherProps} />
-    )
 }
