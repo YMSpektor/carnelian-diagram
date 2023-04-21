@@ -7,7 +7,6 @@ import { CreateHitTestProps, DiagramElementHitTest, hasHitTestProps, HitTestColl
 import { renderEdgeDefault, renderHandleDefault } from "./controls";
 import { DiagramElementIntersectionTest } from "./intersection-tests";
 import { intersectRect, Rect } from "./geometry";
-import { ACT_MOVE, ClickActionPayload } from "./actions";
 import { DefaultDeletionService, DefaultElementDrawingService, DefaultElementInteractionService, DefaultGridSnappingService, DefaultSelectionService, InteractionServive } from "./services";
 
 export type RenderControlsCallback = (transform: DOMMatrixReadOnly, element: DiagramElementNode) => JSX.Element;
@@ -58,7 +57,6 @@ export type ControlProps = Partial<CreateHitTestProps> & {
 
 export type RenderHandleCallback = (kind: string, x: number, y: number, otherProps: ControlProps) => JSX.Element;
 export type RenderEdgeCallback = (kind: string, x1: number, y1: number, x2: number, y2: number, otherProps: ControlProps) => JSX.Element;
-export type DispatchActionCallback<T> = (elements: DiagramElementNode[], action: string, payload: T) => void;
 
 export interface PaperOptions {
     x: number;
@@ -72,14 +70,6 @@ export interface PaperOptions {
 }
 
 export interface InteractionControllerOptions {
-    dispatchAction?: <T>(
-        controller: InteractionController,
-        elements: DiagramElementNode[],
-        action: string,
-        payload: T,
-        dispatch: DispatchActionCallback<T>,
-        defaultDispatcher: DispatchActionCallback<T>
-    ) => void;
     renderHandleControl?: AddParameters<RenderHandleCallback, [RenderHandleCallback]>;
     renderEdgeControl?: AddParameters<RenderEdgeCallback, [RenderEdgeCallback]>;
     paper?: PaperOptions;
@@ -401,7 +391,7 @@ export class InteractionController {
             .map(test => test.element);
     }
 
-    private dispatchInternal<T>(elements: DiagramElementNode[], action: string, payload: T) {
+    dispatch<T>(elements: DiagramElementNode[], action: string, payload: T) {
         const actions = [...this.actions.values()];
         elements.forEach(element => {
             if (!element.parent) {  // Newly added element, never rendered
@@ -421,24 +411,6 @@ export class InteractionController {
                 }
             }
         });
-    }
-
-    private dispatchDefault<T>(elements: DiagramElementNode[], action: string, payload: T) {
-        if (action === ACT_MOVE) {
-            this.dispatchInternal([...this.selectedElements], action, payload);
-        }
-        else {
-            this.dispatchInternal(elements, action, payload);
-        }
-    }
-
-    dispatch<T>(elements: DiagramElementNode[], action: string, payload: T) {
-        if (this.options?.dispatchAction) {
-            this.options.dispatchAction(this, elements, action, payload, this.dispatchInternal, this.dispatchDefault);
-        }
-        else {
-            this.dispatchDefault(elements, action, payload);
-        }
     }
 
     getPaper(): PaperOptions | undefined {

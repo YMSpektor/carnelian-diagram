@@ -1,6 +1,6 @@
 import { Diagram } from "@carnelian/diagram";
 import { GridSnappingService, InteractionServive, isGridSnappingService, setElementCursor } from ".";
-import { ClickActionPayload, DragActionPayload } from "../actions";
+import { ACT_MOVE, ClickActionPayload, DragActionPayload } from "../actions";
 import { HitInfo } from "../hit-tests";
 import { InteractionController } from "../interaction-controller";
 
@@ -55,9 +55,10 @@ export class DefaultElementInteractionService implements ElementInteractionServi
                 const snappedElementPoint = this.gridSnappingService?.snapToGrid(elementPoint, snapGridSize) || elementPoint;
                 const rawDeltaX = elementPoint.x - lastPoint.x;
                 const rawDeltaY = elementPoint.y - lastPoint.y;
+                const elements = action === ACT_MOVE ? this.controller.getSelectedElements() : [hitInfo.element];
 
                 this.controller.dispatch<DragActionPayload>(
-                    [hitInfo.element],
+                    elements,
                     action,
                     {
                         position: snappedElementPoint,
