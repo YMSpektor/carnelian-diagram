@@ -132,8 +132,6 @@ export function withInteractiveRoot<P>(
         const [selectedElements, setSelectedElements] = useState<DiagramElementNode[]>([]);
         const [paper, setPaper] = useState(controller.getPaper());
 
-        controller.elements = props.children;
-
         const handleSelect = (e: SelectEventArgs) => setSelectedElements(e.selectedElements);
         const handlePaperChange = (e: PaperChangeEventArgs) => setPaper(e.paper);
         const calcCTM = () => props.svg.getCTM?.() || undefined;
