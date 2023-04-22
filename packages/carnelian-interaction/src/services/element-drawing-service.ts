@@ -15,6 +15,12 @@ export function isElementDrawingService(service: InteractionServive): service is
 
 export type DrawingModeElementFactory = (diagram: Diagram, x: number, y: number) => DiagramElementNode;
 
+export const DRAW_ELEMENT_EVENT = "draw_element";
+export interface DrawElementEventArgs {
+    element: DiagramElementNode;
+    result: boolean;
+}
+
 export class DefaultElementDrawingService implements ElementDrawingService {
     private drawing = false;
     private diagram?: Diagram;
@@ -82,7 +88,7 @@ export class DefaultElementDrawingService implements ElementDrawingService {
             root.removeEventListener("pointerdown", mouseDownHandler);
             root.removeEventListener("keydown", keyDownHandler);
             
-            this.controller.onDrawElement.emit({ element, result });
+            this.controller.dispatchEvent<DrawElementEventArgs>(DRAW_ELEMENT_EVENT, { element, result });
         }
 
         let pointIndex = 0;
@@ -93,7 +99,7 @@ export class DefaultElementDrawingService implements ElementDrawingService {
             const elementPoint = this.controller.clientToDiagram(point);
             const snappedElementPoint = this.gridSnappingService?.snapToGrid(elementPoint, snapGridSize) || elementPoint;
 
-            this.controller.dispatch<ACT_DRAW_POINT_PLACE_Payload>([element], ACT_DRAW_POINT_PLACE, {
+            this.controller.dispatchAction<ACT_DRAW_POINT_PLACE_Payload>([element], ACT_DRAW_POINT_PLACE, {
                 position: snappedElementPoint,
                 rawPosition: elementPoint,
                 snapGridSize,
@@ -115,7 +121,7 @@ export class DefaultElementDrawingService implements ElementDrawingService {
             const elementPoint = this.controller.clientToDiagram(point);
             const snappedElementPoint = this.gridSnappingService?.snapToGrid(elementPoint, snapGridSize) || elementPoint;
 
-            this.controller.dispatch<ACT_DRAW_POINT_MOVE_Payload>([element], ACT_DRAW_POINT_MOVE, {
+            this.controller.dispatchAction<ACT_DRAW_POINT_MOVE_Payload>([element], ACT_DRAW_POINT_MOVE, {
                 position: snappedElementPoint,
                 rawPosition: elementPoint,
                 snapGridSize,
@@ -131,7 +137,7 @@ export class DefaultElementDrawingService implements ElementDrawingService {
             }
             else if (e.button === 2) {
                 const result: MutableRefObject<boolean> = { current: true };
-                this.controller.dispatch<ACT_DRAW_POINT_CANCEL_Payload>([element], ACT_DRAW_POINT_CANCEL, { pointIndex, result });
+                this.controller.dispatchAction<ACT_DRAW_POINT_CANCEL_Payload>([element], ACT_DRAW_POINT_CANCEL, { pointIndex, result });
                 endDraw(element, result.current);
             }            
         }
@@ -141,7 +147,7 @@ export class DefaultElementDrawingService implements ElementDrawingService {
             // https://developer.mozilla.org/en-US/docs/Web/API/UI_Events/Keyboard_event_key_values
             if (e.key === "Escape" || e.key === "Esc") {
                 const result: MutableRefObject<boolean> = { current: true };
-                this.controller.dispatch<ACT_DRAW_POINT_CANCEL_Payload>([element], ACT_DRAW_POINT_CANCEL, { pointIndex, result });
+                this.controller.dispatchAction<ACT_DRAW_POINT_CANCEL_Payload>([element], ACT_DRAW_POINT_CANCEL, { pointIndex, result });
                 endDraw(element, result.current);
             }
         }

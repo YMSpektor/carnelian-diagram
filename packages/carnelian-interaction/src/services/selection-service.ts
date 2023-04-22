@@ -1,5 +1,6 @@
 import { Diagram } from "@carnelian/diagram";
 import { InteractionServive } from ".";
+import { Rect } from "../geometry";
 import { InteractionController } from "../interaction-controller";
 
 export interface SelectionService extends InteractionServive {
@@ -8,6 +9,11 @@ export interface SelectionService extends InteractionServive {
 
 export function isSelectionService(service: InteractionServive): service is SelectionService {
     return service.type === "selection_service";
+}
+
+export const RECT_SELECTION_EVENT = "rect_selection";
+export interface RectSelectionEventArgs {
+    selectionRect: Rect | null;
 }
 
 export class DefaultSelectionService implements SelectionService {
@@ -42,11 +48,11 @@ export class DefaultSelectionService implements SelectionService {
                 height: Math.max(startPoint.y, point.y) - Math.min(startPoint.y, point.y),
             };
 
-            this.controller.onRectSelection.emit({selectionRect});
+            this.controller.dispatchEvent<RectSelectionEventArgs>(RECT_SELECTION_EVENT, {selectionRect});
         }
 
         const mouseUpHandler = (e: PointerEvent) => {
-            this.controller.onRectSelection.emit({selectionRect: null});
+            this.controller.dispatchEvent<RectSelectionEventArgs>(RECT_SELECTION_EVENT, {selectionRect: null});
             const point = this.controller.clientToDiagram(new DOMPoint(e.clientX, e.clientY));
 
             if (startPoint.x !== point.x || startPoint.y !== point.y) {

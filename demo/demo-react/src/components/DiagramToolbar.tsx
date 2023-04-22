@@ -8,7 +8,7 @@ import FormatColorFillIcon from '@mui/icons-material/FormatColorFill';
 import LineWeightIcon from '@mui/icons-material/LineWeight';
 import CircleOutlinedIcon from '@mui/icons-material/CircleOutlined';
 import { CompactPicker } from 'react-color';
-import { DrawingModeElementFactory, InteractionController, isElementDrawingService } from "@carnelian/interaction";
+import { DrawingModeElementFactory, DRAW_ELEMENT_EVENT, InteractionController, isElementDrawingService } from "@carnelian/interaction";
 import { ClosedFigureStyleProps } from "@carnelian/shapes/basic";
 import { Diagram, DiagramElementNode, DiagramElementProps } from "@carnelian/diagram";
 import {
@@ -110,10 +110,10 @@ function DiagramToolbar(props: DiagramToolbarProps) {
     }, [changeDrawinMode]);
 
     useEffect(() => {
-        props.controller.onDrawElement.addListener(drawElementHandler);
+        props.controller.addEventListener(DRAW_ELEMENT_EVENT, drawElementHandler);
 
         return () => {
-            props.controller.onDrawElement.removeListener(drawElementHandler);
+            props.controller.removeEventListener(DRAW_ELEMENT_EVENT, drawElementHandler);
         }
     }, [props.controller, drawElementHandler])
 

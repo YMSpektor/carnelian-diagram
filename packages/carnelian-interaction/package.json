@@ -17,6 +17,7 @@
     "typescript": "^4.9.4"
   },
   "dependencies": {
-    "kld-intersections": "^0.7.0"
+    "kld-intersections": "^0.7.0",
+    "type-pubsub": "^0.1.4"
   }
 }

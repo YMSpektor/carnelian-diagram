@@ -57,7 +57,7 @@ export class DefaultElementInteractionService implements ElementInteractionServi
                 const rawDeltaY = elementPoint.y - lastPoint.y;
                 const elements = action === ACT_MOVE ? this.controller.getSelectedElements() : [hitInfo.element];
 
-                this.controller.dispatch<DragActionPayload>(
+                this.controller.dispatchAction<DragActionPayload>(
                     elements,
                     action,
                     {
@@ -118,7 +118,7 @@ export class DefaultElementInteractionService implements ElementInteractionServi
                 const elementPoint = this.controller.clientToDiagram(point);
                 const snappedElementPoint = this.gridSnappingService?.snapToGrid(elementPoint, snapGridSize) || elementPoint;
 
-                this.controller.dispatch<ClickActionPayload>(
+                this.controller.dispatchAction<ClickActionPayload>(
                     [hitInfo.element],
                     hitInfo.hitArea.dblClickAction,
                     {

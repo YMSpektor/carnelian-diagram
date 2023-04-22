@@ -10,6 +10,11 @@ export function isPaperService(service: InteractionServive): service is PaperSer
     return service.type === "paper_service";
 }
 
+export const PAPER_CHANGE_EVENT = "paper_change";
+export interface PaperChangeEventArgs {
+    paper: Paper | null;
+}
+
 export class DefaultPaperService implements PaperService {
     private _paper: Paper | null = null;
     type: "paper_service" = "paper_service";
@@ -19,6 +24,6 @@ export class DefaultPaperService implements PaperService {
     get paper(): Paper | null { return this._paper; }
     set paper(value: Paper | null) {
         this._paper = value;
-        this.controller.onPaperChange.emit({ paper: this._paper });
+        this.controller.dispatchEvent<PaperChangeEventArgs>(PAPER_CHANGE_EVENT, { paper: this._paper });
     }
 }

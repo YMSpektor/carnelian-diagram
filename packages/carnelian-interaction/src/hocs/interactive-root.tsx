@@ -11,7 +11,10 @@ import {
     RectSelectionEventArgs, 
     SelectEventArgs, 
     SelectionContext,
-    isPaperService
+    isPaperService,
+    RECT_SELECTION_EVENT,
+    PAPER_CHANGE_EVENT,
+    SELECT_EVENT
 } from "..";
 import { scheduleIdle } from "@carnelian/diagram/utils/schedule";
 import { JSX } from "@carnelian/diagram/jsx-runtime";
@@ -104,9 +107,9 @@ function DiagramControls(props: DiagramControlsProps) {
     const handleRectSelection = (e: RectSelectionEventArgs) => setRectSelection(e.selectionRect);
 
     useEffect(() => {
-        controller.onRectSelection.addListener(handleRectSelection);
+        controller.addEventListener(RECT_SELECTION_EVENT, handleRectSelection);
         return () => {
-            controller.onRectSelection.removeListener(handleRectSelection);
+            controller.removeEventListener(RECT_SELECTION_EVENT, handleRectSelection);
         }
     }, [controller]);
 
@@ -143,12 +146,12 @@ export function withInteractiveRoot<P>(
         const ctm = calcCTM();
 
         useEffect(() => {
-            controller.onSelect.addListener(handleSelect);
-            controller.onPaperChange.addListener(handlePaperChange);
+            controller.addEventListener(SELECT_EVENT, handleSelect);
+            controller.addEventListener(PAPER_CHANGE_EVENT, handlePaperChange);
 
             return () => {
-                controller.onSelect.removeListener(handleSelect);
-                controller.onPaperChange.removeListener(handlePaperChange);
+                controller.removeEventListener(SELECT_EVENT, handleSelect);
+                controller.removeEventListener(PAPER_CHANGE_EVENT, handlePaperChange);
             }
         }, [controller]);
 

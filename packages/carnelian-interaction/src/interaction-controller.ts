@@ -1,11 +1,11 @@
 import { Diagram, DiagramElementNode } from "@carnelian/diagram";
 import { createElement, Fragment, JSX } from "@carnelian/diagram/jsx-runtime";
-import { Event } from "@carnelian/diagram/utils/events";
 import { InteractionContextType } from "./context";
 import { DiagramElementHitTest, hasHitTestProps, HitTestCollection, HitInfo, addHitTestProps } from "./hit-tests";
 import { DiagramElementIntersectionTest } from "./intersection-tests";
 import { intersectRect, Rect } from "./geometry";
 import { DefaultControlRenderingService, DefaultDeletionService, DefaultElementDrawingService, DefaultElementInteractionService, DefaultGridSnappingService, DefaultPaperService, DefaultSelectionService, InteractionServive } from "./services";
+import { Channel } from "type-pubsub";
 
 export type RenderControlsCallback = (transform: DOMMatrixReadOnly, element: DiagramElementNode) => JSX.Element;
 
@@ -27,6 +27,9 @@ export interface DiagramElementAction<T> {
     callback: ActionCallback<T>;
 }
 
+export const SELECT_EVENT = "select";
+export const DELETE_EVENT = "delete";
+
 export interface SelectEventArgs {
     selectedElements: DiagramElementNode[];
 }
@@ -34,19 +37,6 @@ export interface SelectEventArgs {
 export interface DeleteEventArg {
     elements: DiagramElementNode[];
     requestConfirmation(promise: Promise<boolean>): void;
-}
-
-export interface RectSelectionEventArgs {
-    selectionRect: Rect | null;
-}
-
-export interface PaperChangeEventArgs {
-    paper: Paper | null;
-}
-
-export interface DrawElementEventArgs {
-    element: DiagramElementNode;
-    result: boolean;
 }
 
 export interface Paper {
@@ -70,14 +60,9 @@ export class InteractionController {
     private selectedElements = new Set<DiagramElementNode>();
     private services: InteractionServive[];
     private serviceCapture: InteractionServive | null = null;
+    private channel = new Channel<string>;
     screenCTM?: DOMMatrixReadOnly;
     interactionContext: InteractionContextType;
-
-    onSelect = new Event<SelectEventArgs>();
-    onDelete = new Event<DeleteEventArg>();
-    onRectSelection = new Event<RectSelectionEventArgs>();
-    onPaperChange = new Event<PaperChangeEventArgs>();
-    onDrawElement = new Event<DrawElementEventArgs>();
 
     constructor(
         configureServices?: (services: InteractionServive[]) => void
@@ -253,13 +238,13 @@ export class InteractionController {
             elements = [elements];
         }
         this.selectedElements = new Set(elements);
-        this.onSelect.emit({ selectedElements: elements });
+        this.dispatchEvent<SelectEventArgs>(SELECT_EVENT, { selectedElements: elements });
     }
 
     async delete(elements: DiagramElementNode[]): Promise<boolean> {
         if (this.diagram) {
             const promises: Promise<boolean>[] = [];
-            this.onDelete.emit({
+            this.dispatchEvent<DeleteEventArg>(DELETE_EVENT, {
                 elements,
                 requestConfirmation: (promise) => {
                     promises.push(promise);
@@ -356,7 +341,7 @@ export class InteractionController {
             .map(test => test.element);
     }
 
-    dispatch<T>(elements: DiagramElementNode[], action: string, payload: T) {
+    dispatchAction<T>(elements: DiagramElementNode[], action: string, payload: T) {
         const actions = [...this.actions.values()];
         elements.forEach(element => {
             if (!element.parent) {  // Newly added element, never rendered
@@ -376,5 +361,17 @@ export class InteractionController {
                 }
             }
         });
+    }
+
+    dispatchEvent<T>(eventType: string, eventArgs: T) {
+        this.channel.publish(eventType, eventArgs);
+    }
+
+    addEventListener<T>(eventType: string, listener: (args: T) => void) {
+        this.channel.subscribe(eventType, listener);
+    }
+
+    removeEventListener<T>(eventType: string, listener: (args: T) => void) {
+        this.channel.unsubscribe(eventType, listener);
     }
 }
