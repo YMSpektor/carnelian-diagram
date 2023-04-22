@@ -10,24 +10,56 @@ export function isDeletionService(service: DeletionService): service is Deletion
     return service.type === "deletion_service";
 }
 
+export const DELETE_EVENT = "delete";
+export interface DeleteEventArg {
+    elements: DiagramElementNode[];
+    requestConfirmation(promise: Promise<boolean>): void;
+}
+
 export class DefaultDeletionService implements DeletionService {
+    private diagram: Diagram | null = null;
     type: "deletion_service" = "deletion_service";
     release?: () => void;
 
     constructor(private controller: InteractionController) {}
     
     init(diagram: Diagram, root: HTMLElement) {
+        this.diagram = diagram;
+        
         const keyDownHandler = (e: KeyboardEvent) => this.keyDownHandler(root, e);
         root.addEventListener("keydown", keyDownHandler);
 
         this.release = () => {
             this.release = undefined;
+            this.diagram = null;
             root.removeEventListener("keydown", keyDownHandler);
         }
     }
 
-    delete(elements: DiagramElementNode[]) {
-        return this.controller.delete(elements);
+    async delete(elements: DiagramElementNode[]): Promise<boolean> {
+        if (this.diagram) {
+            const promises: Promise<boolean>[] = [];
+            this.controller.dispatchEvent<DeleteEventArg>(DELETE_EVENT, {
+                elements,
+                requestConfirmation: (promise) => {
+                    promises.push(promise);
+                }
+            });
+
+            let confirmations: boolean[];
+            try {
+                confirmations = await Promise.all(promises);
+                if (confirmations.every(x => x)) {
+                    this.diagram.delete(elements);
+                    this.controller.select([]);
+                    return true;
+                }
+            }
+            catch {
+                // Rejecting confirmation requests is OK and should not delete the elements
+            }
+        }
+        return false;
     }
 
     private async keyDownHandler(root: HTMLElement, e: KeyboardEvent) {

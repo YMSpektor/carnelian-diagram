@@ -1,5 +1,16 @@
 import { InteractionServive } from ".";
-import { InteractionController, Paper } from "../interaction-controller";
+import { InteractionController } from "../interaction-controller";
+
+export interface Paper {
+    x: number;
+    y: number;
+    width: number;
+    height: number;
+    majorGridSize?: number;
+    majorGridColor?: string;
+    minorGridSize?: number;
+    minorGridColor?: string;
+}
 
 export interface PaperService extends InteractionServive {
     type: "paper_service";

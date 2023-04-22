@@ -28,26 +28,9 @@ export interface DiagramElementAction<T> {
 }
 
 export const SELECT_EVENT = "select";
-export const DELETE_EVENT = "delete";
 
 export interface SelectEventArgs {
     selectedElements: DiagramElementNode[];
-}
-
-export interface DeleteEventArg {
-    elements: DiagramElementNode[];
-    requestConfirmation(promise: Promise<boolean>): void;
-}
-
-export interface Paper {
-    x: number;
-    y: number;
-    width: number;
-    height: number;
-    majorGridSize?: number;
-    majorGridColor?: string;
-    minorGridSize?: number;
-    minorGridColor?: string;
 }
 
 export class InteractionController {
@@ -239,32 +222,6 @@ export class InteractionController {
         }
         this.selectedElements = new Set(elements);
         this.dispatchEvent<SelectEventArgs>(SELECT_EVENT, { selectedElements: elements });
-    }
-
-    async delete(elements: DiagramElementNode[]): Promise<boolean> {
-        if (this.diagram) {
-            const promises: Promise<boolean>[] = [];
-            this.dispatchEvent<DeleteEventArg>(DELETE_EVENT, {
-                elements,
-                requestConfirmation: (promise) => {
-                    promises.push(promise);
-                }
-            });
-
-            let confirmations: boolean[];
-            try {
-                confirmations = await Promise.all(promises);
-                if (confirmations.every(x => x)) {
-                    this.diagram.delete(elements);
-                    this.select([]);
-                    return true;
-                }
-            }
-            catch {
-                // Rejecting confirmation requests is OK and should not delete the elements
-            }
-        }
-        return false;
     }
 
     renderControls(transform: DOMMatrixReadOnly): JSX.Element {

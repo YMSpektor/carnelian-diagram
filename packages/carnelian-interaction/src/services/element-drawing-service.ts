@@ -23,7 +23,7 @@ export interface DrawElementEventArgs {
 
 export class DefaultElementDrawingService implements ElementDrawingService {
     private drawing = false;
-    private diagram?: Diagram;
+    private diagram: Diagram | null = null;
     private root?: HTMLElement;
     private gridSnappingService?: GridSnappingService;
     type: "element_drawing_service" = "element_drawing_service";
@@ -42,6 +42,7 @@ export class DefaultElementDrawingService implements ElementDrawingService {
 
         this.release = () => {
             this.release = undefined;
+            this.diagram = null;
             root.removeEventListener("pointerdown", mouseDownHandler);
         }
     }
