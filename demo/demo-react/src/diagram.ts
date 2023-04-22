@@ -20,9 +20,8 @@ import {
 } from "./examples"
 
 export const controller = new InteractionController((services) => {
-    const paperService = services.find(isPaperService);
-    if (paperService) {
-        paperService.paper = {
+    services.configure(isPaperService, (service) => {
+        service.paper = {
             x: 0,
             y: 0,
             width: 2100,
@@ -30,12 +29,12 @@ export const controller = new InteractionController((services) => {
             majorGridSize: 200,
             minorGridSize: 50
         };
-    }
-    const gridSnappingService = services.find(isGridSnappingService);
-    if (gridSnappingService) {
-        gridSnappingService.snapGridSize = 50;
-        gridSnappingService.snapAngle = 5;
-    }
+    });
+
+    services.configure(isGridSnappingService, (service) => {
+        service.snapGridSize = 50;
+        service.snapAngle = 5;
+    });
 });
 export const diagram = new Diagram();
 
