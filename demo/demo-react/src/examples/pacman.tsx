@@ -46,7 +46,8 @@ const mouthKnobController: KnobController<PacmanProps> = {
         return getCirclePoint(props.x, props.y, props.radius, mouthAngle / 2);
     },
     setPosition(props, {rawPosition: position, snapAngle, snapToGrid}) {
-        const angle = snapToGrid(radToDeg(Math.atan2(position.y - props.y, position.x - props.x)), snapAngle);
+        let angle = radToDeg(Math.atan2(position.y - props.y, position.x - props.x));
+        angle = snapToGrid ? snapToGrid(angle, snapAngle) : angle;
         return {
             ...props,
             mouthAngle: clamp(angle * 2, 0, MAX_MOUTH_ANGLE)

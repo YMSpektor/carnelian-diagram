@@ -30,7 +30,8 @@ function knobController(index: number): KnobController<PieProps> {
             return getCirclePoint(props.x, props.y, props.radius, angle);
         },
         setPosition(props, {rawPosition: position, snapAngle, snapToGrid}) {
-            const angle = snapToGrid(radToDeg(Math.atan2(position.y - props.y, position.x - props.x)), snapAngle);
+            let angle = radToDeg(Math.atan2(position.y - props.y, position.x - props.x));
+            angle = snapToGrid ? snapToGrid(angle, snapAngle) : angle;
             return {
                 ...props,
                 startAngle: index === 0 ? angle : props.startAngle,

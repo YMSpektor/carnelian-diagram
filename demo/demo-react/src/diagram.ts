@@ -1,8 +1,7 @@
 import { Diagram } from "@carnelian/diagram";
-import { InteractionController } from "@carnelian/interaction";
+import { InteractionController, isGridSnappingService, isPaperService } from "@carnelian/interaction";
 import { DiagramPaletteElement } from "./components/DiagramPalette";
 import {
-    InteractiveLine as Line,
     InteractiveRect as Rect, 
     InteractiveEllipse as Ellipse, 
     InteractiveDiamond as Diamond,
@@ -20,17 +19,22 @@ import {
     InteractivePacman as Pacman
 } from "./examples"
 
-export const controller = new InteractionController({
-    paper: {
-        x: 0,
-        y: 0,
-        width: 2100,
-        height: 2970,
-        majorGridSize: 200,
-        minorGridSize: 50
-    },
-    snapGridSize: 50,
-    snapAngle: 5
+export const controller = new InteractionController((services) => {
+    services.configure(isPaperService, (service) => {
+        service.paper = {
+            x: 0,
+            y: 0,
+            width: 2100,
+            height: 2970,
+            majorGridSize: 200,
+            minorGridSize: 50
+        };
+    });
+
+    services.configure(isGridSnappingService, (service) => {
+        service.snapGridSize = 50;
+        service.snapAngle = 5;
+    });
 });
 export const diagram = new Diagram();
 

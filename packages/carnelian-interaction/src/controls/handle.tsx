@@ -1,7 +1,7 @@
 /** @jsxImportSource @carnelian/diagram */
 
 import { DiagramNode, useContext } from "@carnelian/diagram";
-import { ActionCallback, ControlsContext, createHitTestProps, HitArea, DragActionPayload, RenderHandleCallback, useAction } from "..";
+import { ActionCallback, ControlsContext, createHitTestProps, HitArea, DragActionPayload, useAction } from "..";
 
 export interface HandleControlProps {
     element: DiagramNode;
@@ -29,21 +29,4 @@ export function HandleControl(props: HandleControlProps) {
         className: `control-handle control-handle-${props.kind}`,
         ...hitTestProps
     });
-}
-
-export const renderHandleDefault: RenderHandleCallback = (kind, x, y, otherProps) => {
-    let size = 8;
-    switch (kind) {
-        case "knob":
-            size = 9;
-            const points = [
-                {x: x - size / 2, y},
-                {x, y: y - size / 2},
-                {x: x + size / 2, y},
-                {x, y: y + size / 2}
-            ];
-            return <polygon points={points.map(p => `${p.x},${p.y}`).join(" ")} fill="orange" {...otherProps} />
-        default:
-            return <rect x={x - size / 2} y={y - size / 2} width={size} height={size} fill="yellow" {...otherProps} />
-    }
 }

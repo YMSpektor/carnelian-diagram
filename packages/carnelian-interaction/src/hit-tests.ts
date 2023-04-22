@@ -41,9 +41,16 @@ export interface HitTestProps {
 }
 
 export type HitTestEventTarget = EventTarget & HitTestProps;
+export type HitTestEvent = Event & HitTestProps;
 
-export function hasHitTestProps(target: EventTarget): target is HitTestEventTarget {
-    return (target as HitTestEventTarget).__hitTest !== undefined;
+export function hasHitTestProps(event: Event): event is HitTestEvent;
+export function hasHitTestProps(target: EventTarget): target is HitTestEventTarget; 
+export function hasHitTestProps(target: unknown): boolean {
+    return (target as HitTestProps).__hitTest !== undefined;
+}
+
+export function addHitTestProps(e: Event, hitArea: HitArea, element: DiagramElementNode) {
+    (e as HitTestEvent).__hitTest = { hitArea, element };
 }
 
 export function createHitTestProps(hitArea: HitArea, element?: DiagramElementNode) {

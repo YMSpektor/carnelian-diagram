@@ -1,13 +1,11 @@
 import { Diagram, DiagramElementNode } from "@carnelian/diagram";
 import { createElement, Fragment, JSX } from "@carnelian/diagram/jsx-runtime";
-import { Event } from "@carnelian/diagram/utils/events";
-import { AddParameters, MutableRefObject } from "@carnelian/diagram/utils/types";
-import { ControlsContextType, InteractionContextType } from "./context";
-import { CreateHitTestProps, DiagramElementHitTest, hasHitTestProps, HitTestCollection, HitInfo } from "./hit-tests";
-import { renderEdgeDefault, renderHandleDefault } from "./controls";
+import { InteractionContextType } from "./context";
+import { DiagramElementHitTest, hasHitTestProps, HitTestCollection, HitInfo, addHitTestProps } from "./hit-tests";
 import { DiagramElementIntersectionTest } from "./intersection-tests";
 import { intersectRect, Rect } from "./geometry";
-import { ACT_DRAW_POINT_CANCEL, ACT_DRAW_POINT_CANCEL_Payload, ACT_DRAW_POINT_MOVE, ACT_DRAW_POINT_MOVE_Payload, ACT_DRAW_POINT_PLACE, ACT_DRAW_POINT_PLACE_Payload, ACT_MOVE, ClickActionPayload, DragActionPayload } from "./actions";
+import { DefaultControlRenderingService, DefaultDeletionService, DefaultElementDrawingService, DefaultElementInteractionService, DefaultGridSnappingService, DefaultPaperService, DefaultSelectionService, InteractionServive, InteractiveServiceCollection } from "./services";
+import { Channel } from "type-pubsub";
 
 export type RenderControlsCallback = (transform: DOMMatrixReadOnly, element: DiagramElementNode) => JSX.Element;
 
@@ -29,63 +27,10 @@ export interface DiagramElementAction<T> {
     callback: ActionCallback<T>;
 }
 
+export const SELECT_EVENT = "select";
+
 export interface SelectEventArgs {
     selectedElements: DiagramElementNode[];
-}
-
-export interface DeleteEventArg {
-    elements: DiagramElementNode[];
-    requestConfirmation(promise: Promise<boolean>): void;
-}
-
-export interface RectSelectionEventArgs {
-    selectionRect: Rect | null;
-}
-
-export interface PaperChangeEventArgs {
-    paper: PaperOptions | undefined;
-}
-
-export interface DrawElementEventArgs {
-    element: DiagramElementNode;
-    result: boolean;
-}
-
-export type ControlProps = Partial<CreateHitTestProps> & {
-    className: string;
-}
-
-export type RenderHandleCallback = (kind: string, x: number, y: number, otherProps: ControlProps) => JSX.Element;
-export type RenderEdgeCallback = (kind: string, x1: number, y1: number, x2: number, y2: number, otherProps: ControlProps) => JSX.Element;
-export type DispatchActionCallback<T> = (elements: DiagramElementNode[], action: string, payload: T) => void;
-
-export interface PaperOptions {
-    x: number;
-    y: number;
-    width: number;
-    height: number;
-    majorGridSize?: number;
-    majorGridColor?: string;
-    minorGridSize?: number;
-    minorGridColor?: string;
-}
-
-export type DrawingModeElementFactory = (diagram: Diagram, x: number, y: number) => DiagramElementNode;
-
-export interface InteractionControllerOptions {
-    dispatchAction?: <T>(
-        controller: InteractionController, 
-        elements: DiagramElementNode[], 
-        action: string, 
-        payload: T,
-        dispatch: DispatchActionCallback<T>,
-        defaultDispatcher: DispatchActionCallback<T>
-    ) => void;
-    renderHandleControl?: AddParameters<RenderHandleCallback, [RenderHandleCallback]>;
-    renderEdgeControl?: AddParameters<RenderEdgeCallback, [RenderEdgeCallback]>;
-    paper?: PaperOptions;
-    snapGridSize?: number | null;
-    snapAngle?: number | null;
 }
 
 export class InteractionController {
@@ -95,45 +40,34 @@ export class InteractionController {
     private intersectionTests = new Map<object, DiagramElementIntersectionTest>;
     private actions = new Map<object, DiagramElementAction<any>>();
     private pendingActions = new Map<DiagramElementNode, PendingAction<any>[]>();
-    private dragging = false;
-    private selecting = false;
-    private drawing = false;
     private selectedElements = new Set<DiagramElementNode>();
-    private paper?: PaperOptions;
-    private drawingModeFactory: DrawingModeElementFactory | null = null;
-    elements: DiagramElementNode[] = [];
+    private services: InteractionServive[];
+    private serviceCapture: InteractionServive | null = null;
+    private channel = new Channel<string>;
     screenCTM?: DOMMatrixReadOnly;
     interactionContext: InteractionContextType;
-    controlsContext: ControlsContextType;
-    snapGridSize: number | null = null;
-    snapAngle: number | null = null;
 
-    onSelect = new Event<SelectEventArgs>();
-    onDelete = new Event<DeleteEventArg>();
-    onRectSelection = new Event<RectSelectionEventArgs>();
-    onPaperChange = new Event<PaperChangeEventArgs>();
-    onDrawElement = new Event<DrawElementEventArgs>();
-
-    constructor(private options?: InteractionControllerOptions) {
+    constructor(
+        configureServices?: (services: InteractiveServiceCollection) => void
+    ) {
         this.interactionContext = this.createInteractionContext();
-        this.controlsContext = this.createControlsContext();
-        this.paper = options?.paper;
-        this.snapGridSize = options?.snapGridSize || null;
-        this.snapAngle = options?.snapAngle || null;
+        this.services = [
+            new DefaultPaperService(this),
+            new DefaultGridSnappingService(),
+            new DefaultSelectionService(this),
+            new DefaultElementInteractionService(this),
+            new DefaultDeletionService(this),
+            new DefaultElementDrawingService(this),
+            new DefaultControlRenderingService(),
+        ];
+        configureServices?.(new InteractiveServiceCollection(this.services));
     }
 
     attach(diagram: Diagram, root: HTMLElement) {
         this.diagram = diagram;
         this.detach();
-       
-        const mouseDownHandler = (e: PointerEvent) => this.mouseDownHandler(root, e);
-        const mouseMoveHandler = (e: PointerEvent) => this.mouseMoveHandler(root, e);
-        const dblClickHandler = (e: MouseEvent) => this.dblClickHandler(root, e);
-        const keyDownHandler = (e: KeyboardEvent) => this.keyDownHandler(root, e);
-        root.addEventListener("pointerdown", mouseDownHandler);
-        root.addEventListener("pointermove", mouseMoveHandler);
-        root.addEventListener("dblclick", dblClickHandler);
-        root.addEventListener("keydown", keyDownHandler);
+
+        this.services.forEach(s => s.init?.(diagram, root));
 
         const tabIndex = root.getAttribute("tabindex");
         if (!tabIndex || +tabIndex < 0) {
@@ -142,12 +76,10 @@ export class InteractionController {
 
         this.detach = () => {
             this.diagram = null;
-            this.detach = () => {};
-            root.removeEventListener("pointerdown", mouseDownHandler);
-            root.removeEventListener("pointermove", mouseMoveHandler);
-            root.removeEventListener("dblclick", dblClickHandler);
-            root.removeEventListener("keydown", keyDownHandler);
-            
+            this.detach = () => { };
+
+            this.services.forEach(s => s.release?.());
+
             if (!tabIndex) {
                 root.removeAttribute("tabindex");
             }
@@ -157,7 +89,35 @@ export class InteractionController {
         }
     }
 
-    detach() {};
+    detach() { };
+
+    getService<T extends InteractionServive>(predicate: (service: InteractionServive) => service is T): T | undefined {
+        return this.services.find<T>(predicate);
+    }
+
+    setInputCapture(service: InteractionServive) {
+        if (this.serviceCapture !== service) {
+            this.services.forEach(s => {
+                if (s !== service) {
+                    s.release?.();
+                }
+            });
+
+            this.serviceCapture = service;
+        }
+    }
+
+    releaseInputCapture(root: HTMLElement, service: InteractionServive) {
+        if (this.serviceCapture === service) {
+            this.serviceCapture = null;
+
+            service.release?.(); // Release to initialize all services at the same order
+
+            this.services.forEach(s => {
+                this.diagram && s.init?.(this.diagram, root);
+            });
+        }
+    }
 
     private createInteractionContext(): InteractionContextType {
         const updateControls = (element: DiagramElementNode, key: {}, controls?: DiagramElementControls) => {
@@ -176,7 +136,7 @@ export class InteractionController {
                 }
             }
         }
-    
+
         const updateHitTests = (element: DiagramElementNode, priority: number, key: {}, hitTest?: DiagramElementHitTest) => {
             let map = this.hitTests[priority];
             if (!map) {
@@ -206,7 +166,7 @@ export class InteractionController {
                 this.intersectionTests.delete(key);
             }
         }
-    
+
         const updateActions = (key: {}, action?: DiagramElementAction<any>) => {
             if (action) {
                 this.actions.set(key, action);
@@ -229,31 +189,12 @@ export class InteractionController {
                 this.actions.delete(key);
             }
         }
-    
+
         return {
             updateControls,
             updateHitTests,
             updateIntersectionTests,
             updateActions
-        }
-    }
-
-    private createControlsContext(): ControlsContextType {
-        const renderHandle: RenderHandleCallback = (kind, x, y, otherProps) => {
-            return this.options?.renderHandleControl 
-                ? this.options.renderHandleControl(kind, x, y, otherProps, renderHandleDefault)
-                : renderHandleDefault(kind, x, y, otherProps);
-        }
-
-        const renderEdge: RenderEdgeCallback = (kind, x1, y1, x2, y2, otherProps) => {
-            return this.options?.renderEdgeControl 
-                ? this.options.renderEdgeControl(kind, x1, y1, x2, y2, otherProps, renderEdgeDefault)
-                : renderEdgeDefault(kind, x1, y1, x2, y2, otherProps);
-        }
-
-        return {
-            renderHandle,
-            renderEdge
         }
     }
 
@@ -265,16 +206,12 @@ export class InteractionController {
         return point.matrixTransform(this.screenCTM);
     }
 
-    snapToGrid(value: number, snapGridSize?: number | null): number;
-    snapToGrid(point: DOMPointReadOnly, snapGridSize?: number | null): DOMPointReadOnly;
-    snapToGrid(value: DOMPointReadOnly | number, snapGridSize?: number | null): DOMPointReadOnly | number {
-        snapGridSize = snapGridSize !== undefined ? snapGridSize : this.snapGridSize;
-        if (typeof value === "number") {
-            return snapGridSize ? Math.round(value / snapGridSize) * snapGridSize : value
-        }
-        else {
-            return snapGridSize ? new DOMPoint(this.snapToGrid(value.x, snapGridSize), this.snapToGrid(value.y, snapGridSize)) : value;
-        }
+    isSelected(element: DiagramElementNode) {
+        return this.selectedElements.has(element);
+    }
+
+    getSelectedElements() {
+        return [...this.selectedElements];
     }
 
     select(element: DiagramElementNode): void;
@@ -284,328 +221,7 @@ export class InteractionController {
             elements = [elements];
         }
         this.selectedElements = new Set(elements);
-        this.onSelect.emit({selectedElements: elements});
-    }
-
-    private mouseDownHandler(root: HTMLElement, e: PointerEvent) {
-        if (this.dragging || this.selecting || this.drawing || e.button !== 0) return;
-
-        if (this.drawingModeFactory && this.diagram) {
-            this.beginDraw(root, e, this.diagram, this.drawingModeFactory);
-        }
-        else {
-            const hitInfo = this.hitTest(e);
-            if (hitInfo) {
-                const isSelected = this.selectedElements.has(hitInfo.element);
-
-                if (e.shiftKey) {
-                    if (isSelected) {
-                        this.selectedElements.delete(hitInfo.element);
-                        root.style.cursor = "";
-                    }
-                    else {
-                        this.selectedElements.add(hitInfo.element);
-                        root.style.cursor = hitInfo.hitArea.cursor || "";
-                    }
-                    this.onSelect.emit({selectedElements: [...this.selectedElements]});
-                } 
-                else {
-                    if (!isSelected) {
-                        root.style.cursor = hitInfo.hitArea.cursor || "";
-                        this.select(hitInfo.element);
-                    }
-                    else {
-                        this.beginDrag(root, e, hitInfo);
-                    }
-                }
-            }
-            else {
-                if (this.selectedElements.size > 0) {
-                    root.style.cursor = "";
-                    this.select([]);
-                }
-                this.beginSelect(root, e);
-            }
-        }
-    }
-
-    private mouseMoveHandler(root: HTMLElement, e: PointerEvent) {
-        if (!this.dragging && !this.selecting && !this.drawing) {
-            if (this.drawingModeFactory) {
-                root.style.cursor = "copy";
-            }
-            else {
-                const hitInfo = this.hitTest(e);
-                const isSelected = hitInfo && this.selectedElements.has(hitInfo.element);
-
-                root.style.cursor = isSelected ? hitInfo?.hitArea.cursor || "" : "";
-            }
-        }
-    }
-
-    private dblClickHandler(root: HTMLElement, e: MouseEvent) {
-        if (this.dragging || this.selecting || this.drawing || e.button !== 0) return;
-
-        const hitInfo = this.hitTest(e);
-        if (hitInfo && hitInfo.hitArea.dblClickAction) {
-            const point = new DOMPoint(e.clientX, e.clientY);
-            const snapGridSize = !e.altKey ? this.snapGridSize : null;
-            const elementPoint = this.clientToDiagram(point);
-            const snappedElementPoint = this.snapToGrid(elementPoint, snapGridSize);
-
-            this.dispatch<ClickActionPayload>(
-                [hitInfo.element],
-                hitInfo.hitArea.dblClickAction,
-                {
-                    position: snappedElementPoint,
-                    rawPosition: elementPoint,
-                    hitArea: hitInfo.hitArea,
-                    snapGridSize,
-                    snapAngle: !e.altKey ? this.snapAngle : null,
-                    snapToGrid: this.snapToGrid.bind(this)
-                });
-        }
-    }
-
-    private async keyDownHandler(root: HTMLElement, e: KeyboardEvent) {
-        // Firefox 36 and earlier uses "Del" instead of "Delete" for the Del key
-        // https://developer.mozilla.org/en-US/docs/Web/API/UI_Events/Keyboard_event_key_values
-        if ((e.key === "Delete" || e.key === "Del") && this.selectedElements.size > 0) {
-            const result = await this.delete([...this.selectedElements]);
-            if (result) {
-                root.style.cursor = "";
-            }
-        }
-    }
-
-    private beginSelect(root: HTMLElement, e: PointerEvent) {
-        this.selecting = true;
-        root.setPointerCapture(e.pointerId);
-
-        const startPoint = this.clientToDiagram(new DOMPoint(e.clientX, e.clientY));
-
-        const mouseMoveHandler = (e: PointerEvent) => {
-            const point = this.clientToDiagram(new DOMPoint(e.clientX, e.clientY));
-
-            const selectionRect = {
-                x: Math.min(startPoint.x, point.x),
-                y: Math.min(startPoint.y, point.y),
-                width: Math.max(startPoint.x, point.x) - Math.min(startPoint.x, point.x),
-                height: Math.max(startPoint.y, point.y) - Math.min(startPoint.y, point.y),
-            };
-
-            this.onRectSelection.emit({selectionRect});
-        }
-
-        const mouseUpHandler = (e: PointerEvent) => {
-            this.onRectSelection.emit({selectionRect: null});
-            const point = this.clientToDiagram(new DOMPoint(e.clientX, e.clientY));
-
-            if (startPoint.x !== point.x || startPoint.y !== point.y) {
-                const selectionRect = {
-                    x: Math.min(startPoint.x, point.x),
-                    y: Math.min(startPoint.y, point.y),
-                    width: Math.max(startPoint.x, point.x) - Math.min(startPoint.x, point.x),
-                    height: Math.max(startPoint.y, point.y) - Math.min(startPoint.y, point.y),
-                };
-
-                // Broad phase
-                const tests = [...this.intersectionTests.values()]
-                    .filter(test => !test.bounds || intersectRect(test.bounds, selectionRect));
-                // Narrow phase
-                this.select(tests
-                    .filter(test => test.callback(selectionRect))
-                    .map(test => test.element)
-                );
-            }
-
-            this.selecting = false;
-            root.releasePointerCapture(e.pointerId);
-
-            root.removeEventListener("pointermove", mouseMoveHandler);
-            root.removeEventListener("pointerup", mouseUpHandler);
-        }
-
-        root.addEventListener("pointermove", mouseMoveHandler);
-        root.addEventListener("pointerup", mouseUpHandler);
-    }
-
-    private beginDrag(root: HTMLElement, e: PointerEvent, hitInfo: HitInfo) {
-        this.dragging = true;
-        const targetElement = e.target as HTMLElement;
-        targetElement.setPointerCapture(e.pointerId);  // Set capture to target element to receive dblclick events for this target
-
-        let lastPoint = this.clientToDiagram(new DOMPoint(e.clientX, e.clientY));
-        const action = hitInfo.hitArea.action;
-
-        if (action) {
-            const mouseMoveHandler = (e: PointerEvent) => {
-                const point = new DOMPoint(e.clientX, e.clientY);
-                const snapGridSize = !e.altKey ? this.snapGridSize : null;
-                const elementPoint = this.clientToDiagram(point);
-                const snappedElementPoint = this.snapToGrid(elementPoint, snapGridSize);
-
-                this.dispatch<DragActionPayload>(
-                    [hitInfo.element],
-                    action,
-                    {
-                        position: snappedElementPoint,
-                        deltaX: this.snapToGrid(snappedElementPoint.x - lastPoint.x, snapGridSize),
-                        deltaY: this.snapToGrid(snappedElementPoint.y - lastPoint.y, snapGridSize),
-                        rawPosition: elementPoint,
-                        rawDeltaX: elementPoint.x - lastPoint.x,
-                        rawDeltaY: elementPoint.y - lastPoint.y,
-                        hitArea: hitInfo.hitArea,
-                        snapGridSize,
-                        snapAngle: !e.altKey ? this.snapAngle : null,
-                        snapToGrid: this.snapToGrid.bind(this)
-                    });
-
-                lastPoint = elementPoint;
-            }
-
-            const mouseUpHandler = (e: PointerEvent) => {
-                this.dragging = false;
-                targetElement.releasePointerCapture(e.pointerId);
-
-                targetElement.removeEventListener("pointermove", mouseMoveHandler);
-                targetElement.removeEventListener("pointerup", mouseUpHandler);
-            }
-
-            targetElement.addEventListener("pointermove", mouseMoveHandler);
-            targetElement.addEventListener("pointerup", mouseUpHandler);
-        }
-    }
-
-    private beginDraw(root: HTMLElement, e: PointerEvent, diagram: Diagram, factory: DrawingModeElementFactory) {
-        this.drawing = true;
-        root.setPointerCapture(e.pointerId);
-        root.style.cursor = "";
-
-        const point = new DOMPoint(e.clientX, e.clientY);
-        const snapGridSize = !e.altKey ? this.snapGridSize : null;
-        const elementPoint = this.clientToDiagram(point);
-        const snappedElementPoint = this.snapToGrid(elementPoint, snapGridSize);
-        const element = factory(diagram, snappedElementPoint.x, snappedElementPoint.y);
-        this.select(element);
-
-        const endDraw = (element: DiagramElementNode, result: boolean) => {
-            this.drawing = false;
-            root.releasePointerCapture(e.pointerId);
-
-            
-            if (!result) {
-                this.diagram?.delete(element);
-                root.style.cursor = "";
-            }
-            
-            root.removeEventListener("pointermove", mouseMoveHandler);
-            root.removeEventListener("pointerdown", mouseDownHandler);
-            root.removeEventListener("keydown", keyDownHandler);
-            
-            this.onDrawElement.emit({ element, result });
-        }
-
-        let pointIndex = 0;
-        const result: MutableRefObject<boolean> = { current: false };
-        const drawPoint = (e: PointerEvent) => {
-            const point = new DOMPoint(e.clientX, e.clientY);
-            const snapGridSize = !e.altKey ? this.snapGridSize : null;
-            const elementPoint = this.clientToDiagram(point);
-            const snappedElementPoint = this.snapToGrid(elementPoint, snapGridSize);
-
-            this.dispatch<ACT_DRAW_POINT_PLACE_Payload>([element], ACT_DRAW_POINT_PLACE, {
-                position: snappedElementPoint,
-                rawPosition: elementPoint,
-                snapGridSize,
-                snapAngle: !e.altKey ? this.snapAngle : null,
-                snapToGrid: this.snapToGrid.bind(this),
-                pointIndex,
-                result
-            });
-            pointIndex++;
-
-            if (result.current) {
-                endDraw(element, true);
-            }
-        }
-
-        const mouseMoveHandler = (e: PointerEvent) => {
-            const point = new DOMPoint(e.clientX, e.clientY);
-            const snapGridSize = !e.altKey ? this.snapGridSize : null;
-            const elementPoint = this.clientToDiagram(point);
-            const snappedElementPoint = this.snapToGrid(elementPoint, snapGridSize);
-
-            this.dispatch<ACT_DRAW_POINT_MOVE_Payload>([element], ACT_DRAW_POINT_MOVE, {
-                position: snappedElementPoint,
-                rawPosition: elementPoint,
-                snapGridSize,
-                snapAngle: !e.altKey ? this.snapAngle : null,
-                snapToGrid: this.snapToGrid.bind(this),
-                pointIndex
-            });
-        }
-
-        const mouseDownHandler = (e: PointerEvent) => {
-            if (e.button === 0) {
-                drawPoint(e);
-            }
-            else if (e.button === 2) {
-                const result: MutableRefObject<boolean> = { current: true };
-                this.dispatch<ACT_DRAW_POINT_CANCEL_Payload>([element], ACT_DRAW_POINT_CANCEL, { pointIndex, result });
-                endDraw(element, result.current);
-            }            
-        }
-
-        const keyDownHandler = (e: KeyboardEvent) => {
-            // Firefox 36 and earlier uses "Esc" instead of "Escape" for the Esc key
-            // https://developer.mozilla.org/en-US/docs/Web/API/UI_Events/Keyboard_event_key_values
-            if (e.key === "Escape" || e.key === "Esc") {
-                const result: MutableRefObject<boolean> = { current: true };
-                this.dispatch<ACT_DRAW_POINT_CANCEL_Payload>([element], ACT_DRAW_POINT_CANCEL, { pointIndex, result });
-                endDraw(element, result.current);
-            }
-        }
-
-        root.addEventListener("pointermove", mouseMoveHandler);
-        root.addEventListener("pointerdown", mouseDownHandler);
-        root.addEventListener("keydown", keyDownHandler);
-
-        drawPoint(e);
-    }
-
-    isSelected(element: DiagramElementNode) {
-        return this.selectedElements.has(element);
-    }
-
-    getSelectedElements() {
-        return [...this.selectedElements];
-    }
-
-    async delete(elements: DiagramElementNode[]): Promise<boolean> {
-        if (this.diagram) {
-            const promises: Promise<boolean>[] = [];
-            this.onDelete.emit({
-                elements,
-                requestConfirmation: (promise) => {
-                    promises.push(promise);
-                }
-            });
-
-            let confirmations: boolean[];
-            try {
-                confirmations = await Promise.all(promises);
-                if (confirmations.every(x => x)) {
-                    this.diagram.delete(elements);
-                    this.select([]);
-                    return true;
-                }
-            }
-            catch {
-                // Rejecting confirmation requests is OK and should not delete the elements
-            }
-        }
-        return false;
+        this.dispatchEvent<SelectEventArgs>(SELECT_EVENT, { selectedElements: elements });
     }
 
     renderControls(transform: DOMMatrixReadOnly): JSX.Element {
@@ -615,19 +231,29 @@ export class InteractionController {
                 const key = x[0].key;
                 const controls = [...x[1].values()];
                 return createElement(
-                    Fragment, 
-                    { children: controls.map(x => x.callback(transform, x.element)) }, 
+                    Fragment,
+                    { children: controls.map(x => x.callback(transform, x.element)) },
                     key
                 );
             });
     }
 
-    hitTest(e: MouseEvent) {
-        if (this.screenCTM) {
+    hitTest(e: MouseEvent): HitInfo | undefined {
+        if (this.diagram && this.screenCTM) {
             const transform = this.screenCTM.inverse();
             const point = new DOMPoint(e.clientX, e.clientY);
+            const elementPoint = this.clientToDiagram(point);
+            if (hasHitTestProps(e)) {
+                return {
+                    ...e.__hitTest,
+                    screenX: point.x,
+                    screenY: point.y,
+                    elementX: elementPoint.x,
+                    elementY: elementPoint.y,
+                }
+            }
             if (e.target && hasHitTestProps(e.target)) {
-                const elementPoint = this.clientToDiagram(point);
+                addHitTestProps(e, e.target.__hitTest.hitArea, e.target.__hitTest.element);
                 return {
                     ...e.target.__hitTest,
                     screenX: point.x,
@@ -638,7 +264,7 @@ export class InteractionController {
             }
             else {
                 const priorities = Object.keys(this.hitTests).map(x => parseInt(x)).reverse();
-                const sortedElements = this.elements.slice().reverse();
+                const sortedElements = this.diagram.getElements().slice().reverse();
                 for (let priority of priorities) {
                     let hit: DiagramElementHitTest | undefined;
                     for (let element of sortedElements) {
@@ -647,7 +273,7 @@ export class InteractionController {
                         if (hit) break;
                     }
                     if (hit) {
-                        const elementPoint = this.clientToDiagram(point);
+                        addHitTestProps(e, hit.hitArea, hit.element);
                         return {
                             element: hit.element,
                             screenX: point.x,
@@ -662,11 +288,17 @@ export class InteractionController {
         }
     }
 
-    switchDrawingMode(elementFactory: DrawingModeElementFactory | null) {
-        this.drawingModeFactory = elementFactory;
+    rectIntersectionTest(rect: Rect): DiagramElementNode[] {
+        // Broad phase
+        const tests = [...this.intersectionTests.values()]
+            .filter(test => !test.bounds || intersectRect(test.bounds, rect));
+        // Narrow phase
+        return tests
+            .filter(test => test.callback(rect))
+            .map(test => test.element);
     }
 
-    private dispatchInternal<T>(elements: DiagramElementNode[], action: string, payload: T) {
+    dispatchAction<T>(elements: DiagramElementNode[], action: string, payload: T) {
         const actions = [...this.actions.values()];
         elements.forEach(element => {
             if (!element.parent) {  // Newly added element, never rendered
@@ -688,30 +320,15 @@ export class InteractionController {
         });
     }
 
-    private dispatchDefault<T>(elements: DiagramElementNode[], action: string, payload: T) {
-        if (action === ACT_MOVE) {
-            this.dispatchInternal([...this.selectedElements], action, payload);
-        }
-        else {
-            this.dispatchInternal(elements, action, payload);
-        }
+    dispatchEvent<T>(eventType: string, eventArgs: T) {
+        this.channel.publish(eventType, eventArgs);
     }
 
-    dispatch<T>(elements: DiagramElementNode[], action: string, payload: T) {
-        if (this.options?.dispatchAction) {
-            this.options.dispatchAction(this, elements, action, payload, this.dispatchInternal, this.dispatchDefault);
-        }
-        else {
-            this.dispatchDefault(elements, action, payload);
-        }
+    addEventListener<T>(eventType: string, listener: (args: T) => void) {
+        this.channel.subscribe(eventType, listener);
     }
 
-    getPaper(): PaperOptions | undefined {
-        return this.paper;
-    }
-
-    updatePaper(paper: PaperOptions | undefined) {
-        this.paper = paper;
-        this.onPaperChange.emit({paper});
+    removeEventListener<T>(eventType: string, listener: (args: T) => void) {
+        this.channel.unsubscribe(eventType, listener);
     }
 }

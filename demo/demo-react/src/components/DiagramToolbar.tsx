@@ -8,7 +8,7 @@ import FormatColorFillIcon from '@mui/icons-material/FormatColorFill';
 import LineWeightIcon from '@mui/icons-material/LineWeight';
 import CircleOutlinedIcon from '@mui/icons-material/CircleOutlined';
 import { CompactPicker } from 'react-color';
-import { DrawingModeElementFactory, InteractionController } from "@carnelian/interaction";
+import { DrawingModeElementFactory, DRAW_ELEMENT_EVENT, InteractionController, isElementDrawingService } from "@carnelian/interaction";
 import { ClosedFigureStyleProps } from "@carnelian/shapes/basic";
 import { Diagram, DiagramElementNode, DiagramElementProps } from "@carnelian/diagram";
 import {
@@ -80,24 +80,27 @@ function DiagramToolbar(props: DiagramToolbarProps) {
     const [drawingMode, setDrawingMode] = useState("");
 
     const changeDrawinMode = useCallback((value: string) => {
-        switch (value) {
-            case "line":
-                props.controller.switchDrawingMode(lineFactory);
-                break;
-            case "polyline":
-                props.controller.switchDrawingMode(polylineFactory);
-                break;
-            case "polygon":
-                props.controller.switchDrawingMode(polygonFactory);
-                break;
-            case "rect":
-                props.controller.switchDrawingMode(rectFactory);
-                break;
-            case "circle":
-                props.controller.switchDrawingMode(circleFactory);
-                break;
-            default:
-                props.controller.switchDrawingMode(null);
+        const service = props.controller.getService(isElementDrawingService);
+        if (service) {
+            switch (value) {
+                case "line":
+                    service.switchDrawingMode(lineFactory);
+                    break;
+                case "polyline":
+                    service.switchDrawingMode(polylineFactory);
+                    break;
+                case "polygon":
+                    service.switchDrawingMode(polygonFactory);
+                    break;
+                case "rect":
+                    service.switchDrawingMode(rectFactory);
+                    break;
+                case "circle":
+                    service.switchDrawingMode(circleFactory);
+                    break;
+                default:
+                    service.switchDrawingMode(null);
+            }
         }
         setDrawingMode(value);
     }, [props.controller]);
@@ -107,10 +110,10 @@ function DiagramToolbar(props: DiagramToolbarProps) {
     }, [changeDrawinMode]);
 
     useEffect(() => {
-        props.controller.onDrawElement.addListener(drawElementHandler);
+        props.controller.addEventListener(DRAW_ELEMENT_EVENT, drawElementHandler);
 
         return () => {
-            props.controller.onDrawElement.removeListener(drawElementHandler);
+            props.controller.removeEventListener(DRAW_ELEMENT_EVENT, drawElementHandler);
         }
     }, [props.controller, drawElementHandler])
 

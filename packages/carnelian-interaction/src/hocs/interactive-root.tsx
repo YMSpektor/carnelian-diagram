@@ -5,11 +5,16 @@ import {
     ControlsContext,
     InteractionContext, 
     InteractionController, 
+    isControlRenderingService, 
     PaperChangeEventArgs, 
-    PaperOptions, 
+    Paper, 
     RectSelectionEventArgs, 
     SelectEventArgs, 
-    SelectionContext
+    SelectionContext,
+    isPaperService,
+    RECT_SELECTION_EVENT,
+    PAPER_CHANGE_EVENT,
+    SELECT_EVENT
 } from "..";
 import { scheduleIdle } from "@carnelian/diagram/utils/schedule";
 import { JSX } from "@carnelian/diagram/jsx-runtime";
@@ -21,7 +26,7 @@ function getTransformAttribute(matrix?: DOMMatrixReadOnly) {
         : undefined;
 }
 
-function DiagramPaper(props: PaperOptions & {matrix?: DOMMatrixReadOnly}) {
+function DiagramPaper(props: Paper & {matrix?: DOMMatrixReadOnly}) {
     let { x, y, width, height, matrix } = props;
     const p1 = new DOMPoint(x, y).matrixTransform(matrix);
     const p2 = new DOMPoint(x + width, y + height).matrixTransform(matrix);
@@ -102,14 +107,16 @@ function DiagramControls(props: DiagramControlsProps) {
     const handleRectSelection = (e: RectSelectionEventArgs) => setRectSelection(e.selectionRect);
 
     useEffect(() => {
-        controller.onRectSelection.addListener(handleRectSelection);
+        controller.addEventListener(RECT_SELECTION_EVENT, handleRectSelection);
         return () => {
-            controller.onRectSelection.removeListener(handleRectSelection);
+            controller.removeEventListener(RECT_SELECTION_EVENT, handleRectSelection);
         }
     }, [controller]);
 
+    const renderControlsContext = controller.getService(isControlRenderingService)?.controlsContext || ControlsContext.defaultValue;
+
     return (
-        <ControlsContext.Provider value={controller.controlsContext}>
+        <ControlsContext.Provider value={renderControlsContext}>
             <g transform={getTransformAttribute(matrix?.inverse())}>
                 {controller.renderControls(matrix || new DOMMatrix())}
                 {rect && <rect className="selection-rect" {...rect} fill="none" stroke="black" stroke-dasharray="4" />}
@@ -130,9 +137,7 @@ export function withInteractiveRoot<P>(
     return (props: DiagramRootProps) => {
         const [matrix, setMatrix] = useState<DOMMatrix | undefined>(undefined);
         const [selectedElements, setSelectedElements] = useState<DiagramElementNode[]>([]);
-        const [paper, setPaper] = useState(controller.getPaper());
-
-        controller.elements = props.children;
+        const [paper, setPaper] = useState(controller.getService(isPaperService)?.paper || null);
 
         const handleSelect = (e: SelectEventArgs) => setSelectedElements(e.selectedElements);
         const handlePaperChange = (e: PaperChangeEventArgs) => setPaper(e.paper);
@@ -141,12 +146,12 @@ export function withInteractiveRoot<P>(
         const ctm = calcCTM();
 
         useEffect(() => {
-            controller.onSelect.addListener(handleSelect);
-            controller.onPaperChange.addListener(handlePaperChange);
+            controller.addEventListener(SELECT_EVENT, handleSelect);
+            controller.addEventListener(PAPER_CHANGE_EVENT, handlePaperChange);
 
             return () => {
-                controller.onSelect.removeListener(handleSelect);
-                controller.onPaperChange.removeListener(handlePaperChange);
+                controller.removeEventListener(SELECT_EVENT, handleSelect);
+                controller.removeEventListener(PAPER_CHANGE_EVENT, handlePaperChange);
             }
         }, [controller]);
 

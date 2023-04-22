@@ -1,7 +1,7 @@
 /** @jsxImportSource @emotion/react */
 import { HTMLAttributes, useContext, useEffect, useLayoutEffect, useRef, useState } from "react";
 import { Diagram, DiagramDOM, DiagramRoot, DiagramRootRenderer } from "@carnelian/diagram";
-import { InteractionController, withInteractiveRoot } from "@carnelian/interaction";
+import { InteractionController, isGridSnappingService, isPaperService, withInteractiveRoot } from "@carnelian/interaction";
 import { DragDropContext } from "../context/DragDropContext";
 import DiagramSvg from "./DiagramSvg";
 
@@ -51,9 +51,11 @@ function DiagramViewer(props: DiagramViewerProps & HTMLAttributes<HTMLDivElement
 
     useEffect(() => {
         if (controller) {
-            const paper = controller.getPaper();
-            paper && controller.updatePaper({
-                ...paper,
+            const service = controller.getService(isPaperService);
+            service && (service.paper = {
+                ...service.paper,
+                x: service.paper?.x || 0,
+                y: service.paper?.y || 0,
                 width: diagramSize.width,
                 height: diagramSize.height
             });
@@ -72,7 +74,9 @@ function DiagramViewer(props: DiagramViewerProps & HTMLAttributes<HTMLDivElement
             e.preventDefault();
             
             const draggedElement = dragDropContext.draggedElement;
-            const point = controller.snapToGrid(controller.clientToDiagram(new DOMPoint(e.clientX, e.clientY)));
+            const service = controller.getService(isGridSnappingService);
+            let point = controller.clientToDiagram(new DOMPoint(e.clientX, e.clientY));
+            point = service ? service.snapToGrid(point) : point;
             const props = draggedElement.factory(point, draggedElement.elementProps);
             const element = diagram.add(draggedElement.elementType, props);
             controller.select(element);
