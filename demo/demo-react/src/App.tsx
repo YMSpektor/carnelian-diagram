@@ -4,7 +4,7 @@ import { Diagram } from '@carnelian/diagram';
 import DiagramPalette, { DiagramPaletteElement } from './components/DiagramPalette';
 import DiagramToolbar from './components/DiagramToolbar';
 import DiagramViewer from './components/DiagramViewer';
-import { InteractionController } from '@carnelian/interaction';
+import { InteractionController, isPaperService } from '@carnelian/interaction';
 import { Accordion, AccordionDetails, AccordionSummary, Typography } from '@mui/material';
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
 
@@ -17,7 +17,7 @@ interface AppProps {
 function App(props: AppProps) {
     const { controller, diagram, palette } = props;
     const [scale, setScale] = useState(100);
-    const paper = controller.getPaper();
+    const paper = controller.getService(isPaperService)?.paper;
 
     return (
         <div css={{display: "flex", flexDirection: "column", height: "100vh"}}>

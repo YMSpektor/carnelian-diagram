@@ -1,5 +1,5 @@
 import { Diagram } from "@carnelian/diagram";
-import { InteractionController, isGridSnappingService } from "@carnelian/interaction";
+import { InteractionController, isGridSnappingService, isPaperService } from "@carnelian/interaction";
 import { DiagramPaletteElement } from "./components/DiagramPalette";
 import {
     InteractiveRect as Rect, 
@@ -19,16 +19,18 @@ import {
     InteractivePacman as Pacman
 } from "./examples"
 
-export const controller = new InteractionController({
-    paper: {
-        x: 0,
-        y: 0,
-        width: 2100,
-        height: 2970,
-        majorGridSize: 200,
-        minorGridSize: 50
-    },
-}, (services) => {
+export const controller = new InteractionController((services) => {
+    const paperService = services.find(isPaperService);
+    if (paperService) {
+        paperService.paper = {
+            x: 0,
+            y: 0,
+            width: 2100,
+            height: 2970,
+            majorGridSize: 200,
+            minorGridSize: 50
+        };
+    }
     const gridSnappingService = services.find(isGridSnappingService);
     if (gridSnappingService) {
         gridSnappingService.snapGridSize = 50;

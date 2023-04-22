@@ -7,10 +7,11 @@ import {
     InteractionController, 
     isControlRenderingService, 
     PaperChangeEventArgs, 
-    PaperOptions, 
+    Paper, 
     RectSelectionEventArgs, 
     SelectEventArgs, 
-    SelectionContext
+    SelectionContext,
+    isPaperService
 } from "..";
 import { scheduleIdle } from "@carnelian/diagram/utils/schedule";
 import { JSX } from "@carnelian/diagram/jsx-runtime";
@@ -22,7 +23,7 @@ function getTransformAttribute(matrix?: DOMMatrixReadOnly) {
         : undefined;
 }
 
-function DiagramPaper(props: PaperOptions & {matrix?: DOMMatrixReadOnly}) {
+function DiagramPaper(props: Paper & {matrix?: DOMMatrixReadOnly}) {
     let { x, y, width, height, matrix } = props;
     const p1 = new DOMPoint(x, y).matrixTransform(matrix);
     const p2 = new DOMPoint(x + width, y + height).matrixTransform(matrix);
@@ -133,7 +134,7 @@ export function withInteractiveRoot<P>(
     return (props: DiagramRootProps) => {
         const [matrix, setMatrix] = useState<DOMMatrix | undefined>(undefined);
         const [selectedElements, setSelectedElements] = useState<DiagramElementNode[]>([]);
-        const [paper, setPaper] = useState(controller.getPaper());
+        const [paper, setPaper] = useState(controller.getService(isPaperService)?.paper || null);
 
         const handleSelect = (e: SelectEventArgs) => setSelectedElements(e.selectedElements);
         const handlePaperChange = (e: PaperChangeEventArgs) => setPaper(e.paper);

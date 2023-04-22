@@ -5,7 +5,7 @@ import { InteractionContextType } from "./context";
 import { DiagramElementHitTest, hasHitTestProps, HitTestCollection, HitInfo, addHitTestProps } from "./hit-tests";
 import { DiagramElementIntersectionTest } from "./intersection-tests";
 import { intersectRect, Rect } from "./geometry";
-import { DefaultControlRenderingService, DefaultDeletionService, DefaultElementDrawingService, DefaultElementInteractionService, DefaultGridSnappingService, DefaultSelectionService, InteractionServive } from "./services";
+import { DefaultControlRenderingService, DefaultDeletionService, DefaultElementDrawingService, DefaultElementInteractionService, DefaultGridSnappingService, DefaultPaperService, DefaultSelectionService, InteractionServive } from "./services";
 
 export type RenderControlsCallback = (transform: DOMMatrixReadOnly, element: DiagramElementNode) => JSX.Element;
 
@@ -41,7 +41,7 @@ export interface RectSelectionEventArgs {
 }
 
 export interface PaperChangeEventArgs {
-    paper: PaperOptions | undefined;
+    paper: Paper | null;
 }
 
 export interface DrawElementEventArgs {
@@ -49,7 +49,7 @@ export interface DrawElementEventArgs {
     result: boolean;
 }
 
-export interface PaperOptions {
+export interface Paper {
     x: number;
     y: number;
     width: number;
@@ -60,10 +60,6 @@ export interface PaperOptions {
     minorGridColor?: string;
 }
 
-export interface InteractionControllerOptions {
-    paper?: PaperOptions;
-}
-
 export class InteractionController {
     private diagram: Diagram | null = null;
     private controls = new Map<DiagramElementNode, Map<object, DiagramElementControls>>();
@@ -72,7 +68,6 @@ export class InteractionController {
     private actions = new Map<object, DiagramElementAction<any>>();
     private pendingActions = new Map<DiagramElementNode, PendingAction<any>[]>();
     private selectedElements = new Set<DiagramElementNode>();
-    private paper?: PaperOptions;
     private services: InteractionServive[];
     private serviceCapture: InteractionServive | null = null;
     screenCTM?: DOMMatrixReadOnly;
@@ -85,12 +80,11 @@ export class InteractionController {
     onDrawElement = new Event<DrawElementEventArgs>();
 
     constructor(
-        options?: InteractionControllerOptions,
         configureServices?: (services: InteractionServive[]) => void
     ) {
         this.interactionContext = this.createInteractionContext();
-        this.paper = options?.paper;
         this.services = [
+            new DefaultPaperService(this),
             new DefaultGridSnappingService(),
             new DefaultSelectionService(this),
             new DefaultElementInteractionService(this),
@@ -382,14 +376,5 @@ export class InteractionController {
                 }
             }
         });
-    }
-
-    getPaper(): PaperOptions | undefined {
-        return this.paper;
-    }
-
-    updatePaper(paper: PaperOptions | undefined) {
-        this.paper = paper;
-        this.onPaperChange.emit({ paper });
     }
 }
