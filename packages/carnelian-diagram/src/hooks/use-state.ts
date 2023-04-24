@@ -1,4 +1,4 @@
-import { useContext } from "./useContext";
+import { useContext } from "./use-context";
 import { ComponentState, RenderContext } from "../diagram";
 
 export function useState<T>(initialValue: T): [T, (newValue: T) => void] {

@@ -12,7 +12,7 @@ export const Polygon: DiagramElement<PolygonProps> = function(props) {
         ...rest,
         style: {
             ...rest.style,
-            "fill-rule": "evenodd"
+            fillRule: "evenodd"
         }
     }
 

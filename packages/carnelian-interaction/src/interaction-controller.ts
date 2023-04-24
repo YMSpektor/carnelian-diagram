@@ -34,7 +34,6 @@ export interface SelectEventArgs {
 }
 
 export class InteractionController {
-    private diagram: Diagram | null = null;
     private controls = new Map<DiagramElementNode, Map<object, DiagramElementControls>>();
     private hitTests: HitTestCollection = {};
     private intersectionTests = new Map<object, DiagramElementIntersectionTest>;
@@ -48,6 +47,7 @@ export class InteractionController {
     interactionContext: InteractionContextType;
 
     constructor(
+        private diagram: Diagram,
         configureServices?: (services: InteractiveServiceCollection) => void
     ) {
         this.interactionContext = this.createInteractionContext();
@@ -63,11 +63,10 @@ export class InteractionController {
         configureServices?.(new InteractiveServiceCollection(this.services));
     }
 
-    attach(diagram: Diagram, root: HTMLElement) {
-        this.diagram = diagram;
+    attach(root: HTMLElement) {
         this.detach();
 
-        this.services.forEach(s => s.init?.(diagram, root));
+        this.services.forEach(s => s.activate?.(this.diagram, root));
 
         const tabIndex = root.getAttribute("tabindex");
         if (!tabIndex || +tabIndex < 0) {
@@ -75,10 +74,9 @@ export class InteractionController {
         }
 
         this.detach = () => {
-            this.diagram = null;
             this.detach = () => { };
 
-            this.services.forEach(s => s.release?.());
+            this.services.forEach(s => s.deactivate?.());
 
             if (!tabIndex) {
                 root.removeAttribute("tabindex");
@@ -99,7 +97,7 @@ export class InteractionController {
         if (this.serviceCapture !== service) {
             this.services.forEach(s => {
                 if (s !== service) {
-                    s.release?.();
+                    s.deactivate?.();
                 }
             });
 
@@ -111,10 +109,10 @@ export class InteractionController {
         if (this.serviceCapture === service) {
             this.serviceCapture = null;
 
-            service.release?.(); // Release to initialize all services at the same order
+            service.deactivate?.(); // Release to initialize all services at the same order
 
             this.services.forEach(s => {
-                this.diagram && s.init?.(this.diagram, root);
+                s.activate?.(this.diagram, root);
             });
         }
     }
@@ -239,7 +237,7 @@ export class InteractionController {
     }
 
     hitTest(e: MouseEvent): HitInfo | undefined {
-        if (this.diagram && this.screenCTM) {
+        if (this.screenCTM) {
             const transform = this.screenCTM.inverse();
             const point = new DOMPoint(e.clientX, e.clientY);
             const elementPoint = this.clientToDiagram(point);

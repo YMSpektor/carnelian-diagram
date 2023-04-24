@@ -19,7 +19,8 @@ import {
     InteractivePacman as Pacman
 } from "./examples"
 
-export const controller = new InteractionController((services) => {
+export const diagram = new Diagram();
+export const controller = new InteractionController(diagram, (services) => {
     services.configure(isPaperService, (service) => {
         service.paper = {
             x: 0,
@@ -36,7 +37,6 @@ export const controller = new InteractionController((services) => {
         service.snapAngle = 5;
     });
 });
-export const diagram = new Diagram();
 
 export const palette: DiagramPaletteElement<any>[] = [];
 

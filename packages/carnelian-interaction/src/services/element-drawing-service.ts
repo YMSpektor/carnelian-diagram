@@ -27,11 +27,11 @@ export class DefaultElementDrawingService implements ElementDrawingService {
     private root?: HTMLElement;
     private gridSnappingService?: GridSnappingService;
     type: "element_drawing_service" = "element_drawing_service";
-    release?: () => void;
+    deactivate?: () => void;
 
     constructor(private controller: InteractionController, private drawingModeFactory: DrawingModeElementFactory | null = null) {}
     
-    init(diagram: Diagram, root: HTMLElement) {
+    activate(diagram: Diagram, root: HTMLElement) {
         this.diagram = diagram;
         this.root = root;
         this.gridSnappingService = this.controller.getService(isGridSnappingService);
@@ -40,8 +40,8 @@ export class DefaultElementDrawingService implements ElementDrawingService {
         const mouseDownHandler = (e: PointerEvent) => this.mouseDownHandler(root, e);
         root.addEventListener("pointerdown", mouseDownHandler);
 
-        this.release = () => {
-            this.release = undefined;
+        this.deactivate = () => {
+            this.deactivate = undefined;
             this.diagram = null;
             root.removeEventListener("pointerdown", mouseDownHandler);
         }

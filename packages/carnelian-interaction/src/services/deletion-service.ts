@@ -19,18 +19,18 @@ export interface DeleteEventArg {
 export class DefaultDeletionService implements DeletionService {
     private diagram: Diagram | null = null;
     type: "deletion_service" = "deletion_service";
-    release?: () => void;
+    deactivate?: () => void;
 
     constructor(private controller: InteractionController) {}
     
-    init(diagram: Diagram, root: HTMLElement) {
+    activate(diagram: Diagram, root: HTMLElement) {
         this.diagram = diagram;
         
         const keyDownHandler = (e: KeyboardEvent) => this.keyDownHandler(root, e);
         root.addEventListener("keydown", keyDownHandler);
 
-        this.release = () => {
-            this.release = undefined;
+        this.deactivate = () => {
+            this.deactivate = undefined;
             this.diagram = null;
             root.removeEventListener("keydown", keyDownHandler);
         }

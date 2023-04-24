@@ -2,8 +2,8 @@ import { Diagram } from "@carnelian/diagram";
 
 export interface InteractionServive {
     type: string;
-    init?: (diagram: Diagram, root: HTMLElement) => void;
-    release?: () => void;
+    activate?: (diagram: Diagram, root: HTMLElement) => void;
+    deactivate?: () => void;
 }
 
 export class InteractiveServiceCollection {

@@ -16,11 +16,11 @@ export class DefaultElementInteractionService implements ElementInteractionServi
     private dragging = false;
     private gridSnappingService?: GridSnappingService;
     type: "element_interaction_service" = "element_interaction_service";
-    release?: () => void;
+    deactivate?: () => void;
 
     constructor(private controller: InteractionController) {}
     
-    init(diagram: Diagram, root: HTMLElement) {
+    activate(diagram: Diagram, root: HTMLElement) {
         this.gridSnappingService = this.controller.getService(isGridSnappingService);
 
         const mouseDownHandler = (e: PointerEvent) => this.mouseDownHandler(root, e);
@@ -30,8 +30,8 @@ export class DefaultElementInteractionService implements ElementInteractionServi
         root.addEventListener("pointermove", mouseMoveHandler);
         root.addEventListener("dblclick", dblClickHandler);
 
-        this.release = () => {
-            this.release = undefined;
+        this.deactivate = () => {
+            this.deactivate = undefined;
             root.removeEventListener("pointerdown", mouseDownHandler);
             root.removeEventListener("pointermove", mouseMoveHandler);
             root.removeEventListener("dblclick", dblClickHandler);

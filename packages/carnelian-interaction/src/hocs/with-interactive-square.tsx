@@ -3,7 +3,7 @@
 import { DiagramElement, DiagramElementProps } from "@carnelian/diagram";
 import { ACT_DRAW_POINT_CANCEL, ACT_DRAW_POINT_CANCEL_Payload, ACT_DRAW_POINT_MOVE, ACT_DRAW_POINT_MOVE_Payload, ACT_DRAW_POINT_PLACE, ACT_DRAW_POINT_PLACE_Payload, ACT_MOVE, DragActionPayload, useAction, useCollider } from "..";
 import { Collider, RectCollider } from "../collisions";
-import { useInteractiveRectControls } from "./interactive-rect";
+import { useInteractiveRectControls } from "./with-interactive-rect";
 
 export interface InteractiveSquareProps {
     x: number;

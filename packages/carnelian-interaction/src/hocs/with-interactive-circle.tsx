@@ -1,7 +1,7 @@
 /** @jsxImportSource @carnelian/diagram */
 
 import { DiagramElement, DiagramElementChangeHandler, DiagramElementProps } from "@carnelian/diagram";
-import { InteractiveSquareProps, SquareColliderFactory, useInteractiveSquare } from "./interactive-square";
+import { InteractiveSquareProps, SquareColliderFactory, useInteractiveSquare } from "./with-interactive-square";
 import { Collider } from "../collisions";
 
 export interface InteractiveCircleProps {
