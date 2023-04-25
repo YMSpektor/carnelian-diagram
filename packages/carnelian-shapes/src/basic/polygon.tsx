@@ -2,7 +2,7 @@
 
 import { DiagramElement } from "@carnelian/diagram";
 import { PolygonCollider, withInteractivePolyline } from "@carnelian/interaction";
-import { PolygonBaseProps } from ".";
+import { PolygonBaseProps } from "..";
 
 export interface PolygonProps extends PolygonBaseProps {}
 

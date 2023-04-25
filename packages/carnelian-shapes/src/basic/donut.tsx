@@ -3,7 +3,7 @@
 import { DiagramElement } from "@carnelian/diagram";
 import { CircleCollider, DiffCollider, KnobController, withInteractiveCircle, withKnob } from "@carnelian/interaction";
 import { clamp } from "@carnelian/interaction/geometry";
-import { CircleBaseProps } from ".";
+import { CircleBaseProps } from "..";
 import { convertPercentage, isPercentage, NumberOrPercentage } from "../utils";
 
 export interface DonutProps extends CircleBaseProps {

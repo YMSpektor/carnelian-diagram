@@ -2,7 +2,7 @@
 
 import { DiagramElement } from "@carnelian/diagram";
 import { withInteractiveRect } from "@carnelian/interaction";
-import { RectBaseProps } from ".";
+import { RectBaseProps } from "..";
 
 export interface RectProps extends RectBaseProps {}
 

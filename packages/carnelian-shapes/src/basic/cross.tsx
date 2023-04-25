@@ -3,7 +3,7 @@
 import { DiagramElement } from "@carnelian/diagram";
 import { PolygonCollider, KnobController, withInteractiveRect, withKnob } from "@carnelian/interaction";
 import { clamp } from "@carnelian/interaction/geometry";
-import { RectBaseProps } from ".";
+import { RectBaseProps } from "..";
 import { convertPercentage, isPercentage, NumberOrPercentage } from "../utils";
 
 export interface CrossProps extends RectBaseProps {

@@ -13,7 +13,8 @@ import {
     InteractiveCircle as Circle,
     InteractiveDonut as Donut,
     InteractiveCross as Cross,
-    InteractivePie as Pie
+    InteractivePie as Pie,
+    InteractiveMultilineText as Text,
 } from "@carnelian/shapes/basic";
 import {
     InteractivePacman as Pacman
@@ -197,6 +198,19 @@ addToPalette({
         ...props,
         x: point.x,
         y: point.y
+    }),
+});
+
+addToPalette({
+    category: "basic",
+    elementType: Text,
+    elementProps: {x: 20, y: 20, width: 300, height: 200, text: "Test text", style: { fontSize: "50px" }},
+    viewBox: "0 0 340 240",
+    title: "Text",
+    factory: (point, props) => ({
+        ...props,
+        x: point.x - props.width / 2,
+        y: point.y - props.height / 2
     }),
 });
 

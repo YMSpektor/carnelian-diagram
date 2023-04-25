@@ -2,7 +2,7 @@
 
 import { DiagramElement } from "@carnelian/diagram";
 import { CircleCollider, withInteractiveCircle } from "@carnelian/interaction";
-import { CircleBaseProps } from ".";
+import { CircleBaseProps } from "..";
 
 export interface CircleProps extends CircleBaseProps { }
 

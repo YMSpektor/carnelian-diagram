@@ -9,7 +9,7 @@ import LineWeightIcon from '@mui/icons-material/LineWeight';
 import CircleOutlinedIcon from '@mui/icons-material/CircleOutlined';
 import { CompactPicker } from 'react-color';
 import { DrawingModeElementFactory, DRAW_ELEMENT_EVENT, InteractionController, isElementDrawingService } from "@carnelian/interaction";
-import { ClosedFigureStyleProps } from "@carnelian/shapes/basic";
+import { ClosedFigureStyleProps } from "@carnelian/shapes";
 import { Diagram, DiagramElementNode, DiagramElementProps } from "@carnelian/diagram";
 import {
     InteractiveLine as Line,

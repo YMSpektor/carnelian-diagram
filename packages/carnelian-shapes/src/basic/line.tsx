@@ -2,7 +2,7 @@
 
 import { DiagramElement } from "@carnelian/diagram";
 import { withInteractiveLine } from "@carnelian/interaction";
-import { LineBaseProps } from ".";
+import { LineBaseProps } from "..";
 
 export interface LineProps extends LineBaseProps {}
 

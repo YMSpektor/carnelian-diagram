@@ -2,7 +2,7 @@
 
 import { DiagramElement } from "@carnelian/diagram";;
 import { withInteractiveSquare } from "@carnelian/interaction";
-import { SquareBaseProps } from ".";
+import { SquareBaseProps } from "..";
 
 export interface SquareProps extends SquareBaseProps { }
 

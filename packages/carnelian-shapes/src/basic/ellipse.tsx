@@ -1,8 +1,8 @@
 /** @jsxImportSource @carnelian/diagram */
 
 import { DiagramElement } from "@carnelian/diagram";
-import { RectBaseProps } from ".";
 import { EllipseCollider, withInteractiveRect } from "@carnelian/interaction";
+import { RectBaseProps } from "..";
 
 export interface EllipseProps extends RectBaseProps {}
 

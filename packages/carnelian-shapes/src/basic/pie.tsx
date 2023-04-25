@@ -3,7 +3,7 @@
 import { DiagramElement } from "@carnelian/diagram";
 import { CircleCollider, HalfPlaneCollider, IntersectionCollider, KnobController, UnionCollider, withInteractiveCircle, withKnobs } from "@carnelian/interaction";
 import { degToRad, Point, radToDeg } from "@carnelian/interaction/geometry";
-import { CircleBaseProps } from ".";
+import { CircleBaseProps } from "..";
 
 export interface PieProps extends CircleBaseProps {
     startAngle: number;

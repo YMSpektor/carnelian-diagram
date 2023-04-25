@@ -2,7 +2,7 @@
 
 import { DiagramElement } from "@carnelian/diagram";
 import { PolygonCollider, withInteractiveRect } from "@carnelian/interaction";
-import { RectBaseProps } from ".";
+import { RectBaseProps } from "..";
 
 export interface DiamondProps extends RectBaseProps {}
 
