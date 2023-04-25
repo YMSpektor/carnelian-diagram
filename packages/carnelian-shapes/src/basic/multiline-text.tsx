@@ -18,7 +18,7 @@ export interface MultilineTextProps extends RawRectProps {
 export const MultilineText: DiagramElement<MultilineTextProps> = function(props) {
     let { x, y, width, height, style, text } = props;
     let textStyle: TextStyle & { userSelect?: "none" };
-    let verticalAlign: MultilineTextStyle["verticalAlign"] | undefined;
+    let verticalAlign: MultilineTextStyle["verticalAlign"] | undefined = "middle";
     let lineHeight = 1;
     if (style) {
         let { verticalAlign: va, lineHeight: lh, ...rest } = style;
@@ -60,10 +60,10 @@ export const MultilineText: DiagramElement<MultilineTextProps> = function(props)
             break;
         case "bottom":
             y = y + height;
-            alignmentBaseline = "bottom";
+            alignmentBaseline = "text-after-edge";
             break;
         default:
-            alignmentBaseline = "top";
+            alignmentBaseline = "text-before-edge";
     }
 
     return (
