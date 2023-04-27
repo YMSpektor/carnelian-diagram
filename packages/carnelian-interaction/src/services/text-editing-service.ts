@@ -31,6 +31,7 @@ export class DefaultTextEditingService implements TextEditingService {
         }
 
         const backdrop = document.createElement("div");
+        backdrop.className = "inplace-text-editor-backdrop";
         backdrop.style.position = "fixed";
         backdrop.style.zIndex = "1000";
         backdrop.style.left = "0";
@@ -44,6 +45,7 @@ export class DefaultTextEditingService implements TextEditingService {
         };
         const p = this.controller.diagramToClient(new DOMPoint(rect.x + rect.width / 2, rect.y + rect.height / 2));
         const inplaceEditor = document.createElement("input");
+        inplaceEditor.className = "inplace-text-editor";
         inplaceEditor.style.position = "relative";
         inplaceEditor.style.left = `${p.x}px`;
         inplaceEditor.style.top = `${p.y}px`;

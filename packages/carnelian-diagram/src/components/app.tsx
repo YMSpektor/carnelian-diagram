@@ -11,8 +11,18 @@ export interface AppProps {
 export const App: DiagramComponent<AppProps> = function(props) {
     RenderContext.provide(this, props.renderContext);
     const DiagramRoot = props.diagramRoot;
+
+    const defaultStyles = [
+        ".carnelian-diagram { stroke: black; fill: white }",
+        ".carnelian-diagram text { stroke: none; fill: black }"
+    ];
     
     return (
-        <DiagramRoot {...props.diagramRootProps}/>
+        <>
+            <style>
+                {defaultStyles.join("\n")}
+            </style>
+            <DiagramRoot {...props.diagramRootProps}/>
+        </>
     )
 }

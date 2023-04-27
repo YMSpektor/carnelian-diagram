@@ -41,8 +41,6 @@ export const MultilineText: DiagramElement<MultilineTextProps> = function(props)
     textStyle = {
         ...textStyle,
         alignmentBaseline: undefined,
-        stroke: textStyle?.stroke || "none",
-        fill: textStyle?.fill || "black",
         fontFamily: textStyle?.fontFamily || "sans-serif",
         fontSize: textStyle?.fontSize || "10px",
         textAnchor: textStyle?.textAnchor || "middle",
