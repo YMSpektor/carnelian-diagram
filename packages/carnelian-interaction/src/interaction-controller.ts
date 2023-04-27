@@ -4,7 +4,7 @@ import { InteractionContextType } from "./context";
 import { DiagramElementHitTest, hasHitTestProps, HitTestCollection, HitInfo, addHitTestProps } from "./hit-tests";
 import { DiagramElementIntersectionTest } from "./intersection-tests";
 import { intersectRect, Rect } from "./geometry";
-import { DefaultControlRenderingService, DefaultDeletionService, DefaultElementDrawingService, DefaultElementInteractionService, DefaultGridSnappingService, DefaultPaperService, DefaultSelectionService, InteractionServive, InteractiveServiceCollection } from "./services";
+import { DefaultControlRenderingService, DefaultDeletionService, DefaultElementDrawingService, DefaultElementInteractionService, DefaultGridSnappingService, DefaultPaperService, DefaultSelectionService, DefaultTextEditingService, InteractionServive, InteractiveServiceCollection } from "./services";
 import { Channel } from "type-pubsub";
 
 export type RenderControlsCallback = (transform: DOMMatrixReadOnly, element: DiagramElementNode) => JSX.Element;
@@ -58,6 +58,7 @@ export class InteractionController {
             new DefaultElementInteractionService(this),
             new DefaultDeletionService(this),
             new DefaultElementDrawingService(this),
+            new DefaultTextEditingService(this),
             new DefaultControlRenderingService(),
         ];
         configureServices?.(new InteractiveServiceCollection(this.services));

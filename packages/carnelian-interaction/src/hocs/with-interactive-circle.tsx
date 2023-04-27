@@ -3,6 +3,7 @@
 import { DiagramElement, DiagramElementChangeHandler, DiagramElementProps } from "@carnelian/diagram";
 import { InteractiveSquareProps, SquareColliderFactory, useInteractiveSquare } from "./with-interactive-square";
 import { Collider } from "../collisions";
+import { HitArea } from "../hit-tests";
 
 export interface InteractiveCircleProps {
     x: number;
@@ -14,7 +15,8 @@ export type CircleColliderFactory<T extends InteractiveCircleProps> = (props: T)
 
 export function withInteractiveCircle<T extends InteractiveCircleProps>(
     WrappedElement: DiagramElement<T>,
-    colliderFactory?: CircleColliderFactory<T>
+    colliderFactory?: CircleColliderFactory<T>,
+    overrideInnerHitArea?: (hitArea: HitArea) => HitArea
 ): DiagramElement<T> {
     return (props) => {
         const { x, y, radius, onChange } = props;
@@ -46,7 +48,7 @@ export function withInteractiveCircle<T extends InteractiveCircleProps>(
         };
         const squareColliderFactory: SquareColliderFactory<InteractiveSquareProps> | undefined = colliderFactory 
             ? (_: InteractiveSquareProps) => colliderFactory(props) : undefined;
-        useInteractiveSquare(squareProps, squareColliderFactory);
+        useInteractiveSquare(squareProps, squareColliderFactory, overrideInnerHitArea);
         return <WrappedElement {...props} />
     }
 }

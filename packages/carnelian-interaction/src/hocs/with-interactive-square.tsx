@@ -1,7 +1,7 @@
 /** @jsxImportSource @carnelian/diagram */
 
 import { DiagramElement, DiagramElementProps } from "@carnelian/diagram";
-import { ACT_DRAW_POINT_CANCEL, ACT_DRAW_POINT_CANCEL_Payload, ACT_DRAW_POINT_MOVE, ACT_DRAW_POINT_MOVE_Payload, ACT_DRAW_POINT_PLACE, ACT_DRAW_POINT_PLACE_Payload, ACT_MOVE, DragActionPayload, useAction, useCollider } from "..";
+import { ACT_DRAW_POINT_CANCEL, ACT_DRAW_POINT_CANCEL_Payload, ACT_DRAW_POINT_MOVE, ACT_DRAW_POINT_MOVE_Payload, ACT_DRAW_POINT_PLACE, ACT_DRAW_POINT_PLACE_Payload, ACT_MOVE, DragActionPayload, HitArea, useAction, useCollider } from "..";
 import { Collider, RectCollider } from "../collisions";
 import { useInteractiveRectControls } from "./with-interactive-rect";
 
@@ -15,7 +15,8 @@ export type SquareColliderFactory<T extends InteractiveSquareProps> = (props: T)
 
 export function useInteractiveSquare<T extends InteractiveSquareProps>(
     props: DiagramElementProps<T>, 
-    colliderFactory?: SquareColliderFactory<T>
+    colliderFactory?: SquareColliderFactory<T>,
+    overrideInnerHitArea?: (hitArea: HitArea) => HitArea
 ) {
     const { x, y, size, onChange } = props;
 
@@ -108,8 +109,12 @@ export function useInteractiveSquare<T extends InteractiveSquareProps>(
     }
 
     const collider = colliderFactory?.(props) || defaultCollider();
-    useCollider(collider, { type: "in", action: ACT_MOVE, cursor: "move" });
-    useAction(ACT_MOVE, move);
+    let hitArea: HitArea = { type: "in", action: ACT_MOVE, cursor: "move" };
+    if (overrideInnerHitArea) {
+        hitArea = overrideInnerHitArea(hitArea);
+    }
+    useCollider(collider, hitArea);
+    useAction(hitArea.action, move);
 
     useAction<ACT_DRAW_POINT_PLACE_Payload>(ACT_DRAW_POINT_PLACE, (payload) => {
         if (payload.pointIndex === 0) {
@@ -150,10 +155,11 @@ export function useInteractiveSquare<T extends InteractiveSquareProps>(
 
 export function withInteractiveSquare<T extends InteractiveSquareProps>(
     WrappedElement: DiagramElement<T>,
-    colliderFactory?: SquareColliderFactory<T>
+    colliderFactory?: SquareColliderFactory<T>,
+    overrideInnerHitArea?: (hitArea: HitArea) => HitArea
 ): DiagramElement<T> {
     return (props) => {
-        useInteractiveSquare(props, colliderFactory);
+        useInteractiveSquare(props, colliderFactory, overrideInnerHitArea);
         return <WrappedElement {...props} />;
     }
 }

@@ -61,6 +61,7 @@ export class DefaultElementInteractionService implements ElementInteractionServi
                     elements,
                     action,
                     {
+                        controller: this.controller,
                         position: snappedElementPoint,
                         deltaX: this.gridSnappingService ? this.gridSnappingService.snapToGrid(snappedElementPoint.x - lastPoint.x, snapGridSize) : rawDeltaX,
                         deltaY: this.gridSnappingService ? this.gridSnappingService.snapToGrid(snappedElementPoint.y - lastPoint.y, snapGridSize) : rawDeltaY,
@@ -122,6 +123,7 @@ export class DefaultElementInteractionService implements ElementInteractionServi
                     [hitInfo.element],
                     hitInfo.hitArea.dblClickAction,
                     {
+                        controller: this.controller,
                         position: snappedElementPoint,
                         rawPosition: elementPoint,
                         hitArea: hitInfo.hitArea,

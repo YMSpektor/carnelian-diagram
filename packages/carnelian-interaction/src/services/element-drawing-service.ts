@@ -101,6 +101,7 @@ export class DefaultElementDrawingService implements ElementDrawingService {
             const snappedElementPoint = this.gridSnappingService?.snapToGrid(elementPoint, snapGridSize) || elementPoint;
 
             this.controller.dispatchAction<ACT_DRAW_POINT_PLACE_Payload>([element], ACT_DRAW_POINT_PLACE, {
+                controller: this.controller,
                 position: snappedElementPoint,
                 rawPosition: elementPoint,
                 snapGridSize,
@@ -123,6 +124,7 @@ export class DefaultElementDrawingService implements ElementDrawingService {
             const snappedElementPoint = this.gridSnappingService?.snapToGrid(elementPoint, snapGridSize) || elementPoint;
 
             this.controller.dispatchAction<ACT_DRAW_POINT_MOVE_Payload>([element], ACT_DRAW_POINT_MOVE, {
+                controller: this.controller,
                 position: snappedElementPoint,
                 rawPosition: elementPoint,
                 snapGridSize,
@@ -138,7 +140,7 @@ export class DefaultElementDrawingService implements ElementDrawingService {
             }
             else if (e.button === 2) {
                 const result: MutableRefObject<boolean> = { current: true };
-                this.controller.dispatchAction<ACT_DRAW_POINT_CANCEL_Payload>([element], ACT_DRAW_POINT_CANCEL, { pointIndex, result });
+                this.controller.dispatchAction<ACT_DRAW_POINT_CANCEL_Payload>([element], ACT_DRAW_POINT_CANCEL, { controller: this.controller, pointIndex, result });
                 endDraw(element, result.current);
             }            
         }
@@ -148,7 +150,7 @@ export class DefaultElementDrawingService implements ElementDrawingService {
             // https://developer.mozilla.org/en-US/docs/Web/API/UI_Events/Keyboard_event_key_values
             if (e.key === "Escape" || e.key === "Esc") {
                 const result: MutableRefObject<boolean> = { current: true };
-                this.controller.dispatchAction<ACT_DRAW_POINT_CANCEL_Payload>([element], ACT_DRAW_POINT_CANCEL, { pointIndex, result });
+                this.controller.dispatchAction<ACT_DRAW_POINT_CANCEL_Payload>([element], ACT_DRAW_POINT_CANCEL, { controller: this.controller, pointIndex, result });
                 endDraw(element, result.current);
             }
         }
