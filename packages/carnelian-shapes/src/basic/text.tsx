@@ -3,23 +3,17 @@
 import { DiagramElement } from "@carnelian/diagram";
 import { ACT_EDIT_TEXT, withInteractiveRect, withInteractiveText } from "@carnelian/interaction";
 import { DEFAULT_FONT_FAMILY, DEFAULT_FONT_SIZE, TextBaseProps, TextStyle } from "..";
-import { getTextBounds, textEditorStyles, wrapText } from "../utils";
+import { getTextBounds, textEditorStyles } from "../utils";
 
-export interface MultilineTextStyle extends TextStyle {
-    lineHeight?: number;
-}
+export interface TextProps extends TextBaseProps<TextStyle> {}
 
-export interface MultilineTextProps extends TextBaseProps<MultilineTextStyle> {}
-
-export const MultilineText: DiagramElement<MultilineTextProps> = function(props) {
+export const Text: DiagramElement<TextProps> = function(props) {
     let { x, y, width, height, style, text } = props;
     let textStyle: TextStyle & { userSelect?: "none" };
     let verticalAlign = style?.verticalAlign || "middle";
-    let lineHeight = 1;
     if (style) {
-        let { verticalAlign: va, lineHeight: lh, ...rest } = style;
+        let { verticalAlign: va, ...rest } = style;
         textStyle = rest;
-        lineHeight = lh || 1;
     }
     else {
         textStyle = {};
@@ -27,14 +21,11 @@ export const MultilineText: DiagramElement<MultilineTextProps> = function(props)
 
     textStyle = {
         ...textStyle,
-        alignmentBaseline: undefined,
         fontFamily: textStyle?.fontFamily || DEFAULT_FONT_FAMILY,
         fontSize: textStyle?.fontSize || DEFAULT_FONT_SIZE,
         textAnchor: textStyle?.textAnchor || "middle",
         userSelect: "none"
     }
-    const { lines, textMetrics } = wrapText(text, width, textStyle);
-    const fontHeight = textMetrics.fontBoundingBoxAscent + textMetrics.fontBoundingBoxDescent;
 
     switch (textStyle?.textAnchor) {
         case "middle":
@@ -45,31 +36,26 @@ export const MultilineText: DiagramElement<MultilineTextProps> = function(props)
             break;
     }
 
-    let alignmentBaseline = style?.alignmentBaseline;
     switch (verticalAlign) {
         case "middle":
-            y = y + height / 2 - (fontHeight * lineHeight * (lines.length - 1)) / 2;
-            alignmentBaseline = "middle";
+            y = y + height / 2;
+            textStyle.alignmentBaseline = "middle";
             break;
         case "bottom":
             y = y + height;
-            alignmentBaseline = "text-after-edge";
+            textStyle.alignmentBaseline = "text-after-edge";
             break;
         default:
-            alignmentBaseline = "text-before-edge";
+            textStyle.alignmentBaseline = "text-before-edge";
     }
 
     return (
-        <text x={x} y={y} style={textStyle}>
-            {lines.map((line, i) => (
-                <tspan x={x} dy={i > 0 ? fontHeight * lineHeight : undefined} style={{alignmentBaseline}}>{line}</tspan>
-            ))}
-        </text>
+        <text x={x} y={y} style={textStyle}>{text}</text>
     );
 }
 
-export const InteractiveMultilineText = withInteractiveText(
-    withInteractiveRect(MultilineText, {
+export const InteractiveText = withInteractiveText(
+    withInteractiveRect(Text, {
         innerHitArea: (hitArea) => ({...hitArea, dblClickAction: ACT_EDIT_TEXT})
     }),
     (props) => props,

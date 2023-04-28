@@ -13,4 +13,5 @@ export * from "./circle";
 export * from "./donut";
 export * from "./cross";
 export * from "./pie";
+export * from "./text";
 export * from "./multiline-text";

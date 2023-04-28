@@ -21,6 +21,7 @@ export interface TextStyle extends ClosedFigureStyle {
     fontWeight?: number | "normal" | "bold" | "bolder" | "lighter";
     fontStretch?: string;
     textAnchor?: "start" | "middle" | "end";
+    verticalAlign?: "top" | "middle" | "bottom";
     alignmentBaseline?: "auto" | "baseline" | "before-edge" | "text-before-edge" | "middle" | "central" | "after-edge" | "text-after-edge" | "ideographic" | "alphabetic" | "hanging" | "mathematical" | "top" | "center" | "bottom";
 }
 
@@ -78,4 +79,4 @@ export interface SquareBaseProps extends RawSquareProps, ClosedFigureStyleProps 
 export interface CircleBaseProps extends RawCircleProps, ClosedFigureStyleProps {}
 export interface PolygonBaseProps extends RawPolylineProps, ClosedFigureStyleProps {}
 
-export interface TextBaseProps<T extends TextStyle> extends RawTextProps, TextStyleProps<T> {}
+export interface TextBaseProps<T extends TextStyle> extends RawRectProps, RawTextProps, TextStyleProps<T> {}

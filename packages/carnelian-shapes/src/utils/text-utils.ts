@@ -59,12 +59,7 @@ export function wrapText(text: string, width: number, style?: TextStyle): WrapTe
     }, style);    
 }
 
-export function getTextBounds(
-    x: number,
-    y: number,
-    text: string,
-    style?: TextStyle & {verticalAlign?: "top" | "middle" | "bottom"}
-): Rect {
+export function getTextBounds(x: number, y: number, text: string, style?: TextStyle): Rect {
     const textMetrics = measureText(text, style);
     const width = textMetrics.width;
     const height = textMetrics.fontBoundingBoxAscent + textMetrics.fontBoundingBoxDescent;
