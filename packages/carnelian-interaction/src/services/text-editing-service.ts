@@ -7,7 +7,8 @@ export interface InplaceEditorStyles {
     fontFamily?: string;
     fontStyle?: string;
     fontWeight?: string | number;
-    textAlign?: string;
+    textAlign?: "left" | "center" | "right";
+    verticalAlign?: "top" | "middle" | "bottom";
 }
 
 export interface TextEditingService extends InteractionServive {
@@ -43,13 +44,37 @@ export class DefaultTextEditingService implements TextEditingService {
                 closeEditor(inplaceEditor.value);
             }
         };
-        const p = this.controller.diagramToClient(new DOMPoint(rect.x + rect.width / 2, rect.y + rect.height / 2));
+        let x = rect.x;
+        let y = rect.y;
+        let translateX = "0";
+        switch (style?.textAlign || "center") {
+            case "center": 
+                x = rect.x + rect.width / 2;
+                translateX = "-50%";
+                break;
+            case "right":
+                x = rect.x + rect.width;
+                translateX = "-100%";
+                break;
+        }
+        let translateY = "0";
+        switch (style?.verticalAlign || "middle") {
+            case "middle":
+                y = rect.y + rect.height / 2;
+                translateY = "-50%";
+                break;
+            case "bottom":
+                y = rect.y + rect.height;
+                translateY = "-100%";
+                break;
+        }
+        const p = this.controller.diagramToClient(new DOMPoint(x, y));
         const inplaceEditor = document.createElement("input");
         inplaceEditor.className = "inplace-text-editor";
         inplaceEditor.style.position = "relative";
         inplaceEditor.style.left = `${p.x}px`;
         inplaceEditor.style.top = `${p.y}px`;
-        inplaceEditor.style.transform = "translate(-50%, -50%)";
+        inplaceEditor.style.transform = `translate(${translateX}, ${translateY})`;
         let fontSize: string | number | undefined = style?.fontSize;
         if (fontSize) {
             fontSize = parseInt(fontSize);

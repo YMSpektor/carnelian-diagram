@@ -18,6 +18,7 @@ import {
 import {
     InteractivePacman as Pacman
 } from "./examples"
+import { TextStyle } from "@carnelian/shapes";
 
 export const diagram = new Diagram();
 export const controller = new InteractionController(diagram, (services) => {
@@ -44,7 +45,7 @@ function addToPalette<T extends object>(element: DiagramPaletteElement<T>) {
     palette.push(element);
 }
 
-export const defaultTextStyles = { fontSize: "50px" }
+export const defaultTextStyles: TextStyle = { fontSize: "50px" }
 
 addToPalette({
     category: "basic",

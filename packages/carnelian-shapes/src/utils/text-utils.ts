@@ -96,6 +96,7 @@ export function textEditorStyles(style?: TextStyle): InplaceEditorStyles {
         fontFamily: style?.fontFamily || DEFAULT_FONT_FAMILY,
         fontStyle: style?.fontStyle,
         fontWeight: style?.fontWeight,
-        textAlign: textAnchorToTextAlign(style?.textAnchor) || "center"
+        textAlign: textAnchorToTextAlign(style?.textAnchor) || "center",
+        verticalAlign: style?.verticalAlign || "middle"
     }
 }
