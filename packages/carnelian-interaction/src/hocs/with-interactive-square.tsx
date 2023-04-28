@@ -13,10 +13,14 @@ export interface InteractiveSquareProps {
 
 export type SquareColliderFactory<T extends InteractiveSquareProps> = (props: T) => Collider<any>;
 
+export interface InteractiveSquareOptions<T extends InteractiveSquareProps> {
+    collider?: SquareColliderFactory<T>;
+    innerHitArea?: (hitArea: HitArea) => HitArea;
+}
+
 export function useInteractiveSquare<T extends InteractiveSquareProps>(
     props: DiagramElementProps<T>, 
-    colliderFactory?: SquareColliderFactory<T>,
-    overrideInnerHitArea?: (hitArea: HitArea) => HitArea
+    options?: InteractiveSquareOptions<T>
 ) {
     const { x, y, size, onChange } = props;
 
@@ -108,10 +112,10 @@ export function useInteractiveSquare<T extends InteractiveSquareProps>(
         return result;
     }
 
-    const collider = colliderFactory?.(props) || defaultCollider();
+    const collider = options?.collider?.(props) || defaultCollider();
     let hitArea: HitArea = { type: "in", action: ACT_MOVE, cursor: "move" };
-    if (overrideInnerHitArea) {
-        hitArea = overrideInnerHitArea(hitArea);
+    if (options?.innerHitArea) {
+        hitArea = options.innerHitArea(hitArea);
     }
     useCollider(collider, hitArea);
     useAction(hitArea.action, move);
@@ -155,11 +159,10 @@ export function useInteractiveSquare<T extends InteractiveSquareProps>(
 
 export function withInteractiveSquare<T extends InteractiveSquareProps>(
     WrappedElement: DiagramElement<T>,
-    colliderFactory?: SquareColliderFactory<T>,
-    overrideInnerHitArea?: (hitArea: HitArea) => HitArea
+    options?: InteractiveSquareOptions<T>
 ): DiagramElement<T> {
     return (props) => {
-        useInteractiveSquare(props, colliderFactory, overrideInnerHitArea);
+        useInteractiveSquare(props, options);
         return <WrappedElement {...props} />;
     }
 }

@@ -1,10 +1,12 @@
 /** @jsxImportSource @carnelian/diagram */
 
 import { DiagramElement } from "@carnelian/diagram";
-import { withInteractiveRect, KnobController, withKnob } from "@carnelian/interaction";
+import { withInteractiveRect, KnobController, withKnob, ACT_EDIT_TEXT, withInteractiveText } from "@carnelian/interaction";
 import { clamp } from "@carnelian/interaction/geometry";
 import { RectBaseProps } from "..";
-import { convertPercentage, isPercentage, NumberOrPercentage } from "../utils";
+import { withText } from "../hocs";
+import { convertPercentage, isPercentage, NumberOrPercentage, textEditorStyles } from "../utils";
+import { MultilineText } from "./multiline-text";
 
 export interface RoundedRectProps extends RectBaseProps {
     radius: NumberOrPercentage;
@@ -49,5 +51,25 @@ export const RoundedRect: DiagramElement<RoundedRectProps> = function(props) {
 
 export const InteractiveRoundedRect = 
     withInteractiveRect(
-        withKnob(RoundedRect, knobController)
+        withKnob(RoundedRect, knobController),
+        {
+            innerHitArea: (hitArea) => ({...hitArea, dblClickAction: ACT_EDIT_TEXT})
+        }
     );
+
+export const InteractiveRoundedRectWithText = withText(
+    InteractiveRoundedRect,
+    withInteractiveText(
+        MultilineText,
+        (props) => props,
+        (props) => textEditorStyles(props.style)
+    ),
+    (props) => ({
+        x: props.x,
+        y: props.y,
+        width: props.width,
+        height: props.height,
+        text: props.text,
+        style: props.textStyle
+    })
+);

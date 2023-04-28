@@ -13,10 +13,14 @@ export interface InteractiveCircleProps {
 
 export type CircleColliderFactory<T extends InteractiveCircleProps> = (props: T) => Collider<any>;
 
+export interface InteractiveCircleOptions<T extends InteractiveCircleProps> {
+    collider?: CircleColliderFactory<T>;
+    innerHitArea?: (hitArea: HitArea) => HitArea;
+}
+
 export function withInteractiveCircle<T extends InteractiveCircleProps>(
     WrappedElement: DiagramElement<T>,
-    colliderFactory?: CircleColliderFactory<T>,
-    overrideInnerHitArea?: (hitArea: HitArea) => HitArea
+    options?: InteractiveCircleOptions<T>
 ): DiagramElement<T> {
     return (props) => {
         const { x, y, radius, onChange } = props;
@@ -46,9 +50,10 @@ export function withInteractiveCircle<T extends InteractiveCircleProps>(
             size: radius * 2,
             onChange: squareOnChange
         };
+        const colliderFactory = options?.collider;
         const squareColliderFactory: SquareColliderFactory<InteractiveSquareProps> | undefined = colliderFactory 
             ? (_: InteractiveSquareProps) => colliderFactory(props) : undefined;
-        useInteractiveSquare(squareProps, squareColliderFactory, overrideInnerHitArea);
+        useInteractiveSquare(squareProps, {...options, collider: squareColliderFactory});
         return <WrappedElement {...props} />
     }
 }

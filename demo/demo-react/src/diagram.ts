@@ -2,17 +2,17 @@ import { Diagram } from "@carnelian/diagram";
 import { InteractionController, isGridSnappingService, isPaperService } from "@carnelian/interaction";
 import { DiagramPaletteElement } from "./components/DiagramPalette";
 import {
-    InteractiveRect as Rect, 
-    InteractiveEllipse as Ellipse, 
-    InteractiveDiamond as Diamond,
-    InteractiveRoundedRect as RoundedRect,
-    InteractiveParallelogram as Parallelogram,
-    InteractiveTrapezoid as Trapezoid,
-    InteractiveHexagon as Hexagon,
-    InteractiveSquare as Square,
-    InteractiveCircle as Circle,
+    InteractiveRectWithText as Rect, 
+    InteractiveEllipseWithText as Ellipse, 
+    InteractiveDiamondWithText as Diamond,
+    InteractiveRoundedRectWithText as RoundedRect,
+    InteractiveParallelogramWithText as Parallelogram,
+    InteractiveTrapezoidWithText as Trapezoid,
+    InteractiveHexagonWithText as Hexagon,
+    InteractiveSquareWithText as Square,
+    InteractiveCircleWithText as Circle,
     InteractiveDonut as Donut,
-    InteractiveCross as Cross,
+    InteractiveCrossWithText as Cross,
     InteractivePie as Pie,
     InteractiveMultilineText as Text,
 } from "@carnelian/shapes/basic";
@@ -45,10 +45,12 @@ function addToPalette<T extends object>(element: DiagramPaletteElement<T>) {
     palette.push(element);
 }
 
+export const defaultTextStyles = { fontSize: "50px" }
+
 addToPalette({
     category: "basic",
     elementType: Rect,
-    elementProps: {x: 20, y: 20, width: 300, height: 200},
+    elementProps: {x: 20, y: 20, width: 300, height: 200, text: "", textStyle: defaultTextStyles},
     viewBox: "0 0 340 240",
     title: "Rectangle",
     factory: (point, props) => ({
@@ -61,7 +63,7 @@ addToPalette({
 addToPalette({
     category: "basic",
     elementType: RoundedRect,
-    elementProps: {x: 20, y: 20, width: 300, height: 200, radius: "50%"},
+    elementProps: {x: 20, y: 20, width: 300, height: 200, radius: "50%", text: "", textStyle: defaultTextStyles},
     viewBox: "0 0 340 240",
     title: "Rounded Rectangle",
     factory: (point, props) => ({
@@ -74,7 +76,7 @@ addToPalette({
 addToPalette({
     category: "basic",
     elementType: Ellipse,
-    elementProps: {x: 20, y: 20, width: 300, height: 200},
+    elementProps: {x: 20, y: 20, width: 300, height: 200, text: "", textStyle: defaultTextStyles},
     viewBox: "0 0 340 240",
     title: "Ellipse",
     factory: (point, props) => ({
@@ -87,7 +89,7 @@ addToPalette({
 addToPalette({
     category: "basic",
     elementType: Parallelogram,
-    elementProps: {x: 20, y: 20, width: 300, height: 200, offset: "20%"},
+    elementProps: {x: 20, y: 20, width: 300, height: 200, offset: "20%", text: "", textStyle: defaultTextStyles},
     viewBox: "0 0 340 240",
     title: "Parallelogram",
     factory: (point, props) => ({
@@ -100,7 +102,7 @@ addToPalette({
 addToPalette({
     category: "basic",
     elementType: Trapezoid,
-    elementProps: {x: 20, y: 20, width: 300, height: 200, offset: "20%"},
+    elementProps: {x: 20, y: 20, width: 300, height: 200, offset: "20%", text: "", textStyle: defaultTextStyles},
     viewBox: "0 0 340 240",
     title: "Trapezoid",
     factory: (point, props) => ({
@@ -113,7 +115,7 @@ addToPalette({
 addToPalette({
     category: "basic",
     elementType: Hexagon,
-    elementProps: {x: 20, y: 20, width: 300, height: 200, offset: "20%"},
+    elementProps: {x: 20, y: 20, width: 300, height: 200, offset: "20%", text: "", textStyle: defaultTextStyles},
     viewBox: "0 0 340 240",
     title: "Hexagon",
     factory: (point, props) => ({
@@ -126,7 +128,7 @@ addToPalette({
 addToPalette({
     category: "basic",
     elementType: Diamond,
-    elementProps: {x: 20, y: 20, width: 300, height: 300},
+    elementProps: {x: 20, y: 20, width: 300, height: 300, text: "", textStyle: defaultTextStyles},
     viewBox: "0 0 340 340",
     title: "Diamond",
     factory: (point, props) => ({
@@ -139,7 +141,7 @@ addToPalette({
 addToPalette({
     category: "basic",
     elementType: Square,
-    elementProps: {x: 20, y: 20, size: 300},
+    elementProps: {x: 20, y: 20, size: 300, text: "", textStyle: defaultTextStyles},
     viewBox: "0 0 340 340",
     title: "Square",
     factory: (point, props) => ({
@@ -152,7 +154,7 @@ addToPalette({
 addToPalette({
     category: "basic",
     elementType: Circle,
-    elementProps: {x: 160, y: 160, radius: 150},
+    elementProps: {x: 160, y: 160, radius: 150, text: "", textStyle: defaultTextStyles},
     viewBox: "0 0 340 340",
     title: "Circle",
     factory: (point, props) => ({
@@ -178,7 +180,7 @@ addToPalette({
 addToPalette({
     category: "basic",
     elementType: Cross,
-    elementProps: {x: 20, y: 20, width: 300, height: 300, offsetX: "25%", offsetY: "25%"},
+    elementProps: {x: 20, y: 20, width: 300, height: 300, offsetX: "25%", offsetY: "25%", text: "", textStyle: defaultTextStyles},
     viewBox: "0 0 340 340",
     title: "Cross",
     factory: (point, props) => ({
@@ -204,7 +206,7 @@ addToPalette({
 addToPalette({
     category: "basic",
     elementType: Text,
-    elementProps: {x: 20, y: 20, width: 300, height: 200, text: "Test text", style: { fontSize: "50px" }},
+    elementProps: {x: 20, y: 20, width: 300, height: 200, text: "Text", style: defaultTextStyles},
     viewBox: "0 0 340 240",
     title: "Text",
     factory: (point, props) => ({

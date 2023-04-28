@@ -1,3 +1,4 @@
+import { InplaceEditorStyles } from "@carnelian/interaction";
 import { TextStyle } from "..";
 
 export interface WrapTextResult {
@@ -44,5 +45,23 @@ export function wrapText(text: string, width: number, style?: TextStyle): WrapTe
     }
     finally {
         canvas.remove();
+    }
+}
+
+function textAnchorToTextAlign(textAnchor?: string) {
+    switch (textAnchor) {
+        case "start": return "left";
+        case "middle": return "center";
+        case "end": return "right";
+    }
+}
+
+export function textEditorStyles(style?: TextStyle): InplaceEditorStyles {
+    return {
+        fontSize: style?.fontSize || "10px",
+        fontFamily: style?.fontFamily || "sans-serif",
+        fontStyle: style?.fontStyle,
+        fontWeight: style?.fontWeight,
+        textAlign: textAnchorToTextAlign(style?.textAnchor) || "center"
     }
 }

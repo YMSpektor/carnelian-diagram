@@ -53,8 +53,10 @@ export const Donut: DiagramElement<DonutProps> = function(props) {
 }
 export const InteractiveDonut = withInteractiveCircle(
     withKnob(Donut, knobController),
-    (props) => DiffCollider(
-        CircleCollider({center: {x: props.x, y: props.y}, radius: props.radius}),
-        CircleCollider({center: {x: props.x, y: props.y}, radius: calcInnerRadius(props)})
-    )
+    {
+        collider: (props) => DiffCollider(
+            CircleCollider({center: {x: props.x, y: props.y}, radius: props.radius}),
+            CircleCollider({center: {x: props.x, y: props.y}, radius: calcInnerRadius(props)})
+        )
+    }
 );

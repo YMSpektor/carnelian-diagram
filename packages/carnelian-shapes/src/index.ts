@@ -29,8 +29,8 @@ export interface ClosedFigureStyleProps {
     style?: ClosedFigureStyle;
 }
 
-export interface TextStyleProps {
-    style?: TextStyle;
+export interface TextStyleProps<T extends TextStyle = TextStyle> {
+    style?: T;
 }
 
 export interface RawLineProps {
@@ -63,6 +63,10 @@ export interface RawCircleProps {
     radius: number;
 }
 
+export interface RawTextProps {
+    text: string;
+}
+
 export interface LineBaseProps extends RawLineProps, LineFigureStyleProps {}
 export interface PolylineBaseProps extends RawPolylineProps, LineFigureStyleProps {}
 
@@ -70,3 +74,5 @@ export interface RectBaseProps extends RawRectProps, ClosedFigureStyleProps {}
 export interface SquareBaseProps extends RawSquareProps, ClosedFigureStyleProps {}
 export interface CircleBaseProps extends RawCircleProps, ClosedFigureStyleProps {}
 export interface PolygonBaseProps extends RawPolylineProps, ClosedFigureStyleProps {}
+
+export interface TextBaseProps<T extends TextStyle> extends RawTextProps, TextStyleProps<T> {}

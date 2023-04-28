@@ -15,9 +15,10 @@ import {
     InteractiveLine as Line,
     InteractivePolyline as Polyline,
     InteractivePolygon as Polygon,
-    InteractiveRect as Rect,
-    InteractiveCircle as Circle,
+    InteractiveRectWithText as Rect,
+    InteractiveCircleWithText as Circle,
 } from "@carnelian/shapes/basic";
+import { defaultTextStyles } from "../diagram";
 
 interface DiagramToolbarProps {
     diagram: Diagram;
@@ -201,11 +202,11 @@ function DiagramToolbar(props: DiagramToolbarProps) {
     }
 
     const rectFactory: DrawingModeElementFactory = (diagram, x, y) => {
-        return diagram.add(Rect, { x, y, width: 0, height: 0 });
+        return diagram.add(Rect, { x, y, width: 0, height: 0, text: "", textStyle: defaultTextStyles });
     }
 
     const circleFactory: DrawingModeElementFactory = (diagram, x, y) => {
-        return diagram.add(Circle, { x, y, radius: 0 });
+        return diagram.add(Circle, { x, y, radius: 0, text: "", textStyle: defaultTextStyles });
     }
 
     return (

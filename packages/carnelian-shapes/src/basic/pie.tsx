@@ -76,5 +76,5 @@ export const Pie: DiagramElement<PieProps> = function(props) {
 
 export const InteractivePie = withInteractiveCircle(
     withKnobs(Pie, knobController(0), knobController(1)),
-    PieCollider
+    { collider: PieCollider }
 );

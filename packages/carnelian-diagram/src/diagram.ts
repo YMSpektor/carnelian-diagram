@@ -325,7 +325,12 @@ export namespace DiagramDOM {
         }
 
         const invalidate = (node?: DiagramNode) => {
-            const storedNode = storedRootNode && storedNodesMap.get(node || storedRootNode);
+            let storedNode: DiagramNode | undefined;
+            while (node && !storedNode) {  // Find nearest stored node
+                storedNode = node ? storedNodesMap.get(node) : undefined;
+                node = node.parent;
+            }
+            storedNode = storedNode || storedRootNode;
             storedNode && (storedNode.isValid = false);
             if (isValid) {
                 isValid = false;

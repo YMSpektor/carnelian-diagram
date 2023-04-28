@@ -29,10 +29,14 @@ export interface InteractiveRectProps {
 
 export type RectColliderFactory<T extends InteractiveRectProps> = (props: T) => Collider<any>;
 
+export interface InteractiveRectOptions<T extends InteractiveRectProps> {
+    collider?: RectColliderFactory<T>;
+    innerHitArea?: (hitArea: HitArea) => HitArea;
+}
+
 export function useInteractiveRect<T extends InteractiveRectProps>(
     props: DiagramElementProps<T>, 
-    colliderFactory?: RectColliderFactory<T>,
-    overrideInnerHitArea?: (hitArea: HitArea) => HitArea
+    options?: InteractiveRectOptions<T>
 ) {
     const { x, y, width, height, onChange } = props;
 
@@ -116,10 +120,10 @@ export function useInteractiveRect<T extends InteractiveRectProps>(
         return result;
     }
 
-    const collider = colliderFactory?.(props) || defaultCollider();
+    const collider = options?.collider?.(props) || defaultCollider();
     let hitArea: HitArea = { type: "in", action: ACT_MOVE, cursor: "move" };
-    if (overrideInnerHitArea) {
-        hitArea = overrideInnerHitArea(hitArea);
+    if (options?.innerHitArea) {
+        hitArea = options.innerHitArea(hitArea);
     }
     useCollider(collider, hitArea);
     useAction(hitArea.action, move);
@@ -257,11 +261,10 @@ export function useInteractiveRectControls(
 
 export function withInteractiveRect<T extends InteractiveRectProps>(
     WrappedElement: DiagramElement<T>,
-    colliderFactory?: RectColliderFactory<T>,
-    overrideInnerHitArea?: (hitArea: HitArea) => HitArea
+    options?: InteractiveRectOptions<T>
 ): DiagramElement<T> {
     return (props) => {
-        useInteractiveRect(props, colliderFactory, overrideInnerHitArea);
+        useInteractiveRect(props, options);
         return <WrappedElement {...props} />;
     }
 }

@@ -1,8 +1,11 @@
 /** @jsxImportSource @carnelian/diagram */
 
 import { DiagramElement } from "@carnelian/diagram";
-import { CircleCollider, withInteractiveCircle } from "@carnelian/interaction";
+import { ACT_EDIT_TEXT, CircleCollider, withInteractiveCircle, withInteractiveText } from "@carnelian/interaction";
 import { CircleBaseProps } from "..";
+import { withText } from "../hocs";
+import { textEditorStyles } from "../utils";
+import { MultilineText } from "./multiline-text";
 
 export interface CircleProps extends CircleBaseProps { }
 
@@ -16,5 +19,25 @@ export const Circle: DiagramElement<CircleProps> = function(props) {
 
 export const InteractiveCircle = withInteractiveCircle(
     Circle,
-    (props) => CircleCollider({center: {x: props.x, y: props.y}, radius: props.radius})
+    {
+        collider: (props) => CircleCollider({center: {x: props.x, y: props.y}, radius: props.radius}),
+        innerHitArea: (hitArea) => ({...hitArea, dblClickAction: ACT_EDIT_TEXT})
+    }
+);
+
+export const InteractiveCircleWithText = withText(
+    InteractiveCircle,
+    withInteractiveText(
+        MultilineText,
+        (props) => props,
+        (props) => textEditorStyles(props.style)
+    ),
+    (props) => ({
+        x: props.x - props.radius,
+        y: props.y - props.radius,
+        width: props.radius * 2,
+        height: props.radius * 2,
+        text: props.text,
+        style: props.textStyle
+    })
 );

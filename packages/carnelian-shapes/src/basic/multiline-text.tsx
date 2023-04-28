@@ -2,26 +2,15 @@
 
 import { DiagramElement } from "@carnelian/diagram";
 import { ACT_EDIT_TEXT, withInteractiveRect, withInteractiveText } from "@carnelian/interaction";
-import { RawRectProps, TextStyle } from "..";
-import { wrapText } from "../utils";
+import { RawRectProps, TextBaseProps, TextStyle } from "..";
+import { textEditorStyles, wrapText } from "../utils";
 
 export interface MultilineTextStyle extends TextStyle {
     verticalAlign?: "top" | "middle" | "bottom";
     lineHeight?: number;
 }
 
-export interface MultilineTextProps extends RawRectProps {
-    text: string;
-    style?: MultilineTextStyle;
-}
-
-function textAnchorToTextAlign(textAnchor?: string) {
-    switch (textAnchor) {
-        case "start": return "left";
-        case "middle": return "center";
-        case "end": return "right";
-    }
-}
+export interface MultilineTextProps extends RawRectProps, TextBaseProps<MultilineTextStyle> {}
 
 export const MultilineText: DiagramElement<MultilineTextProps> = function(props) {
     let { x, y, width, height, style, text } = props;
@@ -82,13 +71,9 @@ export const MultilineText: DiagramElement<MultilineTextProps> = function(props)
 }
 
 export const InteractiveMultilineText = withInteractiveText(
-    withInteractiveRect(MultilineText, undefined, (hitArea) => ({...hitArea, dblClickAction: ACT_EDIT_TEXT})),
+    withInteractiveRect(MultilineText, {
+        innerHitArea: (hitArea) => ({...hitArea, dblClickAction: ACT_EDIT_TEXT})
+    }),
     (props) => props,
-    (props) => ({
-        fontSize: props.style?.fontSize || "10px",
-        fontFamily: props.style?.fontFamily || "sans-serif",
-        fontStyle: props.style?.fontStyle,
-        fontWeight: props.style?.fontWeight,
-        textAlign: textAnchorToTextAlign(props.style?.textAnchor) || "center"
-    })
+    (props) => textEditorStyles(props.style)
 );

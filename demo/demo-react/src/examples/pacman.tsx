@@ -122,5 +122,5 @@ export const Pacman: DiagramElement<PacmanProps> = function(props) {
 
 export const InteractivePacman = withInteractiveCircle(
     withKnobs(Pacman, mouthKnobController, eyeKnobController),
-    PacmanCollider
+    { collider: PacmanCollider }
 );

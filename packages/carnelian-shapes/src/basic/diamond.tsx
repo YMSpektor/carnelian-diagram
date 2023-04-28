@@ -1,8 +1,11 @@
 /** @jsxImportSource @carnelian/diagram */
 
 import { DiagramElement } from "@carnelian/diagram";
-import { PolygonCollider, withInteractiveRect } from "@carnelian/interaction";
+import { ACT_EDIT_TEXT, PolygonCollider, withInteractiveRect, withInteractiveText } from "@carnelian/interaction";
 import { RectBaseProps } from "..";
+import { withText } from "../hocs";
+import { textEditorStyles } from "../utils";
+import { MultilineText } from "./multiline-text";
 
 export interface DiamondProps extends RectBaseProps {}
 
@@ -30,5 +33,25 @@ export const Diamond: DiagramElement<DiamondProps> = function(props) {
 
 export const InteractiveDiamond = withInteractiveRect(
     Diamond,
-    (props) => PolygonCollider(toPolygon(props))
+    {
+        collider: (props) => PolygonCollider(toPolygon(props)),
+        innerHitArea: (hitArea) => ({...hitArea, dblClickAction: ACT_EDIT_TEXT})
+    }
+);
+
+export const InteractiveDiamondWithText = withText(
+    InteractiveDiamond,
+    withInteractiveText(
+        MultilineText,
+        (props) => props,
+        (props) => textEditorStyles(props.style)
+    ),
+    (props) => ({
+        x: props.x,
+        y: props.y,
+        width: props.width,
+        height: props.height,
+        text: props.text,
+        style: props.textStyle
+    })
 );

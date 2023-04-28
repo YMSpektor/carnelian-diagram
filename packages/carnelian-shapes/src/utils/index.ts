@@ -1,4 +1,4 @@
-export * from "./wrap-text";
+export * from "./text-utils";
 
 export type NumberOrPercentage = number | string;
 
