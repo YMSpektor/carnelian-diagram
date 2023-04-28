@@ -1,5 +1,8 @@
 import { Point } from "@carnelian/interaction/geometry";
 
+export let DEFAULT_FONT_SIZE = "10px";
+export let DEFAULT_FONT_FAMILY = "sans-serif";
+
 export interface LineFigureStyle {
     stroke?: string;
     strokeWidth?: number | string;

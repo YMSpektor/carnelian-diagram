@@ -2,8 +2,8 @@
 
 import { DiagramElement } from "@carnelian/diagram";
 import { ACT_EDIT_TEXT, withInteractiveRect, withInteractiveText } from "@carnelian/interaction";
-import { RawRectProps, TextBaseProps, TextStyle } from "..";
-import { textEditorStyles, wrapText } from "../utils";
+import { DEFAULT_FONT_FAMILY, DEFAULT_FONT_SIZE, RawRectProps, TextBaseProps, TextStyle } from "..";
+import { getTextBounds, textEditorStyles, wrapText } from "../utils";
 
 export interface MultilineTextStyle extends TextStyle {
     verticalAlign?: "top" | "middle" | "bottom";
@@ -30,8 +30,8 @@ export const MultilineText: DiagramElement<MultilineTextProps> = function(props)
     textStyle = {
         ...textStyle,
         alignmentBaseline: undefined,
-        fontFamily: textStyle?.fontFamily || "sans-serif",
-        fontSize: textStyle?.fontSize || "10px",
+        fontFamily: textStyle?.fontFamily || DEFAULT_FONT_FAMILY,
+        fontSize: textStyle?.fontSize || DEFAULT_FONT_SIZE,
         textAnchor: textStyle?.textAnchor || "middle",
         userSelect: "none"
     }
@@ -75,5 +75,11 @@ export const InteractiveMultilineText = withInteractiveText(
         innerHitArea: (hitArea) => ({...hitArea, dblClickAction: ACT_EDIT_TEXT})
     }),
     (props) => props,
-    (props) => textEditorStyles(props.style)
+    (props) => textEditorStyles(props.style),
+    {
+        updateProps: (props) => ({
+            ...props,
+            ...getTextBounds(props.x, props.y, props.text, props.style)
+        })
+    }
 );

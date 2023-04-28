@@ -17,6 +17,8 @@ export interface DiagramElementControls {
 interface PendingAction<T> {
     action: string;
     payload: T;
+    resolve: () => void;
+    reject: (reason: unknown) => void;
 }
 
 export type ActionCallback<T> = (payload: T) => void;
@@ -173,7 +175,14 @@ export class InteractionController {
                 if (pendingActions) {
                     pendingActions = pendingActions.filter(x => {
                         if (x.action === action.action) {
-                            action.callback(x.payload);
+                            try
+                            {
+                                action.callback(x.payload);
+                                x.resolve();
+                            }
+                            catch (e) {
+                                x.reject(e);
+                            }
                             return false;
                         }
                         return true;
@@ -297,16 +306,20 @@ export class InteractionController {
             .map(test => test.element);
     }
 
-    dispatchAction<T>(elements: DiagramElementNode[], action: string, payload: T) {
+    dispatchAction<T>(elements: DiagramElementNode[], action: string, payload: T): Promise<void> {
         const actions = [...this.actions.values()];
+        const results: Promise<void>[] = [];
         elements.forEach(element => {
             if (!element.parent) {  // Newly added element, never rendered
-                let pendingActions = this.pendingActions.get(element);
-                if (!pendingActions) {
-                    pendingActions = [];
-                    this.pendingActions.set(element, pendingActions);
-                }
-                pendingActions.push({ action, payload });
+                const promise = new Promise<void>((resolve, reject) => {
+                    let pendingActions = this.pendingActions.get(element);
+                    if (!pendingActions) {
+                        pendingActions = [];
+                        this.pendingActions.set(element, pendingActions);
+                    }
+                    pendingActions.push({ action, payload, resolve, reject });
+                });
+                results.push(promise);
             }
             else {
                 const callbacks = actions
@@ -317,6 +330,8 @@ export class InteractionController {
                 }
             }
         });
+
+        return Promise.all(results).then(() => {});
     }
 
     dispatchEvent<T>(eventType: string, eventArgs: T) {

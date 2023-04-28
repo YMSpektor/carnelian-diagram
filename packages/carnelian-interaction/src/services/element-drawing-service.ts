@@ -94,13 +94,13 @@ export class DefaultElementDrawingService implements ElementDrawingService {
 
         let pointIndex = 0;
         const result: MutableRefObject<boolean> = { current: false };
-        const drawPoint = (e: PointerEvent) => {
+        const drawPoint = async (e: PointerEvent) => {
             const point = new DOMPoint(e.clientX, e.clientY);
             const snapGridSize = !e.altKey && this.gridSnappingService ? this.gridSnappingService.snapGridSize : null;
             const elementPoint = this.controller.clientToDiagram(point);
             const snappedElementPoint = this.gridSnappingService?.snapToGrid(elementPoint, snapGridSize) || elementPoint;
 
-            this.controller.dispatchAction<ACT_DRAW_POINT_PLACE_Payload>([element], ACT_DRAW_POINT_PLACE, {
+            await this.controller.dispatchAction<ACT_DRAW_POINT_PLACE_Payload>([element], ACT_DRAW_POINT_PLACE, {
                 controller: this.controller,
                 position: snappedElementPoint,
                 rawPosition: elementPoint,
