@@ -14,7 +14,7 @@ export const App: DiagramComponent<AppProps> = function(props) {
 
     const defaultStyles = [
         ".carnelian-diagram { stroke: black; fill: white }",
-        ".carnelian-diagram text { stroke: none; fill: black }"
+        ".carnelian-diagram text { stroke: none; fill: black; user-select: none }"
     ];
     
     return (

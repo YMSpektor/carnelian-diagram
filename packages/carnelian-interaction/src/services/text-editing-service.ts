@@ -47,7 +47,7 @@ export class DefaultTextEditingService implements TextEditingService {
         let x = rect.x;
         let y = rect.y;
         let translateX = "0";
-        switch (style?.textAlign || "center") {
+        switch (style?.textAlign) {
             case "center": 
                 x = rect.x + rect.width / 2;
                 translateX = "-50%";
@@ -58,7 +58,7 @@ export class DefaultTextEditingService implements TextEditingService {
                 break;
         }
         let translateY = "0";
-        switch (style?.verticalAlign || "middle") {
+        switch (style?.verticalAlign) {
             case "middle":
                 y = rect.y + rect.height / 2;
                 translateY = "-50%";

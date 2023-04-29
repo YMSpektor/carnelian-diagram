@@ -63,11 +63,11 @@ export function getTextBounds(x: number, y: number, text: string, style?: TextSt
     const textMetrics = measureText(text, style);
     const width = textMetrics.width;
     const height = textMetrics.fontBoundingBoxAscent + textMetrics.fontBoundingBoxDescent;
-    switch (style?.textAnchor || "middle") {
-        case "middle":
+    switch (style?.textAlign || "center") {
+        case "center":
             x = x - width / 2;
             break;
-        case "end":
+        case "right":
             x = x - width;
             break;
     }
@@ -82,21 +82,13 @@ export function getTextBounds(x: number, y: number, text: string, style?: TextSt
     return { x, y, width, height };
 }
 
-function textAnchorToTextAlign(textAnchor?: string) {
-    switch (textAnchor) {
-        case "start": return "left";
-        case "middle": return "center";
-        case "end": return "right";
-    }
-}
-
 export function textEditorStyles(style?: TextStyle): InplaceEditorStyles {
     return {
         fontSize: style?.fontSize || DEFAULT_FONT_SIZE,
         fontFamily: style?.fontFamily || DEFAULT_FONT_FAMILY,
         fontStyle: style?.fontStyle,
         fontWeight: style?.fontWeight,
-        textAlign: textAnchorToTextAlign(style?.textAnchor) || "center",
+        textAlign: style?.textAlign || "center",
         verticalAlign: style?.verticalAlign || "middle"
     }
 }

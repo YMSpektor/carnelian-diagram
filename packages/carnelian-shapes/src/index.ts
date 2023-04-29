@@ -20,9 +20,12 @@ export interface TextStyle extends ClosedFigureStyle {
     fontVariant?: string;
     fontWeight?: number | "normal" | "bold" | "bolder" | "lighter";
     fontStretch?: string;
-    textAnchor?: "start" | "middle" | "end";
+    textAlign?: "left" | "center" | "right";
     verticalAlign?: "top" | "middle" | "bottom";
-    alignmentBaseline?: "auto" | "baseline" | "before-edge" | "text-before-edge" | "middle" | "central" | "after-edge" | "text-after-edge" | "ideographic" | "alphabetic" | "hanging" | "mathematical" | "top" | "center" | "bottom";
+}
+
+export interface MultilineTextStyle extends TextStyle {
+    lineHeight?: number;
 }
 
 export interface LineFigureStyleProps {
@@ -34,7 +37,7 @@ export interface ClosedFigureStyleProps {
 }
 
 export interface TextStyleProps<T extends TextStyle = TextStyle> {
-    style?: T;
+    textStyle?: T;
 }
 
 export interface RawLineProps {

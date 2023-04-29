@@ -222,7 +222,7 @@ function DiagramToolbar(props: DiagramToolbarProps) {
     }
 
     const textFactory: DrawingModeElementFactory = (diagram, x, y) => {
-        return diagram.add(Text, { x, y, width: 0, height: 0, text: "", style: defaultTextStyles });
+        return diagram.add(Text, { x, y, width: 0, height: 0, text: "", textStyle: defaultTextStyles });
     }
 
     return (
