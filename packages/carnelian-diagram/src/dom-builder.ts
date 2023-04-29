@@ -49,9 +49,7 @@ export class DiagramDOMBuilder {
 
     updateDOM(rootNode: DiagramNode | null) {
         const props = rootNode ? this.transformProperties({
-            className: this.oldClass ? `${this.oldClass} carnelian-diagram` : "carnelian-diagram",
-            stroke: "black",
-            fill: "white"
+            className: this.oldClass ? `${this.oldClass} carnelian-diagram` : "carnelian-diagram" 
         }): {};
         const tree = svg("", props, this.transformNode(rootNode));
         const lastTree = this.lastTree;

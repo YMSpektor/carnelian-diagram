@@ -15,7 +15,8 @@ import {
     ACT_DRAW_POINT_MOVE,
     ACT_DRAW_POINT_MOVE_Payload,
     ACT_DRAW_POINT_CANCEL,
-    ACT_DRAW_POINT_CANCEL_Payload
+    ACT_DRAW_POINT_CANCEL_Payload,
+    HitArea
 } from "..";
 import { Collider, RectCollider } from "../collisions";
 
@@ -28,7 +29,15 @@ export interface InteractiveRectProps {
 
 export type RectColliderFactory<T extends InteractiveRectProps> = (props: T) => Collider<any>;
 
-export function useInteractiveRect<T extends InteractiveRectProps>(props: DiagramElementProps<T>, colliderFactory?: RectColliderFactory<T>) {
+export interface InteractiveRectOptions<T extends InteractiveRectProps> {
+    collider?: RectColliderFactory<T>;
+    innerHitArea?: (hitArea: HitArea) => HitArea;
+}
+
+export function useInteractiveRect<T extends InteractiveRectProps>(
+    props: DiagramElementProps<T>, 
+    options?: InteractiveRectOptions<T>
+) {
     const { x, y, width, height, onChange } = props;
 
     function move(payload: DragActionPayload) {
@@ -111,9 +120,13 @@ export function useInteractiveRect<T extends InteractiveRectProps>(props: Diagra
         return result;
     }
 
-    const collider = colliderFactory?.(props) || defaultCollider();
-    useCollider(collider, { type: "in", action: ACT_MOVE, cursor: "move" });
-    useAction(ACT_MOVE, move);
+    const collider = options?.collider?.(props) || defaultCollider();
+    let hitArea: HitArea = { type: "in", action: ACT_MOVE, cursor: "move" };
+    if (options?.innerHitArea) {
+        hitArea = options.innerHitArea(hitArea);
+    }
+    useCollider(collider, hitArea);
+    useAction(hitArea.action, move);
 
     useAction<ACT_DRAW_POINT_PLACE_Payload>(ACT_DRAW_POINT_PLACE, (payload) => {
         if (payload.pointIndex === 0) {
@@ -248,10 +261,10 @@ export function useInteractiveRectControls(
 
 export function withInteractiveRect<T extends InteractiveRectProps>(
     WrappedElement: DiagramElement<T>,
-    colliderFactory?: RectColliderFactory<T>
+    options?: InteractiveRectOptions<T>
 ): DiagramElement<T> {
     return (props) => {
-        useInteractiveRect(props, colliderFactory);
+        useInteractiveRect(props, options);
         return <WrappedElement {...props} />;
     }
 }

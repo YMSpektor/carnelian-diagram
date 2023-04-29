@@ -2,7 +2,7 @@
 
 import { DiagramElement } from "@carnelian/diagram";
 import { PolygonCollider, withInteractivePolyline } from "@carnelian/interaction";
-import { PolygonBaseProps } from ".";
+import { PolygonBaseProps } from "..";
 
 export interface PolygonProps extends PolygonBaseProps {}
 
@@ -12,7 +12,7 @@ export const Polygon: DiagramElement<PolygonProps> = function(props) {
         ...rest,
         style: {
             ...rest.style,
-            "fill-rule": "evenodd"
+            fillRule: "evenodd"
         }
     }
 
@@ -22,6 +22,5 @@ export const Polygon: DiagramElement<PolygonProps> = function(props) {
 };
 
 export const InteractivePolygon = withInteractivePolyline(
-    Polygon, true, 3,
-    (props) => PolygonCollider(props.points)
+    Polygon, true, 3, { collider: (props) => PolygonCollider(props.points) }
 );

@@ -27,11 +27,11 @@ export class DefaultElementDrawingService implements ElementDrawingService {
     private root?: HTMLElement;
     private gridSnappingService?: GridSnappingService;
     type: "element_drawing_service" = "element_drawing_service";
-    release?: () => void;
+    deactivate?: () => void;
 
     constructor(private controller: InteractionController, private drawingModeFactory: DrawingModeElementFactory | null = null) {}
     
-    init(diagram: Diagram, root: HTMLElement) {
+    activate(diagram: Diagram, root: HTMLElement) {
         this.diagram = diagram;
         this.root = root;
         this.gridSnappingService = this.controller.getService(isGridSnappingService);
@@ -40,8 +40,8 @@ export class DefaultElementDrawingService implements ElementDrawingService {
         const mouseDownHandler = (e: PointerEvent) => this.mouseDownHandler(root, e);
         root.addEventListener("pointerdown", mouseDownHandler);
 
-        this.release = () => {
-            this.release = undefined;
+        this.deactivate = () => {
+            this.deactivate = undefined;
             this.diagram = null;
             root.removeEventListener("pointerdown", mouseDownHandler);
         }
@@ -94,13 +94,14 @@ export class DefaultElementDrawingService implements ElementDrawingService {
 
         let pointIndex = 0;
         const result: MutableRefObject<boolean> = { current: false };
-        const drawPoint = (e: PointerEvent) => {
+        const drawPoint = async (e: PointerEvent) => {
             const point = new DOMPoint(e.clientX, e.clientY);
             const snapGridSize = !e.altKey && this.gridSnappingService ? this.gridSnappingService.snapGridSize : null;
             const elementPoint = this.controller.clientToDiagram(point);
             const snappedElementPoint = this.gridSnappingService?.snapToGrid(elementPoint, snapGridSize) || elementPoint;
 
-            this.controller.dispatchAction<ACT_DRAW_POINT_PLACE_Payload>([element], ACT_DRAW_POINT_PLACE, {
+            await this.controller.dispatchAction<ACT_DRAW_POINT_PLACE_Payload>([element], ACT_DRAW_POINT_PLACE, {
+                controller: this.controller,
                 position: snappedElementPoint,
                 rawPosition: elementPoint,
                 snapGridSize,
@@ -123,6 +124,7 @@ export class DefaultElementDrawingService implements ElementDrawingService {
             const snappedElementPoint = this.gridSnappingService?.snapToGrid(elementPoint, snapGridSize) || elementPoint;
 
             this.controller.dispatchAction<ACT_DRAW_POINT_MOVE_Payload>([element], ACT_DRAW_POINT_MOVE, {
+                controller: this.controller,
                 position: snappedElementPoint,
                 rawPosition: elementPoint,
                 snapGridSize,
@@ -138,7 +140,7 @@ export class DefaultElementDrawingService implements ElementDrawingService {
             }
             else if (e.button === 2) {
                 const result: MutableRefObject<boolean> = { current: true };
-                this.controller.dispatchAction<ACT_DRAW_POINT_CANCEL_Payload>([element], ACT_DRAW_POINT_CANCEL, { pointIndex, result });
+                this.controller.dispatchAction<ACT_DRAW_POINT_CANCEL_Payload>([element], ACT_DRAW_POINT_CANCEL, { controller: this.controller, pointIndex, result });
                 endDraw(element, result.current);
             }            
         }
@@ -148,7 +150,7 @@ export class DefaultElementDrawingService implements ElementDrawingService {
             // https://developer.mozilla.org/en-US/docs/Web/API/UI_Events/Keyboard_event_key_values
             if (e.key === "Escape" || e.key === "Esc") {
                 const result: MutableRefObject<boolean> = { current: true };
-                this.controller.dispatchAction<ACT_DRAW_POINT_CANCEL_Payload>([element], ACT_DRAW_POINT_CANCEL, { pointIndex, result });
+                this.controller.dispatchAction<ACT_DRAW_POINT_CANCEL_Payload>([element], ACT_DRAW_POINT_CANCEL, { controller: this.controller, pointIndex, result });
                 endDraw(element, result.current);
             }
         }

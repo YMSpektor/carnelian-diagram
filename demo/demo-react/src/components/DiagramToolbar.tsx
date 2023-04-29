@@ -7,17 +7,21 @@ import BorderColorIcon from '@mui/icons-material/BorderColor';
 import FormatColorFillIcon from '@mui/icons-material/FormatColorFill';
 import LineWeightIcon from '@mui/icons-material/LineWeight';
 import CircleOutlinedIcon from '@mui/icons-material/CircleOutlined';
+import FormatColorTextIcon from '@mui/icons-material/FormatColorText';
+import FormatSizeIcon from '@mui/icons-material/FormatSize';
 import { CompactPicker } from 'react-color';
 import { DrawingModeElementFactory, DRAW_ELEMENT_EVENT, InteractionController, isElementDrawingService } from "@carnelian/interaction";
-import { ClosedFigureStyleProps } from "@carnelian/shapes/basic";
+import { ClosedFigureStyleProps, TextStyleProps } from "@carnelian/shapes";
 import { Diagram, DiagramElementNode, DiagramElementProps } from "@carnelian/diagram";
 import {
     InteractiveLine as Line,
     InteractivePolyline as Polyline,
     InteractivePolygon as Polygon,
-    InteractiveRect as Rect,
-    InteractiveCircle as Circle,
+    InteractiveRectWithText as Rect,
+    InteractiveCircleWithText as Circle,
+    InteractiveMultilineText as Text,
 } from "@carnelian/shapes/basic";
+import { defaultTextStyles } from "../diagram";
 
 interface DiagramToolbarProps {
     diagram: Diagram;
@@ -68,14 +72,25 @@ function RectIcon() {
     );
 }
 
+function TextIcon() {
+    return (
+        <SvgIcon>
+            <path d="M18.5,4L19.66,8.35L18.7,8.61C18.25,7.74 17.79,6.87 17.26,6.43C16.73,6 16.11,6 15.5,6H13V16.5C13,17 13,17.5 13.33,17.75C13.67,18 14.33,18 15,18V19H9V18C9.67,18 10.33,18 10.67,17.75C11,17.5 11,17 11,16.5V6H8.5C7.89,6 7.27,6 6.74,6.43C6.21,6.87 5.75,7.74 5.3,8.61L4.34,8.35L5.5,4H18.5Z" />
+        </SvgIcon>
+    );
+}
+
 function DiagramToolbar(props: DiagramToolbarProps) {
     const scaleOptions = [25, 50, 100, 200, 500];
     const lineWeightOptions = [0.1, 0.25, 0.5, 1, 2, 5];
+    const textSizeOptions = [1, 2, 5, 10, 20];
 
     const [scaleMenuAnchorEl, setScaleMenuAnchorEl] = useState<null | HTMLElement>(null);
     const [colorPopoverAnchorEl, setColorPopoverAnchorEl] = useState<null | HTMLElement>(null);
     const [lineWeightMenuAnchorEl, setLineWeightMenuAnchorEl] = useState<null | HTMLElement>(null);
+    const [textSizeMenuAnchorEl, setTextSizeMenuAnchorEl] = useState<null | HTMLElement>(null);
     const [color, setColor] = useState<string>("black");
+    const [styleProperty, setStyleProperty] = useState<"style" | "textStyle">("style");
     const [colorProperty, setColorProperty] = useState<"fill" | "stroke">("fill");
     const [drawingMode, setDrawingMode] = useState("");
 
@@ -97,6 +112,9 @@ function DiagramToolbar(props: DiagramToolbarProps) {
                     break;
                 case "circle":
                     service.switchDrawingMode(circleFactory);
+                    break;
+                case "text":
+                    service.switchDrawingMode(textFactory);
                     break;
                 default:
                     service.switchDrawingMode(null);
@@ -131,10 +149,19 @@ function DiagramToolbar(props: DiagramToolbarProps) {
     const closeLineWeightMenu = (value?: number | null) => {
         if (value !== undefined) {
             props.controller.getSelectedElements().forEach(element => {
-                updateElement<ClosedFigureStyleProps>(element, { ...element.props, style: { ...element.props.style, "stroke-width": value !== null ? value / props.unitMultiplier : undefined } });
+                updateElement<ClosedFigureStyleProps>(element, { ...element.props, style: { ...element.props.style, strokeWidth: value !== null ? value / props.unitMultiplier : undefined } });
             });
         }
         setLineWeightMenuAnchorEl(null);
+    };
+
+    const closeTextSizeMenu = (value?: number) => {
+        if (value !== undefined) {
+            props.controller.getSelectedElements().forEach(element => {
+                updateElement<TextStyleProps>(element, { ...element.props, textStyle: { ...element.props.textStyle, fontSize: `${value / props.unitMultiplier}px` } });
+            });
+        }
+        setTextSizeMenuAnchorEl(null);
     };
 
     const colorToHex = (color: string) => {
@@ -149,7 +176,7 @@ function DiagramToolbar(props: DiagramToolbarProps) {
     const setElementColor = (color: string) => {
         setColor(color);
         props.controller.getSelectedElements().forEach(element => {
-            updateElement<ClosedFigureStyleProps>(element, { ...element.props, style: { ...element.props.style, [colorProperty]: color } });
+            updateElement<ClosedFigureStyleProps>(element, { ...element.props, [styleProperty]: { ...element.props[styleProperty], [colorProperty]: color } });
         });
     }
 
@@ -157,6 +184,7 @@ function DiagramToolbar(props: DiagramToolbarProps) {
         const color = (props.controller.getSelectedElements()[0]?.props as ClosedFigureStyleProps)?.style?.stroke || "black";
         setColor(colorToHex(color));
         setColorPopoverAnchorEl(anchor);
+        setStyleProperty("style");
         setColorProperty("stroke");
     }
 
@@ -164,6 +192,15 @@ function DiagramToolbar(props: DiagramToolbarProps) {
         const color = (props.controller.getSelectedElements()[0]?.props as ClosedFigureStyleProps)?.style?.fill || "white";
         setColor(colorToHex(color));
         setColorPopoverAnchorEl(anchor);
+        setStyleProperty("style");
+        setColorProperty("fill");
+    }
+
+    const openTextColorPicker = (anchor: HTMLElement) => {
+        const color = (props.controller.getSelectedElements()[0]?.props as TextStyleProps)?.textStyle?.fill || "black";
+        setColor(colorToHex(color));
+        setColorPopoverAnchorEl(anchor);
+        setStyleProperty("textStyle");
         setColorProperty("fill");
     }
 
@@ -201,11 +238,15 @@ function DiagramToolbar(props: DiagramToolbarProps) {
     }
 
     const rectFactory: DrawingModeElementFactory = (diagram, x, y) => {
-        return diagram.add(Rect, { x, y, width: 0, height: 0 });
+        return diagram.add(Rect, { x, y, width: 0, height: 0, text: "", textStyle: defaultTextStyles });
     }
 
     const circleFactory: DrawingModeElementFactory = (diagram, x, y) => {
-        return diagram.add(Circle, { x, y, radius: 0 });
+        return diagram.add(Circle, { x, y, radius: 0, text: "", textStyle: defaultTextStyles });
+    }
+
+    const textFactory: DrawingModeElementFactory = (diagram, x, y) => {
+        return diagram.add(Text, { x, y, width: 0, height: 0, text: "", textStyle: defaultTextStyles });
     }
 
     return (
@@ -238,6 +279,12 @@ function DiagramToolbar(props: DiagramToolbarProps) {
                 <IconButton color="inherit" onClick={(e) => setLineWeightMenuAnchorEl(e.currentTarget)}>
                     <LineWeightIcon />
                 </IconButton>
+                <IconButton color="inherit" onClick={(e) => openTextColorPicker(e.currentTarget)}>
+                    <FormatColorTextIcon />
+                </IconButton>
+                <IconButton color="inherit" onClick={(e) => setTextSizeMenuAnchorEl(e.currentTarget)}>
+                    <FormatSizeIcon />
+                </IconButton>
                 <Menu
                     anchorEl={lineWeightMenuAnchorEl}
                     open={!!lineWeightMenuAnchorEl}
@@ -247,6 +294,15 @@ function DiagramToolbar(props: DiagramToolbarProps) {
                     <Divider />
                     {lineWeightOptions.map(lineWeight => (
                         <MenuItem key={lineWeight} onClick={() => closeLineWeightMenu(lineWeight)}>{lineWeight} {props.unit}</MenuItem>
+                    ))}
+                </Menu>
+                <Menu
+                    anchorEl={textSizeMenuAnchorEl}
+                    open={!!textSizeMenuAnchorEl}
+                    onClose={() => closeTextSizeMenu()}
+                >
+                    {textSizeOptions.map(textSize => (
+                        <MenuItem key={textSize} onClick={() => closeTextSizeMenu(textSize)}>{textSize} {props.unit}</MenuItem>
                     ))}
                 </Menu>
                 <Popover
@@ -278,6 +334,9 @@ function DiagramToolbar(props: DiagramToolbarProps) {
                     </ToggleButton>
                     <ToggleButton value="circle" sx={{ color: "inherit !important" }}>
                         <CircleOutlinedIcon />
+                    </ToggleButton>
+                    <ToggleButton value="text" sx={{ color: "inherit !important" }}>
+                        <TextIcon />
                     </ToggleButton>
                 </ToggleButtonGroup>
             </Toolbar>

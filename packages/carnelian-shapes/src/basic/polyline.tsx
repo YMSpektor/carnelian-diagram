@@ -2,7 +2,7 @@
 
 import { DiagramElement } from "@carnelian/diagram";
 import { withInteractivePolyline } from "@carnelian/interaction";
-import { PolylineBaseProps } from ".";
+import { PolylineBaseProps } from "..";
 
 export interface PolylineProps extends PolylineBaseProps {}
 

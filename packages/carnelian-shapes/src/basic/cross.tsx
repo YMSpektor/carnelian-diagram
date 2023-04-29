@@ -1,10 +1,12 @@
 /** @jsxImportSource @carnelian/diagram */
 
 import { DiagramElement } from "@carnelian/diagram";
-import { PolygonCollider, KnobController, withInteractiveRect, withKnob } from "@carnelian/interaction";
+import { PolygonCollider, KnobController, withInteractiveRect, withKnob, ACT_EDIT_TEXT, withInteractiveText } from "@carnelian/interaction";
 import { clamp } from "@carnelian/interaction/geometry";
-import { RectBaseProps } from ".";
-import { convertPercentage, isPercentage, NumberOrPercentage } from "../utils";
+import { RectBaseProps } from "..";
+import { withText } from "../hocs";
+import { convertPercentage, isPercentage, NumberOrPercentage, textEditorStyles } from "../utils";
+import { MultilineText } from "./multiline-text";
 
 export interface CrossProps extends RectBaseProps {
     offsetX: NumberOrPercentage;
@@ -79,5 +81,18 @@ export const Cross: DiagramElement<CrossProps> = function(props) {
 export const InteractiveCross = 
     withInteractiveRect(
         withKnob(Cross, knobController),
-        (props) => PolygonCollider(toPolygon(props))
+        {
+            collider: (props) => PolygonCollider(toPolygon(props)),
+            innerHitArea: (hitArea) => ({...hitArea, dblClickAction: ACT_EDIT_TEXT})
+        }
     );
+
+export const InteractiveCrossWithText = withText(
+    InteractiveCross,
+    withInteractiveText(
+        MultilineText,
+        (props) => props,
+        (props) => textEditorStyles(props.textStyle)
+    ),
+    (props) => props
+);

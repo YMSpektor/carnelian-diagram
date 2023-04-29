@@ -3,7 +3,7 @@
 import { DiagramElement } from "@carnelian/diagram";
 import { CircleCollider, DiffCollider, HalfPlaneCollider, IntersectionCollider, KnobController, UnionCollider, withInteractiveCircle, withKnobs } from "@carnelian/interaction";
 import { clamp, degToRad, Point, radToDeg } from "@carnelian/interaction/geometry";
-import { CircleBaseProps } from "@carnelian/shapes/basic";
+import { CircleBaseProps } from "@carnelian/shapes";
 import { convertPercentage, isPercentage, NumberOrPercentage } from "@carnelian/shapes/utils";
 
 const MAX_MOUTH_ANGLE = 120;
@@ -122,5 +122,5 @@ export const Pacman: DiagramElement<PacmanProps> = function(props) {
 
 export const InteractivePacman = withInteractiveCircle(
     withKnobs(Pacman, mouthKnobController, eyeKnobController),
-    PacmanCollider
+    { collider: PacmanCollider }
 );

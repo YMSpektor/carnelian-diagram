@@ -1,3 +1,5 @@
+export * from "./text-utils";
+
 export type NumberOrPercentage = number | string;
 
 export function isPercentage(value: NumberOrPercentage): value is string {

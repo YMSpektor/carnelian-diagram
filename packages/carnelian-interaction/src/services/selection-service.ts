@@ -18,16 +18,16 @@ export interface RectSelectionEventArgs {
 
 export class DefaultSelectionService implements SelectionService {
     type: "selection_service" = "selection_service";
-    release?: () => void;
+    deactivate?: () => void;
 
     constructor(private controller: InteractionController) {}
     
-    init(diagram: Diagram, root: HTMLElement) {
+    activate(diagram: Diagram, root: HTMLElement) {
         const mouseDownHandler = (e: PointerEvent) => this.mouseDownHandler(root, e);
         root.addEventListener("pointerdown", mouseDownHandler);
 
-        this.release = () => {
-            this.release = undefined;
+        this.deactivate = () => {
+            this.deactivate = undefined;
             root.removeEventListener("pointerdown", mouseDownHandler);
         }
     }

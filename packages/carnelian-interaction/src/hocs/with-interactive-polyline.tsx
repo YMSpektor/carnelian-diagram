@@ -1,7 +1,7 @@
 /** @jsxImportSource @carnelian/diagram */
 
 import { DiagramElement, DiagramElementProps } from "@carnelian/diagram";
-import { ACT_DRAW_POINT_CANCEL, ACT_DRAW_POINT_CANCEL_Payload, ACT_DRAW_POINT_MOVE, ACT_DRAW_POINT_MOVE_Payload, ACT_DRAW_POINT_PLACE, ACT_DRAW_POINT_PLACE_Payload, ACT_MOVE, ClickActionPayload, Collider, DragActionPayload, EdgeControl, HandleControl, LineCollider, PointCollider, UnionCollider, useAction, useCollider, useControls } from "..";
+import { ACT_DRAW_POINT_CANCEL, ACT_DRAW_POINT_CANCEL_Payload, ACT_DRAW_POINT_MOVE, ACT_DRAW_POINT_MOVE_Payload, ACT_DRAW_POINT_PLACE, ACT_DRAW_POINT_PLACE_Payload, ACT_MOVE, ClickActionPayload, Collider, DragActionPayload, EdgeControl, HandleControl, HitArea, LineCollider, PointCollider, UnionCollider, useAction, useCollider, useControls } from "..";
 import { Line, Point } from "../geometry";
 
 export interface InteractivePolylineProps {
@@ -20,11 +20,16 @@ export function PolylineCollider(points: Point[]) {
 
 export type PolylineColliderFactory<T extends InteractivePolylineProps> = (props: T) => Collider<any>;
 
+export interface InteractivePolylineOptions<T extends InteractivePolylineProps> {
+    collider?: PolylineColliderFactory<T>;
+    innerHitArea?: (hitArea: HitArea) => HitArea;
+}
+
 export function useInteractivePolyline<T extends InteractivePolylineProps>(
     props: DiagramElementProps<T>,
     isClosed: boolean,
     minPoints: number,
-    colliderFactory?: PolylineColliderFactory<T>
+    options?: InteractivePolylineOptions<T>
 ) {
     const { points, onChange } = props;
 
@@ -42,9 +47,13 @@ export function useInteractivePolyline<T extends InteractivePolylineProps>(
         }));
     }
 
-    const collider = colliderFactory?.(props) || PolylineCollider(points);
-    useCollider(collider, { type: "in", cursor: "move", action: ACT_MOVE }, 0, 2);
-    useAction(ACT_MOVE, move);
+    const collider = options?.collider?.(props) || PolylineCollider(points);
+    let hitArea: HitArea = { type: "in", action: ACT_MOVE, cursor: "move" };
+    if (options?.innerHitArea) {
+        hitArea = options.innerHitArea(hitArea);
+    }
+    useCollider(collider, hitArea);
+    useAction(hitArea.action, move);
     useAction("vertex_move", moveVertex);
 
     useAction<ACT_DRAW_POINT_PLACE_Payload>(ACT_DRAW_POINT_PLACE, (payload) => {
@@ -167,10 +176,10 @@ export function withInteractivePolyline<T extends InteractivePolylineProps>(
     WrappedElement: DiagramElement<T>,
     isClosed: boolean,
     minPoints: number,
-    colliderFactory?: PolylineColliderFactory<T>
+    options?: InteractivePolylineOptions<T>
 ): DiagramElement<T> {
     return (props) => {
-        useInteractivePolyline(props, isClosed, minPoints, colliderFactory);
+        useInteractivePolyline(props, isClosed, minPoints, options);
         return <WrappedElement {...props} />;
     }
 }

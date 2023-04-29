@@ -4,7 +4,7 @@ import { InteractionContextType } from "./context";
 import { DiagramElementHitTest, hasHitTestProps, HitTestCollection, HitInfo, addHitTestProps } from "./hit-tests";
 import { DiagramElementIntersectionTest } from "./intersection-tests";
 import { intersectRect, Rect } from "./geometry";
-import { DefaultControlRenderingService, DefaultDeletionService, DefaultElementDrawingService, DefaultElementInteractionService, DefaultGridSnappingService, DefaultPaperService, DefaultSelectionService, InteractionServive, InteractiveServiceCollection } from "./services";
+import { DefaultControlRenderingService, DefaultDeletionService, DefaultElementDrawingService, DefaultElementInteractionService, DefaultGridSnappingService, DefaultPaperService, DefaultSelectionService, DefaultTextEditingService, InteractionServive, InteractiveServiceCollection } from "./services";
 import { Channel } from "type-pubsub";
 
 export type RenderControlsCallback = (transform: DOMMatrixReadOnly, element: DiagramElementNode) => JSX.Element;
@@ -17,6 +17,8 @@ export interface DiagramElementControls {
 interface PendingAction<T> {
     action: string;
     payload: T;
+    resolve: () => void;
+    reject: (reason: unknown) => void;
 }
 
 export type ActionCallback<T> = (payload: T) => void;
@@ -34,7 +36,6 @@ export interface SelectEventArgs {
 }
 
 export class InteractionController {
-    private diagram: Diagram | null = null;
     private controls = new Map<DiagramElementNode, Map<object, DiagramElementControls>>();
     private hitTests: HitTestCollection = {};
     private intersectionTests = new Map<object, DiagramElementIntersectionTest>;
@@ -48,6 +49,7 @@ export class InteractionController {
     interactionContext: InteractionContextType;
 
     constructor(
+        public readonly diagram: Diagram,
         configureServices?: (services: InteractiveServiceCollection) => void
     ) {
         this.interactionContext = this.createInteractionContext();
@@ -58,16 +60,16 @@ export class InteractionController {
             new DefaultElementInteractionService(this),
             new DefaultDeletionService(this),
             new DefaultElementDrawingService(this),
+            new DefaultTextEditingService(this),
             new DefaultControlRenderingService(),
         ];
         configureServices?.(new InteractiveServiceCollection(this.services));
     }
 
-    attach(diagram: Diagram, root: HTMLElement) {
-        this.diagram = diagram;
+    attach(root: HTMLElement) {
         this.detach();
 
-        this.services.forEach(s => s.init?.(diagram, root));
+        this.services.forEach(s => s.activate?.(this.diagram, root));
 
         const tabIndex = root.getAttribute("tabindex");
         if (!tabIndex || +tabIndex < 0) {
@@ -75,10 +77,9 @@ export class InteractionController {
         }
 
         this.detach = () => {
-            this.diagram = null;
             this.detach = () => { };
 
-            this.services.forEach(s => s.release?.());
+            this.services.forEach(s => s.deactivate?.());
 
             if (!tabIndex) {
                 root.removeAttribute("tabindex");
@@ -99,7 +100,7 @@ export class InteractionController {
         if (this.serviceCapture !== service) {
             this.services.forEach(s => {
                 if (s !== service) {
-                    s.release?.();
+                    s.deactivate?.();
                 }
             });
 
@@ -111,10 +112,10 @@ export class InteractionController {
         if (this.serviceCapture === service) {
             this.serviceCapture = null;
 
-            service.release?.(); // Release to initialize all services at the same order
+            service.deactivate?.(); // Release to initialize all services at the same order
 
             this.services.forEach(s => {
-                this.diagram && s.init?.(this.diagram, root);
+                s.activate?.(this.diagram, root);
             });
         }
     }
@@ -174,7 +175,14 @@ export class InteractionController {
                 if (pendingActions) {
                     pendingActions = pendingActions.filter(x => {
                         if (x.action === action.action) {
-                            action.callback(x.payload);
+                            try
+                            {
+                                action.callback(x.payload);
+                                x.resolve();
+                            }
+                            catch (e) {
+                                x.reject(e);
+                            }
                             return false;
                         }
                         return true;
@@ -239,7 +247,7 @@ export class InteractionController {
     }
 
     hitTest(e: MouseEvent): HitInfo | undefined {
-        if (this.diagram && this.screenCTM) {
+        if (this.screenCTM) {
             const transform = this.screenCTM.inverse();
             const point = new DOMPoint(e.clientX, e.clientY);
             const elementPoint = this.clientToDiagram(point);
@@ -298,16 +306,20 @@ export class InteractionController {
             .map(test => test.element);
     }
 
-    dispatchAction<T>(elements: DiagramElementNode[], action: string, payload: T) {
+    dispatchAction<T>(elements: DiagramElementNode[], action: string, payload: T): Promise<void> {
         const actions = [...this.actions.values()];
+        const results: Promise<void>[] = [];
         elements.forEach(element => {
             if (!element.parent) {  // Newly added element, never rendered
-                let pendingActions = this.pendingActions.get(element);
-                if (!pendingActions) {
-                    pendingActions = [];
-                    this.pendingActions.set(element, pendingActions);
-                }
-                pendingActions.push({ action, payload });
+                const promise = new Promise<void>((resolve, reject) => {
+                    let pendingActions = this.pendingActions.get(element);
+                    if (!pendingActions) {
+                        pendingActions = [];
+                        this.pendingActions.set(element, pendingActions);
+                    }
+                    pendingActions.push({ action, payload, resolve, reject });
+                });
+                results.push(promise);
             }
             else {
                 const callbacks = actions
@@ -318,6 +330,8 @@ export class InteractionController {
                 }
             }
         });
+
+        return Promise.all(results).then(() => {});
     }
 
     dispatchEvent<T>(eventType: string, eventArgs: T) {

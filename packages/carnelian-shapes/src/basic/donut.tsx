@@ -3,7 +3,7 @@
 import { DiagramElement } from "@carnelian/diagram";
 import { CircleCollider, DiffCollider, KnobController, withInteractiveCircle, withKnob } from "@carnelian/interaction";
 import { clamp } from "@carnelian/interaction/geometry";
-import { CircleBaseProps } from ".";
+import { CircleBaseProps } from "..";
 import { convertPercentage, isPercentage, NumberOrPercentage } from "../utils";
 
 export interface DonutProps extends CircleBaseProps {
@@ -53,8 +53,10 @@ export const Donut: DiagramElement<DonutProps> = function(props) {
 }
 export const InteractiveDonut = withInteractiveCircle(
     withKnob(Donut, knobController),
-    (props) => DiffCollider(
-        CircleCollider({center: {x: props.x, y: props.y}, radius: props.radius}),
-        CircleCollider({center: {x: props.x, y: props.y}, radius: calcInnerRadius(props)})
-    )
+    {
+        collider: (props) => DiffCollider(
+            CircleCollider({center: {x: props.x, y: props.y}, radius: props.radius}),
+            CircleCollider({center: {x: props.x, y: props.y}, radius: calcInnerRadius(props)})
+        )
+    }
 );

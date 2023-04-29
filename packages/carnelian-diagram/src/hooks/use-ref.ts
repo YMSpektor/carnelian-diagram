@@ -1,4 +1,4 @@
-import { useState } from "./useState";
+import { useState } from "./use-state";
 import { MutableRefObject, RefObject } from "../utils/types";
 
 export function useRef<T>(initialValue: T): MutableRefObject<T>;
