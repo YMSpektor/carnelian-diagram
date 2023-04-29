@@ -71,7 +71,7 @@ export interface DiagramNode<P = any> extends VirtualNode<P> {
     context?: Context<any>;
     contextValue?: any;
     subscriptions?: Set<DiagramNode>;
-    isElement?: boolean;
+    element?: DiagramElementNode;
     isValid?: boolean;
     node_type: "diagram-node";
 }
@@ -165,7 +165,7 @@ export class Diagram {
 
     add<P extends object>(type: DiagramElement<P>, props: P): DiagramElementNode<P> {
         const element = this.createElementNode(type, props, this.lastElementId++);
-        element.isElement = true;
+        element.element = element;
         this.elements.push(element);
         this.invalidate(element);
         return element;
@@ -208,7 +208,7 @@ export namespace DiagramDOM {
         const renderContext = new RenderContextType((node) => invalidate(node));
         const storedNodesMap = new Map<DiagramNode, DiagramNode>();
     
-        const initNode = <P>(node: DiagramNode<P>, prevNode?: DiagramNode<P>) => {
+        const initNode = <P>(node: DiagramNode<P>, prevNode?: DiagramNode<P>, parent?: DiagramNode) => {
             node.state = prevNode?.state;
             node.cleanups = prevNode?.cleanups;
             node.context = prevNode?.context;
@@ -216,6 +216,10 @@ export namespace DiagramDOM {
             node.subscriptions = prevNode?.subscriptions;
             if (node.isValid !== undefined) { //  Newly created nodes should be always invalid
                 node.isValid = prevNode?.isValid;
+            }
+            node.parent = parent;
+            if (parent?.element) {
+                node.element = parent.element;
             }
             node.state?.reset();
         }
@@ -229,8 +233,7 @@ export namespace DiagramDOM {
     
         const renderNode = <P>(node: DiagramNode<P>, prevNode?: DiagramNode<P>, parent?: DiagramNode): DiagramNode<P> => {
             renderContext.currentNode = node;
-            initNode(node, prevNode);
-            node.parent = parent;
+            initNode(node, prevNode, parent);
             
             const nodesToRender: {node: DiagramNode<unknown>, prevNode?: DiagramNode<unknown>, parent?: DiagramNode<P>}[] = [];
             if (node.isValid) {
@@ -411,11 +414,7 @@ export class RenderContextType {
     }
 
     currentElement(): DiagramElementNode<unknown> | undefined {
-        let node = this.currentNode;
-        while (node && !node?.isElement) {
-            node = node.parent;
-        }
-        return node;
+        return this.currentNode?.element;
     }
 
     invokePendingActions() {

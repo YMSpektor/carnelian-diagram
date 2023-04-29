@@ -22,8 +22,5 @@ export const Polygon: DiagramElement<PolygonProps> = function(props) {
 };
 
 export const InteractivePolygon = withInteractivePolyline(
-    Polygon, true, 3,
-    {
-        collider: (props) => PolygonCollider(props.points)
-    }
+    Polygon, true, 3, { collider: (props) => PolygonCollider(props.points) }
 );

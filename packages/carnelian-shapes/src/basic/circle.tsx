@@ -30,7 +30,7 @@ export const InteractiveCircleWithText = withText(
     withInteractiveText(
         MultilineText,
         (props) => props,
-        (props) => textEditorStyles(props.style)
+        (props) => textEditorStyles(props.textStyle)
     ),
     (props) => ({
         x: props.x - props.radius,
@@ -38,6 +38,6 @@ export const InteractiveCircleWithText = withText(
         width: props.radius * 2,
         height: props.radius * 2,
         text: props.text,
-        style: props.textStyle
+        textStyle: props.textStyle
     })
 );

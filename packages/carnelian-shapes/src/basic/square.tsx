@@ -26,7 +26,7 @@ export const InteractiveSquareWithText = withText(
     withInteractiveText(
         MultilineText,
         (props) => props,
-        (props) => textEditorStyles(props.style)
+        (props) => textEditorStyles(props.textStyle)
     ),
     (props) => ({
         x: props.x,
@@ -34,6 +34,6 @@ export const InteractiveSquareWithText = withText(
         width: props.size,
         height: props.size,
         text: props.text,
-        style: props.textStyle
+        textStyle: props.textStyle
     })
 );

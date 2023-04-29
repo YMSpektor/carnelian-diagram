@@ -70,9 +70,10 @@ export const InteractiveMultilineText = withInteractiveText(
     (props) => props,
     (props) => textEditorStyles(props.textStyle),
     {
-        updateProps: (props) => ({
+        onPlaceText: (props) => ({
             ...props,
             ...getTextBounds(props.x, props.y, props.text, props.textStyle)
-        })
+        }),
+        deleteOnEmpty: true
     }
 );

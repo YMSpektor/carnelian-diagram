@@ -74,14 +74,7 @@ export const InteractiveTrapezoidWithText = withText(
     withInteractiveText(
         MultilineText,
         (props) => props,
-        (props) => textEditorStyles(props.style)
+        (props) => textEditorStyles(props.textStyle)
     ),
-    (props) => ({
-        x: props.x,
-        y: props.y,
-        width: props.width,
-        height: props.height,
-        text: props.text,
-        style: props.textStyle
-    })
+    (props) => props
 );

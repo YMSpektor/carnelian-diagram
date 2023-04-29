@@ -15,11 +15,11 @@ export function withText<E extends object, S extends TextStyle, T extends TextBa
             ...textElementProps(props),
             onChange: (callback) => {
                 props.onChange((props) => {
-                    const { text, style } = callback(textProps);
+                    const { text, textStyle } = callback(textProps);
                     return {
                         ...props,
                         text,
-                        textStyle: style
+                        textStyle
                     }
                 });
             }

@@ -49,7 +49,7 @@ export class InteractionController {
     interactionContext: InteractionContextType;
 
     constructor(
-        private diagram: Diagram,
+        public readonly diagram: Diagram,
         configureServices?: (services: InteractiveServiceCollection) => void
     ) {
         this.interactionContext = this.createInteractionContext();
