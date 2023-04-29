@@ -24,6 +24,7 @@ export const MultilineText: DiagramElement<MultilineTextProps> = function(props)
         fontFamily: textStyle?.fontFamily || DEFAULT_FONT_FAMILY,
         fontSize: textStyle?.fontSize || DEFAULT_FONT_SIZE
     }
+
     const { lines, textMetrics } = wrapText(text, width, textStyle);
     const fontHeight = textMetrics.fontBoundingBoxAscent + textMetrics.fontBoundingBoxDescent;
 

@@ -7,9 +7,11 @@ import BorderColorIcon from '@mui/icons-material/BorderColor';
 import FormatColorFillIcon from '@mui/icons-material/FormatColorFill';
 import LineWeightIcon from '@mui/icons-material/LineWeight';
 import CircleOutlinedIcon from '@mui/icons-material/CircleOutlined';
+import FormatColorTextIcon from '@mui/icons-material/FormatColorText';
+import FormatSizeIcon from '@mui/icons-material/FormatSize';
 import { CompactPicker } from 'react-color';
 import { DrawingModeElementFactory, DRAW_ELEMENT_EVENT, InteractionController, isElementDrawingService } from "@carnelian/interaction";
-import { ClosedFigureStyleProps } from "@carnelian/shapes";
+import { ClosedFigureStyleProps, TextStyleProps } from "@carnelian/shapes";
 import { Diagram, DiagramElementNode, DiagramElementProps } from "@carnelian/diagram";
 import {
     InteractiveLine as Line,
@@ -81,11 +83,14 @@ function TextIcon() {
 function DiagramToolbar(props: DiagramToolbarProps) {
     const scaleOptions = [25, 50, 100, 200, 500];
     const lineWeightOptions = [0.1, 0.25, 0.5, 1, 2, 5];
+    const textSizeOptions = [1, 2, 5, 10, 20];
 
     const [scaleMenuAnchorEl, setScaleMenuAnchorEl] = useState<null | HTMLElement>(null);
     const [colorPopoverAnchorEl, setColorPopoverAnchorEl] = useState<null | HTMLElement>(null);
     const [lineWeightMenuAnchorEl, setLineWeightMenuAnchorEl] = useState<null | HTMLElement>(null);
+    const [textSizeMenuAnchorEl, setTextSizeMenuAnchorEl] = useState<null | HTMLElement>(null);
     const [color, setColor] = useState<string>("black");
+    const [styleProperty, setStyleProperty] = useState<"style" | "textStyle">("style");
     const [colorProperty, setColorProperty] = useState<"fill" | "stroke">("fill");
     const [drawingMode, setDrawingMode] = useState("");
 
@@ -144,10 +149,19 @@ function DiagramToolbar(props: DiagramToolbarProps) {
     const closeLineWeightMenu = (value?: number | null) => {
         if (value !== undefined) {
             props.controller.getSelectedElements().forEach(element => {
-                updateElement<ClosedFigureStyleProps>(element, { ...element.props, style: { ...element.props.style, "stroke-width": value !== null ? value / props.unitMultiplier : undefined } });
+                updateElement<ClosedFigureStyleProps>(element, { ...element.props, style: { ...element.props.style, strokeWidth: value !== null ? value / props.unitMultiplier : undefined } });
             });
         }
         setLineWeightMenuAnchorEl(null);
+    };
+
+    const closeTextSizeMenu = (value?: number) => {
+        if (value !== undefined) {
+            props.controller.getSelectedElements().forEach(element => {
+                updateElement<TextStyleProps>(element, { ...element.props, textStyle: { ...element.props.textStyle, fontSize: `${value / props.unitMultiplier}px` } });
+            });
+        }
+        setTextSizeMenuAnchorEl(null);
     };
 
     const colorToHex = (color: string) => {
@@ -162,7 +176,7 @@ function DiagramToolbar(props: DiagramToolbarProps) {
     const setElementColor = (color: string) => {
         setColor(color);
         props.controller.getSelectedElements().forEach(element => {
-            updateElement<ClosedFigureStyleProps>(element, { ...element.props, style: { ...element.props.style, [colorProperty]: color } });
+            updateElement<ClosedFigureStyleProps>(element, { ...element.props, [styleProperty]: { ...element.props[styleProperty], [colorProperty]: color } });
         });
     }
 
@@ -170,6 +184,7 @@ function DiagramToolbar(props: DiagramToolbarProps) {
         const color = (props.controller.getSelectedElements()[0]?.props as ClosedFigureStyleProps)?.style?.stroke || "black";
         setColor(colorToHex(color));
         setColorPopoverAnchorEl(anchor);
+        setStyleProperty("style");
         setColorProperty("stroke");
     }
 
@@ -177,6 +192,15 @@ function DiagramToolbar(props: DiagramToolbarProps) {
         const color = (props.controller.getSelectedElements()[0]?.props as ClosedFigureStyleProps)?.style?.fill || "white";
         setColor(colorToHex(color));
         setColorPopoverAnchorEl(anchor);
+        setStyleProperty("style");
+        setColorProperty("fill");
+    }
+
+    const openTextColorPicker = (anchor: HTMLElement) => {
+        const color = (props.controller.getSelectedElements()[0]?.props as TextStyleProps)?.textStyle?.fill || "black";
+        setColor(colorToHex(color));
+        setColorPopoverAnchorEl(anchor);
+        setStyleProperty("textStyle");
         setColorProperty("fill");
     }
 
@@ -255,6 +279,12 @@ function DiagramToolbar(props: DiagramToolbarProps) {
                 <IconButton color="inherit" onClick={(e) => setLineWeightMenuAnchorEl(e.currentTarget)}>
                     <LineWeightIcon />
                 </IconButton>
+                <IconButton color="inherit" onClick={(e) => openTextColorPicker(e.currentTarget)}>
+                    <FormatColorTextIcon />
+                </IconButton>
+                <IconButton color="inherit" onClick={(e) => setTextSizeMenuAnchorEl(e.currentTarget)}>
+                    <FormatSizeIcon />
+                </IconButton>
                 <Menu
                     anchorEl={lineWeightMenuAnchorEl}
                     open={!!lineWeightMenuAnchorEl}
@@ -264,6 +294,15 @@ function DiagramToolbar(props: DiagramToolbarProps) {
                     <Divider />
                     {lineWeightOptions.map(lineWeight => (
                         <MenuItem key={lineWeight} onClick={() => closeLineWeightMenu(lineWeight)}>{lineWeight} {props.unit}</MenuItem>
+                    ))}
+                </Menu>
+                <Menu
+                    anchorEl={textSizeMenuAnchorEl}
+                    open={!!textSizeMenuAnchorEl}
+                    onClose={() => closeTextSizeMenu()}
+                >
+                    {textSizeOptions.map(textSize => (
+                        <MenuItem key={textSize} onClick={() => closeTextSizeMenu(textSize)}>{textSize} {props.unit}</MenuItem>
                     ))}
                 </Menu>
                 <Popover
