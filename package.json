@@ -1,7 +1,6 @@
 {
   "name": "@carnelian/monorepo",
-  "version": "0.0.1",
-  "description": "",
-  "author": "",
-  "license": "ISC"
+  "version": "0.1.0",
+  "author": "Yuri Spektor",
+  "private": true
 }

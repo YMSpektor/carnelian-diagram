@@ -1,16 +1,28 @@
 {
     "name": "@carnelian/diagram",
     "version": "0.1.0",
-    "description": "",
     "main": "index.js",
+    "description": "Carnelian Diagram core package",
+    "author": "Yuri Spektor",
+    "keywords": [
+        "diagram",
+        "interactive",
+        "typescript",
+        "react"
+    ],
+    "repository": {
+        "type": "git",
+        "url": "https://github.com/YMSpektor/carnelian-diagram.git",
+        "directory": "packages/carnelian-diagram"
+    },
+    "license": "MIT",
+    "homepage": "https://github.com/YMSpektor/carnelian-diagram",
     "scripts": {
         "dev": "ts-node-dev -r tsconfig-paths/register --files --respawn ../../demo/hello-world/index.tsx",
         "prebuild": "rimraf dist",
         "build": "tsc --rootDir ./src",
         "postbuild": "copyfiles package.json dist"
     },
-    "author": "",
-    "license": "ISC",
     "devDependencies": {
         "@types/node": "^18.11.14",
         "@types/setimmediate": "^1.0.2",
