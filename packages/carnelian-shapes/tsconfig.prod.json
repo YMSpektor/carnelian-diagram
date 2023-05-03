@@ -1,0 +1,14 @@
+{
+  "compilerOptions": {
+    "outDir": "./dist",
+    "jsxImportSource": "@carnelian/diagram",
+    "paths": {
+      "@carnelian/diagram": ["../carnelian-diagram/dist"],
+      "@carnelian/diagram/*": ["../carnelian-diagram/dist/*"],
+      "@carnelian/interaction": ["../carnelian-interaction/dist"],
+      "@carnelian/interaction/*": ["../carnelian-interaction/dist/*"]
+    }
+  },
+  "extends": "../../tsconfig",
+  "include": ["./src/**/*.ts", "./src/**/*.tsx"]
+}

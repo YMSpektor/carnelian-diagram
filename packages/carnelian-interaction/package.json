@@ -1,11 +1,11 @@
 {
   "name": "@carnelian/interaction",
-  "version": "0.0.1",
+  "version": "0.1.0",
   "description": "",
   "main": "index.js",
   "scripts": {
     "prebuild": "rimraf dist",
-    "build": "tsc --rootDir ./src",
+    "build": "tsc --project tsconfig.prod.json --rootDir ./src",
     "postbuild": "copyfiles package.json dist"
   },
   "author": "",
@@ -19,5 +19,8 @@
   "dependencies": {
     "kld-intersections": "^0.7.0",
     "type-pubsub": "^0.1.4"
+  },
+  "peerDependencies": {
+    "@carnelian/diagram": "~0.1.0"
   }
 }

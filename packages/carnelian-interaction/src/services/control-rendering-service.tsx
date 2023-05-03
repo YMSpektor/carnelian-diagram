@@ -2,8 +2,7 @@
 
 import { JSX } from "@carnelian/diagram/jsx-runtime";
 import { InteractionServive } from ".";
-import { ControlsContextType } from "../context";
-import { CreateHitTestProps } from "../hit-tests";
+import { ControlProps, ControlsContextType } from "../context";
 
 export interface ControlRenderingService extends InteractionServive {
     type: "control_rendering_service";
@@ -14,10 +13,6 @@ export interface ControlRenderingService extends InteractionServive {
 
 export function isControlRenderingService(service: InteractionServive): service is ControlRenderingService {
     return service.type === "control_rendering_service";
-}
-
-export type ControlProps = Partial<CreateHitTestProps> & {
-    className: string;
 }
 
 export class DefaultControlRenderingService implements ControlRenderingService {
