@@ -100,10 +100,12 @@ export const Rect: DiagramElement<RectProps> = function(props) {
 
 export const InteractiveRect = withInteractiveRect(Rect);
 ```
+To create more complex diagram elements see documentation below
 
 ## Documentation
 
-TODO: Add documenation
+* Carnelian Diagram engine
+* Interactivity
 
 ## License
 
