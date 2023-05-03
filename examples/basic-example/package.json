@@ -6,8 +6,7 @@
     "license": "ISC",
     "scripts": {
         "start": "http-server -p 8080",
-        "build": "tsc",
-        "postbuild": "cross-env NODE_PATH=./node_modules browserify index.js -o > ./public/bundle.js"
+        "build": "cross-env NODE_PATH=./node_modules browserify index.ts -p [ tsify ] -o ./public/bundle.js"
     },
     "dependencies": {
         "@carnelian/diagram": "^0.1.0",

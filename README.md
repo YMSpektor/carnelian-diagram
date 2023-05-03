@@ -31,7 +31,7 @@ npm install @carnelian/shapes
 
 ## Examples
 
-### Basic usage
+### Example - Basic usage
 
 ```typescript
 import { Diagram, DiagramDOM, DiagramRoot } from "@carnelian/diagram";
@@ -44,7 +44,7 @@ import {
 const root = document.getElementById("root");
 if (root && root instanceof SVGGraphicsElement) {
     const diagram = new Diagram();
-    diagram.add(RoundedRect, { x: 100, y: 100, width: 200, height: 100, radius: "25%", style: { fill: "yellow" } });
+    diagram.add(RoundedRect, { x: 100, y: 100, width: 200, height: 150, radius: "25%", style: { fill: "yellow" } });
     diagram.add(Circle, { x: 280, y: 220, radius: 80, style: { fill: "blue" }});
 
     const controller = new InteractionController(diagram);
@@ -54,3 +54,57 @@ if (root && root instanceof SVGGraphicsElement) {
     diagramDOM.attach();
 }
 ```
+
+### Example - Custom elements
+
+Firstly, you need to configure JSX for typescript. Add the following lines to your tsconfig.json:
+```json
+{
+  "compilerOptions": {
+    "jsx": "react-jsx",
+    "jsxImportSource": "@carnelian/diagram"
+  }
+}
+```
+Instead of adding `jsxImportSource` to the tsconfig.json, you can define the typescript pragma at the beginning of your .tsx files. This can be useful when your project has already had some other JSX configuration (e.g. React projects) and you need to overwrite it for you custom diagram elements.
+
+```typescript
+/** @jsxImportSource @carnelian/diagram */
+
+// The rest of .tsx file
+...
+```
+
+Here is the example for a simple interactive rectangle:
+```typescript
+/** @jsxImportSource @carnelian/diagram */
+
+import { DiagramElement } from "@carnelian/diagram";
+import { withInteractiveRect } from "@carnelian/interaction";
+
+export interface RectProps {
+    x: number;
+    y: number;
+    width: number;
+    height: number;
+    style?: any;
+}
+
+export const Rect: DiagramElement<RectProps> = function(props) {
+    const { x, y, width, height, style } = props;
+
+    return (
+        <rect x={x} y={y} width={width} height={height} style={style} />
+    );
+};
+
+export const InteractiveRect = withInteractiveRect(Rect);
+```
+
+## Documentation
+
+TODO: Add documenation
+
+## License
+
+This project is licensed under the terms of the MIT license.
