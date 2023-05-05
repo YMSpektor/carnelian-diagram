@@ -32,3 +32,41 @@ root.attach();
 Carnelian Diagram (similar to React) has separate render and commit phases. On the render phase it renders diagram elements to a virtual tree (and only rerender the elements that were changed from the previouse rendering). On the commit phase the DOM is being updated. The library uses virtual DOM under the hood to do it efficiently instead of recreating the entire DOM.
 
 ## Creating custom elements
+
+Creating custom elements is similar to how you create functional components in React. Here is a simple example:
+
+```typescript
+/** @jsxImportSource @carnelian/diagram */
+
+import { useState } from "@carnelian/diagram";
+
+export interface CustomElementProps {
+    x: number;
+    y: number;
+    width: number;
+    height: number;
+}
+
+export const CustomElement = function(props: CustomElementProps) {
+    const { x, y, width, height } = props;
+
+    const [color, setColor] = useState("red");
+    setTimeout(() => {
+        setColor(color === "red" ? "yellow" : "red");
+    }, 1000);
+
+    return (
+        <rect x={x} y={y} width={width} height={height} fill={color} />
+    ); 
+}
+```
+To add this element to diagram model we need to call the `add` method of `Diagram` object:
+```typescript
+import { Diagram } from "@carnelian/diagram";
+import { CustomElement } from "./custom-element";
+
+const diagram = new Diagram();
+diagram.add(CustomElement, { x: 100, y: 100, width: 200, height: 150 });
+```
+
+To make this element interactive see further documentation.
