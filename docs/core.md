@@ -38,7 +38,7 @@ Creating custom elements is similar to how you create functional components in R
 ```typescript
 /** @jsxImportSource @carnelian/diagram */
 
-import { useState } from "@carnelian/diagram";
+import { useState, DiagramElement } from "@carnelian/diagram";
 
 export interface CustomElementProps {
     x: number;
@@ -47,7 +47,7 @@ export interface CustomElementProps {
     height: number;
 }
 
-export const CustomElement = function(props: CustomElementProps) {
+export const CustomElement: DiagramElement<CustomElementProps> = function(props) {
     const { x, y, width, height } = props;
 
     const [color, setColor] = useState("red");
@@ -70,3 +70,37 @@ diagram.add(CustomElement, { x: 100, y: 100, width: 200, height: 150 });
 ```
 
 To make this element interactive see further documentation.
+
+This is just an example to demonstrate using useState hook. We don't recommend using state to hold element properties related to a diagram model, it's better to define them in the props and use onChange callback to update the element:
+
+```typescript
+export interface CustomElementProps {
+    x: number;
+    y: number;
+    width: number;
+    height: number;
+    color: string;
+}
+
+export const CustomElement: DiagramElement<CustomElementProps> = function(props) {
+    const { x, y, width, height, color, onUpdate } = props;
+
+    setTimeout(() => {
+        onUpdate((props) => ({
+            ...props,
+            color: props.color === "red" ? "yellow" : "red"
+        }));
+    }, 1000);
+```
+As you can see we can extract onUpdate from props object, but we don't need to define it in the props type. It's possible because the library adds this property automatically to every element added to a diagram.
+
+Currently the library supports the following standard hooks:
+* useState
+* useEffect
+* useContext (together with createContext, Context.Provider and Context.Consumer)
+* useRef
+
+In addition there are several hooks related to interactivity built on top of these standard hooks, we will discuss them later in the next chapters.
+
+## See also
+* Interactivity
