@@ -71,7 +71,7 @@ Instead of adding `jsxImportSource` to the tsconfig.json, you can define the typ
 ```typescript
 /** @jsxImportSource @carnelian/diagram */
 
-// The rest of .tsx file
+// The rest of the .tsx file
 ...
 ```
 
@@ -104,8 +104,8 @@ To create more complex diagram elements see documentation below
 
 ## Documentation
 
-* Carnelian Diagram engine
-* Interactivity
+* [Carnelian Diagram engine](https://github.com/YMSpektor/carnelian-diagram/blob/main/docs/core.md)
+* [Interactivity](https://github.com/YMSpektor/carnelian-diagram/blob/main/docs/interactivity.md)
 
 ## License
 

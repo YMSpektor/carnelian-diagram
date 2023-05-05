@@ -100,7 +100,7 @@ Currently the library supports the following standard hooks:
 * useContext (together with createContext, Context.Provider and Context.Consumer)
 * useRef
 
-In addition there are several hooks related to interactivity built on top of these standard hooks, we will discuss them later in the next chapters.
+In addition there are several hooks related to interactivity built on top of these standard hooks, see [Interactivity](https://github.com/YMSpektor/carnelian-diagram/blob/main/docs/interactivity.md) for more details.
 
 ## See also
-* Interactivity
+* [Interactivity](https://github.com/YMSpektor/carnelian-diagram/blob/main/docs/interactivity.md)
