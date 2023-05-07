@@ -46,7 +46,7 @@ return (
 ### Hit testing and useHitTest hook
 
 Hit testing is a process of determining whether the cursor is over a given element. The InteractionController performs hit testing when a user clicks or move the mouse cursor over a diagram to select an element at the mouse position or update the mouse cursor. The library provides you ability to define a shape of the elements and some additional interactive parts using a `useHitTest` hook. The function accepts the following arguments:
-* `callback: (point: DOMPointReadOnly, transform: DOMMatrixReadOnly) => boolean` It's a function determining whether a specific point belongs the given hit area. The `point` position is always contains client coordinates of the mouse position. To convert the client coordinates into your svg viewport coordinates you can use the second `transform` argument.
+* `callback: (point: DOMPointReadOnly, transform: DOMMatrixReadOnly) => boolean` It's a function determining whether a specific point belongs the given hit area. The `point` position is always contains client coordinates of the mouse position. This allows you to use some tolerance given in screen pixels when the area is quite small or narrow (e.g. line segments). To convert the client coordinates into your svg viewport coordinates you can use the second `transform` argument.
 * `hitArea: HitArea<T>` This argument describes the properties of the given hit area. The `HitArea` type has the following fields:
   * `type: string` Use any string value to distinguish different hit areas
   * `index?: string` An optional field that can be used when you define similar hit areas in a loop (for example, if you define several vertices for your polyline element)
@@ -112,13 +112,36 @@ return (
 
 ### Intersection testing and useIntersection hook
 
+Intersection testing is similar to hit testing. The first difference is the intersection testing checks if the element intersects with a given rectangle (instead of a point). The InteractionController performs intersection tests to define which elements should be selected when a user selects elements using a selection rect tool. The second difference is the element doesn't need to specify any hit areas. The only purpose of the intersection testing is to determine whether the object intersects the given selection rectangle or not. 
+
+To respond to intersection testing your element can use a `useIntersectionTest` hook. The hook accepts the following arguments:
+* `callback: (selectionRect: Rect) => boolean` The function should return true if the given element intersects with the selectionRect. The selectionRect value is defined using svg viewport coordinate system, so you don't have to convert it from the mouse event client coordinates.
+* `bounds: Rect | null` Specifying the shape bounds allows to avoid expensive computations for some shapes if the selection rectangle is far away from your element. The library performs intersection testing in two phases: broad phase and narrow phase. During the broad phase it discards all the elements which bounds doesn't intersect with the selection rectangle. And during the narrow phase it only calls the callbacks for the elements that passed broad phase or doesn't specified any bounds at all.
+
+Here is the example of using the `useIntersectionTest` hook:
+
+```typescript
+import { useIntersectionTest, CollisionFunctions } from "@carnelian/interaction";
+import { circleBounds } from "@carnelian/interaction/geometry";
+
+...
+
+const { x, y, radius } = props;
+useIntersectionTest(
+    (selectionRect) => {
+        return !!CollisionFunctions.circleRect({ center: {x, y}, radius }, selectionRect);
+    },
+    circleBounds({ center: {x, y}, radius })
+);
+```
+
 ### Colliders and useColloder hook
 
 ### Actions and useAction hook
 
 ### Element controls and useControls hook
 
-Controls are interactive parts of diagram elements that allow to manipulate (resize, change shape, etc) the element with mouse.
+Controls are interactive parts of diagram elements that allow to manipulate (resize, change shape, etc) the element with a mouse and also have some visual presentation (e.g. small yellow squares at the position of the shape corners). Controls are usually visible when the element they belong to is selected.
 
 ## Higher-order components
 
