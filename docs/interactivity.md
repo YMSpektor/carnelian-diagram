@@ -46,16 +46,16 @@ return (
 ### Hit testing and useHitTest hook
 
 Hit testing is a process of determining whether the cursor is over a given element. The InteractionController performs hit testing when a user clicks or move the mouse cursor over a diagram to select an element at the mouse position or update the mouse cursor. The library provides you ability to define a shape of the elements and some additional interactive parts using a `useHitTest` hook. The function accepts the following arguments:
-* `callback: (point: DOMPointReadOnly, transform: DOMMatrixReadOnly) => boolean` It's a function determining whether a specific point belongs the given hit area. The `point` position is always contains client coordinates of the mouse position. This allows you to use some tolerance given in screen pixels when the area is quite small or narrow (e.g. line segments). To convert the client coordinates into your svg viewport coordinates you can use the second `transform` argument.
-* `hitArea: HitArea<T>` This argument describes the properties of the given hit area. The `HitArea` type has the following fields:
-  * `type: string` Use any string value to distinguish different hit areas
-  * `index?: string` An optional field that can be used when you define similar hit areas in a loop (for example, if you define several vertices for your polyline element)
-  * `cursor?: string` Here you can specify the css cursor value (e.g. `move`, `ew-resize` etc.) for the mouse pointer to help a user understand what will happen when the user start dragging the element at the given point. Optional.
-  * `action?: string` Defines the action that will be dispatched to the element when a user starts dragging (see `useAction` documentation below). Optional.
-  * `dblClickAction?: string` Similar to the previous field, but the action will be dispatched on double click event. Optional.
-  * `data?: T` Allows to define any custom data for the specific hit area. Optional.
-* `priority: number` An optional argument allowing to define a priority to a given hit area. The InteractionController when performs hit tesing does it starting from the highest priorities. Usually element controls (see below) must have higher priority that element inside area, so this parameter allows you to achive such behaviour. By default the priority is 0.
-* `element?: DiagramElementNode` Allows to define which diagram element the hit area belongs to. If not specified the library consider using the current rendering element and this is what you need in the most cases, except calling the hook inside a `useControls` callback (see below) because this callback is being called after all elements are rendered and there is no current element defined in the rendering context.
+* `callback: (point: DOMPointReadOnly, transform: DOMMatrixReadOnly) => boolean` - It's a function determining whether a specific point belongs the given hit area. The `point` position is always contains client coordinates of the mouse position. This allows you to use some tolerance given in screen pixels when the area is quite small or narrow (e.g. line segments). To convert the client coordinates into your svg viewport coordinates you can use the second `transform` argument.
+* `hitArea: HitArea<T>` - This argument describes the properties of the given hit area. The `HitArea` type has the following fields:
+  * `type: string` - Use any string value to distinguish different hit areas
+  * `index?: string` - An optional field that can be used when you define similar hit areas in a loop (for example, if you define several vertices for your polyline element)
+  * `cursor?: string` - Here you can specify the css cursor value (e.g. `move`, `ew-resize` etc.) for the mouse pointer to help a user understand what will happen when the user start dragging the element at the given point. Optional.
+  * `action?: string` - Defines the action that will be dispatched to the element when a user starts dragging (see `useAction` documentation below). Optional.
+  * `dblClickAction?: string` - Similar to the previous field, but the action will be dispatched on double click event. Optional.
+  * `data?: T` - Allows to define any custom data for the specific hit area. Optional.
+* `priority: number` - An optional argument allowing to define a priority to a given hit area. The InteractionController when performs hit tesing does it starting from the highest priorities. Usually element controls (see below) must have higher priority that element inside area, so this parameter allows you to achive such behaviour. By default the priority is 0.
+* `element?: DiagramElementNode` - Allows to define which diagram element the hit area belongs to. If not specified the library consider using the current rendering element and this is what you need in the most cases, except calling the hook inside a `useControls` - callback (see below) because this callback is being called after all elements are rendered and there is no current element defined in the rendering context.
 
 Here is the example of using the hook for the element that represent a circle with a given center point and radius:
 ```typescript
@@ -96,7 +96,7 @@ useHitTest(
 );
 ```
 
-The library also supports native hit testing, where the browser determines which svg element is under the mouse cursor. Although the use of the useHitTest hook is more flexible, you can attach a hit area to a specific svg node using `createHitTestProps` function:
+The library also supports native hit testing based on the browser pointer events for svg elements. Although the use of the useHitTest hook is more flexible, you can attach a hit area to a specific svg node using `createHitTestProps` function:
 
 ``` typescript
 import { createHitTestProps } from "@carnelian/interaction";
@@ -115,8 +115,8 @@ return (
 Intersection testing is similar to hit testing. The first difference is the intersection testing checks if the element intersects with a given rectangle (instead of a point). The InteractionController performs intersection tests to define which elements should be selected when a user selects elements using a selection rect tool. The second difference is the element doesn't need to specify any hit areas. The only purpose of the intersection testing is to determine whether the object intersects the given selection rectangle or not. 
 
 To respond to intersection testing your element can use a `useIntersectionTest` hook. The hook accepts the following arguments:
-* `callback: (selectionRect: Rect) => boolean` The function should return true if the given element intersects with the selectionRect. The selectionRect value is defined using svg viewport coordinate system, so you don't have to convert it from the mouse event client coordinates.
-* `bounds: Rect | null` Specifying the shape bounds allows to avoid expensive computations for some shapes if the selection rectangle is far away from your element. The library performs intersection testing in two phases: broad phase and narrow phase. During the broad phase it discards all the elements which bounds doesn't intersect with the selection rectangle. And during the narrow phase it only calls the callbacks for the elements that passed broad phase or doesn't specified any bounds at all.
+* `callback: (selectionRect: Rect) => boolean` - The function should return true if the given element intersects with the selectionRect. The selectionRect value is defined using svg viewport coordinate system, so you don't have to convert it from the mouse event client coordinates.
+* `bounds: Rect | null` - Specifying the shape bounds allows to avoid expensive computations for some shapes if the selection rectangle is far away from your element. The library performs intersection testing in two phases: broad phase and narrow phase. During the broad phase it discards all the elements which bounds doesn't intersect with the selection rectangle. And during the narrow phase it only calls the callbacks for the elements that passed broad phase or doesn't specified any bounds at all.
 
 Here is the example of using the `useIntersectionTest` hook:
 
@@ -163,8 +163,8 @@ Using the `useCollider` hook can replace the use of `useHitTest` and `useInterse
 ### Actions and useAction hook
 
 Actions are the mechanism to respond the user input. Different elements and even different parts of the same element can respond to the same user action (like dragging or double click) differently. Once this kind of action occurs the InteractionController dispatches the action defined in the hit area to the element it belongs to. The element receives the action with some kind of payload specific to the action type and can provide a callback to handle the action and update the element properties or state. It's possible using the `useAction` hook that accepts the following arguments:
-* `actionType: string` The name (or type) of the action that the element should handle.
-* `callback: <T>(payload: T) => void` The callback function that will be called when the action is dispatched to the element. You can update the element here.
+* `actionType: string` - The name (or type) of the action that the element should handle.
+* `callback: <T>(payload: T) => void` - The callback function that will be called when the action is dispatched to the element. You can update the element here.
 * `element?: DiagramElementNode` - Defines the element handling the action. If not specified, the library uses the current rendering element. This argument is mostly needed to use in element controls (see later) as they are being rendered after and above all the diagram elements and don't belong to them.
 
 Here is the example of using the hook:
@@ -201,7 +201,69 @@ useAction(ACT_MOVE, (payload: DragActionPayload) => {
 
 ### Element controls and useControls hook
 
-Controls are interactive parts of diagram elements that allow to manipulate (resize, change shape, etc) the element with a mouse and also have some visual presentation (e.g. small yellow squares at the position of the shape corners). Controls are usually visible when the element they belong to is selected.
+Controls are interactive parts of diagram elements that allow to manipulate (resize, change shape, etc) the element with a mouse and also have some visual presentation (e.g. small yellow squares at the position of the shape corners). Controls are usually visible when the element they belong to is selected. The library renders controls on a separate layer on top of the elements that makes controls visible even if they are overlapped with other elements. To add controls to the element use a `useControls` hook. It accepts a single argument:
+* `callback: (transform: DOMMatrixReadOnly, element: DiagramElementNode) => JSX.Element` - Inside this callback you can render all needed controls and return them as JSX similar to how you render element itself. Usually controls must have fixed size in screen pixels that doesn't depend on a svg viewport settings, so control layer defines it's own coordinates system where the pixel size equals to a screen pixel. The `transform` argument allows to convert diagram viewport coordinates to this controls coordinate system. Inside the callback you can use such hooks as `useHitTest`, `useAction` (and this is the difference from React that doesn't allow to call hooks inside callback functions) and pass the `element` parameter, because inside the useControls callback there is no current element defined in the render context, so you need to pass it manually.
+
+The library provides two standard control components, so you can use them instead of implementing controls on your own:
+* `HandleControl` - A small box (or circle or other shape) that can be dragged to alter the element properties, such a size, position etc.
+* `EdgeControl` - Allows to drag the whole edge to resize the element.
+
+Here is the example of using the `useControls` hook for the line segment element:
+```typescript
+import { DragActionPayload, HandleControl, useAction, useControls } from "@carnelian/interaction";
+
+...
+
+const { x1, y1, x2, y2, onChange } = props;
+
+function moveVertex(payload: DragActionPayload) {
+    onChange(props => ({
+        ...props,
+        x1: payload.hitArea.index === 0 ? payload.position.x : props.x1,
+        y1: payload.hitArea.index === 0 ? payload.position.y : props.y1,
+        x2: payload.hitArea.index === 1 ? payload.position.x : props.x2,
+        y2: payload.hitArea.index === 1 ? payload.position.y : props.y2,
+    }));
+}
+
+useAction("vertex_move", moveVertex);
+
+function createHandleControl(
+    index: number, 
+    x: number, y: number, 
+) {
+    return {
+        x, y,
+        hitArea: {
+            type: "vertex_handle",
+            index,
+            cursor: "move",
+            action: "vertex_move"
+        }
+    }
+}
+
+useControls((transform, element) => {
+    const handles = [
+        createHandleControl(0, x1, y1),
+        createHandleControl(1, x2, y2)
+    ];
+
+    return (
+        <>
+            { handles.map((control) => (
+                <HandleControl
+                    key={control.hitArea.index}
+                    kind="default"
+                    x={control.x} y={control.y} hitArea={control.hitArea}
+                    transform={transform} 
+                    element={element}
+                />
+            )) }
+        </>
+    );
+});
+```
 
 ## Higher-order components
 
