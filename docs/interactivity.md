@@ -137,6 +137,27 @@ useIntersectionTest(
 
 ### Colliders and useColloder hook
 
+The `useHitTest` and `useIntersectionTest` hooks together allow to define an element shape. But the library provides one more tool to do this using a single hook: `useCollider`. A collider is an object that describes an element geometry and the library can compute intersections (collisions) between different colliders. The `useCollider` hook combines `useHitTest` and `useIntersectionTest` calls let the collision detection system to check intersections.
+
+The hook accepts the following arguments:
+* `collider: Collider<T>` - A collider object to define the element shape. The library allows to create colliders for some basic shapes (point, line segment, circle, ellipse, rectangle, polygon etc), combine colliders with logical operations (union, intersection, difference, inversion) and create custom colliders.
+* `hitArea: HitArea` - Hit area object used for hit testing.
+* `priority: number` - An optional argument for the hit test area priority. By default the value is 0.
+* `hitTestTolerance: number` - An optional argument that is used to expand the hit testing area by some screen pixels. It's useful for small or narrow hit areas like points or line segments to make it easier for users to click. The value is 0 by default.
+* `element?: DiagramElementNode` - Defines the element the hitting area belongs to. If not specified, the library uses the current rendering element.
+
+Here is a simple example of using the `useCollider` hook:
+```typescript
+import { CircleCollider, useCollider } from "@carnelian/interaction";
+
+...
+
+const { x, y, radius } = props;
+useCollider(CircleCollider({center: {x, y}, radius}), { type: "in", cursor: "move", action: "move" });
+```
+
+For more complex examples of colliders see implementation of [Donut](https://github.com/YMSpektor/carnelian-diagram/blob/main/packages/carnelian-shapes/src/basic/donut.tsx) or [Pie](https://github.com/YMSpektor/carnelian-diagram/blob/main/packages/carnelian-shapes/src/basic/pie.tsx) elements
+
 ### Actions and useAction hook
 
 ### Element controls and useControls hook
