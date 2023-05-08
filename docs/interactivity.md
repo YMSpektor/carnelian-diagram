@@ -156,7 +156,9 @@ const { x, y, radius } = props;
 useCollider(CircleCollider({center: {x, y}, radius}), { type: "in", cursor: "move", action: "move" });
 ```
 
-For more complex examples of colliders see implementation of [Donut](https://github.com/YMSpektor/carnelian-diagram/blob/main/packages/carnelian-shapes/src/basic/donut.tsx) or [Pie](https://github.com/YMSpektor/carnelian-diagram/blob/main/packages/carnelian-shapes/src/basic/pie.tsx) elements
+For more complex examples of colliders see implementation of [Donut](https://github.com/YMSpektor/carnelian-diagram/blob/main/packages/carnelian-shapes/src/basic/donut.tsx) or [Pie](https://github.com/YMSpektor/carnelian-diagram/blob/main/packages/carnelian-shapes/src/basic/pie.tsx) elements.
+
+Using the `useCollider` hook can replace the use of `useHitTest` and `useIntersectionTest` to define an element inner area, but the `useHitTest` function is still useful for active areas of your elements (like element controls - see later). Also keep in mind that using complex accurate colliders can negatively affect performance, consider using simplistic shapes like element bounds rectangle if you have performance issues.
 
 ### Actions and useAction hook
 
