@@ -135,7 +135,7 @@ useIntersectionTest(
 );
 ```
 
-### Colliders and useColloder hook
+### Colliders and useCollider hook
 
 The `useHitTest` and `useIntersectionTest` hooks together allow to define an element shape. But the library provides one more tool to do this using a single hook: `useCollider`. A collider is an object that describes an element geometry and the library can compute intersections (collisions) between different colliders. The `useCollider` hook combines `useHitTest` and `useIntersectionTest` calls let the collision detection system to check intersections.
 
