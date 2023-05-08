@@ -83,16 +83,16 @@ export interface CustomElementProps {
 }
 
 export const CustomElement: DiagramElement<CustomElementProps> = function(props) {
-    const { x, y, width, height, color, onUpdate } = props;
+    const { x, y, width, height, color, onChange } = props;
 
     setTimeout(() => {
-        onUpdate((props) => ({
+        onChange((props) => ({
             ...props,
             color: props.color === "red" ? "yellow" : "red"
         }));
     }, 1000);
 ```
-As you can see we can extract onUpdate from props object, but we don't need to define it in the props type. It's possible because the library adds this property automatically to every element added to a diagram.
+As you can see we can extract onChange from props object, but we don't need to define it in the props type. It's possible because the library adds this property automatically to every element added to a diagram.
 
 Currently the library supports the following standard hooks:
 * useState

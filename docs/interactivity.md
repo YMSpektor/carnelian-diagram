@@ -162,6 +162,43 @@ Using the `useCollider` hook can replace the use of `useHitTest` and `useInterse
 
 ### Actions and useAction hook
 
+Actions are the mechanism to respond the user input. Different elements and even different parts of the same element can respond to the same user action (like dragging or double click) differently. Once this kind of action occurs the InteractionController dispatches the action defined in the hit area to the element it belongs to. The element receives the action with some kind of payload specific to the action type and can provide a callback to handle the action and update the element properties or state. It's possible using the `useAction` hook that accepts the following arguments:
+* `actionType: string` The name (or type) of the action that the element should handle.
+* `callback: <T>(payload: T) => void` The callback function that will be called when the action is dispatched to the element. You can update the element here.
+* `element?: DiagramElementNode` - Defines the element handling the action. If not specified, the library uses the current rendering element. This argument is mostly needed to use in element controls (see later) as they are being rendered after and above all the diagram elements and don't belong to them.
+
+Here is the example of using the hook:
+
+```typescript
+import { CircleCollider, DragActionPayload, useAction, useCollider } from "@carnelian/interaction";
+
+const { x, y, radius, onChange } = props;
+useCollider(CircleCollider({center: {x, y}, radius}), { type: "in", cursor: "move", action: "move" });
+useAction("move", (payload: DragActionPayload) => {
+    onChange((props) => ({
+        ...props,
+        x: props.x + payload.deltaX,
+        y: props.y + payload.deltaY
+    }))
+});
+```
+
+The library provides some standard action types that the InteractionController treats in a special way, one of them is ACT_MOVE. The main distinction of this action is the InteractionController dispatches it to all selected elements allowing to move the whole selection when the user performs dragging. You can rewrite the example above as following:
+
+```typescript
+import { ACT_MOVE, CircleCollider, DragActionPayload, useAction, useCollider } from "@carnelian/interaction";
+
+const { x, y, radius, onChange } = props;
+useCollider(CircleCollider({center: {x, y}, radius}), { type: "in", cursor: "move", action: ACT_MOVE });
+useAction(ACT_MOVE, (payload: DragActionPayload) => {
+    onChange((props) => ({
+        ...props,
+        x: props.x + payload.deltaX,
+        y: props.y + payload.deltaY
+    }))
+});
+```
+
 ### Element controls and useControls hook
 
 Controls are interactive parts of diagram elements that allow to manipulate (resize, change shape, etc) the element with a mouse and also have some visual presentation (e.g. small yellow squares at the position of the shape corners). Controls are usually visible when the element they belong to is selected.
