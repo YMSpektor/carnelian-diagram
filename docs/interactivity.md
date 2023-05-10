@@ -284,4 +284,55 @@ The library provides some higher-order components (or just HOCs) built using the
 * `withInteractiveText` - allows to show inplace text editor (on double click event) to edit the element text (requires the `text` field to be defined in the element props)
 * `withKnob` - adds customizable handle control to suit a particular task (e.g. border radius for rounded rectangle). See [RoundedRect](https://github.com/YMSpektor/carnelian-diagram/blob/main/packages/carnelian-shapes/src/basic/rounded-rect.tsx) or [Parallelogram](https://github.com/YMSpektor/carnelian-diagram/blob/main/packages/carnelian-shapes/src/basic/parallelogram.tsx) elements for example.
 
+Here is the example using the `withInteractiveRect` HOC:
+
+```typescript
+/** @jsxImportSource @carnelian/diagram */
+
+import { DiagramElement } from "@carnelian/diagram";
+import { withInteractiveRect } from "@carnelian/interaction";
+
+interface RectProps {
+    x: number;
+    y: number;
+    width: number;
+    height: number;
+}
+
+export const Rect: DiagramElement<RectProps> = function(props) {
+    const { onChange, ...rest } = props;
+
+    return (
+        <rect {...rest} />
+    );
+};
+
+export const InteractiveRect = withInteractiveRect(Rect);
+```
+
 ## Customizing InteractionController
+
+The `InteractionController` implements many actions by default but it can be configured to suit your needs. It contains a collection of interaction services and allows you to configure, replace or implement your own services that will handle the user's input. For more information see the [standard services implementation](https://github.com/YMSpektor/carnelian-diagram/tree/main/packages/carnelian-interaction/src/services).
+
+Here is the example allowing to configure the diagram paper and grid snapping:
+```typescript
+import { InteractionController, isGridSnappingService, isPaperService } from "@carnelian/interaction";
+
+const controller = new InteractionController(diagram, (services) => {
+    services.configure(isPaperService, (service) => {
+        service.paper = {
+            x: 0,
+            y: 0,
+            width: 2100,
+            height: 2970,
+            majorGridSize: 200,
+            minorGridSize: 50
+        };
+    });
+
+    services.configure(isGridSnappingService, (service) => {
+        service.snapGridSize = 50;
+        service.snapAngle = 5;
+    });
+});
+```
