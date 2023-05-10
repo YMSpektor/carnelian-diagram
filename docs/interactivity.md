@@ -55,7 +55,7 @@ Hit testing is a process of determining whether the cursor is over a given eleme
   * `dblClickAction?: string` - Similar to the previous field, but the action will be dispatched on double click event. Optional.
   * `data?: T` - Allows to define any custom data for the specific hit area. Optional.
 * `priority: number` - An optional argument allowing to define a priority to a given hit area. The InteractionController when performs hit tesing does it starting from the highest priorities. Usually element controls (see below) must have higher priority that element inside area, so this parameter allows you to achive such behaviour. By default the priority is 0.
-* `element?: DiagramElementNode` - Allows to define which diagram element the hit area belongs to. If not specified the library consider using the current rendering element and this is what you need in the most cases, except calling the hook inside a `useControls` - callback (see below) because this callback is being called after all elements are rendered and there is no current element defined in the rendering context.
+* `element?: DiagramElementNode` - Allows to define which diagram element the hit area belongs to. If not specified the library consider using the current rendering element and this is what you need in the most cases, except calling the hook inside a `useControls` callback (see below) because this callback is being called after all elements are rendered and there is no current element defined in the rendering context.
 
 Here is the example of using the hook for the element that represent a circle with a given center point and radius:
 ```typescript
@@ -202,7 +202,7 @@ useAction(ACT_MOVE, (payload: DragActionPayload) => {
 ### Element controls and useControls hook
 
 Controls are interactive parts of diagram elements that allow to manipulate (resize, change shape, etc) the element with a mouse and also have some visual presentation (e.g. small yellow squares at the position of the shape corners). Controls are usually visible when the element they belong to is selected. The library renders controls on a separate layer on top of the elements that makes controls visible even if they are overlapped with other elements. To add controls to the element use a `useControls` hook. It accepts a single argument:
-* `callback: (transform: DOMMatrixReadOnly, element: DiagramElementNode) => JSX.Element` - Inside this callback you can render all needed controls and return them as JSX similar to how you render element itself. Usually controls must have fixed size in screen pixels that doesn't depend on a svg viewport settings, so control layer defines it's own coordinates system where the pixel size equals to a screen pixel. The `transform` argument allows to convert diagram viewport coordinates to this controls coordinate system. Inside the callback you can use such hooks as `useHitTest`, `useAction` (and this is the difference from React that doesn't allow to call hooks inside callback functions) and pass the `element` parameter, because inside the useControls callback there is no current element defined in the render context, so you need to pass it manually.
+* `callback: (transform: DOMMatrixReadOnly, element: DiagramElementNode) => JSX.Element` - Inside this callback you can render all needed controls and return them as JSX similar to how you render element itself. Usually controls must have fixed size in screen pixels that doesn't depend on a svg viewport settings, so the control layer defines it's own coordinates system where the pixel size equals to a screen pixel. The `transform` argument allows to convert diagram viewport coordinates to this controls coordinate system. As said above, the library renders controls after the elements, so when the callback has been called it does not have the element reference in the render context, so the hooks like `useHitTest` or `useAction` (that are called in standard control components - see below) won't work inside the callback if you don't pass the element reference there manually.
 
 The library provides two standard control components, so you can use them instead of implementing controls on your own:
 * `HandleControl` - A small box (or circle or other shape) that can be dragged to alter the element properties, such a size, position etc.
@@ -266,5 +266,22 @@ useControls((transform, element) => {
 ```
 
 ## Higher-order components
+
+The library provides some higher-order components (or just HOCs) built using the hooks described above to implement standard behaviour for common elements:
+* `withInteractiveRect` - implements interactivity for rectangle-like elements (requires `x`, `y`, `width` and `height` fields in the element props):
+  * Four resize handles on the corners
+  * Four edges allowing to resize the element in one direction
+  * Interactive inner area allowing to drag the element itself
+* `withInteractiveSquare` - similar to the previous HOC, but always keeps the width and the height of the element equal. Requires `x`, `y` and `size` fields in the element props.
+* `withInteractiveCircle` - similar to the previous HOC, but requires `x`, `y` (which define the circle center point) and `radius` fields in the element props.
+* `withInteractiveLine` - implements interactivity for the line segment elements (defined with two points. Requires `x1`, `y1`, `x2`, `y2` fields in the element props):
+  * Two vertex handles allowing to drag the vertex
+  * Interactive inner area allowing to drag the element itself
+* `withInteractivePolyline` - allows to make interactive polyline/polygon elements (requires the `points` field in the element props containing an array of the polyline/polygon vertices):
+  * Vertex handles allowing to drag the vertex or remove it on double clicking
+  * Edges allowing to insert new vertex on double clicking
+  * Interactive inner area allowing to drag the element itself
+* `withInteractiveText` - allows to show inplace text editor (on double click event) to edit the element text (requires the `text` field to be defined in the element props)
+* `withKnob` - adds customizable handle control to suit a particular task (e.g. border radius for rounded rectangle). See [RoundedRect](https://github.com/YMSpektor/carnelian-diagram/blob/main/packages/carnelian-shapes/src/basic/rounded-rect.tsx) or [Parallelogram](https://github.com/YMSpektor/carnelian-diagram/blob/main/packages/carnelian-shapes/src/basic/parallelogram.tsx) elements for example.
 
 ## Customizing InteractionController
