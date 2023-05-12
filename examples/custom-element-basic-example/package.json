@@ -1,0 +1,25 @@
+{
+    "name": "@carnelian-diagram/custom-element-basic-example",
+    "version": "0.1.0",
+    "private": true,
+    "description": "",
+    "author": "",
+    "license": "ISC",
+    "scripts": {
+        "start": "http-server -p 8080",
+        "build": "cross-env NODE_PATH=./node_modules browserify index.ts -p [ tsify ] -o ./public/bundle.js"
+    },
+    "dependencies": {
+        "@carnelian-diagram/core": "^0.1.0",
+        "@carnelian-diagram/interaction": "^0.1.0",
+        "@carnelian-diagram/shapes": "^0.1.0"
+    },
+    "devDependencies": {
+        "@types/node": "^18.11.14",
+        "browserfy": "^1.0.0",
+        "cross-env": "^7.0.3",
+        "http-server": "^14.1.1",
+        "tsify": "^5.0.4",
+        "typescript": "^4.9.4"
+    }
+}

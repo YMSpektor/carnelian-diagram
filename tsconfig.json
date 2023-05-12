@@ -3,7 +3,7 @@
     "target": "es5",
     "lib": ["dom"],
     "jsx": "react-jsx",
-    "jsxImportSource": "@carnelian/diagram",
+    "jsxImportSource": "@carnelian-diagram/core",
     "module": "commonjs",
     "declaration": true,
     "esModuleInterop": true,
@@ -13,12 +13,12 @@
     "skipLibCheck": true,
     "downlevelIteration": true,
     "paths": {
-      "@carnelian/diagram": ["./packages/carnelian-diagram/src"],
-      "@carnelian/diagram/*": ["./packages/carnelian-diagram/src/*"],
-      "@carnelian/interaction": ["./packages/carnelian-interaction/src"],
-      "@carnelian/interaction/*": ["./packages/carnelian-interaction/src/*"],
-      "@carnelian/shapes": ["./packages/carnelian-shapes/src"],
-      "@carnelian/shapes/*": ["./packages/carnelian-shapes/src/*"]
+      "@carnelian-diagram/core": ["./packages/core/src"],
+      "@carnelian-diagram/core/*": ["./packages/core/src/*"],
+      "@carnelian-diagram/interaction": ["./packages/interaction/src"],
+      "@carnelian-diagram/interaction/*": ["./packages/interaction/src/*"],
+      "@carnelian-diagram/shapes": ["./packages/shapes/src"],
+      "@carnelian-diagram/shapes/*": ["./packages/shapes/src/*"]
     }
   }
 }
