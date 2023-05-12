@@ -1,14 +1,14 @@
 # Interactivity
 
-The `@carnelian/interaction` package provides several tools to make your diagram and elements interactive - in other wodrs, they will respond to a user's input
+The `@carnelian-diagram/interaction` package provides several tools to make your diagram and elements interactive - in other wodrs, they will respond to a user's input
 
 ## Interactive root and InteractionController
 
 The first thing you need to make your diagram interactive is to pass a specific root component to the `DiagramDOM.createRoot` using the `withInteraction` function and pass an instance of `InteractionController` there. The `withInteraction` function wraps all diagram elements to a container that makes interactivity work by providing several context objects (similar to React context) to child elements and the elements can consume them using useContext and higher-level hooks described below in this document.
 
 ```typescript
-import { Diagram, DiagramDOM, DiagramRoot } from "@carnelian/diagram";
-import { InteractionController, withInteraction } from "@carnelian/interaction";
+import { Diagram, DiagramDOM, DiagramRoot } from "@carnelian-diagram/core";
+import { InteractionController, withInteraction } from "@carnelian-diagram/interaction";
 
 const diagram = new Diargam();
 const controller = new InteractionController();
@@ -23,7 +23,7 @@ controller.attach(rootElement);
 
 ## Hooks
 
-Receiving and dispatching the input events is not enought for interactivity. Different elements can process the same user action differently. For some elements dragging a vertex handle will resize the element, for others it will change the position of this particular vertext. In other words, the elements must know how to respond to a particular action. It's possible by using some specific hooks provided by @carnelian/interaction package:
+Receiving and dispatching the input events is not enought for interactivity. Different elements can process the same user action differently. For some elements dragging a vertex handle will resize the element, for others it will change the position of this particular vertext. In other words, the elements must know how to respond to a particular action. It's possible by using some specific hooks provided by @carnelian-diagram/interaction package:
 * useSelection
 * useHitTest
 * useIntersectionTest
@@ -59,8 +59,8 @@ Hit testing is a process of determining whether the cursor is over a given eleme
 
 Here is the example of using the hook for the element that represent a circle with a given center point and radius:
 ```typescript
-import { useHitTest } from "@carnelian/interaction";
-import { distance } from "@carnelian/interaction/geometry";
+import { useHitTest } from "@carnelian-diagram/interaction";
+import { distance } from "@carnelian-diagram/interaction/geometry";
 
 ...
 
@@ -81,7 +81,7 @@ useHitTest(
 The library provides some helper functions for hit testing callbacks, so the same behaviour can be achived by using the following code:
 
 ```typescript
-import { useHitTest, circleHitTest } from "@carnelian/interaction";
+import { useHitTest, circleHitTest } from "@carnelian-diagram/interaction";
 
 ...
 
@@ -99,7 +99,7 @@ useHitTest(
 The library also supports native hit testing based on the browser pointer events for svg elements. Although the use of the useHitTest hook is more flexible, you can attach a hit area to a specific svg node using `createHitTestProps` function:
 
 ``` typescript
-import { createHitTestProps } from "@carnelian/interaction";
+import { createHitTestProps } from "@carnelian-diagram/interaction";
 
 ...
 
@@ -121,8 +121,8 @@ To respond to intersection testing your element can use a `useIntersectionTest` 
 Here is the example of using the `useIntersectionTest` hook:
 
 ```typescript
-import { useIntersectionTest, CollisionFunctions } from "@carnelian/interaction";
-import { circleBounds } from "@carnelian/interaction/geometry";
+import { useIntersectionTest, CollisionFunctions } from "@carnelian-diagram/interaction";
+import { circleBounds } from "@carnelian-diagram/interaction/geometry";
 
 ...
 
@@ -148,7 +148,7 @@ The hook accepts the following arguments:
 
 Here is a simple example of using the `useCollider` hook:
 ```typescript
-import { CircleCollider, useCollider } from "@carnelian/interaction";
+import { CircleCollider, useCollider } from "@carnelian-diagram/interaction";
 
 ...
 
@@ -170,7 +170,7 @@ Actions are the mechanism to respond the user input. Different elements and even
 Here is the example of using the hook:
 
 ```typescript
-import { CircleCollider, DragActionPayload, useAction, useCollider } from "@carnelian/interaction";
+import { CircleCollider, DragActionPayload, useAction, useCollider } from "@carnelian-diagram/interaction";
 
 const { x, y, radius, onChange } = props;
 useCollider(CircleCollider({center: {x, y}, radius}), { type: "in", cursor: "move", action: "move" });
@@ -186,7 +186,7 @@ useAction("move", (payload: DragActionPayload) => {
 The library provides some standard action types that the InteractionController treats in a special way, one of them is ACT_MOVE. The main distinction of this action is the InteractionController dispatches it to all selected elements allowing to move the whole selection when the user performs dragging. You can rewrite the example above as following:
 
 ```typescript
-import { ACT_MOVE, CircleCollider, DragActionPayload, useAction, useCollider } from "@carnelian/interaction";
+import { ACT_MOVE, CircleCollider, DragActionPayload, useAction, useCollider } from "@carnelian-diagram/interaction";
 
 const { x, y, radius, onChange } = props;
 useCollider(CircleCollider({center: {x, y}, radius}), { type: "in", cursor: "move", action: ACT_MOVE });
@@ -210,7 +210,7 @@ The library provides two standard control components, so you can use them instea
 
 Here is the example of using the `useControls` hook for the line segment element:
 ```typescript
-import { DragActionPayload, HandleControl, useAction, useControls } from "@carnelian/interaction";
+import { DragActionPayload, HandleControl, useAction, useControls } from "@carnelian-diagram/interaction";
 
 ...
 
@@ -287,10 +287,10 @@ The library provides some higher-order components (or just HOCs) built using the
 Here is the example using the `withInteractiveRect` HOC:
 
 ```typescript
-/** @jsxImportSource @carnelian/diagram */
+/** @jsxImportSource @carnelian-diagram/core */
 
-import { DiagramElement } from "@carnelian/diagram";
-import { withInteractiveRect } from "@carnelian/interaction";
+import { DiagramElement } from "@carnelian-diagram/core";
+import { withInteractiveRect } from "@carnelian-diagram/interaction";
 
 interface RectProps {
     x: number;
@@ -316,7 +316,7 @@ The `InteractionController` implements many actions by default but it can be con
 
 Here is the example allowing to configure the diagram paper and grid snapping:
 ```typescript
-import { InteractionController, isGridSnappingService, isPaperService } from "@carnelian/interaction";
+import { InteractionController, isGridSnappingService, isPaperService } from "@carnelian-diagram/interaction";
 
 const controller = new InteractionController(diagram, (services) => {
     services.configure(isPaperService, (service) => {

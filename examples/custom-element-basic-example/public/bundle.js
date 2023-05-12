@@ -2,10 +2,10 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.InteractiveCustomElement = exports.CustomElement = void 0;
-var jsx_runtime_1 = require("@carnelian/diagram/jsx-runtime");
-/** @jsxImportSource @carnelian/diagram */
-var diagram_1 = require("@carnelian/diagram");
-var interaction_1 = require("@carnelian/interaction");
+var jsx_runtime_1 = require("@carnelian-diagram/core/jsx-runtime");
+/** @jsxImportSource @carnelian-diagram/core */
+var diagram_1 = require("@carnelian-diagram/core");
+var interaction_1 = require("@carnelian-diagram/interaction");
 var CustomElement = function (props) {
     var x = props.x, y = props.y, width = props.width, height = props.height;
     var _a = (0, diagram_1.useState)("red"), color = _a[0], setColor = _a[1];
@@ -17,11 +17,11 @@ var CustomElement = function (props) {
 exports.CustomElement = CustomElement;
 exports.InteractiveCustomElement = (0, interaction_1.withInteractiveRect)(exports.CustomElement);
 
-},{"@carnelian/diagram":17,"@carnelian/diagram/jsx-runtime":18,"@carnelian/interaction":88}],2:[function(require,module,exports){
+},{"@carnelian-diagram/core":17,"@carnelian-diagram/core/jsx-runtime":18,"@carnelian-diagram/interaction":88}],2:[function(require,module,exports){
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-var diagram_1 = require("@carnelian/diagram");
-var interaction_1 = require("@carnelian/interaction");
+var diagram_1 = require("@carnelian-diagram/core");
+var interaction_1 = require("@carnelian-diagram/interaction");
 var custom_element_1 = require("./custom-element");
 var root = document.getElementById("root");
 if (root && root instanceof SVGGraphicsElement) {
@@ -33,7 +33,7 @@ if (root && root instanceof SVGGraphicsElement) {
     diagramDOM.attach();
 }
 
-},{"./custom-element":1,"@carnelian/diagram":17,"@carnelian/interaction":88}],3:[function(require,module,exports){
+},{"./custom-element":1,"@carnelian-diagram/core":17,"@carnelian-diagram/interaction":88}],3:[function(require,module,exports){
 
 },{}],4:[function(require,module,exports){
 // shim for using process in browser
@@ -4330,13 +4330,13 @@ __exportStar(require("./collisions"), exports);
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.ControlsContext = void 0;
-var diagram_1 = require("@carnelian/diagram");
+var diagram_1 = require("@carnelian-diagram/core");
 exports.ControlsContext = (0, diagram_1.createContext)({
     renderHandle: function () { return null; },
     renderEdge: function () { return null; }
 });
 
-},{"@carnelian/diagram":17}],64:[function(require,module,exports){
+},{"@carnelian-diagram/core":17}],64:[function(require,module,exports){
 "use strict";
 var __createBinding = (this && this.__createBinding) || (Object.create ? (function(o, m, k, k2) {
     if (k2 === undefined) k2 = k;
@@ -4361,22 +4361,22 @@ __exportStar(require("./selection-context"), exports);
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.InteractionContext = void 0;
-var diagram_1 = require("@carnelian/diagram");
+var diagram_1 = require("@carnelian-diagram/core");
 exports.InteractionContext = (0, diagram_1.createContext)(null);
 
-},{"@carnelian/diagram":17}],66:[function(require,module,exports){
+},{"@carnelian-diagram/core":17}],66:[function(require,module,exports){
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.SelectionContext = void 0;
-var diagram_1 = require("@carnelian/diagram");
+var diagram_1 = require("@carnelian-diagram/core");
 exports.SelectionContext = (0, diagram_1.createContext)([]);
 
-},{"@carnelian/diagram":17}],67:[function(require,module,exports){
+},{"@carnelian-diagram/core":17}],67:[function(require,module,exports){
 "use strict";
-/** @jsxImportSource @carnelian/diagram */
+/** @jsxImportSource @carnelian-diagram/core */
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.EdgeControl = void 0;
-var diagram_1 = require("@carnelian/diagram");
+var diagram_1 = require("@carnelian-diagram/core");
 var __1 = require("..");
 function EdgeControl(props) {
     var p1 = new DOMPoint(props.x1, props.y1).matrixTransform(props.transform);
@@ -4395,9 +4395,9 @@ function EdgeControl(props) {
 }
 exports.EdgeControl = EdgeControl;
 
-},{"..":88,"@carnelian/diagram":17}],68:[function(require,module,exports){
+},{"..":88,"@carnelian-diagram/core":17}],68:[function(require,module,exports){
 "use strict";
-/** @jsxImportSource @carnelian/diagram */
+/** @jsxImportSource @carnelian-diagram/core */
 var __assign = (this && this.__assign) || function () {
     __assign = Object.assign || function(t) {
         for (var s, i = 1, n = arguments.length; i < n; i++) {
@@ -4411,7 +4411,7 @@ var __assign = (this && this.__assign) || function () {
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.HandleControl = void 0;
-var diagram_1 = require("@carnelian/diagram");
+var diagram_1 = require("@carnelian-diagram/core");
 var __1 = require("..");
 function HandleControl(props) {
     var p = new DOMPoint(props.x, props.y).matrixTransform(props.transform);
@@ -4427,7 +4427,7 @@ function HandleControl(props) {
 }
 exports.HandleControl = HandleControl;
 
-},{"..":88,"@carnelian/diagram":17}],69:[function(require,module,exports){
+},{"..":88,"@carnelian-diagram/core":17}],69:[function(require,module,exports){
 "use strict";
 var __createBinding = (this && this.__createBinding) || (Object.create ? (function(o, m, k, k2) {
     if (k2 === undefined) k2 = k;
@@ -4824,8 +4824,8 @@ exports.pointOnPolygon = pointOnPolygon;
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.polygonHitTest = exports.lineHitTest = exports.circleHitTest = exports.rectHitTest = exports.pointHitTest = exports.createHitTestProps = exports.addHitTestProps = exports.hasHitTestProps = void 0;
-var diagram_1 = require("@carnelian/diagram");
-var custom_prop_hook_1 = require("@carnelian/diagram/utils/custom-prop-hook");
+var diagram_1 = require("@carnelian-diagram/core");
+var custom_prop_hook_1 = require("@carnelian-diagram/core/utils/custom-prop-hook");
 var geometry_1 = require("./geometry");
 function hasHitTestProps(target) {
     return target.__hitTest !== undefined;
@@ -4890,7 +4890,7 @@ function polygonHitTest(polygon) {
 }
 exports.polygonHitTest = polygonHitTest;
 
-},{"./geometry":70,"@carnelian/diagram":17,"@carnelian/diagram/utils/custom-prop-hook":19}],72:[function(require,module,exports){
+},{"./geometry":70,"@carnelian-diagram/core":17,"@carnelian-diagram/core/utils/custom-prop-hook":19}],72:[function(require,module,exports){
 "use strict";
 var __createBinding = (this && this.__createBinding) || (Object.create ? (function(o, m, k, k2) {
     if (k2 === undefined) k2 = k;
@@ -4947,11 +4947,11 @@ var __read = (this && this.__read) || function (o, n) {
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.withInteraction = void 0;
-var jsx_runtime_1 = require("@carnelian/diagram/jsx-runtime");
-/** @jsxImportSource @carnelian/diagram */
-var diagram_1 = require("@carnelian/diagram");
+var jsx_runtime_1 = require("@carnelian-diagram/core/jsx-runtime");
+/** @jsxImportSource @carnelian-diagram/core */
+var diagram_1 = require("@carnelian-diagram/core");
 var __1 = require("..");
-var schedule_1 = require("@carnelian/diagram/utils/schedule");
+var schedule_1 = require("@carnelian-diagram/core/utils/schedule");
 function getTransformAttribute(matrix) {
     return matrix
         ? "matrix(".concat(matrix.a, " ").concat(matrix.b, " ").concat(matrix.c, " ").concat(matrix.d, " ").concat(matrix.e, " ").concat(matrix.f, ")")
@@ -5056,7 +5056,7 @@ function withInteraction(WrappedComponent, controller, options) {
 }
 exports.withInteraction = withInteraction;
 
-},{"..":88,"@carnelian/diagram":17,"@carnelian/diagram/jsx-runtime":18,"@carnelian/diagram/utils/schedule":20}],74:[function(require,module,exports){
+},{"..":88,"@carnelian-diagram/core":17,"@carnelian-diagram/core/jsx-runtime":18,"@carnelian-diagram/core/utils/schedule":20}],74:[function(require,module,exports){
 "use strict";
 var __assign = (this && this.__assign) || function () {
     __assign = Object.assign || function(t) {
@@ -5082,7 +5082,7 @@ var __rest = (this && this.__rest) || function (s, e) {
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.withInteractiveCircle = void 0;
-var jsx_runtime_1 = require("@carnelian/diagram/jsx-runtime");
+var jsx_runtime_1 = require("@carnelian-diagram/core/jsx-runtime");
 var with_interactive_square_1 = require("./with-interactive-square");
 function withInteractiveCircle(WrappedElement, options) {
     return function (props) {
@@ -5111,7 +5111,7 @@ function withInteractiveCircle(WrappedElement, options) {
 }
 exports.withInteractiveCircle = withInteractiveCircle;
 
-},{"./with-interactive-square":78,"@carnelian/diagram/jsx-runtime":18}],75:[function(require,module,exports){
+},{"./with-interactive-square":78,"@carnelian-diagram/core/jsx-runtime":18}],75:[function(require,module,exports){
 "use strict";
 var __assign = (this && this.__assign) || function () {
     __assign = Object.assign || function(t) {
@@ -5126,7 +5126,7 @@ var __assign = (this && this.__assign) || function () {
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.withInteractiveLine = exports.useInteractiveLine = void 0;
-var jsx_runtime_1 = require("@carnelian/diagram/jsx-runtime");
+var jsx_runtime_1 = require("@carnelian-diagram/core/jsx-runtime");
 var __1 = require("..");
 function useInteractiveLine(props, colliderFactory) {
     var x1 = props.x1, y1 = props.y1, x2 = props.x2, y2 = props.y2, onChange = props.onChange;
@@ -5184,7 +5184,7 @@ function withInteractiveLine(WrappedElement, colliderFactory) {
 }
 exports.withInteractiveLine = withInteractiveLine;
 
-},{"..":88,"@carnelian/diagram/jsx-runtime":18}],76:[function(require,module,exports){
+},{"..":88,"@carnelian-diagram/core/jsx-runtime":18}],76:[function(require,module,exports){
 "use strict";
 var __assign = (this && this.__assign) || function () {
     __assign = Object.assign || function(t) {
@@ -5224,7 +5224,7 @@ var __spreadArray = (this && this.__spreadArray) || function (to, from, pack) {
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.withInteractivePolyline = exports.useInteractivePolyline = exports.PolylineCollider = void 0;
-var jsx_runtime_1 = require("@carnelian/diagram/jsx-runtime");
+var jsx_runtime_1 = require("@carnelian-diagram/core/jsx-runtime");
 var __1 = require("..");
 function PolylineCollider(points) {
     if (points.length === 1) {
@@ -5330,7 +5330,7 @@ function withInteractivePolyline(WrappedElement, isClosed, minPoints, options) {
 }
 exports.withInteractivePolyline = withInteractivePolyline;
 
-},{"..":88,"@carnelian/diagram/jsx-runtime":18}],77:[function(require,module,exports){
+},{"..":88,"@carnelian-diagram/core/jsx-runtime":18}],77:[function(require,module,exports){
 "use strict";
 var __assign = (this && this.__assign) || function () {
     __assign = Object.assign || function(t) {
@@ -5345,7 +5345,7 @@ var __assign = (this && this.__assign) || function () {
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.withInteractiveRect = exports.useInteractiveRectControls = exports.useInteractiveRect = void 0;
-var jsx_runtime_1 = require("@carnelian/diagram/jsx-runtime");
+var jsx_runtime_1 = require("@carnelian-diagram/core/jsx-runtime");
 var __1 = require("..");
 var collisions_1 = require("../collisions");
 function useInteractiveRect(props, options) {
@@ -5462,7 +5462,7 @@ function withInteractiveRect(WrappedElement, options) {
 }
 exports.withInteractiveRect = withInteractiveRect;
 
-},{"..":88,"../collisions":62,"@carnelian/diagram/jsx-runtime":18}],78:[function(require,module,exports){
+},{"..":88,"../collisions":62,"@carnelian-diagram/core/jsx-runtime":18}],78:[function(require,module,exports){
 "use strict";
 var __assign = (this && this.__assign) || function () {
     __assign = Object.assign || function(t) {
@@ -5477,7 +5477,7 @@ var __assign = (this && this.__assign) || function () {
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.withInteractiveSquare = exports.useInteractiveSquare = void 0;
-var jsx_runtime_1 = require("@carnelian/diagram/jsx-runtime");
+var jsx_runtime_1 = require("@carnelian-diagram/core/jsx-runtime");
 var __1 = require("..");
 var collisions_1 = require("../collisions");
 var with_interactive_rect_1 = require("./with-interactive-rect");
@@ -5563,7 +5563,7 @@ function withInteractiveSquare(WrappedElement, options) {
 }
 exports.withInteractiveSquare = withInteractiveSquare;
 
-},{"..":88,"../collisions":62,"./with-interactive-rect":77,"@carnelian/diagram/jsx-runtime":18}],79:[function(require,module,exports){
+},{"..":88,"../collisions":62,"./with-interactive-rect":77,"@carnelian-diagram/core/jsx-runtime":18}],79:[function(require,module,exports){
 "use strict";
 var __assign = (this && this.__assign) || function () {
     __assign = Object.assign || function(t) {
@@ -5594,9 +5594,9 @@ var __read = (this && this.__read) || function (o, n) {
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.withInteractiveText = void 0;
-var jsx_runtime_1 = require("@carnelian/diagram/jsx-runtime");
-/** @jsxImportSource @carnelian/diagram */
-var diagram_1 = require("@carnelian/diagram");
+var jsx_runtime_1 = require("@carnelian-diagram/core/jsx-runtime");
+/** @jsxImportSource @carnelian-diagram/core */
+var diagram_1 = require("@carnelian-diagram/core");
 var __1 = require("..");
 function withInteractiveText(WrappedElement, textBounds, editorStyle, options) {
     return function (props) {
@@ -5633,7 +5633,7 @@ function withInteractiveText(WrappedElement, textBounds, editorStyle, options) {
 }
 exports.withInteractiveText = withInteractiveText;
 
-},{"..":88,"@carnelian/diagram":17,"@carnelian/diagram/jsx-runtime":18}],80:[function(require,module,exports){
+},{"..":88,"@carnelian-diagram/core":17,"@carnelian-diagram/core/jsx-runtime":18}],80:[function(require,module,exports){
 "use strict";
 var __assign = (this && this.__assign) || function () {
     __assign = Object.assign || function(t) {
@@ -5648,7 +5648,7 @@ var __assign = (this && this.__assign) || function () {
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.withKnobs = exports.withKnob = exports.useKnob = void 0;
-var jsx_runtime_1 = require("@carnelian/diagram/jsx-runtime");
+var jsx_runtime_1 = require("@carnelian-diagram/core/jsx-runtime");
 var __1 = require("..");
 function useKnob(knobController, props) {
     var pos = knobController.getPosition(props);
@@ -5680,7 +5680,7 @@ function withKnobs(WrappedElement) {
 }
 exports.withKnobs = withKnobs;
 
-},{"..":88,"@carnelian/diagram/jsx-runtime":18}],81:[function(require,module,exports){
+},{"..":88,"@carnelian-diagram/core/jsx-runtime":18}],81:[function(require,module,exports){
 "use strict";
 var __createBinding = (this && this.__createBinding) || (Object.create ? (function(o, m, k, k2) {
     if (k2 === undefined) k2 = k;
@@ -5724,7 +5724,7 @@ var __read = (this && this.__read) || function (o, n) {
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.useAction = void 0;
-var diagram_1 = require("@carnelian/diagram");
+var diagram_1 = require("@carnelian-diagram/core");
 var __1 = require("..");
 function useAction(actionType, callback, element) {
     var renderContext = (0, diagram_1.useContext)(diagram_1.RenderContext);
@@ -5751,7 +5751,7 @@ function useAction(actionType, callback, element) {
 }
 exports.useAction = useAction;
 
-},{"..":88,"@carnelian/diagram":17}],83:[function(require,module,exports){
+},{"..":88,"@carnelian-diagram/core":17}],83:[function(require,module,exports){
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.useCollider = void 0;
@@ -5795,7 +5795,7 @@ var __read = (this && this.__read) || function (o, n) {
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.useControls = void 0;
-var diagram_1 = require("@carnelian/diagram");
+var diagram_1 = require("@carnelian-diagram/core");
 var __1 = require("..");
 function useControls(callback) {
     var renderContext = (0, diagram_1.useContext)(diagram_1.RenderContext);
@@ -5821,7 +5821,7 @@ function useControls(callback) {
 }
 exports.useControls = useControls;
 
-},{"..":88,"@carnelian/diagram":17}],85:[function(require,module,exports){
+},{"..":88,"@carnelian-diagram/core":17}],85:[function(require,module,exports){
 "use strict";
 var __read = (this && this.__read) || function (o, n) {
     var m = typeof Symbol === "function" && o[Symbol.iterator];
@@ -5841,7 +5841,7 @@ var __read = (this && this.__read) || function (o, n) {
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.useHitTest = void 0;
-var diagram_1 = require("@carnelian/diagram");
+var diagram_1 = require("@carnelian-diagram/core");
 var __1 = require("..");
 function useHitTest(callback, hitArea, priority, element) {
     if (priority === void 0) { priority = 0; }
@@ -5870,7 +5870,7 @@ function useHitTest(callback, hitArea, priority, element) {
 }
 exports.useHitTest = useHitTest;
 
-},{"..":88,"@carnelian/diagram":17}],86:[function(require,module,exports){
+},{"..":88,"@carnelian-diagram/core":17}],86:[function(require,module,exports){
 "use strict";
 var __read = (this && this.__read) || function (o, n) {
     var m = typeof Symbol === "function" && o[Symbol.iterator];
@@ -5890,7 +5890,7 @@ var __read = (this && this.__read) || function (o, n) {
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.useIntersectionTest = void 0;
-var diagram_1 = require("@carnelian/diagram");
+var diagram_1 = require("@carnelian-diagram/core");
 var __1 = require("..");
 function useIntersectionTest(callback, bounds) {
     var renderContext = (0, diagram_1.useContext)(diagram_1.RenderContext);
@@ -5917,11 +5917,11 @@ function useIntersectionTest(callback, bounds) {
 }
 exports.useIntersectionTest = useIntersectionTest;
 
-},{"..":88,"@carnelian/diagram":17}],87:[function(require,module,exports){
+},{"..":88,"@carnelian-diagram/core":17}],87:[function(require,module,exports){
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.useSelection = void 0;
-var diagram_1 = require("@carnelian/diagram");
+var diagram_1 = require("@carnelian-diagram/core");
 var __1 = require("..");
 function useSelection(element) {
     var renderContext = (0, diagram_1.useContext)(diagram_1.RenderContext);
@@ -5936,7 +5936,7 @@ function useSelection(element) {
 }
 exports.useSelection = useSelection;
 
-},{"..":88,"@carnelian/diagram":17}],88:[function(require,module,exports){
+},{"..":88,"@carnelian-diagram/core":17}],88:[function(require,module,exports){
 "use strict";
 var __createBinding = (this && this.__createBinding) || (Object.create ? (function(o, m, k, k2) {
     if (k2 === undefined) k2 = k;
@@ -6015,7 +6015,7 @@ var __values = (this && this.__values) || function(o) {
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.InteractionController = exports.SELECT_EVENT = void 0;
-var jsx_runtime_1 = require("@carnelian/diagram/jsx-runtime");
+var jsx_runtime_1 = require("@carnelian-diagram/core/jsx-runtime");
 var hit_tests_1 = require("./hit-tests");
 var geometry_1 = require("./geometry");
 var services_1 = require("./services");
@@ -6310,7 +6310,7 @@ var InteractionController = /** @class */ (function () {
 }());
 exports.InteractionController = InteractionController;
 
-},{"./geometry":70,"./hit-tests":71,"./services":96,"@carnelian/diagram/jsx-runtime":18,"type-pubsub":108}],90:[function(require,module,exports){
+},{"./geometry":70,"./hit-tests":71,"./services":96,"@carnelian-diagram/core/jsx-runtime":18,"type-pubsub":108}],90:[function(require,module,exports){
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.polygonIntersectionTest = exports.circleIntersectionTest = exports.rectIntersectionTest = exports.lineIntersectionTest = void 0;
@@ -6347,7 +6347,7 @@ var __assign = (this && this.__assign) || function () {
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.DefaultControlRenderingService = exports.isControlRenderingService = void 0;
-var jsx_runtime_1 = require("@carnelian/diagram/jsx-runtime");
+var jsx_runtime_1 = require("@carnelian-diagram/core/jsx-runtime");
 function isControlRenderingService(service) {
     return service.type === "control_rendering_service";
 }
@@ -6383,7 +6383,7 @@ var DefaultControlRenderingService = /** @class */ (function () {
 }());
 exports.DefaultControlRenderingService = DefaultControlRenderingService;
 
-},{"@carnelian/diagram/jsx-runtime":18}],92:[function(require,module,exports){
+},{"@carnelian-diagram/core/jsx-runtime":18}],92:[function(require,module,exports){
 "use strict";
 var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
     function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }

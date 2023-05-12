@@ -1,5 +1,5 @@
-import { Diagram } from "@carnelian/diagram";
-import { InteractionController, isGridSnappingService, isPaperService } from "@carnelian/interaction";
+import { Diagram } from "@carnelian-diagram/core";
+import { InteractionController, isGridSnappingService, isPaperService } from "@carnelian-diagram/interaction";
 import { DiagramPaletteElement } from "./components/DiagramPalette";
 import {
     InteractiveRectWithText as Rect, 
@@ -14,11 +14,11 @@ import {
     InteractiveDonut as Donut,
     InteractiveCrossWithText as Cross,
     InteractivePie as Pie,
-} from "@carnelian/shapes/basic";
+} from "@carnelian-diagram/shapes/basic";
 import {
     InteractivePacman as Pacman
 } from "./examples"
-import { TextStyle } from "@carnelian/shapes";
+import { TextStyle } from "@carnelian-diagram/shapes";
 
 export const diagram = new Diagram();
 export const controller = new InteractionController(diagram, (services) => {

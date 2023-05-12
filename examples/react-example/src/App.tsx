@@ -1,10 +1,10 @@
 /** @jsxImportSource @emotion/react */
 import React, { useState } from 'react';
-import { Diagram } from '@carnelian/diagram';
+import { Diagram } from '@carnelian-diagram/core';
 import DiagramPalette, { DiagramPaletteElement } from './components/DiagramPalette';
 import DiagramToolbar from './components/DiagramToolbar';
 import DiagramViewer from './components/DiagramViewer';
-import { InteractionController, isPaperService } from '@carnelian/interaction';
+import { InteractionController, isPaperService } from '@carnelian-diagram/interaction';
 import { Accordion, AccordionDetails, AccordionSummary, Typography } from '@mui/material';
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
 

@@ -10,9 +10,9 @@ import CircleOutlinedIcon from '@mui/icons-material/CircleOutlined';
 import FormatColorTextIcon from '@mui/icons-material/FormatColorText';
 import FormatSizeIcon from '@mui/icons-material/FormatSize';
 import { CompactPicker } from 'react-color';
-import { DrawingModeElementFactory, DRAW_ELEMENT_EVENT, InteractionController, isElementDrawingService } from "@carnelian/interaction";
-import { ClosedFigureStyleProps, TextStyleProps } from "@carnelian/shapes";
-import { Diagram, DiagramElementNode, DiagramElementProps } from "@carnelian/diagram";
+import { DrawingModeElementFactory, DRAW_ELEMENT_EVENT, InteractionController, isElementDrawingService } from "@carnelian-diagram/interaction";
+import { ClosedFigureStyleProps, TextStyleProps } from "@carnelian-diagram/shapes";
+import { Diagram, DiagramElementNode, DiagramElementProps } from "@carnelian-diagram/core";
 import {
     InteractiveLine as Line,
     InteractivePolyline as Polyline,
@@ -20,7 +20,7 @@ import {
     InteractiveRectWithText as Rect,
     InteractiveCircleWithText as Circle,
     InteractiveMultilineText as Text,
-} from "@carnelian/shapes/basic";
+} from "@carnelian-diagram/shapes/basic";
 import { defaultTextStyles } from "../diagram";
 
 interface DiagramToolbarProps {

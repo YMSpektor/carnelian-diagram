@@ -1,10 +1,10 @@
-/** @jsxImportSource @carnelian/diagram */
+/** @jsxImportSource @carnelian-diagram/core */
 
-import { DiagramElement } from "@carnelian/diagram";
-import { CircleCollider, DiffCollider, HalfPlaneCollider, IntersectionCollider, KnobController, UnionCollider, withInteractiveCircle, withKnobs } from "@carnelian/interaction";
-import { clamp, degToRad, Point, radToDeg } from "@carnelian/interaction/geometry";
-import { CircleBaseProps } from "@carnelian/shapes";
-import { convertPercentage, isPercentage, NumberOrPercentage } from "@carnelian/shapes/utils";
+import { DiagramElement } from "@carnelian-diagram/core";
+import { CircleCollider, DiffCollider, HalfPlaneCollider, IntersectionCollider, KnobController, UnionCollider, withInteractiveCircle, withKnobs } from "@carnelian-diagram/interaction";
+import { clamp, degToRad, Point, radToDeg } from "@carnelian-diagram/interaction/geometry";
+import { CircleBaseProps } from "@carnelian-diagram/shapes";
+import { convertPercentage, isPercentage, NumberOrPercentage } from "@carnelian-diagram/shapes/utils";
 
 const MAX_MOUTH_ANGLE = 120;
 

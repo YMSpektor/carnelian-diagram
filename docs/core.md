@@ -6,19 +6,19 @@
 
 Carnelian separates a diagram model (that contains all elements with their properties) and the process of rendering. To define a diagram model you need to create an instance of `Diagram` class:
 ```typescript
-import { Diagram } from "@carnelian/diagram";
+import { Diagram } from "@carnelian-diagram/core";
 
 const diagram = new Diagram();
 ```
 The Diagram class contains methods to add, delete or update elements, for example, you can add new elements to the diagram using `add` method:
 ```typescript
-import { InteractiveRect } from "@carnelian/shapes/basic";
+import { InteractiveRect } from "@carnelian-diagram/shapes/basic";
 
 diagram.add(InteractiveRect, { x: 100, y: 100, width: 200, height: 150, style: { fill: "yellow" } });
 ```
 To display the diagram on a web page use `DiagramDOM`:
 ```typescript
-import { Diagram, DiagramDOM, DiagramRoot } from "@carnelian/diagram";
+import { Diagram, DiagramDOM, DiagramRoot } from "@carnelian-diagram/core";
 
 const root = DiagramDOM.createRoot(
     diagram,     // The diagram model
@@ -36,9 +36,9 @@ Carnelian (similar to React) has separate render and commit phases. On the rende
 Creating custom elements is similar to how you create functional components in React. Here is a simple example:
 
 ```typescript
-/** @jsxImportSource @carnelian/diagram */
+/** @jsxImportSource @carnelian-diagram/core */
 
-import { useState, DiagramElement } from "@carnelian/diagram";
+import { useState, DiagramElement } from "@carnelian-diagram/core";
 
 export interface CustomElementProps {
     x: number;
@@ -62,7 +62,7 @@ export const CustomElement: DiagramElement<CustomElementProps> = function(props)
 ```
 To add this element to diagram model we need to call the `add` method of `Diagram` object:
 ```typescript
-import { Diagram } from "@carnelian/diagram";
+import { Diagram } from "@carnelian-diagram/core";
 import { CustomElement } from "./custom-element";
 
 const diagram = new Diagram();

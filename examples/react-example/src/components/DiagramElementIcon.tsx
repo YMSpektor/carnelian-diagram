@@ -1,5 +1,5 @@
 import { SVGAttributes, useLayoutEffect, useRef, useState } from "react";
-import { Diagram, DiagramDOM, DiagramElement, DiagramRoot } from "@carnelian/diagram";
+import { Diagram, DiagramDOM, DiagramElement, DiagramRoot } from "@carnelian-diagram/core";
 import DiagramSvg from "./DiagramSvg";
 
 interface DiagramElementIconProps<T extends object> {

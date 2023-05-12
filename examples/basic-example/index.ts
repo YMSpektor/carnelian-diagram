@@ -1,9 +1,9 @@
-import { Diagram, DiagramDOM, DiagramRoot } from "@carnelian/diagram";
-import { InteractionController, withInteraction } from "@carnelian/interaction";
+import { Diagram, DiagramDOM, DiagramRoot } from "@carnelian-diagram/core";
+import { InteractionController, withInteraction } from "@carnelian-diagram/interaction";
 import { 
     InteractiveRoundedRect as RoundedRect,
     InteractiveCircle as Circle 
-} from "@carnelian/shapes/basic";
+} from "@carnelian-diagram/shapes/basic";
 
 const root = document.getElementById("root");
 if (root && root instanceof SVGGraphicsElement) {

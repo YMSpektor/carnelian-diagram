@@ -1,5 +1,5 @@
 import { create, h } from "virtual-dom";
-import { Diagram, DiagramDOM, DiagramRoot, useState } from "@carnelian/diagram";
+import { Diagram, DiagramDOM, DiagramRoot, useState } from "@carnelian-diagram/core";
 
 function Test() {
     return <div className="test">Test</div>

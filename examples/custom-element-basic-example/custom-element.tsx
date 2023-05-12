@@ -1,7 +1,7 @@
-/** @jsxImportSource @carnelian/diagram */
+/** @jsxImportSource @carnelian-diagram/core */
 
-import { useState } from "@carnelian/diagram";
-import { withInteractiveRect } from "@carnelian/interaction";
+import { useState } from "@carnelian-diagram/core";
+import { withInteractiveRect } from "@carnelian-diagram/interaction";
 
 export interface CustomElementProps {
     x: number;

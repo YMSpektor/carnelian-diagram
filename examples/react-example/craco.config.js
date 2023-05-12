@@ -5,9 +5,9 @@ const { getLoaders, loaderByName, addBeforeLoader } = require("@craco/craco");
 const appDirectory = fs.realpathSync(process.cwd());
 const resolveApp = (relativePath) => path.resolve(appDirectory, relativePath);
 
-const carnelianDiagramPath = "../../packages/carnelian-diagram/src";
-const carnelianInteractionPath = "../../packages/carnelian-interaction/src";
-const carnelianShapesPath = "../../packages/carnelian-shapes/src";
+const carnelianCorePath = "../../packages/core/src";
+const carnelianInteractionPath = "../../packages/interaction/src";
+const carnelianShapesPath = "../../packages/shapes/src";
 
 module.exports = {
     webpack: {
@@ -21,7 +21,7 @@ module.exports = {
             addBeforeLoader(webpackConfig, loaderByName('babel-loader'), {
                 ...matches[0].loader,
                 include: [
-                    resolveApp(carnelianDiagramPath),
+                    resolveApp(carnelianCorePath),
                     resolveApp(carnelianInteractionPath),
                     resolveApp(carnelianShapesPath)
                 ],
@@ -29,9 +29,9 @@ module.exports = {
             return webpackConfig;
         },
         alias: {
-            '@carnelian/diagram': path.resolve(__dirname, carnelianDiagramPath),
-            '@carnelian/interaction': path.resolve(__dirname, carnelianInteractionPath),
-            '@carnelian/shapes': path.resolve(__dirname, carnelianShapesPath),
+            '@carnelian-diagram/core': path.resolve(__dirname, carnelianCorePath),
+            '@carnelian-diagram/interaction': path.resolve(__dirname, carnelianInteractionPath),
+            '@carnelian-diagram/shapes': path.resolve(__dirname, carnelianShapesPath),
         },
     },
 };
