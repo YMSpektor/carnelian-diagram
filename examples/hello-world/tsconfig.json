@@ -1,9 +1,0 @@
-{
-  "compilerOptions": {
-    "paths": {
-      "@carnelian-diagram/core": ["../../packages/core/src"],
-      "@carnelian-diagram/core/*": ["../../packages/core/src/*"]
-    }
-  },
-  "extends": "../../tsconfig"
-}
