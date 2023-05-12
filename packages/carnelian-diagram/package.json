@@ -21,7 +21,7 @@
         "dev": "ts-node-dev -r tsconfig-paths/register --files --respawn ../../demo/hello-world/index.tsx",
         "prebuild": "rimraf dist",
         "build": "tsc --rootDir ./src",
-        "postbuild": "copyfiles package.json dist"
+        "postbuild": "copyfiles package.json README.md dist"
     },
     "devDependencies": {
         "@types/node": "^18.11.14",

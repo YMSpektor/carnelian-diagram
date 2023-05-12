@@ -16,7 +16,7 @@ npm install @carnelian/diagram
 ```
 
 ### @carnelian/interaction
-This package contains tools to make diagram and its elements respond to a user's input.
+This package contains tools to make a diagram and its elements respond to a user's input.
 
 ```sh
 npm install @carnelian/interaction

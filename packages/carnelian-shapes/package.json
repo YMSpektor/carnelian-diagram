@@ -21,7 +21,7 @@
   "scripts": {
     "prebuild": "rimraf dist",
     "build": "tsc --project tsconfig.build.json --rootDir ./src",
-    "postbuild": "copyfiles package.json dist"
+    "postbuild": "copyfiles package.json README.md dist"
   },
   "devDependencies": {
     "@types/node": "^18.11.14",
