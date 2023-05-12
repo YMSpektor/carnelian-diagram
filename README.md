@@ -1,15 +1,15 @@
-# Carnelian Diagram
-**Carnelian Diagram** is a typescript library that allows you to create interactive diagrams for your web applications.
+# Carnelian
+**Carnelian** is a typescript library that allows you to create interactive diagrams for your web applications.
 
 ## Motivation
-The library pursues several goals: first of all, it's not only a set of finished tools and features, but also an engine for creating your own. Secondly, **Carnelian Diagram** is designed to be similar to the popular `React` library, so if you're familiar with React, your skills will be useful for this library too: you can develop custom interactive elements and this process is similar to creating functional components in React (using custom and standard hooks like useState and useEffect, JSX syntax, higher-order components etc). This makes **Carnelian Diagram** easy to learn and use in your projects. However the library is not based on React and doesn't require it to be installed in your project, you can use it in vanilla TypeScript/JavaScript or with other tools because the library uses it's own engine *similar* to React, but much simplier and adapted for specific needs.
+The library pursues several goals: first of all, it's not only a set of finished tools and features, but also an engine for creating your own. Secondly, **Carnelian** is designed to be similar to the popular `React` library, so if you're familiar with React, your skills will be useful for this library too: you can develop custom interactive elements and this process is similar to creating functional components in React (using custom and standard hooks like useState and useEffect, JSX syntax, higher-order components etc). This makes **Carnelian** easy to learn and use in your projects. However the library is not based on React and doesn't require it to be installed in your project, you can use it in vanilla TypeScript/JavaScript or with other tools because the library uses it's own engine *similar* to React, but much simplier and adapted for specific needs.
 
 ## Installation
 
-**Carnelian Diagram** is available as a set of several npm packages.
+**Carnelian** is available as a set of several npm packages.
 
 ### @carnelian/diagram
-This package is a core of **Carnelian Diagram** library and contains base functionality to create and render diagrams.
+This package is a core of **Carnelian** library and contains base functionality to create and render diagrams.
 
 ```sh
 npm install @carnelian/diagram
@@ -100,12 +100,17 @@ export const Rect: DiagramElement<RectProps> = function(props) {
 
 export const InteractiveRect = withInteractiveRect(Rect);
 ```
-To create more complex diagram elements see documentation below
+
+See [Examples folder](https://github.com/YMSpektor/carnelian-diagram/tree/main/examples) for more examples of using the library and [@carnelian/shapes](https://github.com/YMSpektor/carnelian-diagram/tree/main/packages/carnelian-shapes/src/basic) package source for creating custom elements.
 
 ## Documentation
 
-* [Carnelian Diagram engine](https://github.com/YMSpektor/carnelian-diagram/blob/main/docs/core.md)
+* [Carnelian engine](https://github.com/YMSpektor/carnelian-diagram/blob/main/docs/core.md)
 * [Interactivity](https://github.com/YMSpektor/carnelian-diagram/blob/main/docs/interactivity.md)
+
+## Demo application
+
+Demo application is available [here](https://ymspektor.github.io/carnelian-diagram).
 
 ## License
 
