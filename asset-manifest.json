@@ -1,0 +1,15 @@
+{
+  "files": {
+    "main.css": "/carnelian-diagram/static/css/main.491f0581.css",
+    "main.js": "/carnelian-diagram/static/js/main.3e9ee5ee.js",
+    "static/js/529.190d1390.chunk.js": "/carnelian-diagram/static/js/529.190d1390.chunk.js",
+    "index.html": "/carnelian-diagram/index.html",
+    "main.491f0581.css.map": "/carnelian-diagram/static/css/main.491f0581.css.map",
+    "main.3e9ee5ee.js.map": "/carnelian-diagram/static/js/main.3e9ee5ee.js.map",
+    "529.190d1390.chunk.js.map": "/carnelian-diagram/static/js/529.190d1390.chunk.js.map"
+  },
+  "entrypoints": [
+    "static/css/main.491f0581.css",
+    "static/js/main.3e9ee5ee.js"
+  ]
+}
