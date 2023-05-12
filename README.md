@@ -105,7 +105,7 @@ See [Examples folder](https://github.com/YMSpektor/carnelian-diagram/tree/main/e
 
 ## Documentation
 
-* [Carnelian engine](https://github.com/YMSpektor/carnelian-diagram/blob/main/docs/core.md)
+* [Carnelian Diagram engine](https://github.com/YMSpektor/carnelian-diagram/blob/main/docs/core.md)
 * [Interactivity](https://github.com/YMSpektor/carnelian-diagram/blob/main/docs/interactivity.md)
 
 ## Demo application

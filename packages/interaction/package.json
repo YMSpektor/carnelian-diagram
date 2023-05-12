@@ -20,7 +20,7 @@
   "scripts": {
     "prebuild": "rimraf dist",
     "build": "tsc --project tsconfig.build.json --rootDir ./src",
-    "postbuild": "copyfiles package.json dist",
+    "postbuild": "copyfiles package.json README.md dist",
     "predeploy": "npm run build",
     "deploy": "cd dist && npm publish --access=public"
   },
