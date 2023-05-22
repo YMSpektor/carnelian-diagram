@@ -6,6 +6,7 @@ import { DiagramElementIntersectionTest } from "./intersection-tests";
 import { intersectRect, Rect } from "./geometry";
 import { DefaultControlRenderingService, DefaultDeletionService, DefaultElementDrawingService, DefaultElementInteractionService, DefaultGridSnappingService, DefaultPaperService, DefaultSelectionService, DefaultTextEditingService, InteractionServive, InteractiveServiceCollection } from "./services";
 import { Channel } from "type-pubsub";
+import { DiagramElementTransform } from "./transforms";
 
 export type RenderControlsCallback = (transform: DOMMatrixReadOnly, element: DiagramElementNode) => JSX.Element;
 
@@ -39,6 +40,7 @@ export class InteractionController {
     private controls = new Map<DiagramElementNode, Map<object, DiagramElementControls>>();
     private hitTests: HitTestCollection = {};
     private intersectionTests = new Map<object, DiagramElementIntersectionTest>;
+    private transforms = new Map<DiagramElementNode, Map<object, DiagramElementTransform<any>>>;
     private actions = new Map<object, DiagramElementAction<any>>();
     private pendingActions = new Map<DiagramElementNode, PendingAction<any>[]>();
     private selectedElements = new Set<DiagramElementNode>();
@@ -198,12 +200,45 @@ export class InteractionController {
             }
         }
 
+        const updateTransforms = (element: DiagramElementNode, key: {}, transform?: DiagramElementTransform<any>) => {
+            let map = this.transforms.get(element);
+            if (!map) {
+                map = new Map<object, DiagramElementTransform<any>>()
+                this.transforms.set(element, map);
+            }
+            if (transform) {
+                map.set(key, transform);
+            }
+            else {
+                map.delete(key);
+                if (map.size === 0) {
+                    this.transforms.delete(element);
+                }
+            }
+        }
+
         return {
             updateControls,
             updateHitTests,
             updateIntersectionTests,
-            updateActions
+            updateActions,
+            updateTransforms
         }
+    }
+
+    private hasTransform(element: DiagramElementNode): boolean {
+        return !!this.transforms.get(element);
+    }
+
+    getElementTransform(element: DiagramElementNode, parentTransform?: DOMMatrixReadOnly): DOMMatrix {
+        const transforms = this.transforms.get(element);
+        const localTransform = transforms 
+            ? [...transforms.values()].reduce<DOMMatrix>((acc, cur) => acc.multiply(cur.transform), new DOMMatrix())
+            : new DOMMatrix();
+        // Convert to DOMMatrix in case the parentTransform is SVGMatrix to avoid exception on multiplication
+        parentTransform = parentTransform ? new DOMMatrix([parentTransform.a, parentTransform.b, parentTransform.c, 
+            parentTransform.d, parentTransform.e, parentTransform.f]) : parentTransform;
+        return parentTransform ? parentTransform.multiply(localTransform) : localTransform;
     }
 
     clientToDiagram(point: DOMPointReadOnly): DOMPointReadOnly {
@@ -240,7 +275,7 @@ export class InteractionController {
                 const controls = [...x[1].values()];
                 return createElement(
                     Fragment,
-                    { children: controls.map(x => x.callback(transform, x.element)) },
+                    { children: controls.map(x => x.callback(this.getElementTransform(x.element, transform), x.element)) },
                     key
                 );
             });
@@ -248,7 +283,6 @@ export class InteractionController {
 
     hitTest(e: MouseEvent): HitInfo | undefined {
         if (this.screenCTM) {
-            const transform = this.screenCTM.inverse();
             const point = new DOMPoint(e.clientX, e.clientY);
             const elementPoint = this.clientToDiagram(point);
             if (hasHitTestProps(e)) {
@@ -277,6 +311,7 @@ export class InteractionController {
                     let hit: DiagramElementHitTest | undefined;
                     for (let element of sortedElements) {
                         const list = [...(this.hitTests[priority]?.get(element)?.values() || [])];
+                        const transform = this.getElementTransform(element, this.screenCTM).inverse();
                         hit = list.find(x => x.callback(point, transform));
                         if (hit) break;
                     }

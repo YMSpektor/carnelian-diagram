@@ -2,6 +2,7 @@
 
 import { DiagramElement, DiagramElementProps } from "@carnelian-diagram/core";
 import { Point } from "../geometry";
+import { useTransform } from "../hooks";
 import { rotateTransform } from "../transforms";
 
 export interface DiagramElementRotation<T extends object> {
@@ -15,11 +16,25 @@ export function withRotation<T extends object>(
     rotation: DiagramElementRotation<T>
 ): DiagramElement<T> {
     return (props) => {
-        if (rotation.angle) {
-            const angle = rotation.angle(props);
+        const angle = rotation.angle(props);
+        const transform = rotateTransform(angle);
+        useTransform(transform);
+
+        if (angle) {
             const origin = rotation.origin(props);
-            const p = new DOMPoint(origin.x, origin.y).matrixTransform(rotateTransform(angle).inverse());
+            const p = new DOMPoint(origin.x, origin.y).matrixTransform(transform.inverse());
             const innerProps = rotation.offsetElement(props, p.x - origin.x, p.y - origin.y);
+            const oldOnChange = innerProps.onChange;
+            // innerProps.onChange = (callback) => {
+            //     function rotationCallback(props: DiagramElementProps<T>): DiagramElementProps<T> {
+            //         const result = callback(props);
+            //         const origin = rotation.origin(result);
+            //         const p = new DOMPoint(origin.x, origin.y).matrixTransform(transform.inverse());
+            //         return rotation.offsetElement(result, p.x - origin.x, p.y - origin.y);
+            //     }
+            //     return oldOnChange(rotationCallback);
+            // }
+
             return (
                 <g transform={`rotate(${angle})`}>
                     <WrappedElement {...innerProps} />

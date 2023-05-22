@@ -21,24 +21,19 @@ export const InteractiveRect = withInteractiveRect(Rect, {
     innerHitArea: (hitArea) => ({...hitArea, dblClickAction: ACT_EDIT_TEXT})
 });
 
-export const InteractiveRectWithText = withInteractiveRect(
-    withRotation(
-        withText(
-            Rect,
-            withInteractiveText(
-                MultilineText,
-                (props) => props,
-                (props) => textEditorStyles(props.textStyle)
-            ),
-            (props) => props
+export const InteractiveRectWithText = withRotation(
+    withText(
+        InteractiveRect,
+        withInteractiveText(
+            MultilineText,
+            (props) => props,
+            (props) => textEditorStyles(props.textStyle)
         ),
-        {
-            angle: (props) => 30,
-            origin: (props) => ({ x: props.x + props.width / 2, y: props.y + props.height / 2 }),
-            offsetElement: (props, dx, dy) => ({ ...props, x: props.x + dx, y: props.y + dy })
-        }
+        (props) => props
     ),
     {
-        innerHitArea: (hitArea) => ({...hitArea, dblClickAction: ACT_EDIT_TEXT})
+        angle: (props) => 30,
+        origin: (props) => ({ x: props.x + props.width / 2, y: props.y + props.height / 2 }),
+        offsetElement: (props, dx, dy) => ({ ...props, x: props.x + dx, y: props.y + dy })
     }
 );

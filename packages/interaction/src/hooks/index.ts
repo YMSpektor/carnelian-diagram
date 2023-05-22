@@ -4,3 +4,4 @@ export * from "./use-hit-test";
 export * from "./use-intersection-test";
 export * from "./use-selection";
 export * from "./use-collider";
+export * from "./use-transform";

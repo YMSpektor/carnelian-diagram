@@ -1,4 +1,10 @@
+import { DiagramElementNode } from "@carnelian-diagram/core";
 import { degToRad, Point } from "./geometry";
+
+export interface DiagramElementTransform<T> {
+    element: DiagramElementNode;
+    transform: DOMMatrixReadOnly;
+}
 
 export function rotateTransform(angle: number, p?: Point) {
     angle = degToRad(angle);

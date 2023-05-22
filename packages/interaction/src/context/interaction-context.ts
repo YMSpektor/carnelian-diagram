@@ -6,6 +6,7 @@ export interface InteractionContextType {
     updateHitTests(element: DiagramElementNode, priority: number, key: {}, hitTest?: DiagramElementHitTest): void;
     updateIntersectionTests(key: {}, intersectionTest?: DiagramElementIntersectionTest): void;
     updateActions(key: {}, action?: DiagramElementAction<any>): void;
+    updateTransforms(element: DiagramElementNode, key: {}, transform?: DiagramElementTransform<any>): void;
 }
 
 export const InteractionContext = createContext<InteractionContextType | null>(null);
