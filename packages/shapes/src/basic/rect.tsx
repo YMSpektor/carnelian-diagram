@@ -1,7 +1,7 @@
 /** @jsxImportSource @carnelian-diagram/core */
 
 import { DiagramElement } from "@carnelian-diagram/core";
-import { ACT_EDIT_TEXT, withInteractiveRect, withInteractiveText } from "@carnelian-diagram/interaction";
+import { ACT_EDIT_TEXT, withInteractiveRect, withInteractiveText, withRotation } from "@carnelian-diagram/interaction";
 import { RectBaseProps } from "..";
 import { withText } from "../hocs";
 import { textEditorStyles } from "../utils";
@@ -21,12 +21,24 @@ export const InteractiveRect = withInteractiveRect(Rect, {
     innerHitArea: (hitArea) => ({...hitArea, dblClickAction: ACT_EDIT_TEXT})
 });
 
-export const InteractiveRectWithText = withText(
-    InteractiveRect,
-    withInteractiveText(
-        MultilineText,
-        (props) => props,
-        (props) => textEditorStyles(props.textStyle)
+export const InteractiveRectWithText = withInteractiveRect(
+    withRotation(
+        withText(
+            Rect,
+            withInteractiveText(
+                MultilineText,
+                (props) => props,
+                (props) => textEditorStyles(props.textStyle)
+            ),
+            (props) => props
+        ),
+        {
+            angle: (props) => 30,
+            origin: (props) => ({ x: props.x + props.width / 2, y: props.y + props.height / 2 }),
+            offsetElement: (props, dx, dy) => ({ ...props, x: props.x + dx, y: props.y + dy })
+        }
     ),
-    (props) => props
+    {
+        innerHitArea: (hitArea) => ({...hitArea, dblClickAction: ACT_EDIT_TEXT})
+    }
 );

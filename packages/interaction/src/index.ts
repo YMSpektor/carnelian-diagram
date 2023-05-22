@@ -1,6 +1,7 @@
 export * from "./actions";
 export * from "./hit-tests";
 export * from "./intersection-tests";
+export * from "./transforms";
 export * from "./interaction-controller";
 export * from "./context";
 export * from "./controls";
