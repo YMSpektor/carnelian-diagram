@@ -68,7 +68,7 @@ function DiagramPaper(props: Paper & {matrix?: DOMMatrixReadOnly}) {
                     {majorGridSize && drawGridLines(majorGridSize, props.majorGridColor || "#bbb")}
                 </pattern>
             </defs>}
-            <g className="paper-container" transform={getTransformAttribute(matrix?.inverse())}>
+            <g className="paper-layer" transform={getTransformAttribute(matrix?.inverse())}>
                 <rect x={x} y={y} width={width} height={height} className="paper" fill="url(#paper-grid)" />
             </g>
         </>
@@ -77,7 +77,7 @@ function DiagramPaper(props: Paper & {matrix?: DOMMatrixReadOnly}) {
 
 function DiagramElements<P>(props: { children: JSX.Element, rootProps: P }) {
     return (
-        <g {...props.rootProps}>
+        <g className="elements-layer" {...props.rootProps}>
             {props.children}
         </g>
     );
@@ -117,7 +117,7 @@ function DiagramControls(props: DiagramControlsProps) {
 
     return (
         <ControlsContext.Provider value={renderControlsContext}>
-            <g transform={getTransformAttribute(matrix?.inverse())}>
+            <g className="element-controls-layer" transform={getTransformAttribute(matrix?.inverse())}>
                 {controller.renderControls(matrix || new DOMMatrix())}
                 {rect && <rect className="selection-rect" {...rect} fill="none" stroke="black" stroke-dasharray="4" />}
             </g>

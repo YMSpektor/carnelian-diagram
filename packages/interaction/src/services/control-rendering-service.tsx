@@ -42,7 +42,7 @@ export class DefaultControlRenderingService implements ControlRenderingService {
                 size = 10;
                 return <path 
                     d={`M ${x + size / 2} ${y} a ${size / 2} ${size / 2} 0 1 1 ${-size / 2} ${-size / 2} l 2 0 l -3 -2 m 3 2 l -3 2`} 
-                    stroke="deepskyblue" stroke-width={2} fill="white" {...otherProps} />
+                    stroke="deepskyblue" stroke-width={2} fill="white" fill-opacity={0} {...otherProps} />
             default:
                 return <rect x={x - size / 2} y={y - size / 2} width={size} height={size} fill="yellow" {...otherProps} />
         }
