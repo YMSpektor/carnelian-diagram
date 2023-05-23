@@ -1,5 +1,5 @@
 import { DiagramElementNode } from "@carnelian-diagram/core";
-import { collide, Collider, PointCollider, RectCollider } from "../collisions/colliders";
+import { collide, Collider, PointCollider } from "../collisions/colliders";
 import { HitArea, HitTestCallback } from "../hit-tests";
 import { useHitTest, useIntersectionTest } from ".";
 import { IntersectionTestCallback } from "../intersection-tests";
@@ -15,8 +15,8 @@ export function useCollider<T>(collider: Collider<T>, hitArea: HitArea, priority
         return (!bounds || pointInRect(elemPoint, bounds)) && !!collide(PointCollider(elemPoint), collider, tolerance);
     }
 
-    const intersectionTestCallback: IntersectionTestCallback = (selectionRect) => {
-        return !!collide(RectCollider(selectionRect), collider, 0);
+    const intersectionTestCallback: IntersectionTestCallback = (selection) => {
+        return !!collide(selection, collider, 0);
     }
 
     useHitTest(hitTestCallback, hitArea, priority, element);

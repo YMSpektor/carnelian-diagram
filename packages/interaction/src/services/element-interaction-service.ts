@@ -44,14 +44,14 @@ export class DefaultElementInteractionService implements ElementInteractionServi
         targetElement.setPointerCapture(e.pointerId);  // Set capture to target element to receive dblclick events for this target
         this.controller.setInputCapture(this);
 
-        let lastPoint = this.controller.clientToDiagram(new DOMPoint(e.clientX, e.clientY));
+        let lastPoint = this.controller.clientToDiagram(new DOMPoint(e.clientX, e.clientY), hitInfo.element);
         const action = hitInfo.hitArea.action;
 
         if (action) {
             const mouseMoveHandler = (e: PointerEvent) => {
                 const point = new DOMPoint(e.clientX, e.clientY);
                 const snapGridSize = !e.altKey && this.gridSnappingService ? this.gridSnappingService.snapGridSize : null;
-                const elementPoint = this.controller.clientToDiagram(point);
+                const elementPoint = this.controller.clientToDiagram(point, hitInfo.element);
                 const snappedElementPoint = this.gridSnappingService?.snapToGrid(elementPoint, snapGridSize) || elementPoint;
                 const rawDeltaX = elementPoint.x - lastPoint.x;
                 const rawDeltaY = elementPoint.y - lastPoint.y;
@@ -116,7 +116,7 @@ export class DefaultElementInteractionService implements ElementInteractionServi
             if (hitInfo && hitInfo.hitArea.dblClickAction) {
                 const point = new DOMPoint(e.clientX, e.clientY);
                 const snapGridSize = !e.altKey && this.gridSnappingService ? this.gridSnappingService.snapGridSize : null;
-                const elementPoint = this.controller.clientToDiagram(point);
+                const elementPoint = this.controller.clientToDiagram(point, hitInfo.element);
                 const snappedElementPoint = this.gridSnappingService?.snapToGrid(elementPoint, snapGridSize) || elementPoint;
 
                 this.controller.dispatchAction<ClickActionPayload>(
