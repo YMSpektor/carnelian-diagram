@@ -2,7 +2,7 @@
 
 import { DiagramElement, DiagramElementProps, useState } from "@carnelian-diagram/core";
 import { ACT_DRAW_POINT_PLACE, ACT_DRAW_POINT_PLACE_Payload, ACT_EDIT_TEXT, ACT_EDIT_TEXT_Payload, InplaceEditorStyles, InteractionController, isTextEditingService, useAction } from "..";
-import { Rect } from "../geometry";
+import { polygonBounds, Rect, rectPoints, transformPoint } from "../geometry";
 
 export interface InteractiveTextProps {
     text: string;
@@ -25,10 +25,12 @@ export function withInteractiveText<T extends InteractiveTextProps>(
 
         function showEditor(controller: InteractionController, updateProps: (props: DiagramElementProps<T>, text: string) => DiagramElementProps<T>) {
             const textEdititngService = controller.getService(isTextEditingService)
-            if (textEdititngService) {
-                textEdititngService.showEditor(props.text, textBounds(props), editorStyle(props), (text) => {
+            if (elementNode && textEdititngService) {
+                const transform = controller.getElementTransform(elementNode);
+                const bounds = polygonBounds(rectPoints(textBounds(props)).map(p => transformPoint(p, transform)))!;
+                textEdititngService.showEditor(props.text, bounds, editorStyle(props), (text) => {
                     if (!text.length && options?.deleteOnEmpty) {
-                        elementNode && controller.diagram.delete(elementNode);
+                        controller.diagram.delete(elementNode);
                     }
                     else {
                         props.onChange((props) => updateProps(props, text));

@@ -3,7 +3,7 @@ import { createElement, Fragment, JSX } from "@carnelian-diagram/core/jsx-runtim
 import { InteractionContextType } from "./context";
 import { DiagramElementHitTest, hasHitTestProps, HitTestCollection, HitInfo, addHitTestProps } from "./hit-tests";
 import { DiagramElementIntersectionTest } from "./intersection-tests";
-import { intersectRect, polygonBounds, Rect, rectPoints } from "./geometry";
+import { intersectRect, polygonBounds, Rect, rectPoints, transformPoint } from "./geometry";
 import { DefaultControlRenderingService, DefaultDeletionService, DefaultElementDrawingService, DefaultElementInteractionService, DefaultGridSnappingService, DefaultPaperService, DefaultSelectionService, DefaultTextEditingService, InteractionServive, InteractiveServiceCollection } from "./services";
 import { Channel } from "type-pubsub";
 import { DiagramElementTransform } from "./transforms";
@@ -344,7 +344,7 @@ export class InteractionController {
 
     private selectionRectCollider(element: DiagramElementNode, rect: Rect) {
         return this.hasTransform(element)
-            ? PolygonCollider(rectPoints(rect).map(p => new DOMPoint(p.x, p.y).matrixTransform(this.getElementTransform(element).inverse())))
+            ? PolygonCollider(rectPoints(rect).map(p => transformPoint(p, this.getElementTransform(element).inverse())))
             : RectCollider(rect)
     }
 
