@@ -1,12 +1,10 @@
 /** @jsxImportSource @carnelian-diagram/core */
 
 import { DiagramElement } from "@carnelian-diagram/core";
-import { PolygonCollider, withInteractiveRect, KnobController, withKnob, ACT_EDIT_TEXT, withInteractiveText } from "@carnelian-diagram/interaction";
+import { PolygonCollider, KnobController, withKnob, withRotation } from "@carnelian-diagram/interaction";
 import { clamp } from "@carnelian-diagram/interaction/geometry";
 import { RectBaseProps } from "..";
-import { withText } from "../hocs";
-import { convertPercentage, isPercentage, NumberOrPercentage, textEditorStyles } from "../utils";
-import { MultilineText } from "./multiline-text";
+import { convertPercentage, isPercentage, NumberOrPercentage, RectRotation, withInteractiveRotatableRect, withInteractiveRotatableTextRect } from "../utils";
 
 export interface ParallelogramProps extends RectBaseProps {
     offset: NumberOrPercentage;
@@ -56,7 +54,9 @@ function toPolygon(props: ParallelogramProps) {
     ];
 }
 
-export const Parallelogram: DiagramElement<ParallelogramProps> = function(props) {
+const ParallelogramColliderFactory = (props: ParallelogramProps) => PolygonCollider(toPolygon(props));
+
+export const RawParallelogram: DiagramElement<ParallelogramProps> = function(props) {
     let { onChange, x, y, width, height, offset, ...rest } = props;
     const points = toPolygon(props);
 
@@ -65,21 +65,14 @@ export const Parallelogram: DiagramElement<ParallelogramProps> = function(props)
     );
 };
 
-export const InteractiveParallelogram = 
-    withInteractiveRect(
-        withKnob(Parallelogram, knobController),
-        {
-            collider: (props) => PolygonCollider(toPolygon(props)),
-            innerHitArea: (hitArea) => ({...hitArea, dblClickAction: ACT_EDIT_TEXT})
-        }
-    );
+export const Parallelogram = withRotation(RawParallelogram, RectRotation);
 
-export const InteractiveParallelogramWithText = withText(
-    InteractiveParallelogram,
-    withInteractiveText(
-        MultilineText,
-        (props) => props,
-        (props) => textEditorStyles(props.textStyle)
-    ),
-    (props) => props
+export const InteractiveParallelogram = withInteractiveRotatableRect(
+    withKnob(RawParallelogram, knobController), 
+    ParallelogramColliderFactory
+);
+
+export const InteractiveParallelogramWithText = withInteractiveRotatableTextRect(
+    withKnob(RawParallelogram, knobController), 
+    ParallelogramColliderFactory
 );

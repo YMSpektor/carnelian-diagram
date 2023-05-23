@@ -1,10 +1,10 @@
 /** @jsxImportSource @carnelian-diagram/core */
 
 import { DiagramElement } from "@carnelian-diagram/core";
-import { CircleCollider, DiffCollider, KnobController, withInteractiveCircle, withKnob } from "@carnelian-diagram/interaction";
+import { CircleCollider, DiffCollider, KnobController, withKnob, withRotation } from "@carnelian-diagram/interaction";
 import { clamp } from "@carnelian-diagram/interaction/geometry";
 import { CircleBaseProps } from "..";
-import { convertPercentage, isPercentage, NumberOrPercentage } from "../utils";
+import { CircleRotation, convertPercentage, isPercentage, NumberOrPercentage, withInteractiveRotatableCircle, withInteractiveRotatableTextCircle } from "../utils";
 
 export interface DonutProps extends CircleBaseProps {
     innerRadius: NumberOrPercentage;
@@ -39,7 +39,12 @@ const knobController: KnobController<DonutProps> = {
     }
 }
 
-export const Donut: DiagramElement<DonutProps> = function(props) {
+const DonutColliderFactory = (props: DonutProps) => DiffCollider(
+    CircleCollider({center: {x: props.x, y: props.y}, radius: props.radius}),
+    CircleCollider({center: {x: props.x, y: props.y}, radius: calcInnerRadius(props)})
+);
+
+export const RawDonut: DiagramElement<DonutProps> = function(props) {
     let { onChange, x, y, radius: or, innerRadius: ir, ...rest } = props;
     ir = calcInnerRadius(props);
 
@@ -51,12 +56,15 @@ export const Donut: DiagramElement<DonutProps> = function(props) {
         <path d={path} {...rest} />
     );
 }
-export const InteractiveDonut = withInteractiveCircle(
-    withKnob(Donut, knobController),
-    {
-        collider: (props) => DiffCollider(
-            CircleCollider({center: {x: props.x, y: props.y}, radius: props.radius}),
-            CircleCollider({center: {x: props.x, y: props.y}, radius: calcInnerRadius(props)})
-        )
-    }
+
+export const Donut = withRotation(RawDonut, CircleRotation);
+
+export const InteractiveDonut = withInteractiveRotatableCircle(
+    withKnob(RawDonut, knobController), 
+    DonutColliderFactory
+);
+
+export const InteractiveDonutWithText = withInteractiveRotatableTextCircle(
+    withKnob(RawDonut, knobController), 
+    DonutColliderFactory
 );

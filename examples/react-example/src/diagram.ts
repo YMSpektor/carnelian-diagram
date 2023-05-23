@@ -11,7 +11,7 @@ import {
     InteractiveHexagonWithText as Hexagon,
     InteractiveSquareWithText as Square,
     InteractiveCircleWithText as Circle,
-    InteractiveDonut as Donut,
+    InteractiveDonutWithText as Donut,
     InteractiveCrossWithText as Cross,
     InteractivePie as Pie,
 } from "@carnelian-diagram/shapes/basic";
@@ -167,7 +167,7 @@ addToPalette({
 addToPalette({
     category: "basic",
     elementType: Donut,
-    elementProps: {x: 160, y: 160, radius: 150, innerRadius: "60%"},
+    elementProps: {x: 160, y: 160, radius: 150, innerRadius: "60%", text: "", textStyle: defaultTextStyles},
     viewBox: "0 0 340 340",
     title: "Donut",
     factory: (point, props) => ({

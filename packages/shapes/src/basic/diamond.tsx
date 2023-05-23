@@ -1,11 +1,9 @@
 /** @jsxImportSource @carnelian-diagram/core */
 
 import { DiagramElement } from "@carnelian-diagram/core";
-import { ACT_EDIT_TEXT, PolygonCollider, withInteractiveRect, withInteractiveText } from "@carnelian-diagram/interaction";
+import { PolygonCollider, withRotation } from "@carnelian-diagram/interaction";
 import { RectBaseProps } from "..";
-import { withText } from "../hocs";
-import { textEditorStyles } from "../utils";
-import { MultilineText } from "./multiline-text";
+import { RectRotation, withInteractiveRotatableRect, withInteractiveRotatableTextRect } from "../utils";
 
 export interface DiamondProps extends RectBaseProps {}
 
@@ -22,7 +20,9 @@ function toPolygon(props: DiamondProps) {
  
 }
 
-export const Diamond: DiagramElement<DiamondProps> = function(props) {
+const DiamondColliderFactory = (props: DiamondProps) => PolygonCollider(toPolygon(props));
+
+export const RawDiamond: DiagramElement<DiamondProps> = function(props) {
     const { onChange, x, y, width, height, ...rest } = props;
     const points = toPolygon(props);
 
@@ -31,20 +31,14 @@ export const Diamond: DiagramElement<DiamondProps> = function(props) {
     );
 };
 
-export const InteractiveDiamond = withInteractiveRect(
-    Diamond,
-    {
-        collider: (props) => PolygonCollider(toPolygon(props)),
-        innerHitArea: (hitArea) => ({...hitArea, dblClickAction: ACT_EDIT_TEXT})
-    }
+export const Diamond = withRotation(RawDiamond, RectRotation);
+
+export const InteractiveDiamond = withInteractiveRotatableRect(
+    RawDiamond, 
+    DiamondColliderFactory
 );
 
-export const InteractiveDiamondWithText = withText(
-    InteractiveDiamond,
-    withInteractiveText(
-        MultilineText,
-        (props) => props,
-        (props) => textEditorStyles(props.textStyle)
-    ),
-    (props) => props
+export const InteractiveDiamondWithText = withInteractiveRotatableTextRect(
+    RawDiamond, 
+    DiamondColliderFactory
 );

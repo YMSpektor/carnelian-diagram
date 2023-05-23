@@ -1,15 +1,14 @@
 /** @jsxImportSource @carnelian-diagram/core */
 
-import { DiagramElement } from "@carnelian-diagram/core";;
-import { ACT_EDIT_TEXT, withInteractiveSquare, withInteractiveText } from "@carnelian-diagram/interaction";
+import { DiagramElement } from "@carnelian-diagram/core";
+import { withRotation } from "@carnelian-diagram/interaction";
 import { SquareBaseProps } from "..";
-import { withText } from "../hocs";
-import { textEditorStyles } from "../utils";
-import { MultilineText } from "./multiline-text";
+import { SquareRotation, withInteractiveRotatableSquare, withInteractiveRotatableTextSquare } from "../utils";
+;
 
 export interface SquareProps extends SquareBaseProps { }
 
-export const Square: DiagramElement<SquareProps> = function(props) {
+export const RawSquare: DiagramElement<SquareProps> = function(props) {
     let { onChange, x, y, size, ...rest } = props;
 
     return (
@@ -17,23 +16,8 @@ export const Square: DiagramElement<SquareProps> = function(props) {
     );
 };
 
-export const InteractiveSquare = withInteractiveSquare(Square, {
-    innerHitArea: (hitArea) => ({...hitArea, dblClickAction: ACT_EDIT_TEXT})
-});
+export const Square = withRotation(RawSquare, SquareRotation);
 
-export const InteractiveSquareWithText = withText(
-    InteractiveSquare,
-    withInteractiveText(
-        MultilineText,
-        (props) => props,
-        (props) => textEditorStyles(props.textStyle)
-    ),
-    (props) => ({
-        x: props.x,
-        y: props.y,
-        width: props.size,
-        height: props.size,
-        text: props.text,
-        textStyle: props.textStyle
-    })
-);
+export const InteractiveSquare = withInteractiveRotatableSquare(RawSquare);
+
+export const InteractiveSquareWithText = withInteractiveRotatableTextSquare(RawSquare);
