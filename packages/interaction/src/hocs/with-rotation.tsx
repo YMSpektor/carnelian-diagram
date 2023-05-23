@@ -16,6 +16,7 @@ export function withRotation<T extends object>(
     rotation: DiagramElementRotation<T>
 ): DiagramElement<T> {
     return (props) => {
+        const { onChange } = props;
         const angle = rotation.angle(props);
         const transform = rotateTransform(angle);
         useTransform(transform);
@@ -24,16 +25,21 @@ export function withRotation<T extends object>(
             const origin = rotation.origin(props);
             const p = new DOMPoint(origin.x, origin.y).matrixTransform(transform.inverse());
             const innerProps = rotation.offsetElement(props, p.x - origin.x, p.y - origin.y);
-            const oldOnChange = innerProps.onChange;
-            // innerProps.onChange = (callback) => {
-            //     function rotationCallback(props: DiagramElementProps<T>): DiagramElementProps<T> {
-            //         const result = callback(props);
-            //         const origin = rotation.origin(result);
-            //         const p = new DOMPoint(origin.x, origin.y).matrixTransform(transform.inverse());
-            //         return rotation.offsetElement(result, p.x - origin.x, p.y - origin.y);
-            //     }
-            //     return oldOnChange(rotationCallback);
-            // }
+            innerProps.onChange = (callback) => {
+                function rotationCallback(props: DiagramElementProps<T>): DiagramElementProps<T> {
+                    const newInnerProps = callback(innerProps);
+                    const newInnerOrigin = rotation.origin(newInnerProps);
+                    const newOuterOrigin = new DOMPoint(newInnerOrigin.x, newInnerOrigin.y).matrixTransform(transform);
+                    const dx = newOuterOrigin.x - newInnerOrigin.x;
+                    const dy = newOuterOrigin.y - newInnerOrigin.y;
+                    const result = {
+                        ...rotation.offsetElement(newInnerProps, dx, dy),
+                        onChange
+                    };
+                    return result;
+                }
+                return onChange(rotationCallback);
+            }
 
             return (
                 <g transform={`rotate(${angle})`}>
