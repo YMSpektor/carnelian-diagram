@@ -5,23 +5,25 @@ import { HandleControl, HitArea, DragActionPayload, useControls } from "..";
 import { Point } from "../geometry";
 
 export interface KnobController<T extends object, D = any> {
+    kind?: string;
     hitArea: HitArea<D> | ((props: T) => HitArea<D>);
-    getPosition(props: T): Point;
+    getPosition(props: T, transform: DOMMatrixReadOnly): Point;
     setPosition<D>(props: DiagramElementProps<T>, payload: DragActionPayload, hitArea: HitArea<D>): DiagramElementProps<T>;
 }
 
 export function useKnob<T extends object>(knobController: KnobController<T>, props: DiagramElementProps<T>) {
-    const pos = knobController.getPosition(props);
-    const hitArea = typeof knobController.hitArea === "function" ? knobController.hitArea(props) : knobController.hitArea;
-
     function dragHandler(payload: DragActionPayload) {
         props.onChange(props => knobController.setPosition(props, payload, payload.hitArea));
     }
 
     useControls((transform, element) => {
+        const kind = knobController.kind || "knob";
+        const pos = knobController.getPosition(props, transform);
+        const hitArea = typeof knobController.hitArea === "function" ? knobController.hitArea(props) : knobController.hitArea;
+
         return (
             <HandleControl
-                kind="knob"
+                kind={kind}
                 x={pos.x} y={pos.y}
                 hitArea={hitArea}
                 transform={transform} 

@@ -1,7 +1,7 @@
 /** @jsxImportSource @carnelian-diagram/core */
 
 import { DiagramElement } from "@carnelian-diagram/core";
-import { ACT_EDIT_TEXT, withInteractiveRect, withInteractiveText, withRotation } from "@carnelian-diagram/interaction";
+import { ACT_EDIT_TEXT, withInteractiveRect, withInteractiveRotation, withInteractiveText, withRotation } from "@carnelian-diagram/interaction";
 import { RectBaseProps } from "..";
 import { withText } from "../hocs";
 import { textEditorStyles } from "../utils";
@@ -17,22 +17,31 @@ export const Rect: DiagramElement<RectProps> = function(props) {
     );
 };
 
-export const InteractiveRect = withInteractiveRect(Rect, {
-    innerHitArea: (hitArea) => ({...hitArea, dblClickAction: ACT_EDIT_TEXT})
-});
+export const InteractiveRect = withInteractiveRect(Rect);
 
 export const InteractiveRectWithText = withRotation(
-    withText(
-        InteractiveRect,
-        withInteractiveText(
-            MultilineText,
-            (props) => props,
-            (props) => textEditorStyles(props.textStyle)
+    withInteractiveRotation(
+        withText(
+            withInteractiveRect(Rect, {
+                innerHitArea: (hitArea) => ({...hitArea, dblClickAction: ACT_EDIT_TEXT})
+            }),
+            withInteractiveText(
+                MultilineText,
+                (props) => props,
+                (props) => textEditorStyles(props.textStyle)
+            ),
+            (props) => props
         ),
-        (props) => props
+        {
+            origin: (props) => ({ x: props.x + props.width / 2, y: props.y + props.height / 2 }),
+            handleAnchor: (props) => ({ x: props.x + props.width, y: props.y }),
+            handleOffset: 20,
+            getRotation: (props) => props.rotation || 0,
+            setRotation: (props, rotation) => ({...props, rotation })
+        }
     ),
     {
-        angle: (props) => 30,
+        angle: (props) => props.rotation || 0,
         origin: (props) => ({ x: props.x + props.width / 2, y: props.y + props.height / 2 }),
         offsetElement: (props, dx, dy) => ({ ...props, x: props.x + dx, y: props.y + dy })
     }

@@ -74,12 +74,16 @@ export interface RawTextProps {
     text: string;
 }
 
+export interface RotatableElementProps {
+    rotation?: number;
+}
+
 export interface LineBaseProps extends RawLineProps, LineFigureStyleProps {}
 export interface PolylineBaseProps extends RawPolylineProps, LineFigureStyleProps {}
 
-export interface RectBaseProps extends RawRectProps, ClosedFigureStyleProps {}
-export interface SquareBaseProps extends RawSquareProps, ClosedFigureStyleProps {}
-export interface CircleBaseProps extends RawCircleProps, ClosedFigureStyleProps {}
-export interface PolygonBaseProps extends RawPolylineProps, ClosedFigureStyleProps {}
+export interface RectBaseProps extends RawRectProps, RotatableElementProps, ClosedFigureStyleProps {}
+export interface SquareBaseProps extends RawSquareProps, RotatableElementProps, ClosedFigureStyleProps {}
+export interface CircleBaseProps extends RawCircleProps, RotatableElementProps, ClosedFigureStyleProps {}
+export interface PolygonBaseProps extends RawPolylineProps, RotatableElementProps, ClosedFigureStyleProps {}
 
-export interface TextBaseProps<T extends TextStyle> extends RawRectProps, RawTextProps, TextStyleProps<T> {}
+export interface TextBaseProps<T extends TextStyle> extends RawRectProps, RawTextProps, RotatableElementProps, TextStyleProps<T> {}
