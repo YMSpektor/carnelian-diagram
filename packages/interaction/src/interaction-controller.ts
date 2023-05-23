@@ -252,6 +252,16 @@ export class InteractionController {
         return point.matrixTransform(transform);
     }
 
+    elementToDiagram(point: DOMPointReadOnly, element: DiagramElementNode): DOMPointReadOnly {
+        const transform = element ? this.getElementTransform(element) : null;
+        return transform ? point.matrixTransform(transform) : point;
+    }
+
+    diagramToElement(point: DOMPointReadOnly, element: DiagramElementNode): DOMPointReadOnly {
+        const transform = element ? this.getElementTransform(element) : null;
+        return transform ? point.matrixTransform(transform.inverse()) : point;
+    }
+
     isSelected(element: DiagramElementNode) {
         return this.selectedElements.has(element);
     }
