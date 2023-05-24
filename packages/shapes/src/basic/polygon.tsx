@@ -1,12 +1,14 @@
 /** @jsxImportSource @carnelian-diagram/core */
 
 import { DiagramElement } from "@carnelian-diagram/core";
-import { PolygonCollider, withInteractivePolyline } from "@carnelian-diagram/interaction";
+import { withRotation } from "@carnelian-diagram/interaction";
 import { PolygonBaseProps } from "..";
+import { withInteractiveRotatablePolygon } from "../hocs";
+import { PolygonRotation } from "../utils";
 
 export interface PolygonProps extends PolygonBaseProps {}
 
-export const Polygon: DiagramElement<PolygonProps> = function(props) {
+export const RawPolygon: DiagramElement<PolygonProps> = function(props) {
     const { points, onChange, ...rest } = props;
     const polygonProps = {
         ...rest,
@@ -21,6 +23,6 @@ export const Polygon: DiagramElement<PolygonProps> = function(props) {
     );
 };
 
-export const InteractivePolygon = withInteractivePolyline(
-    Polygon, true, 3, { collider: (props) => PolygonCollider(props.points) }
-);
+export const Polygon = withRotation(RawPolygon, PolygonRotation);
+
+export const InteractivePolygon = withInteractiveRotatablePolygon(RawPolygon);

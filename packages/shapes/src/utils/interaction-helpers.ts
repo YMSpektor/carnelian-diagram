@@ -1,4 +1,5 @@
-import { CircleBaseProps, RectBaseProps, SquareBaseProps, TextBaseProps, TextStyle } from "..";
+import { polygonBounds } from "@carnelian-diagram/interaction/geometry";
+import { CircleBaseProps, PolygonBaseProps, RectBaseProps, SquareBaseProps, TextBaseProps, TextStyle } from "..";
 
 const ROTATION_HANDLE_OFFSET = 20;
 
@@ -56,4 +57,33 @@ export const CircleRotationController = {
     handleOffset: ROTATION_HANDLE_OFFSET,
     getRotation: <T extends CircleBaseProps>(props: T) => props.rotation || 0,
     setRotation: <T extends CircleBaseProps>(props: T, rotation: number) => ({...props, rotation })
+}
+
+export const PolygonRotation = {
+    angle: <T extends PolygonBaseProps>(props: T) => props.rotation || 0,
+    origin: <T extends PolygonBaseProps>(props: T) => {
+        const bounds = polygonBounds(props.points);
+        return bounds ? {
+            x: bounds.x + bounds.width / 2,
+            y: bounds.y + bounds.height / 2
+        } :  { x: 0, y: 0 }
+    },
+    offsetElement: <T extends PolygonBaseProps>(props: T, dx: number, dy: number) => ({ ...props, points: props.points.map(p => ({ x: p.x + dx, y: p.y + dy })) })
+}
+
+export const PolygonRotationController = {
+    origin: <T extends PolygonBaseProps>(props: T) => {
+        const bounds = polygonBounds(props.points);
+        return bounds ? {
+            x: bounds.x + bounds.width / 2,
+            y: bounds.y + bounds.height / 2
+        } :  { x: 0, y: 0 }
+    },
+    handleAnchor: <T extends PolygonBaseProps>(props: T) => {
+        const bounds = polygonBounds(props.points);
+        return bounds ? { x: bounds.x + bounds.width, y: bounds.y } : { x: 0, y: 0 }
+    },
+    handleOffset: ROTATION_HANDLE_OFFSET,
+    getRotation: <T extends PolygonBaseProps>(props: T) => props.rotation || 0,
+    setRotation: <T extends PolygonBaseProps>(props: T, rotation: number) => ({...props, rotation })
 }

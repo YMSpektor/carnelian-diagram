@@ -6,3 +6,4 @@ export * from "./with-interactive-rotatable-square";
 export * from "./with-interactive-rotatable-text-square";
 export * from "./with-interactive-rotatable-circle";
 export * from "./with-interactive-rotatable-text-circle";
+export * from "./with-interactive-rotatable-polygon";
