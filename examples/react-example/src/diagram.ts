@@ -50,7 +50,7 @@ export const defaultTextStyles: TextStyle = { fontSize: "50px" }
 addToPalette({
     category: "basic",
     elementType: Rect,
-    elementProps: {x: 20, y: 20, width: 300, height: 200, text: "", textStyle: defaultTextStyles},
+    elementProps: {x: 20, y: 20, width: 300, height: 200, textStyle: defaultTextStyles},
     viewBox: "0 0 340 240",
     title: "Rectangle",
     factory: (point, props) => ({
@@ -63,7 +63,7 @@ addToPalette({
 addToPalette({
     category: "basic",
     elementType: RoundedRect,
-    elementProps: {x: 20, y: 20, width: 300, height: 200, radius: "50%", text: "", textStyle: defaultTextStyles},
+    elementProps: {x: 20, y: 20, width: 300, height: 200, radius: "50%", textStyle: defaultTextStyles},
     viewBox: "0 0 340 240",
     title: "Rounded Rectangle",
     factory: (point, props) => ({
@@ -76,7 +76,7 @@ addToPalette({
 addToPalette({
     category: "basic",
     elementType: Ellipse,
-    elementProps: {x: 20, y: 20, width: 300, height: 200, text: "", textStyle: defaultTextStyles},
+    elementProps: {x: 20, y: 20, width: 300, height: 200, textStyle: defaultTextStyles},
     viewBox: "0 0 340 240",
     title: "Ellipse",
     factory: (point, props) => ({
@@ -89,7 +89,7 @@ addToPalette({
 addToPalette({
     category: "basic",
     elementType: Parallelogram,
-    elementProps: {x: 20, y: 20, width: 300, height: 200, offset: "20%", text: "", textStyle: defaultTextStyles},
+    elementProps: {x: 20, y: 20, width: 300, height: 200, offset: "20%", textStyle: defaultTextStyles},
     viewBox: "0 0 340 240",
     title: "Parallelogram",
     factory: (point, props) => ({
@@ -102,7 +102,7 @@ addToPalette({
 addToPalette({
     category: "basic",
     elementType: Trapezoid,
-    elementProps: {x: 20, y: 20, width: 300, height: 200, offset: "20%", text: "", textStyle: defaultTextStyles},
+    elementProps: {x: 20, y: 20, width: 300, height: 200, offset: "20%", textStyle: defaultTextStyles},
     viewBox: "0 0 340 240",
     title: "Trapezoid",
     factory: (point, props) => ({
@@ -115,7 +115,7 @@ addToPalette({
 addToPalette({
     category: "basic",
     elementType: Hexagon,
-    elementProps: {x: 20, y: 20, width: 300, height: 200, offset: "20%", text: "", textStyle: defaultTextStyles},
+    elementProps: {x: 20, y: 20, width: 300, height: 200, offset: "20%", textStyle: defaultTextStyles},
     viewBox: "0 0 340 240",
     title: "Hexagon",
     factory: (point, props) => ({
@@ -128,7 +128,7 @@ addToPalette({
 addToPalette({
     category: "basic",
     elementType: Diamond,
-    elementProps: {x: 20, y: 20, width: 300, height: 300, text: "", textStyle: defaultTextStyles},
+    elementProps: {x: 20, y: 20, width: 300, height: 300, textStyle: defaultTextStyles},
     viewBox: "0 0 340 340",
     title: "Diamond",
     factory: (point, props) => ({
@@ -141,7 +141,7 @@ addToPalette({
 addToPalette({
     category: "basic",
     elementType: Square,
-    elementProps: {x: 20, y: 20, size: 300, text: "", textStyle: defaultTextStyles},
+    elementProps: {x: 20, y: 20, size: 300, textStyle: defaultTextStyles},
     viewBox: "0 0 340 340",
     title: "Square",
     factory: (point, props) => ({
@@ -154,7 +154,7 @@ addToPalette({
 addToPalette({
     category: "basic",
     elementType: Circle,
-    elementProps: {x: 160, y: 160, radius: 150, text: "", textStyle: defaultTextStyles},
+    elementProps: {x: 160, y: 160, radius: 150, textStyle: defaultTextStyles},
     viewBox: "0 0 340 340",
     title: "Circle",
     factory: (point, props) => ({
@@ -167,7 +167,7 @@ addToPalette({
 addToPalette({
     category: "basic",
     elementType: Donut,
-    elementProps: {x: 160, y: 160, radius: 150, innerRadius: "60%", text: "", textStyle: defaultTextStyles},
+    elementProps: {x: 160, y: 160, radius: 150, innerRadius: "60%", textStyle: defaultTextStyles},
     viewBox: "0 0 340 340",
     title: "Donut",
     factory: (point, props) => ({
@@ -180,7 +180,7 @@ addToPalette({
 addToPalette({
     category: "basic",
     elementType: Cross,
-    elementProps: {x: 20, y: 20, width: 300, height: 300, offsetX: "25%", offsetY: "25%", text: "", textStyle: defaultTextStyles},
+    elementProps: {x: 20, y: 20, width: 300, height: 300, offsetX: "25%", offsetY: "25%", textStyle: defaultTextStyles},
     viewBox: "0 0 340 340",
     title: "Cross",
     factory: (point, props) => ({
