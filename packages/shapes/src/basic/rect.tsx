@@ -3,7 +3,8 @@
 import { DiagramElement } from "@carnelian-diagram/core";
 import { withRotation } from "@carnelian-diagram/interaction";
 import { RectBaseProps } from "..";
-import { RectRotation, withInteractiveRotatableRect, withInteractiveRotatableTextRect } from "../utils";
+import { withInteractiveRotatableRect, withInteractiveRotatableTextRect } from "../hocs";
+import { RectRotation } from "../utils";
 
 export interface RectProps extends RectBaseProps {}
 

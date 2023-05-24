@@ -4,7 +4,8 @@ import { DiagramElement } from "@carnelian-diagram/core";
 import { CircleCollider, DiffCollider, KnobController, withKnob, withRotation } from "@carnelian-diagram/interaction";
 import { clamp } from "@carnelian-diagram/interaction/geometry";
 import { CircleBaseProps } from "..";
-import { CircleRotation, convertPercentage, isPercentage, NumberOrPercentage, withInteractiveRotatableCircle, withInteractiveRotatableTextCircle } from "../utils";
+import { withInteractiveRotatableCircle, withInteractiveRotatableTextCircle } from "../hocs";
+import { CircleRotation, convertPercentage, isPercentage, NumberOrPercentage } from "../utils";
 
 export interface DonutProps extends CircleBaseProps {
     innerRadius: NumberOrPercentage;

@@ -4,7 +4,8 @@ import { DiagramElement } from "@carnelian-diagram/core";
 import { CircleCollider, HalfPlaneCollider, IntersectionCollider, KnobController, UnionCollider, withKnobs, withRotation } from "@carnelian-diagram/interaction";
 import { degToRad, Point, radToDeg } from "@carnelian-diagram/interaction/geometry";
 import { CircleBaseProps } from "..";
-import { CircleRotation, withInteractiveRotatableCircle } from "../utils";
+import { withInteractiveRotatableCircle } from "../hocs";
+import { CircleRotation } from "../utils";
 
 export interface PieProps extends CircleBaseProps {
     startAngle: number;

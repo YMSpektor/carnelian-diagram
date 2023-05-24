@@ -3,7 +3,8 @@
 import { DiagramElement } from "@carnelian-diagram/core";
 import { CircleCollider, withRotation } from "@carnelian-diagram/interaction";
 import { CircleBaseProps } from "..";
-import { CircleRotation, withInteractiveRotatableCircle, withInteractiveRotatableTextCircle } from "../utils";
+import { withInteractiveRotatableCircle, withInteractiveRotatableTextCircle } from "../hocs";
+import { CircleRotation } from "../utils";
 
 export interface CircleProps extends CircleBaseProps { }
 

@@ -3,7 +3,8 @@
 import { DiagramElement } from "@carnelian-diagram/core";
 import { withRotation } from "@carnelian-diagram/interaction";
 import { SquareBaseProps } from "..";
-import { SquareRotation, withInteractiveRotatableSquare, withInteractiveRotatableTextSquare } from "../utils";
+import { withInteractiveRotatableSquare, withInteractiveRotatableTextSquare } from "../hocs";
+import { SquareRotation } from "../utils";
 ;
 
 export interface SquareProps extends SquareBaseProps { }

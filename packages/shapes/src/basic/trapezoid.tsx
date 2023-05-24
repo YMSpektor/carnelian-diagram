@@ -4,7 +4,8 @@ import { DiagramElement } from "@carnelian-diagram/core";
 import { PolygonCollider, KnobController, withKnob, withRotation } from "@carnelian-diagram/interaction";
 import { clamp } from "@carnelian-diagram/interaction/geometry";
 import { RectBaseProps } from "..";
-import { convertPercentage, isPercentage, NumberOrPercentage, RectRotation, withInteractiveRotatableRect, withInteractiveRotatableTextRect } from "../utils";
+import { withInteractiveRotatableRect, withInteractiveRotatableTextRect } from "../hocs";
+import { convertPercentage, isPercentage, NumberOrPercentage, RectRotation } from "../utils";
 
 export interface TrapezoidProps extends RectBaseProps {
     offset: NumberOrPercentage;
