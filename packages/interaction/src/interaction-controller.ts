@@ -201,12 +201,12 @@ export class InteractionController {
             }
         }
 
-        const updateTransforms = (element: DiagramElementNode, key: {}, transform?: DiagramElementTransform<any>) => {
+        const updateTransforms = (element: DiagramElementNode, key: {}, transform?: DiagramElementTransform) => {
             let transforms = this.transforms.get(element);
             if (!transforms) {
                 transforms = {
                     result: new DOMMatrix(),
-                    transformMap: new Map<object, DiagramElementTransform<any>>()
+                    transformMap: new Map<object, DiagramElementTransform>()
                 }
                 this.transforms.set(element, transforms);
             }
@@ -224,6 +224,7 @@ export class InteractionController {
         }
 
         return {
+            getController: () => this,
             updateControls,
             updateHitTests,
             updateIntersectionTests,
@@ -238,12 +239,7 @@ export class InteractionController {
 
     getElementTransform(element: DiagramElementNode, parentTransform?: DOMMatrixReadOnly): DOMMatrix {
         const transforms = this.transforms.get(element);
-        const localTransform = transforms 
-            ? transforms.result
-            : new DOMMatrix();
-        // Convert to DOMMatrix in case the parentTransform is SVGMatrix to avoid exception on multiplication
-        parentTransform = parentTransform ? new DOMMatrix([parentTransform.a, parentTransform.b, parentTransform.c, 
-            parentTransform.d, parentTransform.e, parentTransform.f]) : parentTransform;
+        const localTransform = transforms ? transforms.result : new DOMMatrix();
         return parentTransform ? parentTransform.multiply(localTransform) : localTransform;
     }
 

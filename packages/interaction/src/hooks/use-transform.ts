@@ -1,7 +1,7 @@
 import { RenderContext, useContext, useEffect, useState } from "@carnelian-diagram/core";
 import { DiagramElementTransform, InteractionContext } from "..";
 
-export function useTransform<T>(transform: DOMMatrixReadOnly) {
+export function useTransform(transform?: DOMMatrixReadOnly): DOMMatrixReadOnly {
     const renderContext = useContext(RenderContext);
 
     const curElement = renderContext?.currentElement();
@@ -11,19 +11,23 @@ export function useTransform<T>(transform: DOMMatrixReadOnly) {
 
     const interactions = useContext(InteractionContext);
     if (!interactions) {
-        return;
+        return new DOMMatrix();
     }
 
-    const [key] = useState({});
-    const elementTransform: DiagramElementTransform<T> = {
-        element: curElement,
-        transform
-    };
-    interactions.updateTransforms(curElement, key, elementTransform);
+    if (arguments.length > 0) {
+        const [key] = useState({});
+        const elementTransform: DiagramElementTransform = {
+            element: curElement,
+            transform: transform || new DOMMatrix()
+        };
+        interactions.updateTransforms(curElement, key, elementTransform);
 
-    useEffect(() => {
-        return () => {
-            interactions.updateTransforms(curElement, key, undefined);
-        }
-    }, []);
+        useEffect(() => {
+            return () => {
+                interactions.updateTransforms(curElement, key, undefined);
+            }
+        }, []);
+    }
+
+    return interactions.getController().getElementTransform(curElement);
 }

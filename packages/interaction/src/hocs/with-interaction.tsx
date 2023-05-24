@@ -26,6 +26,10 @@ function getTransformAttribute(matrix?: DOMMatrixReadOnly) {
         : undefined;
 }
 
+function svgMatrixToDomMatrix(matrix?: DOMMatrix): DOMMatrix | undefined {
+    return matrix ? new DOMMatrix([matrix.a, matrix.b, matrix.c, matrix.d, matrix.e, matrix.f]) : matrix;
+}
+
 function DiagramPaper(props: Paper & {matrix?: DOMMatrixReadOnly}) {
     let { x, y, width, height, matrix } = props;
     const p1 = new DOMPoint(x, y).matrixTransform(matrix);
@@ -141,8 +145,8 @@ export function withInteraction<P>(
 
         const handleSelect = (e: SelectEventArgs) => setSelectedElements(e.selectedElements);
         const handlePaperChange = (e: PaperChangeEventArgs) => setPaper(e.paper);
-        const calcCTM = () => props.svg.getCTM?.() || undefined;
-        const calcScreenCTM = () => props.svg.getScreenCTM?.() || undefined;
+        const calcCTM = () => svgMatrixToDomMatrix(props.svg.getCTM?.() || undefined);
+        const calcScreenCTM = () => svgMatrixToDomMatrix(props.svg.getScreenCTM?.() || undefined);
         const ctm = calcCTM();
 
         useEffect(() => {
@@ -160,13 +164,13 @@ export function withInteraction<P>(
             let curMatrix = matrix;
 
             const workloop = () => {
-                const CMT = calcCTM();
-                if ((CMT && !curMatrix) || 
-                    (curMatrix && !CMT) || 
-                    (CMT && curMatrix && (CMT.a !== curMatrix.a || CMT.b !== curMatrix.b || CMT.c !== curMatrix.c || CMT.d !== curMatrix.d || CMT.e !== curMatrix.e || CMT.f !== curMatrix.f)))
+                const CTM = calcCTM();
+                if ((CTM && !curMatrix) || 
+                    (curMatrix && !CTM) || 
+                    (CTM && curMatrix && (CTM.a !== curMatrix.a || CTM.b !== curMatrix.b || CTM.c !== curMatrix.c || CTM.d !== curMatrix.d || CTM.e !== curMatrix.e || CTM.f !== curMatrix.f)))
                 {
-                    curMatrix = CMT;
-                    setMatrix(CMT);
+                    curMatrix = CTM;
+                    setMatrix(CTM);
                 }
                 controller.screenCTM = calcScreenCTM();
 

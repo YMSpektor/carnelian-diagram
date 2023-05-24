@@ -1,14 +1,14 @@
 import { DiagramElementNode } from "@carnelian-diagram/core";
 import { degToRad, Point } from "./geometry";
 
-export interface DiagramElementTransform<T> {
+export interface DiagramElementTransform {
     element: DiagramElementNode;
     transform: DOMMatrixReadOnly;
 }
 
 export interface DiagramElementTransforms {
     result: DOMMatrix;
-    transformMap: Map<object, DiagramElementTransform<any>>;
+    transformMap: Map<object, DiagramElementTransform>;
 }
 
 export function computeTransformResult(transforms: DiagramElementTransforms) {
