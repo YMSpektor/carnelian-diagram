@@ -6,6 +6,15 @@ export interface DiagramElementTransform<T> {
     transform: DOMMatrixReadOnly;
 }
 
+export interface DiagramElementTransforms {
+    result: DOMMatrix;
+    transformMap: Map<object, DiagramElementTransform<any>>;
+}
+
+export function computeTransformResult(transforms: DiagramElementTransforms) {
+    transforms.result = [...transforms.transformMap.values()].reduce<DOMMatrix>((acc, cur) => acc.multiply(cur.transform), new DOMMatrix());
+}
+
 export function rotateTransform(angle: number, p?: Point) {
     angle = degToRad(angle);
     return new DOMMatrix([

@@ -6,7 +6,7 @@ import { DiagramElementIntersectionTest } from "./intersection-tests";
 import { intersectRect, polygonBounds, Rect, rectPoints, transformPoint } from "./geometry";
 import { DefaultControlRenderingService, DefaultDeletionService, DefaultElementDrawingService, DefaultElementInteractionService, DefaultGridSnappingService, DefaultPaperService, DefaultSelectionService, DefaultTextEditingService, InteractionServive, InteractiveServiceCollection } from "./services";
 import { Channel } from "type-pubsub";
-import { DiagramElementTransform } from "./transforms";
+import { computeTransformResult, DiagramElementTransform, DiagramElementTransforms } from "./transforms";
 import { PolygonCollider, RectCollider } from "./collisions";
 
 export type RenderControlsCallback = (transform: DOMMatrixReadOnly, element: DiagramElementNode) => JSX.Element;
@@ -41,7 +41,7 @@ export class InteractionController {
     private controls = new Map<DiagramElementNode, Map<object, DiagramElementControls>>();
     private hitTests: HitTestCollection = {};
     private intersectionTests = new Map<object, DiagramElementIntersectionTest>;
-    private transforms = new Map<DiagramElementNode, Map<object, DiagramElementTransform<any>>>;
+    private transforms = new Map<DiagramElementNode, DiagramElementTransforms>;
     private actions = new Map<object, DiagramElementAction<any>>();
     private pendingActions = new Map<DiagramElementNode, PendingAction<any>[]>();
     private selectedElements = new Set<DiagramElementNode>();
@@ -202,17 +202,22 @@ export class InteractionController {
         }
 
         const updateTransforms = (element: DiagramElementNode, key: {}, transform?: DiagramElementTransform<any>) => {
-            let map = this.transforms.get(element);
-            if (!map) {
-                map = new Map<object, DiagramElementTransform<any>>()
-                this.transforms.set(element, map);
+            let transforms = this.transforms.get(element);
+            if (!transforms) {
+                transforms = {
+                    result: new DOMMatrix(),
+                    transformMap: new Map<object, DiagramElementTransform<any>>()
+                }
+                this.transforms.set(element, transforms);
             }
             if (transform) {
-                map.set(key, transform);
+                transforms.transformMap.set(key, transform);
+                computeTransformResult(transforms);
             }
             else {
-                map.delete(key);
-                if (map.size === 0) {
+                transforms.transformMap.delete(key);
+                computeTransformResult(transforms);
+                if (transforms.transformMap.size === 0) {
                     this.transforms.delete(element);
                 }
             }
@@ -234,7 +239,7 @@ export class InteractionController {
     getElementTransform(element: DiagramElementNode, parentTransform?: DOMMatrixReadOnly): DOMMatrix {
         const transforms = this.transforms.get(element);
         const localTransform = transforms 
-            ? [...transforms.values()].reduce<DOMMatrix>((acc, cur) => acc.multiply(cur.transform), new DOMMatrix())
+            ? transforms.result
             : new DOMMatrix();
         // Convert to DOMMatrix in case the parentTransform is SVGMatrix to avoid exception on multiplication
         parentTransform = parentTransform ? new DOMMatrix([parentTransform.a, parentTransform.b, parentTransform.c, 

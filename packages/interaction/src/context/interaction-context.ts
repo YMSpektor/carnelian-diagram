@@ -1,5 +1,5 @@
 import { createContext, DiagramElementNode } from "@carnelian-diagram/core";
-import { DiagramElementAction, DiagramElementControls, DiagramElementHitTest, DiagramElementIntersectionTest } from "..";
+import { DiagramElementAction, DiagramElementControls, DiagramElementHitTest, DiagramElementIntersectionTest, DiagramElementTransform } from "..";
 
 export interface InteractionContextType {
     updateControls(element: DiagramElementNode, key: {}, controls?: DiagramElementControls): void;
