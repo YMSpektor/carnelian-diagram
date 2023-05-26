@@ -16,9 +16,11 @@ import {
     ACT_DRAW_POINT_MOVE_Payload,
     ACT_DRAW_POINT_CANCEL,
     ACT_DRAW_POINT_CANCEL_Payload,
-    HitArea
+    HitArea,
+    useTransform
 } from "..";
 import { Collider, RectCollider } from "../collisions";
+import { radToDeg, transformPoint } from "../geometry";
 
 export interface InteractiveRectProps {
     x: number;
@@ -180,18 +182,24 @@ export function useInteractiveRectControls(
     resizeRight: ActionCallback<DragActionPayload>,
     resizeBottom: ActionCallback<DragActionPayload>
 ) {
+    const transform = useTransform();
+    const v = transformPoint({ x: 1, y: 0 }, transform);
+    const rotation = radToDeg(Math.atan2(v.y, v.x));
+    const cursors = ["ew-resize", "nwse-resize", "ns-resize", "nesw-resize"];
+
     function createHandleControl(
         index: number, 
         x: number, y: number, 
-        cursor: string, 
+        cursorRotation: number,
         dragHandler: ActionCallback<DragActionPayload>
     ) {
+        const cursorIndex = Math.round((rotation + cursorRotation) / 45 + 4) % 4;
         return {
             x, y,
             hitArea: {
                 type: "resize_handle",
                 index,
-                cursor,
+                cursor: cursors[cursorIndex],
                 action: "resize_handle_move"
             },
             dragHandler
@@ -201,15 +209,16 @@ export function useInteractiveRectControls(
     function createEdgeControl(
         index: number,
         x1: number, y1: number, x2: number, y2: number,
-        cursor: string,
+        cursorRotation: number,
         dragHandler: ActionCallback<DragActionPayload>
     ) {
+        const cursorIndex = Math.round((rotation + cursorRotation) / 45 + 4) % 4;
         return {
             x1, y1, x2, y2,
             hitArea: {
                 type: "resize_edge",
                 index,
-                cursor,
+                cursor: cursors[cursorIndex],
                 action: "resize_edge_move"
             },
             dragHandler
@@ -218,17 +227,17 @@ export function useInteractiveRectControls(
 
     useControls((transform, element) => {
         const handles = [
-            createHandleControl(0, x, y, "nwse-resize", resizeTopLeft),
-            createHandleControl(1, x + width, y, "nesw-resize", resizeTopRight),
-            createHandleControl(2, x, y + height, "nesw-resize", resizeBottomLeft),
-            createHandleControl(3, x + width, y + height, "nwse-resize", resizeBottomRight),
+            createHandleControl(0, x, y, 45, resizeTopLeft),
+            createHandleControl(1, x + width, y, 135, resizeTopRight),
+            createHandleControl(2, x, y + height, 135, resizeBottomLeft),
+            createHandleControl(3, x + width, y + height, 45, resizeBottomRight),
         ];
 
         const edges = [
-            createEdgeControl(0, x, y, x, y + height, "ew-resize", resizeLeft),
-            createEdgeControl(1, x, y, x + width, y, "ns-resize", resizeTop),
-            createEdgeControl(2, x + width, y, x + width, y + height, "ew-resize", resizeRight),
-            createEdgeControl(3, x, y + height, x + width, y + height, "ns-resize", resizeBottom)
+            createEdgeControl(0, x, y, x, y + height, 0, resizeLeft),
+            createEdgeControl(1, x, y, x + width, y, 90, resizeTop),
+            createEdgeControl(2, x + width, y, x + width, y + height, 0, resizeRight),
+            createEdgeControl(3, x, y + height, x + width, y + height, 90, resizeBottom)
         ];
 
         return (
