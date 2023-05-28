@@ -1,8 +1,10 @@
 import { DiagramElementNode, RenderContext, useContext, useEffect, useState } from "@carnelian-diagram/core";
 import { InteractionContext } from "..";
+import { Rect } from "../geometry";
 import { DiagramElementHitTest, HitArea, HitTestCallback } from "../hit-tests";
 
-export function useHitTest(callback: HitTestCallback, hitArea: HitArea, priority: number = 0, element?: DiagramElementNode) {
+export function useHitTest(callback: HitTestCallback, bounds: Rect | null, hitArea: HitArea, tolerance: number = 0,
+        priority: number = 0, element?: DiagramElementNode) {
     const renderContext = useContext(RenderContext);
     const curElement = element || renderContext?.currentElement();
     if (!curElement) {
@@ -19,7 +21,9 @@ export function useHitTest(callback: HitTestCallback, hitArea: HitArea, priority
     const hitTest: DiagramElementHitTest = {
         element: curElement,
         callback,
+        bounds,
         hitArea,
+        tolerance,
         priority
     }
     interactions.updateHitTests(curElement, priority, key, hitTest);

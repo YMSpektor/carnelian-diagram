@@ -3,7 +3,7 @@ import { createElement, Fragment, JSX } from "@carnelian-diagram/core/jsx-runtim
 import { InteractionContextType } from "./context";
 import { DiagramElementHitTest, hasHitTestProps, HitTestCollection, HitInfo, addHitTestProps } from "./hit-tests";
 import { DiagramElementIntersectionTest } from "./intersection-tests";
-import { intersectRect, polygonBounds, Rect, rectPoints, transformPoint } from "./geometry";
+import { intersectRect, pointInRect, polygonBounds, Rect, rectPoints, transformPoint } from "./geometry";
 import { DefaultControlRenderingService, DefaultDeletionService, DefaultElementDrawingService, DefaultElementInteractionService, DefaultGridSnappingService, DefaultPaperService, DefaultSelectionService, DefaultTextEditingService, InteractionServive, InteractiveServiceCollection } from "./services";
 import { Channel } from "type-pubsub";
 import { computeTransformResult, DiagramElementTransform, DiagramElementTransforms } from "./transforms";
@@ -295,6 +295,24 @@ export class InteractionController {
             });
     }
 
+    private transformBounds(element: DiagramElementNode, bounds: Rect): Rect {
+        return this.hasTransform(element)
+            ? polygonBounds(rectPoints(bounds).map(p => new DOMPoint(p.x, p.y).matrixTransform(this.getElementTransform(element))))!
+            : bounds;
+    }
+
+    private hitTestBounds(element: DiagramElementNode, bounds: Rect, tolerance: number): Rect {
+        bounds = this.transformBounds(element, bounds);
+        const p1 = this.diagramToClient(new DOMPoint(bounds.x, bounds.y));
+        const p2 = this.diagramToClient(new DOMPoint(bounds.x + bounds.width, bounds.y + bounds.height));
+        return {
+            x: p1.x - tolerance,
+            y: p1.y - tolerance,
+            width: p2.x - p1.x + tolerance,
+            height: p2.y - p1.y + tolerance
+        }
+    }
+
     hitTest(e: MouseEvent): HitInfo | undefined {
         if (this.screenCTM) {
             const point = new DOMPoint(e.clientX, e.clientY);
@@ -327,7 +345,9 @@ export class InteractionController {
                     for (let element of sortedElements) {
                         const list = [...(this.hitTests[priority]?.get(element)?.values() || [])];
                         const transform = this.getElementTransform(element, this.screenCTM).inverse();
-                        hit = list.find(x => x.callback(point, transform));
+                        hit = list.find(x => 
+                            (!x.bounds || pointInRect(point, this.hitTestBounds(x.element, x.bounds, x.tolerance))) && // Broad phase
+                            x.callback(point, transform, x.tolerance));  // Narrow phase
                         if (hit) break;
                     }
                     if (hit) {
@@ -345,12 +365,6 @@ export class InteractionController {
                 }
             }
         }
-    }
-
-    private transformBounds(element: DiagramElementNode, bounds: Rect): Rect {
-        return this.hasTransform(element)
-            ? polygonBounds(rectPoints(bounds).map(p => new DOMPoint(p.x, p.y).matrixTransform(this.getElementTransform(element))))!
-            : bounds;
     }
 
     private selectionRectCollider(element: DiagramElementNode, rect: Rect) {
