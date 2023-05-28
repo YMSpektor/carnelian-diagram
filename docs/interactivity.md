@@ -30,6 +30,7 @@ Receiving and dispatching the input events is not enought for interactivity. Dif
 * useCollider
 * useAction
 * useControls
+* useTransform
 
 ### Selection and useSelection hook
 
@@ -46,7 +47,8 @@ return (
 ### Hit testing and useHitTest hook
 
 Hit testing is a process of determining whether the cursor is over a given element. The InteractionController performs hit testing when a user clicks or move the mouse cursor over a diagram to select an element at the mouse position or update the mouse cursor. The library provides you ability to define a shape of the elements and some additional interactive parts using a `useHitTest` hook. The function accepts the following arguments:
-* `callback: (point: DOMPointReadOnly, transform: DOMMatrixReadOnly) => boolean` - It's a function determining whether a specific point belongs the given hit area. The `point` position is always contains client coordinates of the mouse position. This allows you to use some tolerance given in screen pixels when the area is quite small or narrow (e.g. line segments). To convert the client coordinates into your svg viewport coordinates you can use the second `transform` argument.
+* `callback: (point: DOMPointReadOnly, transform: DOMMatrixReadOnly, tolerance: number) => boolean` - It's a function determining whether a specific point belongs the given hit area. The `point` position is always contains client coordinates of the mouse position. This allows you to use some tolerance given in screen pixels when the area is quite small or narrow (e.g. line segments). To convert the client coordinates into your svg viewport coordinates you can use the second `transform` argument.
+* `bounds: Rect | null` - Specifying the shape bounds allows to avoid expensive computations for some shapes if the cursor is far away from your element. If bounds are set the library performs hit testing in two phases: broad phase and narrow phase. During the broad phase it discards all the elements which bounds doesn't contain the cursor position. And during the narrow phase it only calls the callbacks for the elements that passed broad phase or doesn't specified any bounds at all.
 * `hitArea: HitArea<T>` - This argument describes the properties of the given hit area. The `HitArea` type has the following fields:
   * `type: string` - Use any string value to distinguish different hit areas
   * `index?: string` - An optional field that can be used when you define similar hit areas in a loop (for example, if you define several vertices for your polyline element)
@@ -54,6 +56,7 @@ Hit testing is a process of determining whether the cursor is over a given eleme
   * `action?: string` - Defines the action that will be dispatched to the element when a user starts dragging (see `useAction` documentation below). Optional.
   * `dblClickAction?: string` - Similar to the previous field, but the action will be dispatched on double click event. Optional.
   * `data?: T` - Allows to define any custom data for the specific hit area. Optional.
+* `tolerance: number` - An optional argument that is used to expand the hit testing area by some screen pixels. It's useful for small or narrow hit areas like points or line segments to make it easier for users to click. The value is 0 by default.
 * `priority: number` - An optional argument allowing to define a priority to a given hit area. The InteractionController when performs hit tesing does it starting from the highest priorities. Usually element controls (see below) must have higher priority that element inside area, so this parameter allows you to achive such behaviour. By default the priority is 0.
 * `element?: DiagramElementNode` - Allows to define which diagram element the hit area belongs to. If not specified the library consider using the current rendering element and this is what you need in the most cases, except calling the hook inside a `useControls` callback (see below) because this callback is being called after all elements are rendered and there is no current element defined in the rendering context.
 
@@ -115,8 +118,8 @@ return (
 Intersection testing is similar to hit testing. The first difference is the intersection testing checks if the element intersects with a given rectangle (instead of a point). The InteractionController performs intersection tests to define which elements should be selected when a user selects elements using a selection rect tool. The second difference is the element doesn't need to specify any hit areas. The only purpose of the intersection testing is to determine whether the object intersects the given selection rectangle or not. 
 
 To respond to intersection testing your element can use a `useIntersectionTest` hook. The hook accepts the following arguments:
-* `callback: (selectionRect: Rect) => boolean` - The function should return true if the given element intersects with the selectionRect. The selectionRect value is defined using svg viewport coordinate system, so you don't have to convert it from the mouse event client coordinates.
-* `bounds: Rect | null` - Specifying the shape bounds allows to avoid expensive computations for some shapes if the selection rectangle is far away from your element. The library performs intersection testing in two phases: broad phase and narrow phase. During the broad phase it discards all the elements which bounds doesn't intersect with the selection rectangle. And during the narrow phase it only calls the callbacks for the elements that passed broad phase or doesn't specified any bounds at all.
+* `callback: (selection: Collider<any>) => boolean` - The function should return true if the given element intersects with the selection. The `selection` value is defined using svg viewport coordinate system, so you don't have to convert it from the mouse event client coordinates.
+* `bounds: Rect | null` - Similar to hit testing, specifying the shape bounds allows to avoid expensive computations for some shapes if the selection rectangle is far away from your element. The library performs intersection testing in two phases: broad phase and narrow phase. During the broad phase it discards all the elements which bounds doesn't intersect with the selection rectangle. And during the narrow phase it only calls the callbacks for the elements that passed broad phase or doesn't specified any bounds at all.
 
 Here is the example of using the `useIntersectionTest` hook:
 
@@ -143,7 +146,7 @@ The hook accepts the following arguments:
 * `collider: Collider<T>` - A collider object to define the element shape. The library allows to create colliders for some basic shapes (point, line segment, circle, ellipse, rectangle, polygon etc), combine colliders with logical operations (union, intersection, difference, inversion) and create custom colliders.
 * `hitArea: HitArea` - Hit area object used for hit testing.
 * `priority: number` - An optional argument for the hit test area priority. By default the value is 0.
-* `hitTestTolerance: number` - An optional argument that is used to expand the hit testing area by some screen pixels. It's useful for small or narrow hit areas like points or line segments to make it easier for users to click. The value is 0 by default.
+* `tolerance: number` - An optional argument that is used to expand the hit testing area by some screen pixels. It's useful for small or narrow hit areas like points or line segments to make it easier for users to click. The value is 0 by default.
 * `element?: DiagramElementNode` - Defines the element the hitting area belongs to. If not specified, the library uses the current rendering element.
 
 Here is a simple example of using the `useCollider` hook:
@@ -265,6 +268,28 @@ useControls((transform, element) => {
 });
 ```
 
+### Element transformations and useTransforms hook
+
+The `useTransform` hook allows to apply 2D transformation (such rotation) to an element. Calling this hook will not transform your svg element itself, but once called the library will use transformed coordinates to be passed to `useHitTest`, `useIntersectionTest`, `useControls`, etc. To transform the svg element itself, wrap it to the `<g transform="...">` tag or use `withRotation` HOC (see below).
+
+The `useTransform` hook called with an argument allows to set the element transformation:
+* `transform?: DOMMatrixReadOnly` - Specifies the transformation matrix to be applied
+
+```typescript
+import { rotateTransform, useTransform } from "@carnelian-diagram/interaction";
+
+...
+
+const transform = rotateTransform(props.rotation);
+useTransform(transform);
+```
+
+If the function is called with no arguments, it just returns the current transformation and don't modify it:
+
+```typescript
+const currentTransform = useTransform();
+```
+
 ## Higher-order components
 
 The library provides some higher-order components (or just HOCs) built using the hooks described above to implement standard behaviour for common elements:
@@ -282,7 +307,9 @@ The library provides some higher-order components (or just HOCs) built using the
   * Edges allowing to insert new vertex on double clicking
   * Interactive inner area allowing to drag the element itself
 * `withInteractiveText` - allows to show inplace text editor (on double click event) to edit the element text (requires the `text` field to be defined in the element props)
+* `withInteractiveRotation` - adds a rotation handle allowing to rotate the element around some origin. Can be used together with `useRotation` (see below)
 * `withKnob` - adds customizable handle control to suit a particular task (e.g. border radius for rounded rectangle). See [RoundedRect](https://github.com/YMSpektor/carnelian-diagram/blob/main/packages/carnelian-shapes/src/basic/rounded-rect.tsx) or [Parallelogram](https://github.com/YMSpektor/carnelian-diagram/blob/main/packages/carnelian-shapes/src/basic/parallelogram.tsx) elements for example.
+* `withRotation` - adds the rotation transformation to the element.
 
 Here is the example using the `withInteractiveRect` HOC:
 
