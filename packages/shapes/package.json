@@ -1,20 +1,20 @@
 {
   "name": "@carnelian-diagram/shapes",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "main": "index.js",
   "description": "Shape collection for Carnelian Diagram library",
   "author": "Yuri Spektor",
   "keywords": [
-      "diagram",
-      "interactive",
-      "typescript",
-      "react",
-      "shapes"
+    "diagram",
+    "interactive",
+    "typescript",
+    "react",
+    "shapes"
   ],
   "repository": {
-      "type": "git",
-      "url": "https://github.com/YMSpektor/carnelian-diagram.git",
-      "directory": "packages/shapes"
+    "type": "git",
+    "url": "https://github.com/YMSpektor/carnelian-diagram.git",
+    "directory": "packages/shapes"
   },
   "license": "MIT",
   "homepage": "https://github.com/YMSpektor/carnelian-diagram",
@@ -32,7 +32,7 @@
     "typescript": "^4.9.4"
   },
   "peerDependencies": {
-    "@carnelian-diagram/core": "~0.1.0",
-    "@carnelian-diagram/interaction": "~0.1.0"
+    "@carnelian-diagram/core": "~0.2.0",
+    "@carnelian-diagram/interaction": "~0.2.0"
   }
 }
