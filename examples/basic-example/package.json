@@ -1,6 +1,6 @@
 {
     "name": "@carnelian-diagram/basic-example",
-    "version": "0.1.0",
+    "version": "0.2.0",
     "private": true,
     "description": "",
     "author": "",
@@ -10,9 +10,9 @@
         "build": "cross-env NODE_PATH=./node_modules browserify index.ts -p [ tsify ] -o ./public/bundle.js"
     },
     "dependencies": {
-        "@carnelian-diagram/core": "^0.1.0",
-        "@carnelian-diagram/interaction": "^0.1.0",
-        "@carnelian-diagram/shapes": "^0.1.0"
+        "@carnelian-diagram/core": "^0.2.0",
+        "@carnelian-diagram/interaction": "^0.2.0",
+        "@carnelian-diagram/shapes": "^0.2.0"
     },
     "devDependencies": {
         "@types/node": "^18.11.14",
