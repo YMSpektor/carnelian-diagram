@@ -1,15 +1,16 @@
 /** @jsxImportSource @carnelian-diagram/core */
 
 import { DiagramElement } from "@carnelian-diagram/core";
-import { ACT_EDIT_TEXT, EllipseCollider, withInteractiveRect, withInteractiveText } from "@carnelian-diagram/interaction";
+import { EllipseCollider, withRotation } from "@carnelian-diagram/interaction";
 import { RectBaseProps } from "..";
-import { withText } from "../hocs";
-import { textEditorStyles } from "../utils";
-import { MultilineText } from "./multiline-text";
+import { withInteractiveRotatableRect, withInteractiveRotatableTextRect } from "../hocs";
+import { RectRotation } from "../utils";
 
 export interface EllipseProps extends RectBaseProps {}
 
-export const Ellipse: DiagramElement<EllipseProps> = function(props) {
+const EllipseColliderFactory = (props: EllipseProps) => EllipseCollider({center: {x: props.x + props.width / 2, y: props.y + props.height / 2}, rx: props.width / 2, ry: props.height / 2});
+
+export const RawEllipse: DiagramElement<EllipseProps> = function(props) {
     const { onChange, x, y, width, height, ...rest } = props;
     const rx = width / 2;
     const ry = height / 2;
@@ -21,20 +22,14 @@ export const Ellipse: DiagramElement<EllipseProps> = function(props) {
     );
 };
 
-export const InteractiveEllipse = withInteractiveRect(
-    Ellipse,
-    {
-        collider: (props) => EllipseCollider({center: {x: props.x + props.width / 2, y: props.y + props.height / 2}, rx: props.width / 2, ry: props.height / 2}),
-        innerHitArea: (hitArea) => ({...hitArea, dblClickAction: ACT_EDIT_TEXT})
-    }
+export const Ellipse = withRotation(RawEllipse, RectRotation);
+
+export const InteractiveEllipse = withInteractiveRotatableRect(
+    RawEllipse, 
+    EllipseColliderFactory
 );
 
-export const InteractiveEllipseWithText = withText(
-    InteractiveEllipse,
-    withInteractiveText(
-        MultilineText,
-        (props) => props,
-        (props) => textEditorStyles(props.textStyle)
-    ),
-    (props) => props
+export const InteractiveEllipseWithText = withInteractiveRotatableTextRect(
+    RawEllipse, 
+    EllipseColliderFactory
 );

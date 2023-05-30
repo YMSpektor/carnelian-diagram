@@ -1,4 +1,5 @@
 export * from "./text-utils";
+export * from "./interaction-helpers";
 
 export type NumberOrPercentage = number | string;
 

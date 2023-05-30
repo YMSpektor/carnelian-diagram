@@ -1,12 +1,11 @@
 /** @jsxImportSource @carnelian-diagram/core */
 
 import { DiagramElement } from "@carnelian-diagram/core";
-import { withInteractiveRect, KnobController, withKnob, ACT_EDIT_TEXT, withInteractiveText } from "@carnelian-diagram/interaction";
+import { KnobController, withKnob, withRotation } from "@carnelian-diagram/interaction";
 import { clamp } from "@carnelian-diagram/interaction/geometry";
 import { RectBaseProps } from "..";
-import { withText } from "../hocs";
-import { convertPercentage, isPercentage, NumberOrPercentage, textEditorStyles } from "../utils";
-import { MultilineText } from "./multiline-text";
+import { withInteractiveRotatableRect, withInteractiveRotatableTextRect } from "../hocs";
+import { convertPercentage, isPercentage, NumberOrPercentage, RectRotation } from "../utils";
 
 export interface RoundedRectProps extends RectBaseProps {
     radius: NumberOrPercentage;
@@ -39,7 +38,7 @@ const knobController: KnobController<RoundedRectProps> = {
     }
 }
 
-export const RoundedRect: DiagramElement<RoundedRectProps> = function(props) {
+export const RawRoundedRect: DiagramElement<RoundedRectProps> = function(props) {
     let { onChange, radius, ...rest } = props;
     const base = Math.min(props.width, props.height) / 2;
     radius = clamp(convertPercentage(radius, base), 0, base);
@@ -49,20 +48,12 @@ export const RoundedRect: DiagramElement<RoundedRectProps> = function(props) {
     );
 };
 
-export const InteractiveRoundedRect = 
-    withInteractiveRect(
-        withKnob(RoundedRect, knobController),
-        {
-            innerHitArea: (hitArea) => ({...hitArea, dblClickAction: ACT_EDIT_TEXT})
-        }
-    );
+export const RoundedRect = withRotation(RawRoundedRect, RectRotation);
 
-export const InteractiveRoundedRectWithText = withText(
-    InteractiveRoundedRect,
-    withInteractiveText(
-        MultilineText,
-        (props) => props,
-        (props) => textEditorStyles(props.textStyle)
-    ),
-    (props) => props
+export const InteractiveRoundedRect = withInteractiveRotatableRect(
+    withKnob(RawRoundedRect, knobController)
+);
+
+export const InteractiveRoundedRectWithText = withInteractiveRotatableTextRect(
+    withKnob(RawRoundedRect, knobController)
 );

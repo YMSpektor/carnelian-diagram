@@ -19,8 +19,10 @@ export function EdgeControl(props: EdgeControlProps) {
     const p1 = new DOMPoint(props.x1, props.y1).matrixTransform(props.transform);
     const p2 = new DOMPoint(props.x2, props.y2).matrixTransform(props.transform);
     useHitTest(
-        lineHitTest(props.x1, props.y1, props.x2, props.y2, 2),
+        lineHitTest(props.x1, props.y1, props.x2, props.y2),
+        null,
         props.hitArea,
+        2,
         1,
         props.element
     );

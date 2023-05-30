@@ -1,9 +1,11 @@
 /** @jsxImportSource @carnelian-diagram/core */
 
 import { DiagramElement } from "@carnelian-diagram/core";
-import { CircleCollider, HalfPlaneCollider, IntersectionCollider, KnobController, UnionCollider, withInteractiveCircle, withKnobs } from "@carnelian-diagram/interaction";
+import { CircleCollider, HalfPlaneCollider, IntersectionCollider, KnobController, UnionCollider, withKnobs, withRotation } from "@carnelian-diagram/interaction";
 import { degToRad, Point, radToDeg } from "@carnelian-diagram/interaction/geometry";
 import { CircleBaseProps } from "..";
+import { withInteractiveRotatableCircle } from "../hocs";
+import { CircleRotation } from "../utils";
 
 export interface PieProps extends CircleBaseProps {
     startAngle: number;
@@ -41,7 +43,7 @@ function knobController(index: number): KnobController<PieProps> {
     }
 };
 
-function PieCollider(props: PieProps) {
+const PieColliderFactory = (props: PieProps) => {
     const { x, y, radius, startAngle, endAngle } = props;
 
     const center = {x, y};
@@ -58,7 +60,7 @@ function PieCollider(props: PieProps) {
     );
 }
 
-export const Pie: DiagramElement<PieProps> = function(props) {
+export const RawPie: DiagramElement<PieProps> = function(props) {
     let { onChange, x, y, radius, startAngle, endAngle, ...rest } = props;
 
     const isCircle = endAngle - startAngle === 360;
@@ -74,7 +76,9 @@ export const Pie: DiagramElement<PieProps> = function(props) {
     );
 }
 
-export const InteractivePie = withInteractiveCircle(
-    withKnobs(Pie, knobController(0), knobController(1)),
-    { collider: PieCollider }
+export const Pie = withRotation(RawPie, CircleRotation);
+
+export const InteractivePie = withInteractiveRotatableCircle(
+    withKnobs(RawPie, knobController(0), knobController(1)),
+    PieColliderFactory
 );

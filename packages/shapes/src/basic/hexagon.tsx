@@ -1,12 +1,11 @@
 /** @jsxImportSource @carnelian-diagram/core */
 
 import { DiagramElement } from "@carnelian-diagram/core";
-import { PolygonCollider, withInteractiveRect, KnobController, withKnob, ACT_EDIT_TEXT, withInteractiveText } from "@carnelian-diagram/interaction";
+import { PolygonCollider, KnobController, withKnob, withRotation } from "@carnelian-diagram/interaction";
 import { clamp } from "@carnelian-diagram/interaction/geometry";
 import { RectBaseProps } from "..";
-import { withText } from "../hocs";
-import { convertPercentage, isPercentage, NumberOrPercentage, textEditorStyles } from "../utils";
-import { MultilineText } from "./multiline-text";
+import { withInteractiveRotatableRect, withInteractiveRotatableTextRect } from "../hocs";
+import { convertPercentage, isPercentage, NumberOrPercentage, RectRotation } from "../utils";
 
 export interface HexagonProps extends RectBaseProps {
     offset: NumberOrPercentage;
@@ -53,7 +52,9 @@ function toPolygon(props: HexagonProps) {
     ];
 };
 
-export const Hexagon: DiagramElement<HexagonProps> = function(props) {
+const HexagonColliderFactory = (props: HexagonProps) => PolygonCollider(toPolygon(props));
+
+export const RawHexagon: DiagramElement<HexagonProps> = function(props) {
     let { onChange, x, y, width, height, offset, ...rest } = props;
     const points = toPolygon(props);
 
@@ -62,21 +63,14 @@ export const Hexagon: DiagramElement<HexagonProps> = function(props) {
     );
 };
 
-export const InteractiveHexagon = 
-    withInteractiveRect(
-        withKnob(Hexagon, knobController),
-        {
-            collider: (props) => PolygonCollider(toPolygon(props)),
-            innerHitArea: (hitArea) => ({...hitArea, dblClickAction: ACT_EDIT_TEXT})
-        }
-    );
+export const Hexagon = withRotation(RawHexagon, RectRotation);
 
-export const InteractiveHexagonWithText = withText(
-    InteractiveHexagon,
-    withInteractiveText(
-        MultilineText,
-        (props) => props,
-        (props) => textEditorStyles(props.textStyle)
-    ),
-    (props) => props
+export const InteractiveHexagon = withInteractiveRotatableRect(
+    withKnob(RawHexagon, knobController), 
+    HexagonColliderFactory
+);
+
+export const InteractiveHexagonWithText = withInteractiveRotatableTextRect(
+    withKnob(RawHexagon, knobController), 
+    HexagonColliderFactory
 );

@@ -154,6 +154,10 @@ export function extendLine(l: Line, r: Rect): Line {
     }
 }
 
+export function transformPoint(p: Point, transform: DOMMatrixReadOnly): Point {
+    return new DOMPoint(p.x, p.y).matrixTransform(transform);
+}
+
 export function pointInCircle(p: Point, circle: Circle): boolean {
     return distanceSquared(p, circle.center) <= sqr(circle.radius);
 }
@@ -300,7 +304,7 @@ export function ellipseBounds(e: Ellipse): Rect {
 }
 
 export function polygonBounds(polygon: Polygon): Rect | null {
-    return unionRects(polygon.map(x => ({ ...x, width: 0, height: 0 })));
+    return unionRects(polygon.map(p => ({ x: p.x, y: p.y, width: 0, height: 0 })));
 }
 
 export function pointOnSegment(p: Point, line: Line, tolerance: number) {

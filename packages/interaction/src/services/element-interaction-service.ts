@@ -44,37 +44,53 @@ export class DefaultElementInteractionService implements ElementInteractionServi
         targetElement.setPointerCapture(e.pointerId);  // Set capture to target element to receive dblclick events for this target
         this.controller.setInputCapture(this);
 
-        let lastPoint = this.controller.clientToDiagram(new DOMPoint(e.clientX, e.clientY));
+        let lastPoint = new DOMPoint(e.clientX, e.clientY);
         const action = hitInfo.hitArea.action;
 
         if (action) {
             const mouseMoveHandler = (e: PointerEvent) => {
                 const point = new DOMPoint(e.clientX, e.clientY);
                 const snapGridSize = !e.altKey && this.gridSnappingService ? this.gridSnappingService.snapGridSize : null;
-                const elementPoint = this.controller.clientToDiagram(point);
-                const snappedElementPoint = this.gridSnappingService?.snapToGrid(elementPoint, snapGridSize) || elementPoint;
-                const rawDeltaX = elementPoint.x - lastPoint.x;
-                const rawDeltaY = elementPoint.y - lastPoint.y;
+                const diagramPoint = this.controller.clientToDiagram(point);
+                const snappedDiagramPoint = this.gridSnappingService?.snapToGrid(diagramPoint, snapGridSize) || diagramPoint;
+                const lastDiagramPoint = this.controller.clientToDiagram(lastPoint);
                 const elements = action === ACT_MOVE ? this.controller.getSelectedElements() : [hitInfo.element];
+                
+                elements.forEach(element => {
+                    const lastElementPoint = this.controller.clientToDiagram(lastPoint, element);
+                    const elementPoint = this.controller.clientToDiagram(point, element);
+                    const snappedElementPoint = this.gridSnappingService?.snapToGrid(elementPoint, snapGridSize) || elementPoint;
+                    const rawDeltaX = elementPoint.x - lastElementPoint.x;
+                    const rawDeltaY = elementPoint.y - lastElementPoint.y;
+                    let deltaX = rawDeltaX;
+                    let deltaY = rawDeltaY;
+                    if (this.gridSnappingService) {
+                        const dx = this.gridSnappingService.snapToGrid(snappedDiagramPoint.x - lastDiagramPoint.x, snapGridSize);
+                        const dy = this.gridSnappingService.snapToGrid(snappedDiagramPoint.y - lastDiagramPoint.y, snapGridSize);
+                        const deltaPoint = this.controller.diagramToElement(new DOMPoint(lastDiagramPoint.x + dx, lastDiagramPoint.y + dy), element);
+                        deltaX = deltaPoint.x - lastElementPoint.x;
+                        deltaY = deltaPoint.y - lastElementPoint.y;
+                    }
 
-                this.controller.dispatchAction<DragActionPayload>(
-                    elements,
-                    action,
-                    {
-                        controller: this.controller,
-                        position: snappedElementPoint,
-                        deltaX: this.gridSnappingService ? this.gridSnappingService.snapToGrid(snappedElementPoint.x - lastPoint.x, snapGridSize) : rawDeltaX,
-                        deltaY: this.gridSnappingService ? this.gridSnappingService.snapToGrid(snappedElementPoint.y - lastPoint.y, snapGridSize) : rawDeltaY,
-                        rawPosition: elementPoint,
-                        rawDeltaX,
-                        rawDeltaY,
-                        hitArea: hitInfo.hitArea,
-                        snapGridSize,
-                        snapAngle: !e.altKey && this.gridSnappingService ? this.gridSnappingService.snapAngle : null,
-                        snapToGrid: this.gridSnappingService?.snapToGrid.bind(this.gridSnappingService)
-                    });
+                    this.controller.dispatchAction<DragActionPayload>(
+                        [element],
+                        action,
+                        {
+                            controller: this.controller,
+                            position: snappedElementPoint,
+                            deltaX,
+                            deltaY,
+                            rawPosition: elementPoint,
+                            rawDeltaX,
+                            rawDeltaY,
+                            hitArea: hitInfo.hitArea,
+                            snapGridSize,
+                            snapAngle: !e.altKey && this.gridSnappingService ? this.gridSnappingService.snapAngle : null,
+                            snapToGrid: this.gridSnappingService?.snapToGrid.bind(this.gridSnappingService)
+                        });
+                });
 
-                lastPoint = elementPoint;
+                lastPoint = point;
             }
 
             const mouseUpHandler = (e: PointerEvent) => {
@@ -116,7 +132,7 @@ export class DefaultElementInteractionService implements ElementInteractionServi
             if (hitInfo && hitInfo.hitArea.dblClickAction) {
                 const point = new DOMPoint(e.clientX, e.clientY);
                 const snapGridSize = !e.altKey && this.gridSnappingService ? this.gridSnappingService.snapGridSize : null;
-                const elementPoint = this.controller.clientToDiagram(point);
+                const elementPoint = this.controller.clientToDiagram(point, hitInfo.element);
                 const snappedElementPoint = this.gridSnappingService?.snapToGrid(elementPoint, snapGridSize) || elementPoint;
 
                 this.controller.dispatchAction<ClickActionPayload>(

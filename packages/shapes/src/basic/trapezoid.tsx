@@ -1,12 +1,11 @@
 /** @jsxImportSource @carnelian-diagram/core */
 
 import { DiagramElement } from "@carnelian-diagram/core";
-import { PolygonCollider, withInteractiveRect, KnobController, withKnob, ACT_EDIT_TEXT, withInteractiveText } from "@carnelian-diagram/interaction";
+import { PolygonCollider, KnobController, withKnob, withRotation } from "@carnelian-diagram/interaction";
 import { clamp } from "@carnelian-diagram/interaction/geometry";
 import { RectBaseProps } from "..";
-import { withText } from "../hocs";
-import { convertPercentage, isPercentage, NumberOrPercentage, textEditorStyles } from "../utils";
-import { MultilineText } from "./multiline-text";
+import { withInteractiveRotatableRect, withInteractiveRotatableTextRect } from "../hocs";
+import { convertPercentage, isPercentage, NumberOrPercentage, RectRotation } from "../utils";
 
 export interface TrapezoidProps extends RectBaseProps {
     offset: NumberOrPercentage;
@@ -51,7 +50,9 @@ function toPolygon(props: TrapezoidProps) {
     ];
 }
 
-export const Trapezoid: DiagramElement<TrapezoidProps> = function(props) {
+const TrapezoidColliderFactory = (props: TrapezoidProps) => PolygonCollider(toPolygon(props));
+
+export const RawTrapezoid: DiagramElement<TrapezoidProps> = function(props) {
     let { onChange, x, y, width, height, offset, ...rest } = props;
     const points = toPolygon(props);
 
@@ -60,21 +61,14 @@ export const Trapezoid: DiagramElement<TrapezoidProps> = function(props) {
     );
 };
 
-export const InteractiveTrapezoid = 
-    withInteractiveRect(
-        withKnob(Trapezoid, knobController),
-        {
-            collider: (props) => PolygonCollider(toPolygon(props)),
-            innerHitArea: (hitArea) => ({...hitArea, dblClickAction: ACT_EDIT_TEXT})
-        }
-    );
+export const Trapezoid = withRotation(RawTrapezoid, RectRotation);
 
-export const InteractiveTrapezoidWithText = withText(
-    InteractiveTrapezoid,
-    withInteractiveText(
-        MultilineText,
-        (props) => props,
-        (props) => textEditorStyles(props.textStyle)
-    ),
-    (props) => props
+export const InteractiveTrapezoid = withInteractiveRotatableRect(
+    withKnob(RawTrapezoid, knobController), 
+    TrapezoidColliderFactory
+);
+
+export const InteractiveTrapezoidWithText = withInteractiveRotatableTextRect(
+    withKnob(RawTrapezoid, knobController), 
+    TrapezoidColliderFactory
 );

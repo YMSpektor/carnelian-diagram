@@ -39,7 +39,7 @@ export function useInteractiveLine<T extends InteractiveLineProps>(
     }
 
     const collider = colliderFactory?.(props) || LineCollider({a: {x: x1, y: y1}, b: {x: x2, y: y2}});
-    useCollider(collider, { type: "in", cursor: "move", action: ACT_MOVE }, 0, 2);
+    useCollider(collider, { type: "in", cursor: "move", action: ACT_MOVE }, 2);
     useAction(ACT_MOVE, move);
     useAction("vertex_move", moveVertex);
 

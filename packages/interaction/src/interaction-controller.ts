@@ -3,9 +3,11 @@ import { createElement, Fragment, JSX } from "@carnelian-diagram/core/jsx-runtim
 import { InteractionContextType } from "./context";
 import { DiagramElementHitTest, hasHitTestProps, HitTestCollection, HitInfo, addHitTestProps } from "./hit-tests";
 import { DiagramElementIntersectionTest } from "./intersection-tests";
-import { intersectRect, Rect } from "./geometry";
+import { inflateRect, intersectRect, pointInRect, polygonBounds, Rect, rectPoints, transformPoint } from "./geometry";
 import { DefaultControlRenderingService, DefaultDeletionService, DefaultElementDrawingService, DefaultElementInteractionService, DefaultGridSnappingService, DefaultPaperService, DefaultSelectionService, DefaultTextEditingService, InteractionServive, InteractiveServiceCollection } from "./services";
 import { Channel } from "type-pubsub";
+import { computeTransformResult, DiagramElementTransform, DiagramElementTransforms } from "./transforms";
+import { PolygonCollider, RectCollider } from "./collisions";
 
 export type RenderControlsCallback = (transform: DOMMatrixReadOnly, element: DiagramElementNode) => JSX.Element;
 
@@ -39,6 +41,7 @@ export class InteractionController {
     private controls = new Map<DiagramElementNode, Map<object, DiagramElementControls>>();
     private hitTests: HitTestCollection = {};
     private intersectionTests = new Map<object, DiagramElementIntersectionTest>;
+    private transforms = new Map<DiagramElementNode, DiagramElementTransforms>;
     private actions = new Map<object, DiagramElementAction<any>>();
     private pendingActions = new Map<DiagramElementNode, PendingAction<any>[]>();
     private selectedElements = new Set<DiagramElementNode>();
@@ -198,20 +201,66 @@ export class InteractionController {
             }
         }
 
+        const updateTransforms = (element: DiagramElementNode, key: {}, transform?: DiagramElementTransform) => {
+            let transforms = this.transforms.get(element);
+            if (!transforms) {
+                transforms = {
+                    result: new DOMMatrix(),
+                    transformMap: new Map<object, DiagramElementTransform>()
+                }
+                this.transforms.set(element, transforms);
+            }
+            if (transform) {
+                transforms.transformMap.set(key, transform);
+                computeTransformResult(transforms);
+            }
+            else {
+                transforms.transformMap.delete(key);
+                computeTransformResult(transforms);
+                if (transforms.transformMap.size === 0) {
+                    this.transforms.delete(element);
+                }
+            }
+        }
+
         return {
+            getController: () => this,
             updateControls,
             updateHitTests,
             updateIntersectionTests,
-            updateActions
+            updateActions,
+            updateTransforms
         }
     }
 
-    clientToDiagram(point: DOMPointReadOnly): DOMPointReadOnly {
-        return point.matrixTransform(this.screenCTM?.inverse());
+    private hasTransform(element: DiagramElementNode): boolean {
+        return !!this.transforms.get(element);
     }
 
-    diagramToClient(point: DOMPointReadOnly): DOMPointReadOnly {
-        return point.matrixTransform(this.screenCTM);
+    getElementTransform(element: DiagramElementNode, parentTransform?: DOMMatrixReadOnly): DOMMatrix {
+        const transforms = this.transforms.get(element);
+        const localTransform = transforms ? transforms.result : new DOMMatrix();
+        return parentTransform ? parentTransform.multiply(localTransform) : localTransform;
+    }
+
+    clientToDiagram(point: DOMPointReadOnly, element?: DiagramElementNode): DOMPointReadOnly {
+        const transform = element ? this.getElementTransform(element, this.screenCTM) : this.screenCTM;
+        return point.matrixTransform(transform?.inverse());
+    }
+
+    diagramToClient(point: DOMPointReadOnly, element?: DiagramElementNode): DOMPointReadOnly {
+        const transform = element ? this.getElementTransform(element, this.screenCTM) : this.screenCTM;
+        return point.matrixTransform(transform);
+    }
+
+    elementToDiagram(point: DOMPointReadOnly, element: DiagramElementNode): DOMPointReadOnly {
+        const transform = element ? this.getElementTransform(element) : null;
+        return transform ? point.matrixTransform(transform) : point;
+    }
+
+    diagramToElement(point: DOMPointReadOnly, element: DiagramElementNode): DOMPointReadOnly {
+        const transform = element ? this.getElementTransform(element) : null;
+        return transform ? point.matrixTransform(transform.inverse()) : point;
     }
 
     isSelected(element: DiagramElementNode) {
@@ -240,18 +289,23 @@ export class InteractionController {
                 const controls = [...x[1].values()];
                 return createElement(
                     Fragment,
-                    { children: controls.map(x => x.callback(transform, x.element)) },
+                    { children: controls.map(x => x.callback(this.getElementTransform(x.element, transform), x.element)) },
                     key
                 );
             });
     }
 
+    private transformBounds(element: DiagramElementNode, bounds: Rect): Rect {
+        return this.hasTransform(element)
+            ? polygonBounds(rectPoints(bounds).map(p => new DOMPoint(p.x, p.y).matrixTransform(this.getElementTransform(element))))!
+            : bounds;
+    }
+
     hitTest(e: MouseEvent): HitInfo | undefined {
         if (this.screenCTM) {
-            const transform = this.screenCTM.inverse();
             const point = new DOMPoint(e.clientX, e.clientY);
-            const elementPoint = this.clientToDiagram(point);
             if (hasHitTestProps(e)) {
+                const elementPoint = this.clientToDiagram(point, e.__hitTest.element);
                 return {
                     ...e.__hitTest,
                     screenX: point.x,
@@ -261,6 +315,7 @@ export class InteractionController {
                 }
             }
             if (e.target && hasHitTestProps(e.target)) {
+                const elementPoint = this.clientToDiagram(point, e.target.__hitTest.element);
                 addHitTestProps(e, e.target.__hitTest.hitArea, e.target.__hitTest.element);
                 return {
                     ...e.target.__hitTest,
@@ -273,14 +328,22 @@ export class InteractionController {
             else {
                 const priorities = Object.keys(this.hitTests).map(x => parseInt(x)).reverse();
                 const sortedElements = this.diagram.getElements().slice().reverse();
+                let elementPoint: DOMPointReadOnly | undefined;
                 for (let priority of priorities) {
                     let hit: DiagramElementHitTest | undefined;
                     for (let element of sortedElements) {
                         const list = [...(this.hitTests[priority]?.get(element)?.values() || [])];
-                        hit = list.find(x => x.callback(point, transform));
+                        elementPoint = this.clientToDiagram(point, element);
+                        hit = list.find(x => {
+                            const tolerance = x.tolerance / (this.screenCTM?.a || 1);
+                            return elementPoint && (
+                                (!x.bounds || pointInRect(elementPoint, inflateRect(x.bounds, tolerance))) && // Broad phase
+                                x.callback(elementPoint, tolerance)  // Narrow phase
+                            );
+                        });
                         if (hit) break;
                     }
-                    if (hit) {
+                    if (hit && elementPoint) {
                         addHitTestProps(e, hit.hitArea, hit.element);
                         return {
                             element: hit.element,
@@ -296,13 +359,19 @@ export class InteractionController {
         }
     }
 
+    private selectionRectCollider(element: DiagramElementNode, rect: Rect) {
+        return this.hasTransform(element)
+            ? PolygonCollider(rectPoints(rect).map(p => transformPoint(p, this.getElementTransform(element).inverse())))
+            : RectCollider(rect)
+    }
+
     rectIntersectionTest(rect: Rect): DiagramElementNode[] {
         // Broad phase
         const tests = [...this.intersectionTests.values()]
-            .filter(test => !test.bounds || intersectRect(test.bounds, rect));
+            .filter(test => !test.bounds || intersectRect(this.transformBounds(test.element, test.bounds), rect));
         // Narrow phase
         return tests
-            .filter(test => test.callback(rect))
+            .filter(test => test.callback(this.selectionRectCollider(test.element, rect)))
             .map(test => test.element);
     }
 

@@ -1,24 +1,20 @@
 import { DiagramElementNode } from "@carnelian-diagram/core";
-import { collide, Collider, PointCollider, RectCollider } from "../collisions/colliders";
+import { collide, Collider, PointCollider } from "../collisions/colliders";
 import { HitArea, HitTestCallback } from "../hit-tests";
 import { useHitTest, useIntersectionTest } from ".";
 import { IntersectionTestCallback } from "../intersection-tests";
-import { inflateRect, pointInRect } from "../geometry";
 
-export function useCollider<T>(collider: Collider<T>, hitArea: HitArea, priority: number = 0, 
-    hitTestTolerance: number = 0, element?: DiagramElementNode
+export function useCollider<T>(collider: Collider<T>, hitArea: HitArea, tolerance: number = 0, priority: number = 0, 
+    element?: DiagramElementNode
 ) {
-    const hitTestCallback: HitTestCallback = (point, transform) => {
-        const elemPoint = point.matrixTransform(transform);
-        const tolerance = hitTestTolerance * transform.a;
-        const bounds = collider.bounds ? inflateRect(collider.bounds, tolerance) : null;
-        return (!bounds || pointInRect(elemPoint, bounds)) && !!collide(PointCollider(elemPoint), collider, tolerance);
+    const hitTestCallback: HitTestCallback = (point, tolerance) => {
+        return !!collide(PointCollider(point), collider, tolerance);
     }
 
-    const intersectionTestCallback: IntersectionTestCallback = (selectionRect) => {
-        return !!collide(RectCollider(selectionRect), collider, 0);
+    const intersectionTestCallback: IntersectionTestCallback = (selection) => {
+        return !!collide(selection, collider, 0);
     }
 
-    useHitTest(hitTestCallback, hitArea, priority, element);
+    useHitTest(hitTestCallback, collider.bounds, hitArea, tolerance, priority, element);
     useIntersectionTest(intersectionTestCallback, collider.bounds);
 }

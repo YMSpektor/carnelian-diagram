@@ -5,4 +5,6 @@ export * from "./with-interactive-rect";
 export * from "./with-interactive-square";
 export * from "./with-interactive-circle";
 export * from "./with-interactive-text";
+export * from "./with-interactive-rotation";
 export * from "./with-knob";
+export * from "./with-rotation";

@@ -1,12 +1,11 @@
 /** @jsxImportSource @carnelian-diagram/core */
 
 import { DiagramElement } from "@carnelian-diagram/core";
-import { PolygonCollider, KnobController, withInteractiveRect, withKnob, ACT_EDIT_TEXT, withInteractiveText } from "@carnelian-diagram/interaction";
+import { PolygonCollider, KnobController, withKnob, withRotation } from "@carnelian-diagram/interaction";
 import { clamp } from "@carnelian-diagram/interaction/geometry";
 import { RectBaseProps } from "..";
-import { withText } from "../hocs";
-import { convertPercentage, isPercentage, NumberOrPercentage, textEditorStyles } from "../utils";
-import { MultilineText } from "./multiline-text";
+import { withInteractiveRotatableRect, withInteractiveRotatableTextRect } from "../hocs";
+import { convertPercentage, isPercentage, NumberOrPercentage, RectRotation } from "../utils";
 
 export interface CrossProps extends RectBaseProps {
     offsetX: NumberOrPercentage;
@@ -69,7 +68,9 @@ function toPolygon(props: CrossProps) {
     ];
 };
 
-export const Cross: DiagramElement<CrossProps> = function(props) {
+const CrossColliderFactory = (props: CrossProps) => PolygonCollider(toPolygon(props));
+
+export const RawCross: DiagramElement<CrossProps> = function(props) {
     let { onChange, x, y, width, height, offsetX, offsetY, ...rest } = props;
     const points = toPolygon(props);
 
@@ -78,21 +79,14 @@ export const Cross: DiagramElement<CrossProps> = function(props) {
     );
 };
 
-export const InteractiveCross = 
-    withInteractiveRect(
-        withKnob(Cross, knobController),
-        {
-            collider: (props) => PolygonCollider(toPolygon(props)),
-            innerHitArea: (hitArea) => ({...hitArea, dblClickAction: ACT_EDIT_TEXT})
-        }
-    );
+export const Cross = withRotation(RawCross, RectRotation);
 
-export const InteractiveCrossWithText = withText(
-    InteractiveCross,
-    withInteractiveText(
-        MultilineText,
-        (props) => props,
-        (props) => textEditorStyles(props.textStyle)
-    ),
-    (props) => props
+export const InteractiveCross = withInteractiveRotatableRect(
+    withKnob(RawCross, knobController), 
+    CrossColliderFactory
+);
+
+export const InteractiveCrossWithText = withInteractiveRotatableTextRect(
+    withKnob(RawCross, knobController), 
+    CrossColliderFactory
 );
