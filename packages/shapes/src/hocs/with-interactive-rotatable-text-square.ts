@@ -22,7 +22,7 @@ export function withInteractiveRotatableTextSquare<T extends SquareBaseProps>(
                     y: props.y,
                     width: props.size,
                     height: props.size,
-                    text: props.text,
+                    text: props.text || "",
                     textStyle: props.textStyle
                 })
             ),

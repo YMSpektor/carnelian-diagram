@@ -17,7 +17,7 @@ export function withInteractiveRotatableTextRect<T extends RectBaseProps>(
                     collider
                 }),
                 InteractiveMultilineTextComponent,
-                (props) => props
+                (props) => ({ ...props, text: props.text || "" })
             ),
             RectRotationController
         ),

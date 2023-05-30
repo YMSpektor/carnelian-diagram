@@ -22,7 +22,7 @@ export function withInteractiveRotatableTextCircle<T extends CircleBaseProps>(
                     y: props.y - props.radius,
                     width: props.radius * 2,
                     height: props.radius * 2,
-                    text: props.text,
+                    text: props.text || "",
                     textStyle: props.textStyle
                 })
             ),
