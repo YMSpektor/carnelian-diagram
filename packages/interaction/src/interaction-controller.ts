@@ -3,7 +3,7 @@ import { createElement, Fragment, JSX } from "@carnelian-diagram/core/jsx-runtim
 import { InteractionContextType } from "./context";
 import { DiagramElementHitTest, hasHitTestProps, HitTestCollection, HitInfo, addHitTestProps } from "./hit-tests";
 import { DiagramElementIntersectionTest } from "./intersection-tests";
-import { intersectRect, pointInRect, polygonBounds, Rect, rectPoints, transformPoint } from "./geometry";
+import { inflateRect, intersectRect, pointInRect, polygonBounds, Rect, rectPoints, transformPoint } from "./geometry";
 import { DefaultControlRenderingService, DefaultDeletionService, DefaultElementDrawingService, DefaultElementInteractionService, DefaultGridSnappingService, DefaultPaperService, DefaultSelectionService, DefaultTextEditingService, InteractionServive, InteractiveServiceCollection } from "./services";
 import { Channel } from "type-pubsub";
 import { computeTransformResult, DiagramElementTransform, DiagramElementTransforms } from "./transforms";
@@ -301,18 +301,6 @@ export class InteractionController {
             : bounds;
     }
 
-    private hitTestBounds(element: DiagramElementNode, bounds: Rect, tolerance: number): Rect {
-        bounds = this.transformBounds(element, bounds);
-        const p1 = this.diagramToClient(new DOMPoint(bounds.x, bounds.y));
-        const p2 = this.diagramToClient(new DOMPoint(bounds.x + bounds.width, bounds.y + bounds.height));
-        return {
-            x: p1.x - tolerance,
-            y: p1.y - tolerance,
-            width: p2.x - p1.x + tolerance,
-            height: p2.y - p1.y + tolerance
-        }
-    }
-
     hitTest(e: MouseEvent): HitInfo | undefined {
         if (this.screenCTM) {
             const point = new DOMPoint(e.clientX, e.clientY);
@@ -340,18 +328,22 @@ export class InteractionController {
             else {
                 const priorities = Object.keys(this.hitTests).map(x => parseInt(x)).reverse();
                 const sortedElements = this.diagram.getElements().slice().reverse();
+                let elementPoint: DOMPointReadOnly | undefined;
                 for (let priority of priorities) {
                     let hit: DiagramElementHitTest | undefined;
                     for (let element of sortedElements) {
                         const list = [...(this.hitTests[priority]?.get(element)?.values() || [])];
-                        const transform = this.getElementTransform(element, this.screenCTM).inverse();
-                        hit = list.find(x => 
-                            (!x.bounds || pointInRect(point, this.hitTestBounds(x.element, x.bounds, x.tolerance))) && // Broad phase
-                            x.callback(point, transform, x.tolerance));  // Narrow phase
+                        elementPoint = this.clientToDiagram(point, element);
+                        hit = list.find(x => {
+                            const tolerance = x.tolerance / (this.screenCTM?.a || 1);
+                            return elementPoint && (
+                                (!x.bounds || pointInRect(elementPoint, inflateRect(x.bounds, tolerance))) && // Broad phase
+                                x.callback(elementPoint, tolerance)  // Narrow phase
+                            );
+                        });
                         if (hit) break;
                     }
-                    if (hit) {
-                        const elementPoint = this.clientToDiagram(point, hit.element);
+                    if (hit && elementPoint) {
                         addHitTestProps(e, hit.hitArea, hit.element);
                         return {
                             element: hit.element,

@@ -46,8 +46,8 @@ return (
 
 ### Hit testing and useHitTest hook
 
-Hit testing is a process of determining whether the cursor is over a given element. The InteractionController performs hit testing when a user clicks or move the mouse cursor over a diagram to select an element at the mouse position or update the mouse cursor. The library provides you ability to define a shape of the elements and some additional interactive parts using a `useHitTest` hook. The function accepts the following arguments:
-* `callback: (point: DOMPointReadOnly, transform: DOMMatrixReadOnly, tolerance: number) => boolean` - It's a function determining whether a specific point belongs the given hit area. The `point` position is always contains client coordinates of the mouse position. This allows you to use some tolerance given in screen pixels when the area is quite small or narrow (e.g. line segments). To convert the client coordinates into your svg viewport coordinates you can use the second `transform` argument.
+Hit testing is a process of determining whether the cursor is over a given element. The InteractionController performs hit testing when a user clicks or move the mouse cursor over a diagram to select an element at the mouse position or update the mouse cursor. The library provides you ability to define a shape of the elements and for additional interactive parts using a `useHitTest` hook. The function accepts the following arguments:
+* `callback: (point: DOMPointReadOnly, tolerance: number) => boolean` - It's a function determining whether a specific point belongs the given hit area. The `point` contains the mouse position converted to the element coordinates. The second `tolerance` parameter contains the corresponding value passed to the `useHitTest` function (see below) also converted to the element coordinate space. The function must return true if the point belongs the given area (considering the `tolerance` if needed) and false if it doesn't.
 * `bounds: Rect | null` - Specifying the shape bounds allows to avoid expensive computations for some shapes if the cursor is far away from your element. If bounds are set the library performs hit testing in two phases: broad phase and narrow phase. During the broad phase it discards all the elements which bounds doesn't contain the cursor position. And during the narrow phase it only calls the callbacks for the elements that passed broad phase or doesn't specified any bounds at all.
 * `hitArea: HitArea<T>` - This argument describes the properties of the given hit area. The `HitArea` type has the following fields:
   * `type: string` - Use any string value to distinguish different hit areas
@@ -145,8 +145,8 @@ The `useHitTest` and `useIntersectionTest` hooks together allow to define an ele
 The hook accepts the following arguments:
 * `collider: Collider<T>` - A collider object to define the element shape. The library allows to create colliders for some basic shapes (point, line segment, circle, ellipse, rectangle, polygon etc), combine colliders with logical operations (union, intersection, difference, inversion) and create custom colliders.
 * `hitArea: HitArea` - Hit area object used for hit testing.
-* `priority: number` - An optional argument for the hit test area priority. By default the value is 0.
 * `tolerance: number` - An optional argument that is used to expand the hit testing area by some screen pixels. It's useful for small or narrow hit areas like points or line segments to make it easier for users to click. The value is 0 by default.
+* `priority: number` - An optional argument for the hit test area priority. By default the value is 0.
 * `element?: DiagramElementNode` - Defines the element the hitting area belongs to. If not specified, the library uses the current rendering element.
 
 Here is a simple example of using the `useCollider` hook:
