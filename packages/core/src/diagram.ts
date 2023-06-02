@@ -129,6 +129,7 @@ export interface DiagramRootRenderer {
     isAttached: () => boolean;
     attach: () => void;
     detach: (clearDom: boolean) => void;
+    release: () => void;
 }   
 
 export class Diagram {
@@ -203,7 +204,7 @@ export namespace DiagramDOM {
         const domBuilder = new DiagramDOMBuilder(root);
         let isAttached = false;
         let isValid = false;
-        let subscription: DiagramSubscription | undefined = undefined;
+        let subscription: DiagramSubscription | undefined = diagram.subscribe((node) => invalidate(node));
         let storedRootNode: DiagramNode | undefined = undefined;
         const renderContext = new RenderContextType((node) => invalidate(node));
         const storedNodesMap = new Map<DiagramNode, DiagramNode>();
@@ -337,15 +338,19 @@ export namespace DiagramDOM {
             storedNode && (storedNode.isValid = false);
             if (isValid) {
                 isValid = false;
-                scheduleRender();
+                isAttached && scheduleRender();
             }
+        }
+
+        const release = () => {
+            subscription?.unsubscribe();
+            subscription = undefined;
         }
 
         const attach = () => {
             if (!isAttached) {
                 isAttached = true;
                 scheduleRender();
-                subscription = diagram.subscribe((node) => invalidate(node));
             }
         }
 
@@ -355,8 +360,7 @@ export namespace DiagramDOM {
                 if (clearDom) {
                     clear();
                 }
-                subscription?.unsubscribe();
-                subscription = undefined;
+                release();
             }
         }
 
@@ -373,7 +377,8 @@ export namespace DiagramDOM {
             clear,
             isAttached: () => isAttached,
             attach,
-            detach
+            detach,
+            release
         }
     }
 }
