@@ -62,6 +62,68 @@ describe("Diagram root tests", () => {
         });
     });
 
+    describe("Rerendering", () => {
+        test("Unchanged element should not be rerendered", () => {
+            let r1 = 0;
+            const TestElement = () => {
+                r1++;
+                return <></>;
+            }
+    
+            diagram.add(TestElement, {});
+            root.render();
+    
+            expect(r1).toEqual(1);
+    
+            root.render();
+            expect(r1).toEqual(1);
+        });
+    
+        test("Only modified element should be rerendered", () => {
+            let r1 = 0;
+            let r2 = 0;
+    
+            const TestElement1 = () => {
+                r1++;
+                return <></>;
+            }
+    
+            const TestElement2 = () => {
+                r2++;
+                return <></>;
+            }
+    
+            const e1 = diagram.add(TestElement1, {});
+            diagram.add(TestElement2, {});
+            root.render();
+    
+            expect(r1).toEqual(1);
+            expect(r2).toEqual(1);
+    
+            diagram.update(e1, {...e1.props});
+            root.render();
+            expect(r1).toEqual(2);
+            expect(r2).toEqual(1);
+        });
+    
+        test("Invalidating root should not rerender an element", () => {
+            let r1 = 0;
+            const TestElement = () => {
+                r1++;
+                return <></>;
+            }
+    
+            diagram.add(TestElement, {});
+            root.render();
+    
+            expect(r1).toEqual(1);
+    
+            diagram.invalidate();
+            root.render();
+            expect(r1).toEqual(1);
+        });
+    });
+
     describe("Add new element", () => {
         test("Added element should be found in the DOM", () => {
             diagram.add(TestElement, { cx: 20, cy: 20, r: 10 });
