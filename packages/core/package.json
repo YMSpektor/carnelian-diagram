@@ -19,11 +19,12 @@
   "homepage": "https://github.com/YMSpektor/carnelian-diagram",
   "scripts": {
     "test": "jest",
+    "preversion": "npm run test",
     "prebuild": "rimraf dist",
     "build": "tsc --project tsconfig.build.json --rootDir ./src",
     "postbuild": "copyfiles package.json README.md dist",
-    "predeploy": "npm run build",
-    "deploy": "cd dist && npm publish --access=public"
+    "predeploy": "npm run test && npm run build",
+    "deploy": "npm publish ./dist --access=public"
   },
   "devDependencies": {
     "@types/jest": "^29.5.2",
