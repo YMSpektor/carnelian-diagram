@@ -63,7 +63,7 @@ export const RawHexagon: DiagramElement<HexagonProps> = function(props) {
     );
 };
 
-export const Hexagon = withRotation(RawHexagon, RectRotation);
+export const Hexagon = withRotation(RawHexagon, RectRotation());
 
 export const InteractiveHexagon = withInteractiveRotatableRect(
     withKnob(RawHexagon, knobController), 

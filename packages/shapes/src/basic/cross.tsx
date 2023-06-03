@@ -79,7 +79,7 @@ export const RawCross: DiagramElement<CrossProps> = function(props) {
     );
 };
 
-export const Cross = withRotation(RawCross, RectRotation);
+export const Cross = withRotation(RawCross, RectRotation());
 
 export const InteractiveCross = withInteractiveRotatableRect(
     withKnob(RawCross, knobController), 

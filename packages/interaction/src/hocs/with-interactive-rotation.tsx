@@ -8,8 +8,8 @@ export interface RotationController<T extends object> {
     origin: (props: T) => Point;
     handleAnchor: (props: T) => Point;
     handleOffset?: number;
-    getRotation: (props: DiagramElementProps<T>) => number;
-    setRotation: (props: DiagramElementProps<T>, angle: number) => DiagramElementProps<T>;
+    getRotation: (props: T) => number;
+    setRotation: (props: T, angle: number) => T;
 }
 
 export function useInteractiveRotation<T extends object>(

@@ -6,13 +6,13 @@ import { PolygonRotation, PolygonRotationController } from "../utils";
 export function withInteractiveRotatablePolygon<T extends PolygonBaseProps>(
     WrappedElement: DiagramElement<T>
 ) {
-    return withRotation(
+    return withRotation<T>(
         withInteractiveRotation(
             withInteractivePolyline(
                 WrappedElement, true, 3, { collider: (props) => PolygonCollider(props.points) }
             ),
-            PolygonRotationController
+            PolygonRotationController()
         ),
-        PolygonRotation
+        PolygonRotation()
     );
 }

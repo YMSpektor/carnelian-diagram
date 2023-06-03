@@ -58,7 +58,7 @@ export const RawDonut: DiagramElement<DonutProps> = function(props) {
     );
 }
 
-export const Donut = withRotation(RawDonut, CircleRotation);
+export const Donut = withRotation(RawDonut, CircleRotation());
 
 export const InteractiveDonut = withInteractiveRotatableCircle(
     withKnob(RawDonut, knobController), 

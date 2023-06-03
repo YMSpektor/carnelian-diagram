@@ -100,7 +100,7 @@ export function isVirtualNode<P>(node: ComponentChild): node is VirtualNode<P> {
     return isDiagramNode(node);
 }
 
-export type DiagramElementChangeHandler<P> = (callback: (oldProps: DiagramElementProps<P>) => DiagramElementProps<P>) => void;
+export type DiagramElementChangeHandler<P> = (callback: (oldProps: P) => P) => void;
 
 export type DiagramElementProps<P> = P & {
     onChange: DiagramElementChangeHandler<P>;
@@ -138,7 +138,7 @@ export class Diagram {
     private subscriptions: DiagramSubscription[] = [];
 
     private createElementNode<P extends object>(type: DiagramElement<P>, props: P, key: Key): DiagramElementNode<P> {
-        const onChange = (callback: (oldProps: DiagramElementProps<P>) => DiagramElementProps<P>) => {
+        const onChange = (callback: (oldProps: P) => P) => {
             this.update(element, callback(element.props));
         }
         const element = createElement(type, {...props, onChange}, key);
@@ -172,8 +172,11 @@ export class Diagram {
         return element;
     }
 
-    update<T>(element: DiagramElementNode<T>, props: DiagramElementProps<T>) {
-        element.props = props;
+    update<P>(element: DiagramElementNode<P>, props: P) {
+        const onChange = (callback: (oldProps: P) => P) => {
+            this.update(element, callback(element.props));
+        }
+        element.props = {...props, onChange};
         this.invalidate(element);
     }
 

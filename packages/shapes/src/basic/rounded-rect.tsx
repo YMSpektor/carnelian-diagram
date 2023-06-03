@@ -48,7 +48,7 @@ export const RawRoundedRect: DiagramElement<RoundedRectProps> = function(props) 
     );
 };
 
-export const RoundedRect = withRotation(RawRoundedRect, RectRotation);
+export const RoundedRect = withRotation(RawRoundedRect, RectRotation());
 
 export const InteractiveRoundedRect = withInteractiveRotatableRect(
     withKnob(RawRoundedRect, knobController)

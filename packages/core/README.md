@@ -66,7 +66,7 @@ Firstly, you need to configure JSX for typescript. Add the following lines to yo
   }
 }
 ```
-Instead of adding `jsxImportSource` to the tsconfig.json, you can define the typescript pragma at the beginning of your .tsx files. This can be useful when your project has already had some other JSX configuration (e.g. React projects) and you need to overwrite it for you custom diagram elements.
+Instead of adding `jsxImportSource` to the tsconfig.json, you can define the typescript pragma at the beginning of your .tsx files. This can be useful when your project has already had some other JSX configuration (e.g. React projects) and you need to overwrite it for your custom diagram elements.
 
 ```typescript
 /** @jsxImportSource @carnelian-diagram/core */

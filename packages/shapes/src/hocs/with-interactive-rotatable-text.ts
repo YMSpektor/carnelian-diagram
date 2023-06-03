@@ -6,7 +6,7 @@ import { textEditorStyles, getTextBounds, TextRotationController, TextRotation }
 export function withInteractiveRotatableText<S extends TextStyle, T extends TextBaseProps<S>>(
     WrappedElement: DiagramElement<T>
 ) {
-    return withRotation(
+    return withRotation<T>(
         withInteractiveRotation(
             withInteractiveText(
                 withInteractiveRect(WrappedElement, {
@@ -22,8 +22,8 @@ export function withInteractiveRotatableText<S extends TextStyle, T extends Text
                     deleteOnEmpty: true
                 }
             ),
-            TextRotationController
+            TextRotationController()
         ),
-        TextRotation
+        TextRotation()
     );
 }

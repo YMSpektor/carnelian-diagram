@@ -32,7 +32,7 @@ export const RawDiamond: DiagramElement<DiamondProps> = function(props) {
     );
 };
 
-export const Diamond = withRotation(RawDiamond, RectRotation);
+export const Diamond = withRotation(RawDiamond, RectRotation());
 
 export const InteractiveDiamond = withInteractiveRotatableRect(
     RawDiamond, 

@@ -18,7 +18,7 @@ export const RawCircle: DiagramElement<CircleProps> = function(props) {
     );
 }
 
-export const Circle = withRotation(RawCircle, CircleRotation);
+export const Circle = withRotation(RawCircle, CircleRotation());
 
 export const InteractiveCircle = withInteractiveRotatableCircle(RawCircle, CircleColliderFactory);
 

@@ -22,7 +22,7 @@ export const RawEllipse: DiagramElement<EllipseProps> = function(props) {
     );
 };
 
-export const Ellipse = withRotation(RawEllipse, RectRotation);
+export const Ellipse = withRotation(RawEllipse, RectRotation());
 
 export const InteractiveEllipse = withInteractiveRotatableRect(
     RawEllipse, 

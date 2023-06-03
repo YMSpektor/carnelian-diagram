@@ -7,11 +7,11 @@ export function withInteractiveRotatableCircle<T extends CircleBaseProps>(
     WrappedElement: DiagramElement<T>,
     collider?: CircleColliderFactory<T>
 ) {
-    return withRotation(
+    return withRotation<T>(
         withInteractiveRotation(
             withInteractiveCircle(WrappedElement, { collider }),
-            CircleRotationController
+            CircleRotationController()
         ),
-        CircleRotation
+        CircleRotation()
     );
 }

@@ -66,7 +66,7 @@ export const RawMultilineText: DiagramElement<MultilineTextProps> = function(pro
 }
 
 
-export const MultilineText = withRotation(RawMultilineText, TextRotation);
+export const MultilineText = withRotation(RawMultilineText, TextRotation());
 
 export const InteractiveMultilineText = withInteractiveRotatableText(RawMultilineText);
 

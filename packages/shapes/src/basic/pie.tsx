@@ -76,7 +76,7 @@ export const RawPie: DiagramElement<PieProps> = function(props) {
     );
 }
 
-export const Pie = withRotation(RawPie, CircleRotation);
+export const Pie = withRotation(RawPie, CircleRotation());
 
 export const InteractivePie = withInteractiveRotatableCircle(
     withKnobs(RawPie, knobController(0), knobController(1)),

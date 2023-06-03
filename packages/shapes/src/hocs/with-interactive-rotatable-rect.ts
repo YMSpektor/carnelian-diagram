@@ -7,11 +7,11 @@ export function withInteractiveRotatableRect<T extends RectBaseProps>(
     WrappedElement: DiagramElement<T>,
     collider?: RectColliderFactory<T>
 ) {
-    return withRotation(
+    return withRotation<T>(
         withInteractiveRotation(
             withInteractiveRect(WrappedElement, { collider }),
-            RectRotationController
+            RectRotationController()
         ),
-        RectRotation
+        RectRotation()
     );
 }

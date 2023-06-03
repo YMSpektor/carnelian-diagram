@@ -7,11 +7,11 @@ export function withInteractiveRotatableSquare<T extends SquareBaseProps>(
     WrappedElement: DiagramElement<T>,
     collider?: SquareColliderFactory<T>
 ) {
-    return withRotation(
+    return withRotation<T>(
         withInteractiveRotation(
             withInteractiveSquare(WrappedElement, { collider }),
-            SquareRotationController
+            SquareRotationController()
         ),
-        SquareRotation
+        SquareRotation()
     );
 }

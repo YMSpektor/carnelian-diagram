@@ -16,7 +16,7 @@ export const RawRect: DiagramElement<RectProps> = function(props) {
     );
 };
 
-export const Rect = withRotation(RawRect, RectRotation);
+export const Rect = withRotation(RawRect, RectRotation());
 
 export const InteractiveRect = withInteractiveRotatableRect(RawRect);
 

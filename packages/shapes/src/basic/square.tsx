@@ -17,7 +17,7 @@ export const RawSquare: DiagramElement<SquareProps> = function(props) {
     );
 };
 
-export const Square = withRotation(RawSquare, SquareRotation);
+export const Square = withRotation(RawSquare, SquareRotation());
 
 export const InteractiveSquare = withInteractiveRotatableSquare(RawSquare);
 

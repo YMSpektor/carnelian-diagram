@@ -1,6 +1,6 @@
 /** @jsxImportSource @carnelian-diagram/core */
 
-import { DiagramElement, DiagramElementChangeHandler, DiagramElementProps } from "@carnelian-diagram/core";
+import { DiagramElement, DiagramElementChangeHandler } from "@carnelian-diagram/core";
 import { InteractiveSquareProps, SquareColliderFactory, useInteractiveSquare } from "./with-interactive-square";
 import { Collider } from "../collisions";
 import { HitArea } from "../hit-tests";
@@ -25,14 +25,13 @@ export function withInteractiveCircle<T extends InteractiveCircleProps>(
     return (props) => {
         const { x, y, radius, onChange } = props;
         const squareOnChange: DiagramElementChangeHandler<InteractiveSquareProps> = (callback) => {
-            const circleCallback = (props: DiagramElementProps<T>): DiagramElementProps<T> => {
-                const { x, y, radius, onChange, ...rest } = props;
-                let squareProps: DiagramElementProps<InteractiveSquareProps> = {
+            const circleCallback = (props: T): T => {
+                const { x, y, radius, ...rest } = props;
+                let squareProps: InteractiveSquareProps = {
                     ...rest,
                     x: x - radius,
                     y: y - radius,
-                    size: radius * 2,
-                    onChange: squareOnChange
+                    size: radius * 2
                 }
                 squareProps = callback(squareProps);
                 return {

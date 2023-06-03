@@ -56,6 +56,6 @@ export const RawText: DiagramElement<TextProps> = function(props) {
     );
 }
 
-export const Text = withRotation(RawText, TextRotation);
+export const Text = withRotation(RawText, TextRotation());
 
 export const InteractiveText = withInteractiveRotatableText(RawText);

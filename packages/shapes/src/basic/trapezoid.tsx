@@ -61,7 +61,7 @@ export const RawTrapezoid: DiagramElement<TrapezoidProps> = function(props) {
     );
 };
 
-export const Trapezoid = withRotation(RawTrapezoid, RectRotation);
+export const Trapezoid = withRotation(RawTrapezoid, RectRotation());
 
 export const InteractiveTrapezoid = withInteractiveRotatableRect(
     withKnob(RawTrapezoid, knobController), 

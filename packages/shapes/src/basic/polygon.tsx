@@ -23,6 +23,6 @@ export const RawPolygon: DiagramElement<PolygonProps> = function(props) {
     );
 };
 
-export const Polygon = withRotation(RawPolygon, PolygonRotation);
+export const Polygon = withRotation(RawPolygon, PolygonRotation());
 
 export const InteractivePolygon = withInteractiveRotatablePolygon(RawPolygon);

@@ -66,7 +66,7 @@ export const RawParallelogram: DiagramElement<ParallelogramProps> = function(pro
     );
 };
 
-export const Parallelogram = withRotation(RawParallelogram, RectRotation);
+export const Parallelogram = withRotation(RawParallelogram, RectRotation());
 
 export const InteractiveParallelogram = withInteractiveRotatableRect(
     withKnob(RawParallelogram, knobController), 

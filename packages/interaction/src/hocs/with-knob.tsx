@@ -8,7 +8,7 @@ export interface KnobController<T extends object, D = any> {
     kind?: string;
     hitArea: HitArea<D> | ((props: T) => HitArea<D>);
     getPosition(props: T, transform: DOMMatrixReadOnly): Point;
-    setPosition<D>(props: DiagramElementProps<T>, payload: DragActionPayload, hitArea: HitArea<D>): DiagramElementProps<T>;
+    setPosition<D>(props: T, payload: DragActionPayload, hitArea: HitArea<D>): T;
 }
 
 export function useKnob<T extends object>(knobController: KnobController<T>, props: DiagramElementProps<T>) {
