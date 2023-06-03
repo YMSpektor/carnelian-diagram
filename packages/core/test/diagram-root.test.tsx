@@ -52,6 +52,14 @@ describe("Diagram root tests", () => {
             diagram.update(element, {...element.props});
             expect(root.isValid()).toEqual(false);
         });
+
+        test("Invalidating diagram should set isValid of root to false", () => {
+            root.render();
+            expect(root.isValid()).toEqual(true);
+    
+            diagram.invalidate();
+            expect(root.isValid()).toEqual(false);
+        });
     });
 
     describe("Add new element", () => {
