@@ -1,7 +1,8 @@
 import { DiagramElement } from "@carnelian-diagram/core";
-import { RectColliderFactory, withRotation, withInteractiveRotation, withInteractiveRect } from "@carnelian-diagram/interaction";
+import { RectColliderFactory, withInteractiveRotation, withInteractiveRect } from "@carnelian-diagram/interaction";
 import { RectBaseProps } from "..";
-import { RectRotationController, RectRotation } from "../utils";
+import { rectRotationController, rectRotation } from "../utils";
+import { withRotation } from "./with-rotation";
 
 export function withInteractiveRotatableRect<T extends RectBaseProps>(
     WrappedElement: DiagramElement<T>,
@@ -10,8 +11,8 @@ export function withInteractiveRotatableRect<T extends RectBaseProps>(
     return withRotation<T>(
         withInteractiveRotation(
             withInteractiveRect(WrappedElement, { collider }),
-            RectRotationController()
+            rectRotationController()
         ),
-        RectRotation()
+        rectRotation()
     );
 }

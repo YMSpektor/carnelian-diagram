@@ -1,11 +1,11 @@
 /** @jsxImportSource @carnelian-diagram/core */
 
 import { DiagramElement } from "@carnelian-diagram/core";
-import { PolygonCollider, KnobController, withKnob, withRotation } from "@carnelian-diagram/interaction";
+import { PolygonCollider, KnobController, withKnob } from "@carnelian-diagram/interaction";
 import { clamp } from "@carnelian-diagram/interaction/geometry";
 import { RectBaseProps } from "..";
 import { withInteractiveRotatableRect, withInteractiveRotatableTextRect } from "../hocs";
-import { convertPercentage, isPercentage, NumberOrPercentage, RectRotation } from "../utils";
+import { convertPercentage, isPercentage, NumberOrPercentage } from "../utils";
 
 export interface TrapezoidProps extends RectBaseProps {
     offset: NumberOrPercentage;
@@ -52,7 +52,7 @@ function toPolygon(props: TrapezoidProps) {
 
 const TrapezoidColliderFactory = (props: TrapezoidProps) => PolygonCollider(toPolygon(props));
 
-export const RawTrapezoid: DiagramElement<TrapezoidProps> = function(props) {
+export const Trapezoid: DiagramElement<TrapezoidProps> = function(props) {
     let { onChange, x, y, width, height, offset, ...rest } = props;
     const points = toPolygon(props);
 
@@ -61,14 +61,12 @@ export const RawTrapezoid: DiagramElement<TrapezoidProps> = function(props) {
     );
 };
 
-export const Trapezoid = withRotation(RawTrapezoid, RectRotation());
-
 export const InteractiveTrapezoid = withInteractiveRotatableRect(
-    withKnob(RawTrapezoid, knobController), 
+    withKnob(Trapezoid, knobController), 
     TrapezoidColliderFactory
 );
 
 export const InteractiveTrapezoidWithText = withInteractiveRotatableTextRect(
-    withKnob(RawTrapezoid, knobController), 
+    withKnob(Trapezoid, knobController), 
     TrapezoidColliderFactory
 );

@@ -1,14 +1,12 @@
 /** @jsxImportSource @carnelian-diagram/core */
 
 import { DiagramElement } from "@carnelian-diagram/core";
-import { withRotation } from "@carnelian-diagram/interaction";
 import { DEFAULT_FONT_FAMILY, DEFAULT_FONT_SIZE, TextBaseProps, TextStyle } from "..";
 import { withInteractiveRotatableText } from "../hocs";
-import { TextRotation } from "../utils";
 
 export interface TextProps extends TextBaseProps<TextStyle> {}
 
-export const RawText: DiagramElement<TextProps> = function(props) {
+export const Text: DiagramElement<TextProps> = function(props) {
     let { x, y, width, height, textStyle, text } = props;
     let textElementStyle: Record<string, any>;
     if (textStyle) {
@@ -56,6 +54,4 @@ export const RawText: DiagramElement<TextProps> = function(props) {
     );
 }
 
-export const Text = withRotation(RawText, TextRotation());
-
-export const InteractiveText = withInteractiveRotatableText(RawText);
+export const InteractiveText = withInteractiveRotatableText(Text);

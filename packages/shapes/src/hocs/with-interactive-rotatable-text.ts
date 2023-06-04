@@ -1,7 +1,8 @@
 import { DiagramElement } from "@carnelian-diagram/core";
-import { withRotation, withInteractiveRotation, withInteractiveText, withInteractiveRect, ACT_EDIT_TEXT } from "@carnelian-diagram/interaction";
+import { withInteractiveRotation, withInteractiveText, withInteractiveRect, ACT_EDIT_TEXT } from "@carnelian-diagram/interaction";
 import { TextStyle, TextBaseProps } from "..";
-import { textEditorStyles, getTextBounds, TextRotationController, TextRotation } from "../utils";
+import { textEditorStyles, getTextBounds, textRotationController, textRotation } from "../utils";
+import { withRotation } from "./with-rotation";
 
 export function withInteractiveRotatableText<S extends TextStyle, T extends TextBaseProps<S>>(
     WrappedElement: DiagramElement<T>
@@ -22,8 +23,8 @@ export function withInteractiveRotatableText<S extends TextStyle, T extends Text
                     deleteOnEmpty: true
                 }
             ),
-            TextRotationController()
+            textRotationController()
         ),
-        TextRotation()
+        textRotation()
     );
 }

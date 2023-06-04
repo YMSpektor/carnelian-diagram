@@ -1,15 +1,13 @@
 /** @jsxImportSource @carnelian-diagram/core */
 
 import { DiagramElement } from "@carnelian-diagram/core";
-import { withRotation } from "@carnelian-diagram/interaction";
 import { SquareBaseProps } from "..";
 import { withInteractiveRotatableSquare, withInteractiveRotatableTextSquare } from "../hocs";
-import { SquareRotation } from "../utils";
 ;
 
 export interface SquareProps extends SquareBaseProps { }
 
-export const RawSquare: DiagramElement<SquareProps> = function(props) {
+export const Square: DiagramElement<SquareProps> = function(props) {
     let { onChange, x, y, size, ...rest } = props;
 
     return (
@@ -17,8 +15,6 @@ export const RawSquare: DiagramElement<SquareProps> = function(props) {
     );
 };
 
-export const Square = withRotation(RawSquare, SquareRotation());
+export const InteractiveSquare = withInteractiveRotatableSquare(Square);
 
-export const InteractiveSquare = withInteractiveRotatableSquare(RawSquare);
-
-export const InteractiveSquareWithText = withInteractiveRotatableTextSquare(RawSquare);
+export const InteractiveSquareWithText = withInteractiveRotatableTextSquare(Square);

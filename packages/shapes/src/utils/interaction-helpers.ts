@@ -1,18 +1,18 @@
-import { DiagramElementRotation, RotationController } from "@carnelian-diagram/interaction";
+import { RotationController } from "@carnelian-diagram/interaction";
 import { polygonBounds } from "@carnelian-diagram/interaction/geometry";
-import { CircleBaseProps, PolygonBaseProps, RectBaseProps, SquareBaseProps, TextBaseProps, TextStyle } from "..";
+import { CircleBaseProps, PolygonBaseProps, RectBaseProps, RotatableElementProps, SquareBaseProps, TextBaseProps, TextStyle } from "..";
+import { DiagramElementRotation } from "../hocs";
 
 const ROTATION_HANDLE_OFFSET = 20;
 
-export function TextRotation<S extends TextStyle, T extends TextBaseProps<S>>(): DiagramElementRotation<T> {
+export function textRotation<S extends TextStyle, T extends TextBaseProps<S>>(): DiagramElementRotation<T> {
     return {
-        angle: (props) => props.rotation || 0,
         origin: (props) => ({ x: props.x + props.width / 2, y: props.y + props.height / 2 }),
         offsetElement: (props, dx, dy) => ({ ...props, x: props.x + dx, y: props.y + dy })
     }
 }
 
-export function TextRotationController<S extends TextStyle, T extends TextBaseProps<S>>(): RotationController<T> {
+export function textRotationController<S extends TextStyle, T extends TextBaseProps<S> & RotatableElementProps>(): RotationController<T> {
     return {
         origin: (props) => ({ x: props.x + props.width / 2, y: props.y + props.height / 2 }),
         handleAnchor: (props) => ({ x: props.x + props.width, y: props.y }),
@@ -22,15 +22,14 @@ export function TextRotationController<S extends TextStyle, T extends TextBasePr
     }
 }
 
-export function RectRotation<T extends RectBaseProps>(): DiagramElementRotation<T> {
+export function rectRotation<T extends RectBaseProps>(): DiagramElementRotation<T> {
     return {
-        angle: (props) => props.rotation || 0,
         origin: (props) => ({ x: props.x + props.width / 2, y: props.y + props.height / 2 }),
         offsetElement: (props, dx, dy) => ({ ...props, x: props.x + dx, y: props.y + dy })
     }
 }
 
-export function RectRotationController<T extends RectBaseProps>(): RotationController<T> {
+export function rectRotationController<T extends RectBaseProps & RotatableElementProps>(): RotationController<T> {
     return {
         origin: (props) => ({ x: props.x + props.width / 2, y: props.y + props.height / 2 }),
         handleAnchor: (props) => ({ x: props.x + props.width, y: props.y }),
@@ -40,15 +39,14 @@ export function RectRotationController<T extends RectBaseProps>(): RotationContr
     }
 }
 
-export function SquareRotation<T extends SquareBaseProps>(): DiagramElementRotation<T> {
+export function squareRotation<T extends SquareBaseProps>(): DiagramElementRotation<T> {
     return {
-        angle: (props) => props.rotation || 0,
         origin: (props) => ({ x: props.x + props.size / 2, y: props.y + props.size / 2 }),
         offsetElement: (props, dx, dy) => ({ ...props, x: props.x + dx, y: props.y + dy })
     }
 }
 
-export function SquareRotationController<T extends SquareBaseProps>(): RotationController<T> {
+export function squareRotationController<T extends SquareBaseProps & RotatableElementProps>(): RotationController<T> {
     return {
         origin: (props) => ({ x: props.x + props.size / 2, y: props.y + props.size / 2 }),
         handleAnchor: (props) => ({ x: props.x + props.size, y: props.y }),
@@ -58,15 +56,14 @@ export function SquareRotationController<T extends SquareBaseProps>(): RotationC
     }
 }
 
-export function CircleRotation<T extends CircleBaseProps>(): DiagramElementRotation<T> {
+export function circleRotation<T extends CircleBaseProps>(): DiagramElementRotation<T> {
     return {
-        angle: (props) => props.rotation || 0,
         origin: (props) => ({ x: props.x, y: props.y }),
         offsetElement: (props, dx, dy) => ({ ...props, x: props.x + dx, y: props.y + dy })
     }
 }
 
-export function CircleRotationController<T extends CircleBaseProps>(): RotationController<T> {
+export function circleRotationController<T extends CircleBaseProps & RotatableElementProps>(): RotationController<T> {
     return {
         origin: (props) => ({ x: props.x, y: props.y }),
         handleAnchor: (props) => ({ x: props.x + props.radius, y: props.y - props.radius }),
@@ -76,9 +73,8 @@ export function CircleRotationController<T extends CircleBaseProps>(): RotationC
     }
 }
 
-export function PolygonRotation<T extends PolygonBaseProps>(): DiagramElementRotation<T> {
+export function polygonRotation<T extends PolygonBaseProps>(): DiagramElementRotation<T> {
     return {
-        angle: (props) => props.rotation || 0,
         origin: (props) => {
             const bounds = polygonBounds(props.points);
             return bounds ? {
@@ -90,7 +86,7 @@ export function PolygonRotation<T extends PolygonBaseProps>(): DiagramElementRot
     }
 }
 
-export function PolygonRotationController<T extends PolygonBaseProps>(): RotationController<T> {
+export function polygonRotationController<T extends PolygonBaseProps & RotatableElementProps>(): RotationController<T> {
     return {
         origin: (props) => {
             const bounds = polygonBounds(props.points);

@@ -1,11 +1,11 @@
 /** @jsxImportSource @carnelian-diagram/core */
 
 import { DiagramElement } from "@carnelian-diagram/core";
-import { PolygonCollider, KnobController, withKnob, withRotation } from "@carnelian-diagram/interaction";
+import { PolygonCollider, KnobController, withKnob } from "@carnelian-diagram/interaction";
 import { clamp } from "@carnelian-diagram/interaction/geometry";
 import { RectBaseProps } from "..";
 import { withInteractiveRotatableRect, withInteractiveRotatableTextRect } from "../hocs";
-import { convertPercentage, isPercentage, NumberOrPercentage, RectRotation } from "../utils";
+import { convertPercentage, isPercentage, NumberOrPercentage } from "../utils";
 
 export interface ParallelogramProps extends RectBaseProps {
     offset: NumberOrPercentage;
@@ -57,7 +57,7 @@ function toPolygon(props: ParallelogramProps) {
 
 const ParallelogramColliderFactory = (props: ParallelogramProps) => PolygonCollider(toPolygon(props));
 
-export const RawParallelogram: DiagramElement<ParallelogramProps> = function(props) {
+export const Parallelogram: DiagramElement<ParallelogramProps> = function(props) {
     let { onChange, x, y, width, height, offset, ...rest } = props;
     const points = toPolygon(props);
 
@@ -66,14 +66,12 @@ export const RawParallelogram: DiagramElement<ParallelogramProps> = function(pro
     );
 };
 
-export const Parallelogram = withRotation(RawParallelogram, RectRotation());
-
 export const InteractiveParallelogram = withInteractiveRotatableRect(
-    withKnob(RawParallelogram, knobController), 
+    withKnob(Parallelogram, knobController), 
     ParallelogramColliderFactory
 );
 
 export const InteractiveParallelogramWithText = withInteractiveRotatableTextRect(
-    withKnob(RawParallelogram, knobController), 
+    withKnob(Parallelogram, knobController), 
     ParallelogramColliderFactory
 );

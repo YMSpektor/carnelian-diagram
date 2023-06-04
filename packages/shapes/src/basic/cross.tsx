@@ -1,11 +1,11 @@
 /** @jsxImportSource @carnelian-diagram/core */
 
 import { DiagramElement } from "@carnelian-diagram/core";
-import { PolygonCollider, KnobController, withKnob, withRotation } from "@carnelian-diagram/interaction";
+import { PolygonCollider, KnobController, withKnob } from "@carnelian-diagram/interaction";
 import { clamp } from "@carnelian-diagram/interaction/geometry";
 import { RectBaseProps } from "..";
 import { withInteractiveRotatableRect, withInteractiveRotatableTextRect } from "../hocs";
-import { convertPercentage, isPercentage, NumberOrPercentage, RectRotation } from "../utils";
+import { convertPercentage, isPercentage, NumberOrPercentage } from "../utils";
 
 export interface CrossProps extends RectBaseProps {
     offsetX: NumberOrPercentage;
@@ -70,7 +70,7 @@ function toPolygon(props: CrossProps) {
 
 const CrossColliderFactory = (props: CrossProps) => PolygonCollider(toPolygon(props));
 
-export const RawCross: DiagramElement<CrossProps> = function(props) {
+export const Cross: DiagramElement<CrossProps> = function(props) {
     let { onChange, x, y, width, height, offsetX, offsetY, ...rest } = props;
     const points = toPolygon(props);
 
@@ -79,14 +79,12 @@ export const RawCross: DiagramElement<CrossProps> = function(props) {
     );
 };
 
-export const Cross = withRotation(RawCross, RectRotation());
-
 export const InteractiveCross = withInteractiveRotatableRect(
-    withKnob(RawCross, knobController), 
+    withKnob(Cross, knobController), 
     CrossColliderFactory
 );
 
 export const InteractiveCrossWithText = withInteractiveRotatableTextRect(
-    withKnob(RawCross, knobController), 
+    withKnob(Cross, knobController), 
     CrossColliderFactory
 );

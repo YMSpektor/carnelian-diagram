@@ -1,12 +1,11 @@
 /** @jsxImportSource @carnelian-diagram/core */
 
 import { DiagramElement } from "@carnelian-diagram/core";
-import { Point, transformPoint } from "../geometry";
-import { useTransform } from "../hooks";
-import { rotateTransform } from "../transforms";
+import { rotateTransform, useTransform } from "@carnelian-diagram/interaction";
+import { Point, transformPoint } from "@carnelian-diagram/interaction/geometry";
+import { RotatableElementProps } from "..";
 
 export interface DiagramElementRotation<T extends object> {
-    angle: (props: T) => number
     origin: (props: T) => Point,
     offsetElement: (props: T, dx: number, dy: number) => T,
 }
@@ -14,10 +13,10 @@ export interface DiagramElementRotation<T extends object> {
 export function withRotation<T extends object>(
     WrappedElement: DiagramElement<T>,
     rotation: DiagramElementRotation<T>
-): DiagramElement<T> {
+): DiagramElement<T & RotatableElementProps> {
     return (props) => {
         const { onChange } = props;
-        const angle = rotation.angle(props);
+        const angle = props.rotation || 0;
         const transform = rotateTransform(angle);
         useTransform(transform);
 
