@@ -2,7 +2,11 @@
 **Carnelian Diagram** is a typescript library that allows you to create interactive diagrams for your web applications.
 
 ## Motivation
-The library pursues several goals: first of all, it's not only a set of finished tools and features, but also an engine for creating your own. Secondly, **Carnelian Diagram** is designed to be similar to the popular `React` library, so if you're familiar with React, your skills will be useful for this library too: you can develop custom interactive elements and this process is similar to creating functional components in React (using custom and standard hooks like useState and useEffect, JSX syntax, higher-order components etc). This makes **Carnelian Diagram** easy to learn and use in your projects. However the library is not based on React and doesn't require it to be installed in your project, you can use it in vanilla TypeScript/JavaScript or with other tools because the library uses it's own engine *similar* to React, but much simplier and adapted for specific needs.
+The library aims to achieve several goals. First and foremost, it is not just a collection of pre-built tools and features, but also an engine that enables you to create your own.
+
+Secondly, **Carnelian Diagram** is designed to have similarities with the popular React library. If you are already familiar with React, your skills will be transferrable to this library as well. You can develop custom interactive elements using similar concepts, such as functional components (using custom and standard hooks like useState and useEffect), JSX syntax, and higher-order components. This familiarity makes it easy to learn and integrate **Carnelian Diagram** into your projects.
+
+However, it is important to note that **Carnelian Diagram** is not based on React and does not require its installation in your project. You can use the library with vanila TypeScript/JavaScript or alongside other tools. The library utilizes its own engine, similar to React but simpler and designed to meet specific needs.
 
 ## Installation
 
