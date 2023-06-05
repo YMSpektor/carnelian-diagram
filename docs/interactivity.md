@@ -270,7 +270,7 @@ useControls((transform, element) => {
 
 ### Element transformations and useTransforms hook
 
-The `useTransform` hook allows to apply 2D transformation (such rotation) to an element. Calling this hook will not transform your svg element itself, but once called the library will use transformed coordinates to be passed to `useHitTest`, `useIntersectionTest`, `useControls`, etc. To transform the svg element itself, wrap it to the `<g transform="...">` tag or use `withRotation` HOC (see below).
+The `useTransform` hook allows to apply 2D transformation (such rotation) to an element. Calling this hook will not transform your svg element itself, but once called the library will use transformed coordinates to be passed to `useHitTest`, `useIntersectionTest`, `useControls`, etc. To transform the svg element itself, wrap it to the `<g transform="...">` tag (or use `withRotation` HOC from the `@carnelian-diagram/shapes` package).
 
 The `useTransform` hook called with an argument allows to set the element transformation:
 * `transform?: DOMMatrixReadOnly` - Specifies the transformation matrix to be applied
