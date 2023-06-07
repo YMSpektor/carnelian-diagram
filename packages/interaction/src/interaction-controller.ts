@@ -69,10 +69,10 @@ export class InteractionController {
         configureServices?.(new InteractiveServiceCollection(this.services));
     }
 
-    attach(root: HTMLElement) {
+    attach(root: HTMLElement | SVGElement) {
         this.detach();
 
-        this.services.forEach(s => s.activate?.(this.diagram, root));
+        this.services.forEach(s => s.activate?.(this.diagram, root as HTMLElement));
 
         const tabIndex = root.getAttribute("tabindex");
         if (!tabIndex || +tabIndex < 0) {
@@ -245,12 +245,12 @@ export class InteractionController {
 
     clientToDiagram(point: DOMPointReadOnly, element?: DiagramElementNode): DOMPointReadOnly {
         const transform = element ? this.getElementTransform(element, this.screenCTM) : this.screenCTM;
-        return point.matrixTransform(transform?.inverse());
+        return transform ? point.matrixTransform(transform.inverse()) : point;
     }
 
     diagramToClient(point: DOMPointReadOnly, element?: DiagramElementNode): DOMPointReadOnly {
         const transform = element ? this.getElementTransform(element, this.screenCTM) : this.screenCTM;
-        return point.matrixTransform(transform);
+        return transform? point.matrixTransform(transform) : point;
     }
 
     elementToDiagram(point: DOMPointReadOnly, element: DiagramElementNode): DOMPointReadOnly {
@@ -302,57 +302,55 @@ export class InteractionController {
     }
 
     hitTest(e: MouseEvent): HitInfo | undefined {
-        if (this.screenCTM) {
-            const point = new DOMPoint(e.clientX, e.clientY);
-            if (hasHitTestProps(e)) {
-                const elementPoint = this.clientToDiagram(point, e.__hitTest.element);
-                return {
-                    ...e.__hitTest,
-                    screenX: point.x,
-                    screenY: point.y,
-                    elementX: elementPoint.x,
-                    elementY: elementPoint.y,
-                }
+        const point = new DOMPoint(e.clientX, e.clientY);
+        if (hasHitTestProps(e)) {
+            const elementPoint = this.clientToDiagram(point, e.__hitTest.element);
+            return {
+                ...e.__hitTest,
+                screenX: point.x,
+                screenY: point.y,
+                elementX: elementPoint.x,
+                elementY: elementPoint.y,
             }
-            if (e.target && hasHitTestProps(e.target)) {
-                const elementPoint = this.clientToDiagram(point, e.target.__hitTest.element);
-                addHitTestProps(e, e.target.__hitTest.hitArea, e.target.__hitTest.element);
-                return {
-                    ...e.target.__hitTest,
-                    screenX: point.x,
-                    screenY: point.y,
-                    elementX: elementPoint.x,
-                    elementY: elementPoint.y,
-                }
+        }
+        if (e.target && hasHitTestProps(e.target)) {
+            const elementPoint = this.clientToDiagram(point, e.target.__hitTest.element);
+            addHitTestProps(e, e.target.__hitTest.hitArea, e.target.__hitTest.element);
+            return {
+                ...e.target.__hitTest,
+                screenX: point.x,
+                screenY: point.y,
+                elementX: elementPoint.x,
+                elementY: elementPoint.y,
             }
-            else {
-                const priorities = Object.keys(this.hitTests).map(x => parseInt(x)).reverse();
-                const sortedElements = this.diagram.getElements().slice().reverse();
-                let elementPoint: DOMPointReadOnly | undefined;
-                for (let priority of priorities) {
-                    let hit: DiagramElementHitTest | undefined;
-                    for (let element of sortedElements) {
-                        const list = [...(this.hitTests[priority]?.get(element)?.values() || [])];
-                        elementPoint = this.clientToDiagram(point, element);
-                        hit = list.find(x => {
-                            const tolerance = x.tolerance / (this.screenCTM?.a || 1);
-                            return elementPoint && (
-                                (!x.bounds || pointInRect(elementPoint, inflateRect(x.bounds, tolerance))) && // Broad phase
-                                x.callback(elementPoint, tolerance)  // Narrow phase
-                            );
-                        });
-                        if (hit) break;
-                    }
-                    if (hit && elementPoint) {
-                        addHitTestProps(e, hit.hitArea, hit.element);
-                        return {
-                            element: hit.element,
-                            screenX: point.x,
-                            screenY: point.y,
-                            elementX: elementPoint.x,
-                            elementY: elementPoint.y,
-                            hitArea: hit.hitArea
-                        }
+        }
+        else {
+            const priorities = Object.keys(this.hitTests).map(x => parseInt(x)).reverse();
+            const sortedElements = this.diagram.getElements().slice().reverse();
+            let elementPoint: DOMPointReadOnly | undefined;
+            for (let priority of priorities) {
+                let hit: DiagramElementHitTest | undefined;
+                for (let element of sortedElements) {
+                    const list = [...(this.hitTests[priority]?.get(element)?.values() || [])];
+                    elementPoint = this.clientToDiagram(point, element);
+                    hit = list.find(x => {
+                        const tolerance = x.tolerance / (this.screenCTM?.a || 1);
+                        return elementPoint && (
+                            (!x.bounds || pointInRect(elementPoint, inflateRect(x.bounds, tolerance))) && // Broad phase
+                            x.callback(elementPoint, tolerance)  // Narrow phase
+                        );
+                    });
+                    if (hit) break;
+                }
+                if (hit && elementPoint) {
+                    addHitTestProps(e, hit.hitArea, hit.element);
+                    return {
+                        element: hit.element,
+                        screenX: point.x,
+                        screenY: point.y,
+                        elementX: elementPoint.x,
+                        elementY: elementPoint.y,
+                        hitArea: hit.hitArea
                     }
                 }
             }
