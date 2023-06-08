@@ -241,4 +241,99 @@ describe("InteactionController tests", () => {
             expect(controller.isSelected(element2)).toEqual(true);
         });
     });
+
+    describe("Hit tesing tests", () => {
+        test("Tesing outside", () => {
+            const element = diagram.add(TestElement, { x: 0, y: 0, width: 100, height: 50 });
+            root.render();
+
+            let clientPos = controller.diagramToClient(new DOMPoint(200, 200));
+            let event = new PointerEvent("pointermove", {
+                clientX: clientPos.x,
+                clientY: clientPos.y
+            });
+            svg.dispatchEvent(event);
+
+            const hitInfo = controller.hitTest(event);
+            expect(hitInfo).toBeUndefined();
+        });
+
+        test("Tesing inner area", () => {
+            const element = diagram.add(TestElement, { x: 0, y: 0, width: 100, height: 50 });
+            root.render();
+
+            let clientPos = controller.diagramToClient(new DOMPoint(10, 10));
+            let event = new PointerEvent("pointermove", {
+                clientX: clientPos.x,
+                clientY: clientPos.y
+            });
+            svg.dispatchEvent(event);
+
+            const hitInfo = controller.hitTest(event);
+            expect(hitInfo?.hitArea?.type).toEqual("in");
+        });
+
+        test("Tesing resize handle", () => {
+            const element = diagram.add(TestElement, { x: 0, y: 0, width: 100, height: 50 });
+            root.render();
+
+            let clientPos = controller.diagramToClient(new DOMPoint(10, 10));
+            let event = new PointerEvent("pointerdown", {
+                button: 0,
+                clientX: clientPos.x,
+                clientY: clientPos.y
+            });
+            svg.dispatchEvent(event);
+            clientPos = controller.diagramToClient(new DOMPoint(0, 0));
+            event = new PointerEvent("pointerup", {
+                button: 0,
+                clientX: clientPos.x,
+                clientY: clientPos.y
+            });
+            svg.dispatchEvent(event);
+            root.render();
+
+            clientPos = controller.diagramToClient(new DOMPoint(0, 0));
+            event = new PointerEvent("pointermove", {
+                clientX: clientPos.x,
+                clientY: clientPos.y
+            });
+            const handle = document.getElementsByClassName("control-handle-default").item(0);
+            handle?.dispatchEvent(event);
+
+            const hitInfo = controller.hitTest(event); 
+            expect(hitInfo?.hitArea).toMatchObject({ type: "resize_handle", index: 0 });
+        });
+
+        test("Tesing resize edge", () => {
+            const element = diagram.add(TestElement, { x: 0, y: 0, width: 100, height: 50 });
+            root.render();
+
+            let clientPos = controller.diagramToClient(new DOMPoint(10, 10));
+            let event = new PointerEvent("pointerdown", {
+                button: 0,
+                clientX: clientPos.x,
+                clientY: clientPos.y
+            });
+            svg.dispatchEvent(event);
+            clientPos = controller.diagramToClient(new DOMPoint(0, 0));
+            event = new PointerEvent("pointerup", {
+                button: 0,
+                clientX: clientPos.x,
+                clientY: clientPos.y
+            });
+            svg.dispatchEvent(event);
+            root.render();
+
+            clientPos = controller.diagramToClient(new DOMPoint(0, 10));
+            event = new PointerEvent("pointermove", {
+                clientX: clientPos.x,
+                clientY: clientPos.y
+            });
+            svg.dispatchEvent(event);
+
+            const hitInfo = controller.hitTest(event);
+            expect(hitInfo?.hitArea).toMatchObject({ type: "resize_edge", index: 0 });
+        });
+    });
 });
