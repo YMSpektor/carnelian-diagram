@@ -1,11 +1,10 @@
 /** @jsxImportSource @carnelian-diagram/core */
 
 import { DiagramElement } from "@carnelian-diagram/core";
-import { CircleCollider, HalfPlaneCollider, IntersectionCollider, KnobController, UnionCollider, withKnobs, withRotation } from "@carnelian-diagram/interaction";
+import { CircleCollider, HalfPlaneCollider, IntersectionCollider, KnobController, UnionCollider, withKnobs } from "@carnelian-diagram/interaction";
 import { degToRad, Point, radToDeg } from "@carnelian-diagram/interaction/geometry";
 import { CircleBaseProps } from "..";
 import { withInteractiveRotatableCircle } from "../hocs";
-import { CircleRotation } from "../utils";
 
 export interface PieProps extends CircleBaseProps {
     startAngle: number;
@@ -60,7 +59,7 @@ const PieColliderFactory = (props: PieProps) => {
     );
 }
 
-export const RawPie: DiagramElement<PieProps> = function(props) {
+export const Pie: DiagramElement<PieProps> = function(props) {
     let { onChange, x, y, radius, startAngle, endAngle, ...rest } = props;
 
     const isCircle = endAngle - startAngle === 360;
@@ -76,9 +75,7 @@ export const RawPie: DiagramElement<PieProps> = function(props) {
     );
 }
 
-export const Pie = withRotation(RawPie, CircleRotation);
-
 export const InteractivePie = withInteractiveRotatableCircle(
-    withKnobs(RawPie, knobController(0), knobController(1)),
+    withKnobs(Pie, knobController(0), knobController(1)),
     PieColliderFactory
 );

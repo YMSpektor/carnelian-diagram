@@ -1,15 +1,16 @@
 import { DiagramElement } from "@carnelian-diagram/core";
-import { CircleColliderFactory, withRotation, withInteractiveRotation, withInteractiveCircle, ACT_EDIT_TEXT } from "@carnelian-diagram/interaction";
-import { CircleBaseProps } from "..";
+import { CircleColliderFactory, withInteractiveRotation, withInteractiveCircle, ACT_EDIT_TEXT } from "@carnelian-diagram/interaction";
+import { CircleBaseProps, MultilineTextStyle } from "..";
 import { InteractiveMultilineTextComponent } from "../basic/multiline-text";
-import { CircleRotationController, CircleRotation } from "../utils";
+import { circleRotationController, circleRotation } from "../utils";
+import { withRotation } from "./with-rotation";
 import { withText } from "./with-text";
 
 export function withInteractiveRotatableTextCircle<T extends CircleBaseProps>(
     WrappedElement: DiagramElement<T>,
     collider?: CircleColliderFactory<T>
-) {
-    return withRotation(
+): DiagramElement<T & { text?: string; textStyle?: MultilineTextStyle }> {
+    return withRotation<T>(
         withInteractiveRotation(
             withText(
                 withInteractiveCircle(WrappedElement, {
@@ -26,8 +27,8 @@ export function withInteractiveRotatableTextCircle<T extends CircleBaseProps>(
                     textStyle: props.textStyle
                 })
             ),
-            CircleRotationController
+            circleRotationController()
         ),
-        CircleRotation
+        circleRotation()
     );
 }

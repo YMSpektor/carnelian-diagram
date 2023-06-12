@@ -100,7 +100,7 @@ export function isVirtualNode<P>(node: ComponentChild): node is VirtualNode<P> {
     return isDiagramNode(node);
 }
 
-export type DiagramElementChangeHandler<P> = (callback: (oldProps: DiagramElementProps<P>) => DiagramElementProps<P>) => void;
+export type DiagramElementChangeHandler<P> = (callback: (oldProps: P) => P) => void;
 
 export type DiagramElementProps<P> = P & {
     onChange: DiagramElementChangeHandler<P>;
@@ -129,6 +129,7 @@ export interface DiagramRootRenderer {
     isAttached: () => boolean;
     attach: () => void;
     detach: (clearDom: boolean) => void;
+    release: () => void;
 }   
 
 export class Diagram {
@@ -137,7 +138,7 @@ export class Diagram {
     private subscriptions: DiagramSubscription[] = [];
 
     private createElementNode<P extends object>(type: DiagramElement<P>, props: P, key: Key): DiagramElementNode<P> {
-        const onChange = (callback: (oldProps: DiagramElementProps<P>) => DiagramElementProps<P>) => {
+        const onChange = (callback: (oldProps: P) => P) => {
             this.update(element, callback(element.props));
         }
         const element = createElement(type, {...props, onChange}, key);
@@ -171,8 +172,11 @@ export class Diagram {
         return element;
     }
 
-    update<T>(element: DiagramElementNode<T>, props: DiagramElementProps<T>) {
-        element.props = props;
+    update<P>(element: DiagramElementNode<P>, props: P) {
+        const onChange = (callback: (oldProps: P) => P) => {
+            this.update(element, callback(element.props));
+        }
+        element.props = {...props, onChange};
         this.invalidate(element);
     }
 
@@ -203,7 +207,7 @@ export namespace DiagramDOM {
         const domBuilder = new DiagramDOMBuilder(root);
         let isAttached = false;
         let isValid = false;
-        let subscription: DiagramSubscription | undefined = undefined;
+        let subscription: DiagramSubscription | undefined = diagram.subscribe((node) => invalidate(node));
         let storedRootNode: DiagramNode | undefined = undefined;
         const renderContext = new RenderContextType((node) => invalidate(node));
         const storedNodesMap = new Map<DiagramNode, DiagramNode>();
@@ -337,15 +341,19 @@ export namespace DiagramDOM {
             storedNode && (storedNode.isValid = false);
             if (isValid) {
                 isValid = false;
-                scheduleRender();
+                isAttached && scheduleRender();
             }
+        }
+
+        const release = () => {
+            subscription?.unsubscribe();
+            subscription = undefined;
         }
 
         const attach = () => {
             if (!isAttached) {
                 isAttached = true;
                 scheduleRender();
-                subscription = diagram.subscribe((node) => invalidate(node));
             }
         }
 
@@ -355,8 +363,7 @@ export namespace DiagramDOM {
                 if (clearDom) {
                     clear();
                 }
-                subscription?.unsubscribe();
-                subscription = undefined;
+                release();
             }
         }
 
@@ -373,7 +380,8 @@ export namespace DiagramDOM {
             clear,
             isAttached: () => isAttached,
             attach,
-            detach
+            detach,
+            release
         }
     }
 }

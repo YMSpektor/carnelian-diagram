@@ -1,4 +1,5 @@
 export * from "./with-text";
+export * from "./with-rotation";
 export * from "./with-interactive-rotatable-text";
 export * from "./with-interactive-rotatable-rect";
 export * from "./with-interactive-rotatable-text-rect";

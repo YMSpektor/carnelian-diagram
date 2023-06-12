@@ -1,6 +1,6 @@
 /** @jsxImportSource @carnelian-diagram/core */
 
-import { DiagramElement, DiagramElementProps, useState } from "@carnelian-diagram/core";
+import { DiagramElement, useState } from "@carnelian-diagram/core";
 import { ACT_DRAW_POINT_PLACE, ACT_DRAW_POINT_PLACE_Payload, ACT_EDIT_TEXT, ACT_EDIT_TEXT_Payload, InplaceEditorStyles, InteractionController, isTextEditingService, useAction } from "..";
 import { polygonBounds, Rect, rectPoints, transformPoint } from "../geometry";
 
@@ -9,7 +9,7 @@ export interface InteractiveTextProps {
 }
 
 export interface InteractiveTextOptions<T extends InteractiveTextProps> {
-    onPlaceText?: (props: DiagramElementProps<T>) => DiagramElementProps<T>;
+    onPlaceText?: (props: T) => T;
     deleteOnEmpty?: boolean;
 }
 
@@ -23,7 +23,7 @@ export function withInteractiveText<T extends InteractiveTextProps>(
         const [isEditing, setEditing] = useState(false);
         const elementNode = this.element;
 
-        function showEditor(controller: InteractionController, updateProps: (props: DiagramElementProps<T>, text: string) => DiagramElementProps<T>) {
+        function showEditor(controller: InteractionController, updateProps: (props: T, text: string) => T) {
             const textEdititngService = controller.getService(isTextEditingService)
             if (elementNode && textEdititngService) {
                 const transform = controller.getElementTransform(elementNode);

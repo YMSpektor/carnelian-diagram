@@ -1,18 +1,19 @@
 import { DiagramElement } from "@carnelian-diagram/core";
-import { withRotation, withInteractiveRotation, withInteractivePolyline, PolygonCollider } from "@carnelian-diagram/interaction";
+import { withInteractiveRotation, withInteractivePolyline, PolygonCollider } from "@carnelian-diagram/interaction";
 import { PolygonBaseProps } from "..";
-import { PolygonRotation, PolygonRotationController } from "../utils";
+import { polygonRotation, polygonRotationController } from "../utils";
+import { withRotation } from "./with-rotation";
 
 export function withInteractiveRotatablePolygon<T extends PolygonBaseProps>(
     WrappedElement: DiagramElement<T>
 ) {
-    return withRotation(
+    return withRotation<T>(
         withInteractiveRotation(
             withInteractivePolyline(
                 WrappedElement, true, 3, { collider: (props) => PolygonCollider(props.points) }
             ),
-            PolygonRotationController
+            polygonRotationController()
         ),
-        PolygonRotation
+        polygonRotation()
     );
 }

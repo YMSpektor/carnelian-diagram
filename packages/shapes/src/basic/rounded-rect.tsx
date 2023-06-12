@@ -1,11 +1,11 @@
 /** @jsxImportSource @carnelian-diagram/core */
 
 import { DiagramElement } from "@carnelian-diagram/core";
-import { KnobController, withKnob, withRotation } from "@carnelian-diagram/interaction";
+import { KnobController, withKnob } from "@carnelian-diagram/interaction";
 import { clamp } from "@carnelian-diagram/interaction/geometry";
 import { RectBaseProps } from "..";
 import { withInteractiveRotatableRect, withInteractiveRotatableTextRect } from "../hocs";
-import { convertPercentage, isPercentage, NumberOrPercentage, RectRotation } from "../utils";
+import { convertPercentage, isPercentage, NumberOrPercentage } from "../utils";
 
 export interface RoundedRectProps extends RectBaseProps {
     radius: NumberOrPercentage;
@@ -38,7 +38,7 @@ const knobController: KnobController<RoundedRectProps> = {
     }
 }
 
-export const RawRoundedRect: DiagramElement<RoundedRectProps> = function(props) {
+export const RoundedRect: DiagramElement<RoundedRectProps> = function(props) {
     let { onChange, radius, ...rest } = props;
     const base = Math.min(props.width, props.height) / 2;
     radius = clamp(convertPercentage(radius, base), 0, base);
@@ -48,12 +48,10 @@ export const RawRoundedRect: DiagramElement<RoundedRectProps> = function(props) 
     );
 };
 
-export const RoundedRect = withRotation(RawRoundedRect, RectRotation);
-
 export const InteractiveRoundedRect = withInteractiveRotatableRect(
-    withKnob(RawRoundedRect, knobController)
+    withKnob(RoundedRect, knobController)
 );
 
 export const InteractiveRoundedRectWithText = withInteractiveRotatableTextRect(
-    withKnob(RawRoundedRect, knobController)
+    withKnob(RoundedRect, knobController)
 );

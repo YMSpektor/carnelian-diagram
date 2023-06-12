@@ -1,11 +1,11 @@
 /** @jsxImportSource @carnelian-diagram/core */
 
 import { DiagramElement } from "@carnelian-diagram/core";
-import { PolygonCollider, KnobController, withKnob, withRotation } from "@carnelian-diagram/interaction";
+import { PolygonCollider, KnobController, withKnob } from "@carnelian-diagram/interaction";
 import { clamp } from "@carnelian-diagram/interaction/geometry";
 import { RectBaseProps } from "..";
 import { withInteractiveRotatableRect, withInteractiveRotatableTextRect } from "../hocs";
-import { convertPercentage, isPercentage, NumberOrPercentage, RectRotation } from "../utils";
+import { convertPercentage, isPercentage, NumberOrPercentage } from "../utils";
 
 export interface HexagonProps extends RectBaseProps {
     offset: NumberOrPercentage;
@@ -54,7 +54,7 @@ function toPolygon(props: HexagonProps) {
 
 const HexagonColliderFactory = (props: HexagonProps) => PolygonCollider(toPolygon(props));
 
-export const RawHexagon: DiagramElement<HexagonProps> = function(props) {
+export const Hexagon: DiagramElement<HexagonProps> = function(props) {
     let { onChange, x, y, width, height, offset, ...rest } = props;
     const points = toPolygon(props);
 
@@ -63,14 +63,12 @@ export const RawHexagon: DiagramElement<HexagonProps> = function(props) {
     );
 };
 
-export const Hexagon = withRotation(RawHexagon, RectRotation);
-
 export const InteractiveHexagon = withInteractiveRotatableRect(
-    withKnob(RawHexagon, knobController), 
+    withKnob(Hexagon, knobController), 
     HexagonColliderFactory
 );
 
 export const InteractiveHexagonWithText = withInteractiveRotatableTextRect(
-    withKnob(RawHexagon, knobController), 
+    withKnob(Hexagon, knobController), 
     HexagonColliderFactory
 );

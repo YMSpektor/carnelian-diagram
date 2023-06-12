@@ -1,6 +1,6 @@
 {
   "name": "@carnelian-diagram/shapes",
-  "version": "0.2.0",
+  "version": "0.2.1",
   "main": "index.js",
   "description": "Shape collection for Carnelian Diagram library",
   "author": "Yuri Spektor",
@@ -21,9 +21,9 @@
   "scripts": {
     "prebuild": "rimraf dist",
     "build": "tsc --project tsconfig.build.json --rootDir ./src",
-    "postbuild": "copyfiles package.json README.md dist",
+    "postbuild": "copyfiles -f package.json ../../README.md dist",
     "predeploy": "npm run build",
-    "deploy": "cd dist && npm publish --access=public"
+    "deploy": "npm publish ./dist --access=public"
   },
   "devDependencies": {
     "@types/node": "^18.11.14",

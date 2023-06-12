@@ -270,7 +270,7 @@ useControls((transform, element) => {
 
 ### Element transformations and useTransforms hook
 
-The `useTransform` hook allows to apply 2D transformation (such rotation) to an element. Calling this hook will not transform your svg element itself, but once called the library will use transformed coordinates to be passed to `useHitTest`, `useIntersectionTest`, `useControls`, etc. To transform the svg element itself, wrap it to the `<g transform="...">` tag or use `withRotation` HOC (see below).
+The `useTransform` hook allows to apply 2D transformation (such rotation) to an element. Calling this hook will not transform your svg element itself, but once called the library will use transformed coordinates to be passed to `useHitTest`, `useIntersectionTest`, `useControls`, etc. To transform the svg element itself, wrap it to the `<g transform="...">` tag (or use `withRotation` HOC from the `@carnelian-diagram/shapes` package).
 
 The `useTransform` hook called with an argument allows to set the element transformation:
 * `transform?: DOMMatrixReadOnly` - Specifies the transformation matrix to be applied
@@ -307,9 +307,8 @@ The library provides some higher-order components (or just HOCs) built using the
   * Edges allowing to insert new vertex on double clicking
   * Interactive inner area allowing to drag the element itself
 * `withInteractiveText` - allows to show inplace text editor (on double click event) to edit the element text (requires the `text` field to be defined in the element props)
-* `withInteractiveRotation` - adds a rotation handle allowing to rotate the element around some origin. Can be used together with `useRotation` (see below)
+* `withInteractiveRotation` - adds a rotation handle allowing to rotate the element around some origin.
 * `withKnob` - adds customizable handle control to suit a particular task (e.g. border radius for rounded rectangle). See [RoundedRect](https://github.com/YMSpektor/carnelian-diagram/blob/main/packages/carnelian-shapes/src/basic/rounded-rect.tsx) or [Parallelogram](https://github.com/YMSpektor/carnelian-diagram/blob/main/packages/carnelian-shapes/src/basic/parallelogram.tsx) elements for example.
-* `withRotation` - adds the rotation transformation to the element.
 
 Here is the example using the `withInteractiveRect` HOC:
 

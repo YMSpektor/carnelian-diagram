@@ -1,17 +1,18 @@
 import { DiagramElement } from "@carnelian-diagram/core";
-import { SquareColliderFactory, withRotation, withInteractiveRotation, withInteractiveSquare } from "@carnelian-diagram/interaction";
+import { SquareColliderFactory, withInteractiveRotation, withInteractiveSquare } from "@carnelian-diagram/interaction";
 import { SquareBaseProps } from "..";
-import { SquareRotationController, SquareRotation } from "../utils";
+import { squareRotationController, squareRotation } from "../utils";
+import { withRotation } from "./with-rotation";
 
 export function withInteractiveRotatableSquare<T extends SquareBaseProps>(
     WrappedElement: DiagramElement<T>,
     collider?: SquareColliderFactory<T>
 ) {
-    return withRotation(
+    return withRotation<T>(
         withInteractiveRotation(
             withInteractiveSquare(WrappedElement, { collider }),
-            SquareRotationController
+            squareRotationController()
         ),
-        SquareRotation
+        squareRotation()
     );
 }

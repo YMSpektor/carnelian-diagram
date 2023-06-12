@@ -1,14 +1,14 @@
 /** @jsxImportSource @carnelian-diagram/core */
 
 import { DiagramElement } from "@carnelian-diagram/core";
-import { withInteractiveText, withRotation } from "@carnelian-diagram/interaction";
+import { withInteractiveText } from "@carnelian-diagram/interaction";
 import { DEFAULT_FONT_FAMILY, DEFAULT_FONT_SIZE, MultilineTextStyle, TextBaseProps } from "..";
 import { withInteractiveRotatableText } from "../hocs";
-import { textEditorStyles, TextRotation, wrapText } from "../utils";
+import { textEditorStyles, textRotation, wrapText } from "../utils";
 
 export interface MultilineTextProps extends TextBaseProps<MultilineTextStyle> {}
 
-export const RawMultilineText: DiagramElement<MultilineTextProps> = function(props) {
+export const MultilineText: DiagramElement<MultilineTextProps> = function(props) {
     let { x, y, width, height, textStyle, text } = props;
     let textElementStyle: Record<string, any>;
     let lineHeight = textStyle?.lineHeight || 1;
@@ -65,13 +65,10 @@ export const RawMultilineText: DiagramElement<MultilineTextProps> = function(pro
     );
 }
 
-
-export const MultilineText = withRotation(RawMultilineText, TextRotation);
-
-export const InteractiveMultilineText = withInteractiveRotatableText(RawMultilineText);
+export const InteractiveMultilineText = withInteractiveRotatableText(MultilineText);
 
 export const InteractiveMultilineTextComponent = withInteractiveText(
-    RawMultilineText,
+    MultilineText,
     (props) => props,
     (props) => textEditorStyles(props.textStyle)
 );

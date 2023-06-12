@@ -1,15 +1,16 @@
 import { DiagramElement } from "@carnelian-diagram/core";
-import { SquareColliderFactory, withRotation, withInteractiveRotation, withInteractiveSquare, ACT_EDIT_TEXT } from "@carnelian-diagram/interaction";
-import { SquareBaseProps } from "..";
+import { SquareColliderFactory, withInteractiveRotation, withInteractiveSquare, ACT_EDIT_TEXT } from "@carnelian-diagram/interaction";
+import { MultilineTextStyle, SquareBaseProps } from "..";
 import { InteractiveMultilineTextComponent } from "../basic/multiline-text";
-import { SquareRotationController, SquareRotation } from "../utils";
+import { squareRotationController, squareRotation } from "../utils";
+import { withRotation } from "./with-rotation";
 import { withText } from "./with-text";
 
 export function withInteractiveRotatableTextSquare<T extends SquareBaseProps>(
     WrappedElement: DiagramElement<T>,
     collider?: SquareColliderFactory<T>
-) {
-    return withRotation(
+): DiagramElement<T & { text?: string; textStyle?: MultilineTextStyle }> {
+    return withRotation<T>(
         withInteractiveRotation(
             withText(
                 withInteractiveSquare(WrappedElement, {
@@ -26,8 +27,8 @@ export function withInteractiveRotatableTextSquare<T extends SquareBaseProps>(
                     textStyle: props.textStyle
                 })
             ),
-            SquareRotationController
+            squareRotationController()
         ),
-        SquareRotation
+        squareRotation()
     );
 }
