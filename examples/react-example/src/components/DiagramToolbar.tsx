@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useState } from "react";
-import { AppBar, Button, Divider, IconButton, Menu, MenuItem, Popover, SvgIcon, ToggleButton, ToggleButtonGroup, Toolbar } from "@mui/material";
+import { Button, Divider, IconButton, Menu, MenuItem, Popover, SvgIcon, ToggleButton, ToggleButtonGroup } from "@mui/material";
 import KeyboardArrowDownIcon from '@mui/icons-material/KeyboardArrowDown';
 import ZoomInIcon from '@mui/icons-material/ZoomIn';
 import ZoomOutIcon from '@mui/icons-material/ZoomOut';
@@ -250,97 +250,95 @@ function DiagramToolbar(props: DiagramToolbarProps) {
     }
 
     return (
-        <AppBar position="static">
-            <Toolbar>
-                <Button sx={{ color: 'inherit' }} endIcon={<KeyboardArrowDownIcon />} onClick={(e) => setScaleMenuAnchorEl(e.currentTarget)}>
-                    {props.scale}%
-                </Button>
-                <Menu
-                    anchorEl={scaleMenuAnchorEl}
-                    open={!!scaleMenuAnchorEl}
-                    onClose={() => closeScaleMenu()}
-                >
-                    {scaleOptions.map(scale => (
-                        <MenuItem key={scale} onClick={() => closeScaleMenu(scale)}>{scale}%</MenuItem>
-                    ))}
-                </Menu>
-                <IconButton color="inherit" onClick={(e) => zoom(1)}>
-                    <ZoomInIcon />
-                </IconButton>
-                <IconButton color="inherit" onClick={(e) => zoom(-1)}>
-                    <ZoomOutIcon />
-                </IconButton>
-                <IconButton color="inherit" onClick={(e) => openBorderColorPicker(e.currentTarget)}>
-                    <BorderColorIcon />
-                </IconButton>
-                <IconButton color="inherit" onClick={(e) => openBackgroundColorPicker(e.currentTarget)}>
-                    <FormatColorFillIcon />
-                </IconButton>
-                <IconButton color="inherit" onClick={(e) => setLineWeightMenuAnchorEl(e.currentTarget)}>
-                    <LineWeightIcon />
-                </IconButton>
-                <IconButton color="inherit" onClick={(e) => openTextColorPicker(e.currentTarget)}>
-                    <FormatColorTextIcon />
-                </IconButton>
-                <IconButton color="inherit" onClick={(e) => setTextSizeMenuAnchorEl(e.currentTarget)}>
-                    <FormatSizeIcon />
-                </IconButton>
-                <Menu
-                    anchorEl={lineWeightMenuAnchorEl}
-                    open={!!lineWeightMenuAnchorEl}
-                    onClose={() => closeLineWeightMenu()}
-                >
-                    <MenuItem onClick={() => closeLineWeightMenu(null)}>Default</MenuItem>
-                    <Divider />
-                    {lineWeightOptions.map(lineWeight => (
-                        <MenuItem key={lineWeight} onClick={() => closeLineWeightMenu(lineWeight)}>{lineWeight} {props.unit}</MenuItem>
-                    ))}
-                </Menu>
-                <Menu
-                    anchorEl={textSizeMenuAnchorEl}
-                    open={!!textSizeMenuAnchorEl}
-                    onClose={() => closeTextSizeMenu()}
-                >
-                    {textSizeOptions.map(textSize => (
-                        <MenuItem key={textSize} onClick={() => closeTextSizeMenu(textSize)}>{textSize} {props.unit}</MenuItem>
-                    ))}
-                </Menu>
-                <Popover
-                    anchorEl={colorPopoverAnchorEl}
-                    open={!!colorPopoverAnchorEl}
-                    onClose={() => closeColorPopover()}
-                    anchorOrigin={{
-                        vertical: 'bottom',
-                        horizontal: 'left',
-                    }}
-                >
-                    <CompactPicker color={color} onChange={(color) => setElementColor(color.hex)} />
-                </Popover>
-                <ToggleButtonGroup exclusive size="small" value={drawingMode} onChange={(e, value) => changeDrawinMode(value)}>
-                    <ToggleButton value="" sx={{ color: "inherit !important" }}>
-                        <DefaultCursorIcon />
-                    </ToggleButton>
-                    <ToggleButton value="line" sx={{ color: "inherit !important" }}>
-                        <LineIcon />
-                    </ToggleButton>
-                    <ToggleButton value="polyline" sx={{ color: "inherit !important" }}>
-                        <PolylineIcon />
-                    </ToggleButton>
-                    <ToggleButton value="polygon" sx={{ color: "inherit !important" }}>
-                        <PolygonIcon />
-                    </ToggleButton>
-                    <ToggleButton value="rect" sx={{ color: "inherit !important" }}>
-                        <RectIcon />
-                    </ToggleButton>
-                    <ToggleButton value="circle" sx={{ color: "inherit !important" }}>
-                        <CircleOutlinedIcon />
-                    </ToggleButton>
-                    <ToggleButton value="text" sx={{ color: "inherit !important" }}>
-                        <TextIcon />
-                    </ToggleButton>
-                </ToggleButtonGroup>
-            </Toolbar>
-        </AppBar>
+        <>
+            <Button sx={{ color: 'inherit' }} endIcon={<KeyboardArrowDownIcon />} onClick={(e) => setScaleMenuAnchorEl(e.currentTarget)}>
+                {props.scale}%
+            </Button>
+            <Menu
+                anchorEl={scaleMenuAnchorEl}
+                open={!!scaleMenuAnchorEl}
+                onClose={() => closeScaleMenu()}
+            >
+                {scaleOptions.map(scale => (
+                    <MenuItem key={scale} onClick={() => closeScaleMenu(scale)}>{scale}%</MenuItem>
+                ))}
+            </Menu>
+            <IconButton color="inherit" onClick={(e) => zoom(1)}>
+                <ZoomInIcon />
+            </IconButton>
+            <IconButton color="inherit" onClick={(e) => zoom(-1)}>
+                <ZoomOutIcon />
+            </IconButton>
+            <IconButton color="inherit" onClick={(e) => openBorderColorPicker(e.currentTarget)}>
+                <BorderColorIcon />
+            </IconButton>
+            <IconButton color="inherit" onClick={(e) => openBackgroundColorPicker(e.currentTarget)}>
+                <FormatColorFillIcon />
+            </IconButton>
+            <IconButton color="inherit" onClick={(e) => setLineWeightMenuAnchorEl(e.currentTarget)}>
+                <LineWeightIcon />
+            </IconButton>
+            <IconButton color="inherit" onClick={(e) => openTextColorPicker(e.currentTarget)}>
+                <FormatColorTextIcon />
+            </IconButton>
+            <IconButton color="inherit" onClick={(e) => setTextSizeMenuAnchorEl(e.currentTarget)}>
+                <FormatSizeIcon />
+            </IconButton>
+            <Menu
+                anchorEl={lineWeightMenuAnchorEl}
+                open={!!lineWeightMenuAnchorEl}
+                onClose={() => closeLineWeightMenu()}
+            >
+                <MenuItem onClick={() => closeLineWeightMenu(null)}>Default</MenuItem>
+                <Divider />
+                {lineWeightOptions.map(lineWeight => (
+                    <MenuItem key={lineWeight} onClick={() => closeLineWeightMenu(lineWeight)}>{lineWeight} {props.unit}</MenuItem>
+                ))}
+            </Menu>
+            <Menu
+                anchorEl={textSizeMenuAnchorEl}
+                open={!!textSizeMenuAnchorEl}
+                onClose={() => closeTextSizeMenu()}
+            >
+                {textSizeOptions.map(textSize => (
+                    <MenuItem key={textSize} onClick={() => closeTextSizeMenu(textSize)}>{textSize} {props.unit}</MenuItem>
+                ))}
+            </Menu>
+            <Popover
+                anchorEl={colorPopoverAnchorEl}
+                open={!!colorPopoverAnchorEl}
+                onClose={() => closeColorPopover()}
+                anchorOrigin={{
+                    vertical: 'bottom',
+                    horizontal: 'left',
+                }}
+            >
+                <CompactPicker color={color} onChange={(color) => setElementColor(color.hex)} />
+            </Popover>
+            <ToggleButtonGroup exclusive size="small" value={drawingMode} onChange={(e, value) => changeDrawinMode(value)}>
+                <ToggleButton value="" sx={{ color: "inherit !important" }}>
+                    <DefaultCursorIcon />
+                </ToggleButton>
+                <ToggleButton value="line" sx={{ color: "inherit !important" }}>
+                    <LineIcon />
+                </ToggleButton>
+                <ToggleButton value="polyline" sx={{ color: "inherit !important" }}>
+                    <PolylineIcon />
+                </ToggleButton>
+                <ToggleButton value="polygon" sx={{ color: "inherit !important" }}>
+                    <PolygonIcon />
+                </ToggleButton>
+                <ToggleButton value="rect" sx={{ color: "inherit !important" }}>
+                    <RectIcon />
+                </ToggleButton>
+                <ToggleButton value="circle" sx={{ color: "inherit !important" }}>
+                    <CircleOutlinedIcon />
+                </ToggleButton>
+                <ToggleButton value="text" sx={{ color: "inherit !important" }}>
+                    <TextIcon />
+                </ToggleButton>
+            </ToggleButtonGroup>
+        </>
     )
 }
 
