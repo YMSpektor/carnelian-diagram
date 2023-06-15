@@ -10,15 +10,15 @@ export interface LayoutToolbarProps {
 const LayoutToolbar = (props: LayoutToolbarProps) => {
     return (
         <AppBar position="static">
-            <Toolbar>
-            <ToolbarButton
-                color="inherit"
-                edge="start"
-                onClick={props.onToggleSidebar}
-                sx={{ mr: 2, display: { sm: 'none' } }}
-            >
-                <MenuIcon />
-            </ToolbarButton>
+            <Toolbar variant="dense">
+                <ToolbarButton
+                    color="inherit"
+                    edge="start"
+                    onClick={props.onToggleSidebar}
+                    sx={{ mr: 2, display: { sm: 'none' } }}
+                >
+                    <MenuIcon />
+                </ToolbarButton>
                 { props.children }
             </Toolbar>
         </AppBar>
