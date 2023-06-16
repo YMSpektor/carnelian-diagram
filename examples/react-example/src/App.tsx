@@ -9,6 +9,7 @@ import { Accordion, AccordionDetails, AccordionSummary, createTheme, Divider, Th
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
 import LayoutSidebar from './components/LayoutSidebar';
 import LayoutToolbar from './components/LayoutToolbar';
+import DiagramPropertiesPanel from './components/DiagramPropertiesPanel';
 
 const theme = createTheme({
     palette: {
@@ -20,7 +21,6 @@ const theme = createTheme({
             main: '#2b2b2b',
         },
         background: {
-            default: '#eeeeee',
             paper: '#eeeeee',
         },
     }
@@ -60,7 +60,7 @@ function App(props: AppProps) {
                                     />
                                 </AccordionDetails>
                             </Accordion>
-                            <Accordion defaultExpanded={true} disableGutters={true}>
+                            <Accordion disableGutters={true}>
                                 <AccordionSummary expandIcon={<ExpandMoreIcon />}>
                                     <Typography>Examples</Typography>
                                 </AccordionSummary>
@@ -75,7 +75,7 @@ function App(props: AppProps) {
                         </div>
                         <Divider />
                         <div css={{flex: "1 1 50%", overflow: "auto"}}>
-
+                            <DiagramPropertiesPanel controller={controller} />
                         </div>
                     </LayoutSidebar>
                     <DiagramViewer
