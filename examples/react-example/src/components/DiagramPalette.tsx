@@ -1,8 +1,8 @@
 /** @jsxImportSource @emotion/react */
 import { HTMLAttributes, useContext } from "react";
+import { Tooltip, Typography } from "@mui/material";
 import { DiagramElement } from "@carnelian-diagram/core";
 import DiagramElementIcon from "./DiagramElementIcon";
-import Typography from "@mui/material/Typography";
 import { DragDropContext, ElementFactory } from "../context/DragDropContext";
 
 export interface DiagramPaletteElement<T extends object> {
@@ -51,18 +51,23 @@ function DiagramPalette(props: DiagramPaletteProps & HTMLAttributes<HTMLDivEleme
                     onDragStart={e => dragStartHandler(e, element)}
                     onDragEnd={dragEndHandle}
                 >
-                    <div>
-                        <DiagramElementIcon
-                            width={iconWidth} height={iconHeight}
-                            elementType={element.elementType}
-                            elementProps={element.elementProps}
-                            viewBox={element.viewBox}
-                            strokeWidth={5}
-                        />
-                     </div>
-                     <Typography variant="caption">
-                        {element.title}
-                    </Typography>
+                    <Tooltip title={element.title} enterDelay={1000}>
+                        <div>
+                        
+                            <DiagramElementIcon
+                                width={iconWidth} height={iconHeight}
+                                elementType={element.elementType}
+                                elementProps={element.elementProps}
+                                viewBox={element.viewBox}
+                                strokeWidth={5}
+                            />
+                        </div>
+                    </Tooltip>
+                    <Tooltip title={element.title} enterDelay={1000}>
+                        <Typography variant="caption" css={{fontSize: "7pt"}}>
+                            {element.title}
+                        </Typography>
+                    </Tooltip>
                 </div>
             ))}
         </div>

@@ -5,7 +5,7 @@ import DiagramPalette, { DiagramPaletteElement } from './components/DiagramPalet
 import DiagramToolbar from './components/DiagramToolbar';
 import DiagramViewer from './components/DiagramViewer';
 import { InteractionController, isPaperService } from '@carnelian-diagram/interaction';
-import { Accordion, AccordionDetails, AccordionSummary, createTheme, ThemeProvider, Typography } from '@mui/material';
+import { Accordion, AccordionDetails, AccordionSummary, createTheme, Divider, ThemeProvider, Typography } from '@mui/material';
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
 import LayoutSidebar from './components/LayoutSidebar';
 import LayoutToolbar from './components/LayoutToolbar';
@@ -45,33 +45,38 @@ function App(props: AppProps) {
                 <LayoutToolbar onToggleSidebar={() => setSidebarOpen(!sidebarOpen)}>
                     <DiagramToolbar diagram={diagram} controller={controller} scale={scale} onScaleChange={setScale} unit="mm" unitMultiplier={0.1} />
                 </LayoutToolbar>
-                <div css={{flex: 1, display: "flex", alignItems: "stretch"}}>
-                    <LayoutSidebar width={330} mobileOpen={sidebarOpen} onClose={() => setSidebarOpen(!sidebarOpen)}>
-                        <Accordion defaultExpanded={true} disableGutters={true}>
-                            <AccordionSummary expandIcon={<ExpandMoreIcon />}>
-                                <Typography>Basic Shapes</Typography>
-                            </AccordionSummary>
-                            <AccordionDetails>
+                <div css={{flex: 1, display: "flex", alignItems: "stretch", overflow: "hidden"}}>
+                    <LayoutSidebar width={340} mobileOpen={sidebarOpen} onClose={() => setSidebarOpen(!sidebarOpen)}>
+                        <div css={{flex: "1 1 50%", overflow: "auto"}}>
+                            <Accordion defaultExpanded={true} disableGutters={true}>
+                                <AccordionSummary expandIcon={<ExpandMoreIcon />}>
+                                    <Typography>Basic Shapes</Typography>
+                                </AccordionSummary>
+                                <AccordionDetails>
+                                    <DiagramPalette 
+                                        iconWidth={48} 
+                                        iconHeight={32} 
+                                        palette={palette.filter(x => x.category === "basic")} 
+                                    />
+                                </AccordionDetails>
+                            </Accordion>
+                            <Accordion defaultExpanded={true} disableGutters={true}>
+                                <AccordionSummary expandIcon={<ExpandMoreIcon />}>
+                                    <Typography>Examples</Typography>
+                                </AccordionSummary>
+                                <AccordionDetails>
                                 <DiagramPalette 
-                                    iconWidth={64} 
-                                    iconHeight={48} 
-                                    palette={palette.filter(x => x.category === "basic")} 
-                                />
-                            </AccordionDetails>
-                        </Accordion>
-                        <Accordion disableGutters={true}>
-                            <AccordionSummary expandIcon={<ExpandMoreIcon />}>
-                                <Typography>Examples</Typography>
-                            </AccordionSummary>
-                            <AccordionDetails>
-                            <DiagramPalette 
-                                    iconWidth={64} 
-                                    iconHeight={48} 
-                                    palette={palette.filter(x => x.category === "examples")} 
-                                    css={{width: 280}} 
-                                />
-                            </AccordionDetails>
-                        </Accordion>
+                                        iconWidth={48} 
+                                        iconHeight={32} 
+                                        palette={palette.filter(x => x.category === "examples")}
+                                    />
+                                </AccordionDetails>
+                            </Accordion>
+                        </div>
+                        <Divider />
+                        <div css={{flex: "1 1 50%", overflow: "auto"}}>
+
+                        </div>
                     </LayoutSidebar>
                     <DiagramViewer
                         css={{flex: 1, backgroundColor: "#ddd"}}

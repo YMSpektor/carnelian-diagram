@@ -15,7 +15,7 @@ const LayoutSidebar = (props: LayoutSidebarProps & BoxProps) => {
     return (
         <Box
             component="nav"
-            sx={{ width: { sm: props.width }, flexShrink: { sm: 0 } }}
+            sx={{ width: { sm: props.width }, flexShrink: { sm: 0 }, display: "flex", alignItems: "stretch" }}
             {...rest}
         >
             <Drawer
