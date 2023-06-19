@@ -6,9 +6,9 @@ export interface Paper {
     y: number;
     width: number;
     height: number;
-    majorGridSize?: number;
+    majorGridSize?: number | null;
     majorGridColor?: string;
-    minorGridSize?: number;
+    minorGridSize?: number | null;
     minorGridColor?: string;
 }
 

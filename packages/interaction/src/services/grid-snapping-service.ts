@@ -2,8 +2,8 @@ import { InteractionServive } from ".";
 
 export interface GridSnappingService extends InteractionServive {
     type: "grid_snapping_service";
-    snapGridSize: number | null;
-    snapAngle: number | null;
+    snapGridSize?: number | null;
+    snapAngle?: number | null;
     snapToGrid(value: number, snapGridSize?: number | null): number;
     snapToGrid(point: DOMPointReadOnly, snapGridSize?: number | null): DOMPointReadOnly;
 }
@@ -15,7 +15,7 @@ export function isGridSnappingService(service: InteractionServive): service is G
 export class DefaultGridSnappingService implements GridSnappingService {
     type: "grid_snapping_service" = "grid_snapping_service";
 
-    constructor(public snapGridSize: number | null = null, public snapAngle: number | null = null) {}
+    constructor(public snapGridSize?: number, public snapAngle?: number) {}
 
     snapToGrid(value: number, snapGridSize?: number | null): number;
     snapToGrid(point: DOMPointReadOnly, snapGridSize?: number | null): DOMPointReadOnly;
