@@ -35,7 +35,7 @@ interface AppProps {
 function App(props: AppProps) {
     const { controller, diagram, palette } = props;
     const [scale, setScale] = useState(100);
-    const paper = controller.getService(isPaperService)?.paper;
+    const [paper, setPaper] = useState(controller.getService(isPaperService)?.paper);
 
     const [sidebarOpen, setSidebarOpen] = React.useState(false);
 
@@ -75,7 +75,7 @@ function App(props: AppProps) {
                         </div>
                         <Divider />
                         <div css={{flex: "1 1 50%", overflow: "auto"}}>
-                            <DiagramPropertiesPanel controller={controller} />
+                            <DiagramPropertiesPanel controller={controller} unitMultiplier={0.1} onPaperChange={setPaper} />
                         </div>
                     </LayoutSidebar>
                     <DiagramViewer
