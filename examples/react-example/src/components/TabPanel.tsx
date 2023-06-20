@@ -14,7 +14,7 @@ const TabPanel = (props: TabPanelProps & HTMLAttributes<HTMLDivElement>) => {
             role="tabpanel"
             hidden={value !== index}
             {...rest}
-            >
+        >
             {value === index && children}
         </div>
   );

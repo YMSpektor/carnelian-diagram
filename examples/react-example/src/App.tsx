@@ -1,10 +1,10 @@
 /** @jsxImportSource @emotion/react */
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { Diagram } from '@carnelian-diagram/core';
 import DiagramPalette, { DiagramPaletteElement } from './components/DiagramPalette';
 import DiagramToolbar from './components/DiagramToolbar';
 import DiagramViewer from './components/DiagramViewer';
-import { InteractionController, isPaperService } from '@carnelian-diagram/interaction';
+import { InteractionController, isPaperService, SelectEventArgs, SELECT_EVENT } from '@carnelian-diagram/interaction';
 import { Accordion, AccordionDetails, AccordionSummary, createTheme, Divider, ThemeProvider, Typography } from '@mui/material';
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
 import LayoutSidebar from './components/LayoutSidebar';
@@ -36,8 +36,20 @@ function App(props: AppProps) {
     const { controller, diagram, palette } = props;
     const [scale, setScale] = useState(100);
     const [paper, setPaper] = useState(controller.getService(isPaperService)?.paper);
+    const [sidebarOpen, setSidebarOpen] = useState(false);
+    const [selectedElements, setSelectedElements] = useState(controller.getSelectedElements());
 
-    const [sidebarOpen, setSidebarOpen] = React.useState(false);
+    function selectionChangeHandler(e: SelectEventArgs) {
+        setSelectedElements(e.selectedElements);
+    }
+
+    useEffect(() => {
+        controller.addEventListener(SELECT_EVENT, selectionChangeHandler);
+
+        return () => {
+            controller.removeEventListener(SELECT_EVENT, selectionChangeHandler);
+        }
+    }, [controller]);
 
     return (
         <ThemeProvider theme={theme}>
@@ -75,7 +87,12 @@ function App(props: AppProps) {
                         </div>
                         <Divider />
                         <div css={{flex: "1 1 50%", overflow: "auto"}}>
-                            <DiagramPropertiesPanel controller={controller} unitMultiplier={0.1} onPaperChange={setPaper} />
+                            <DiagramPropertiesPanel 
+                                controller={controller} 
+                                unitMultiplier={0.1}
+                                selectedElements={selectedElements}
+                                onPaperChange={setPaper} 
+                            />
                         </div>
                     </LayoutSidebar>
                     <DiagramViewer

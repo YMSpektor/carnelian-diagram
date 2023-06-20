@@ -5,10 +5,12 @@ import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
 import TabPanel from "./TabPanel";
 import FormGroup from "@mui/material/FormGroup";
 import Checkbox from "@mui/material/Checkbox";
+import { DiagramElementNode } from "@carnelian-diagram/core";
 
 export interface DiagramPropertiesPanelProps {
     controller: InteractionController;
     unitMultiplier: number;
+    selectedElements: DiagramElementNode[];
     onPaperChange: (paper: Paper) => void;
 }
 
@@ -27,11 +29,10 @@ const PAGE_SIZES: PageSize[] = [
     { name: "A5", width: 148, height: 210 },
 ];
 
-const DiagramPropertiesPanel = (props: DiagramPropertiesPanelProps) => {
+const DiagramPropertiesTab = (props: DiagramPropertiesPanelProps) => {
     const paperService = props.controller.getService(isPaperService);
     const gridSnappingService = props.controller.getService(isGridSnappingService);
 
-    const [ currentTab, setCurrentTab ] = useState(0);
     const [ pageOrientation, setPageOrientation ] = useState(getPageOrientation());
     const [ pageSize, setPageSize ] = useState(PAGE_SIZES.find(x => 
         getPaperWidth(x) === paperService?.paper?.width && 
@@ -42,7 +43,6 @@ const DiagramPropertiesPanel = (props: DiagramPropertiesPanelProps) => {
     const [ snapToGrid, setSnapToGrid ] = useState(!!gridSnappingService?.snapGridSize || !!gridSnappingService?.snapAngle);
     const [ snapGridSize, setSnapGridSize ] = useState<string>(((gridSnappingService?.snapGridSize || 0) * props.unitMultiplier).toString());
     const [ snapAngle, setSnapAngle ] = useState<string>((gridSnappingService?.snapAngle || 0).toString());
-
 
     function getPageOrientation(): string {
         return paperService?.paper && paperService.paper.width > paperService.paper.height ? "landscape" : "portrait";
@@ -143,100 +143,144 @@ const DiagramPropertiesPanel = (props: DiagramPropertiesPanelProps) => {
 
     return (
         <>
+            <Accordion disableGutters={true}>
+                <AccordionSummary expandIcon={<ExpandMoreIcon />}>
+                    <Typography>Page</Typography>
+                </AccordionSummary>
+                <AccordionDetails>
+                    <FormControl fullWidth variant="outlined" size="small" margin="dense" sx={{backgroundColor: "background.default"}}>
+                        <InputLabel id="page-size-label">Page size</InputLabel>
+                        <Select
+                            labelId="page-size-label"
+                            label="Page size"
+                            value={pageSize?.name}
+                            onChange={(e) => changePageSize(e.target.value)}
+                        >
+                            {PAGE_SIZES.map(ps => (
+                                <MenuItem key={ps.name} value={ps.name}>{ps.name} ({ps.width} mm x {ps.height} mm)</MenuItem>
+                            ))}
+                        </Select>
+                    </FormControl>
+                    <FormControl fullWidth variant="outlined" size="small">
+                        <FormLabel id="page-orientation-label">Orientation</FormLabel>
+                        <RadioGroup
+                            row
+                            aria-labelledby="page-orientation-label"
+                            name="page-orientation-radio-buttons-group"
+                            value={pageOrientation}
+                            onChange={(e) => updatePageOrientation(e.target.value)}
+                        >
+                            <FormControlLabel value="portrait" control={<Radio />} label="Portrait" />
+                            <FormControlLabel value="landscape" control={<Radio />} label="Landscape" />
+                        </RadioGroup>
+                    </FormControl>
+                </AccordionDetails>
+            </Accordion>
+            <Accordion disableGutters={true}>
+                <AccordionSummary expandIcon={<ExpandMoreIcon />}>
+                    <Typography>Grid & Snapping</Typography>
+                </AccordionSummary>
+                <AccordionDetails>
+                    <FormGroup>
+                        <FormControlLabel control={<Checkbox checked={displayGrid} onChange={(e, checked) => updateDisplayGrid(checked)} />} label="Display grid" />
+                        <TextField 
+                            fullWidth variant="outlined" size="small" margin="dense" disabled={!displayGrid}
+                            label="Minor grid size"
+                            InputProps={{
+                                endAdornment: <InputAdornment position="end">mm</InputAdornment>  
+                            }}
+                            value={minorGridSize}
+                            onChange={(e) => updateMinorGridSize(e.target.value)}
+                            sx={{backgroundColor: displayGrid ? "background.default" : "background.paper"}}
+                        />
+                        <TextField 
+                            fullWidth variant="outlined" size="small" margin="dense" disabled={!displayGrid}
+                            label="Major grid size"
+                            InputProps={{
+                                endAdornment: <InputAdornment position="end">mm</InputAdornment>  
+                            }}
+                            value={majorGridSize}
+                            onChange={(e) => updateMajorGridSize(e.target.value)}
+                            sx={{backgroundColor: displayGrid ? "background.default" : "background.paper"}}
+                        />
+                        <FormControlLabel control={<Checkbox checked={snapToGrid} onChange={(e, checked) => updateSnapToGrid(checked)} />} label="Snap to grid" />
+                        <TextField 
+                            fullWidth variant="outlined" size="small" margin="dense" disabled={!snapToGrid}
+                            label="Snap grid"
+                            InputProps={{
+                                endAdornment: <InputAdornment position="end">mm</InputAdornment>  
+                            }}
+                            value={snapGridSize}
+                            onChange={(e) => updateSnapGridSize(e.target.value)}
+                            sx={{backgroundColor: snapToGrid ? "background.default" : "background.paper"}}
+                        />
+                        <TextField 
+                            fullWidth variant="outlined" size="small" margin="dense" disabled={!snapToGrid}
+                            label="Snap angle"
+                            InputProps={{
+                                endAdornment: <InputAdornment position="end">deg.</InputAdornment>  
+                            }}
+                            value={snapAngle}
+                            onChange={(e) => updateSnapAngle(e.target.value)}
+                            sx={{backgroundColor: snapToGrid ? "background.default" : "background.paper"}}
+                        />
+                    </FormGroup>
+                </AccordionDetails>
+            </Accordion>
+        </>
+    );
+}
+
+const ElementsPropertiesTab = (props: DiagramPropertiesPanelProps) => {
+    return (
+        <>
+            {props.selectedElements.length ? <>
+                <Accordion disableGutters={true}>
+                    <AccordionSummary expandIcon={<ExpandMoreIcon />}>
+                        <Typography>Fill</Typography>
+                    </AccordionSummary>
+                    <AccordionDetails>
+
+                    </AccordionDetails>
+                </Accordion>
+                <Accordion disableGutters={true}>
+                    <AccordionSummary expandIcon={<ExpandMoreIcon />}>
+                        <Typography>Line</Typography>
+                    </AccordionSummary>
+                    <AccordionDetails>
+
+                    </AccordionDetails>
+                </Accordion>
+                <Accordion disableGutters={true}>
+                    <AccordionSummary expandIcon={<ExpandMoreIcon />}>
+                        <Typography>Text</Typography>
+                    </AccordionSummary>
+                    <AccordionDetails>
+                        
+                    </AccordionDetails>
+                </Accordion>
+            </>
+            : <Box sx={{ p: 3, textAlign: "center" }}>
+                <Typography variant="subtitle2">Please select elements to edit their properties</Typography>
+            </Box>}
+        </>
+    );
+}
+
+const DiagramPropertiesPanel = (props: DiagramPropertiesPanelProps) => {
+    const [ currentTab, setCurrentTab ] = useState(0);
+
+    return (
+        <>
             <Tabs value={currentTab} onChange={(e, value) => setCurrentTab(value)}>
                 <Tab label="Elements"></Tab>
                 <Tab label="Diagram"></Tab>
             </Tabs>
             <TabPanel value={currentTab} index={0}>
-                <Box sx={{ p: 3, textAlign: "center" }}>
-                    <Typography variant="subtitle2">Please select elements to edit their properties</Typography>
-                </Box>
+                <ElementsPropertiesTab {...props} />
             </TabPanel>
             <TabPanel value={currentTab} index={1}>
-                <Accordion disableGutters={true}>
-                    <AccordionSummary expandIcon={<ExpandMoreIcon />}>
-                        <Typography>Page</Typography>
-                    </AccordionSummary>
-                    <AccordionDetails>
-                        <FormControl fullWidth variant="outlined" size="small" margin="dense" sx={{backgroundColor: "background.default"}}>
-                            <InputLabel id="page-size-label">Page size</InputLabel>
-                            <Select
-                                labelId="page-size-label"
-                                label="Page size"
-                                value={pageSize?.name}
-                                onChange={(e) => changePageSize(e.target.value)}
-                            >
-                                {PAGE_SIZES.map(ps => (
-                                    <MenuItem key={ps.name} value={ps.name}>{ps.name} ({ps.width} mm x {ps.height} mm)</MenuItem>
-                                ))}
-                            </Select>
-                        </FormControl>
-                        <FormControl fullWidth variant="outlined" size="small">
-                            <FormLabel id="page-orientation-label">Orientation</FormLabel>
-                            <RadioGroup
-                                row
-                                aria-labelledby="page-orientation-label"
-                                name="page-orientation-radio-buttons-group"
-                                value={pageOrientation}
-                                onChange={(e) => updatePageOrientation(e.target.value)}
-                            >
-                                <FormControlLabel value="portrait" control={<Radio />} label="Portrait" />
-                                <FormControlLabel value="landscape" control={<Radio />} label="Landscape" />
-                            </RadioGroup>
-                        </FormControl>
-                    </AccordionDetails>
-                </Accordion>
-                <Accordion disableGutters={true}>
-                    <AccordionSummary expandIcon={<ExpandMoreIcon />}>
-                        <Typography>Grid and snapping</Typography>
-                    </AccordionSummary>
-                    <AccordionDetails>
-                        <FormGroup>
-                            <FormControlLabel control={<Checkbox checked={displayGrid} onChange={(e, checked) => updateDisplayGrid(checked)} />} label="Display grid" />
-                            <TextField 
-                                fullWidth variant="outlined" size="small" margin="dense" disabled={!displayGrid}
-                                label="Minor grid size"
-                                InputProps={{
-                                    endAdornment: <InputAdornment position="end">mm</InputAdornment>  
-                                }}
-                                value={minorGridSize}
-                                onChange={(e) => updateMinorGridSize(e.target.value)}
-                                sx={{backgroundColor: displayGrid ? "background.default" : "background.paper"}}
-                            />
-                            <TextField 
-                                fullWidth variant="outlined" size="small" margin="dense" disabled={!displayGrid}
-                                label="Major grid size"
-                                InputProps={{
-                                    endAdornment: <InputAdornment position="end">mm</InputAdornment>  
-                                }}
-                                value={majorGridSize}
-                                onChange={(e) => updateMajorGridSize(e.target.value)}
-                                sx={{backgroundColor: displayGrid ? "background.default" : "background.paper"}}
-                            />
-                            <FormControlLabel control={<Checkbox checked={snapToGrid} onChange={(e, checked) => updateSnapToGrid(checked)} />} label="Snap to grid" />
-                            <TextField 
-                                fullWidth variant="outlined" size="small" margin="dense" disabled={!snapToGrid}
-                                label="Snap grid"
-                                InputProps={{
-                                    endAdornment: <InputAdornment position="end">mm</InputAdornment>  
-                                }}
-                                value={snapGridSize}
-                                onChange={(e) => updateSnapGridSize(e.target.value)}
-                                sx={{backgroundColor: snapToGrid ? "background.default" : "background.paper"}}
-                            />
-                            <TextField 
-                                fullWidth variant="outlined" size="small" margin="dense" disabled={!snapToGrid}
-                                label="Snap angle"
-                                InputProps={{
-                                    endAdornment: <InputAdornment position="end">deg.</InputAdornment>  
-                                }}
-                                value={snapAngle}
-                                onChange={(e) => updateSnapAngle(e.target.value)}
-                                sx={{backgroundColor: snapToGrid ? "background.default" : "background.paper"}}
-                            />
-                        </FormGroup>
-                    </AccordionDetails>
-                </Accordion>
+                <DiagramPropertiesTab {...props} />
             </TabPanel>
         </>
     );
