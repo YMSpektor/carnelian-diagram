@@ -5,9 +5,12 @@ import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
 import TabPanel from "./TabPanel";
 import FormGroup from "@mui/material/FormGroup";
 import Checkbox from "@mui/material/Checkbox";
-import { DiagramElementNode } from "@carnelian-diagram/core";
+import { Diagram, DiagramElementNode, DiagramElementProps } from "@carnelian-diagram/core";
+import ColorInput from "./ColorInput";
+import { ClosedFigureStyleProps } from "@carnelian-diagram/shapes";
 
 export interface DiagramPropertiesPanelProps {
+    diagram: Diagram;
     controller: InteractionController;
     unitMultiplier: number;
     selectedElements: DiagramElementNode[];
@@ -143,7 +146,7 @@ const DiagramPropertiesTab = (props: DiagramPropertiesPanelProps) => {
 
     return (
         <>
-            <Accordion disableGutters={true}>
+            <Accordion disableGutters={true} defaultExpanded={true}>
                 <AccordionSummary expandIcon={<ExpandMoreIcon />}>
                     <Typography>Page</Typography>
                 </AccordionSummary>
@@ -176,7 +179,7 @@ const DiagramPropertiesTab = (props: DiagramPropertiesPanelProps) => {
                     </FormControl>
                 </AccordionDetails>
             </Accordion>
-            <Accordion disableGutters={true}>
+            <Accordion disableGutters={true} defaultExpanded={true}>
                 <AccordionSummary expandIcon={<ExpandMoreIcon />}>
                     <Typography>Grid & Snapping</Typography>
                 </AccordionSummary>
@@ -232,18 +235,38 @@ const DiagramPropertiesTab = (props: DiagramPropertiesPanelProps) => {
 }
 
 const ElementsPropertiesTab = (props: DiagramPropertiesPanelProps) => {
+    function updateElement<T>(element: DiagramElementNode<T>, elementProps: DiagramElementProps<T>) {
+        props.diagram.update(element, elementProps);
+    }
+
+    function getFillColor() {
+        const defaultFillColor = "#ffffff";
+        return props.selectedElements.length ? (props.selectedElements[0].props as ClosedFigureStyleProps).style?.fill || defaultFillColor : "";
+    }
+
+    function updateFillColor(value: string) {
+        props.selectedElements.forEach(element => {
+            updateElement<ClosedFigureStyleProps>(element, { ...element.props, style: { ...element.props.style, fill: value } });
+        });
+    }
+
     return (
         <>
             {props.selectedElements.length ? <>
-                <Accordion disableGutters={true}>
+                <Accordion disableGutters={true} defaultExpanded={true}>
                     <AccordionSummary expandIcon={<ExpandMoreIcon />}>
                         <Typography>Fill</Typography>
                     </AccordionSummary>
                     <AccordionDetails>
-
+                    <ColorInput 
+                        fullWidth variant="outlined" size="small" margin="dense"
+                        label="Fill color"
+                        value={getFillColor()}
+                        onChange={updateFillColor}
+                    />
                     </AccordionDetails>
                 </Accordion>
-                <Accordion disableGutters={true}>
+                <Accordion disableGutters={true}  defaultExpanded={true}>
                     <AccordionSummary expandIcon={<ExpandMoreIcon />}>
                         <Typography>Line</Typography>
                     </AccordionSummary>
@@ -251,7 +274,7 @@ const ElementsPropertiesTab = (props: DiagramPropertiesPanelProps) => {
 
                     </AccordionDetails>
                 </Accordion>
-                <Accordion disableGutters={true}>
+                <Accordion disableGutters={true}  defaultExpanded={true}>
                     <AccordionSummary expandIcon={<ExpandMoreIcon />}>
                         <Typography>Text</Typography>
                     </AccordionSummary>

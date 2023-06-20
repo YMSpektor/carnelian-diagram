@@ -87,7 +87,8 @@ function App(props: AppProps) {
                         </div>
                         <Divider />
                         <div css={{flex: "1 1 50%", overflow: "auto"}}>
-                            <DiagramPropertiesPanel 
+                            <DiagramPropertiesPanel
+                                diagram={diagram}
                                 controller={controller} 
                                 unitMultiplier={0.1}
                                 selectedElements={selectedElements}

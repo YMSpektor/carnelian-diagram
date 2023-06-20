@@ -9,7 +9,6 @@ import LineWeightIcon from '@mui/icons-material/LineWeight';
 import CircleOutlinedIcon from '@mui/icons-material/CircleOutlined';
 import FormatColorTextIcon from '@mui/icons-material/FormatColorText';
 import FormatSizeIcon from '@mui/icons-material/FormatSize';
-import { CompactPicker } from 'react-color';
 import { DrawingModeElementFactory, DRAW_ELEMENT_EVENT, InteractionController, isElementDrawingService } from "@carnelian-diagram/interaction";
 import { ClosedFigureStyleProps, TextStyleProps } from "@carnelian-diagram/shapes";
 import { Diagram, DiagramElementNode, DiagramElementProps } from "@carnelian-diagram/core";
@@ -22,6 +21,7 @@ import {
     InteractiveMultilineText as Text,
 } from "@carnelian-diagram/shapes/basic";
 import { defaultTextStyles } from "../diagram";
+import ColorPicker from "./ColorPicker";
 
 interface DiagramToolbarProps {
     diagram: Diagram;
@@ -313,7 +313,7 @@ function DiagramToolbar(props: DiagramToolbarProps) {
                     horizontal: 'left',
                 }}
             >
-                <CompactPicker color={color} onChange={(color) => setElementColor(color.hex)} />
+                <ColorPicker color={color} onChange={(color) => setElementColor(color.hex)} />
             </Popover>
             <ToggleButtonGroup exclusive size="small" value={drawingMode} onChange={(e, value) => changeDrawinMode(value)}>
                 <ToggleButton value="" sx={{ color: "inherit !important" }}>
