@@ -277,6 +277,7 @@ const ElementsPropertiesTab = (props: DiagramPropertiesPanelProps) => {
 
     useEffect(() => {
         setStrokeWidth(getStrokeWidth(props.selectedElements, props.unitMultiplier));
+        setFontSize(getFontSize(props.selectedElements, props.unitMultiplier));
     }, [props.selectedElements, props.unitMultiplier]);
 
     function updateElement<T>(element: DiagramElementNode<T>, elementProps: DiagramElementProps<T>) {
