@@ -261,6 +261,18 @@ function getFontFamily(selectedElements: DiagramElementNode[]) {
     return selectedElements.length ? (selectedElements[0].props as TextStyleProps).textStyle?.fontFamily || DEFAULT_FONT_FAMILY : DEFAULT_FONT_FAMILY;
 }
 
+function getFontBold(selectedElements: DiagramElementNode[]): boolean {
+    return selectedElements.length ? (selectedElements[0].props as TextStyleProps).textStyle?.fontWeight === "bold" : false;
+}
+
+function getFontItalic(selectedElements: DiagramElementNode[]): boolean {
+    return selectedElements.length ? (selectedElements[0].props as TextStyleProps).textStyle?.fontStyle === "italic" : false;
+}
+
+function getFontUnderline(selectedElements: DiagramElementNode[]): boolean {
+    return selectedElements.length ? (selectedElements[0].props as TextStyleProps).textStyle?.textDecoration === "underline" : false;
+}
+
 function getFontSize(selectedElements: DiagramElementNode[], unitMultiplier: number) {
     const defaultFontSize = 1;
     return selectedElements.length ? (parseFloat((selectedElements[0].props as TextStyleProps).textStyle?.fontSize?.toString() || "") || 0) * unitMultiplier || defaultFontSize : "";
@@ -270,11 +282,17 @@ const ElementsPropertiesTab = (props: DiagramPropertiesPanelProps) => {
     const [strokeWidth, setStrokeWidth] = useState(getStrokeWidth(props.selectedElements, props.unitMultiplier));
     const [fontSize, setFontSize] = useState(getFontSize(props.selectedElements, props.unitMultiplier));
     const [fontFamily, setFontFamily] = useState(getFontFamily(props.selectedElements));
+    const [fontBold, setFontBold] = useState(getFontBold(props.selectedElements));
+    const [fontItalic, setFontItalic] = useState(getFontItalic(props.selectedElements));
+    const [fontUnderline, setFontUnderline] = useState(getFontUnderline(props.selectedElements));
 
     useEffect(() => {
         setStrokeWidth(getStrokeWidth(props.selectedElements, props.unitMultiplier));
         setFontSize(getFontSize(props.selectedElements, props.unitMultiplier));
         setFontFamily(getFontFamily(props.selectedElements));
+        setFontBold(getFontBold(props.selectedElements));
+        setFontItalic(getFontItalic(props.selectedElements));
+        setFontUnderline(getFontUnderline(props.selectedElements));
     }, [props.selectedElements, props.unitMultiplier]);
 
     function updateElement<T>(element: DiagramElementNode<T>, elementProps: DiagramElementProps<T>) {
@@ -307,6 +325,27 @@ const ElementsPropertiesTab = (props: DiagramPropertiesPanelProps) => {
         const fontFamily = value === DEFAULT_FONT_FAMILY ? undefined : value;
         props.selectedElements.forEach(element => {
             updateElement<TextStyleProps>(element, { ...element.props, textStyle: { ...element.props.textStyle, fontFamily: fontFamily } });
+        });
+    }
+
+    function updateFontBold(value: boolean) {
+        setFontBold(value);
+        props.selectedElements.forEach(element => {
+            updateElement<TextStyleProps>(element, { ...element.props, textStyle: { ...element.props.textStyle, fontWeight: value ? "bold" : undefined } });
+        });
+    }
+
+    function updateFontItalic(value: boolean) {
+        setFontItalic(value);
+        props.selectedElements.forEach(element => {
+            updateElement<TextStyleProps>(element, { ...element.props, textStyle: { ...element.props.textStyle, fontStyle: value ? "italic" : undefined } });
+        });
+    }
+
+    function updateFontUnderline(value: boolean) {
+        setFontUnderline(value);
+        props.selectedElements.forEach(element => {
+            updateElement<TextStyleProps>(element, { ...element.props, textStyle: { ...element.props.textStyle, textDecoration: value ? "underline" : undefined } });
         });
     }
 
@@ -384,6 +423,11 @@ const ElementsPropertiesTab = (props: DiagramPropertiesPanelProps) => {
                                 ))}
                             </Select>
                         </FormControl>
+                        <FormGroup>
+                            <FormControlLabel control={<Checkbox checked={fontBold} onChange={(e, checked) => updateFontBold(checked)} />} label="Bold" />
+                            <FormControlLabel control={<Checkbox checked={fontItalic} onChange={(e, checked) => updateFontItalic(checked)} />} label="Italic" />
+                            <FormControlLabel control={<Checkbox checked={fontUnderline} onChange={(e, checked) => updateFontUnderline(checked)} />} label="Underline" />
+                        </FormGroup>
                         <TextField 
                             fullWidth variant="outlined" size="small" margin="dense"
                             label="Font size"
