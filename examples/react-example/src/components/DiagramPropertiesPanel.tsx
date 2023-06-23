@@ -34,6 +34,8 @@ const PAGE_SIZES: PageSize[] = [
 
 const DEFAULT_FONT_FAMILY = "[Default]"
 const FONT_FAMILIES: string[] = ["Arial", "Comic Sans MS", "Courier New", "Garamond", "Lucida Console", "Tahoma", "Times New Roman"];
+const TEXT_ALIGNS: string[] = ["Left", "Center", "Right"];
+const TEXT_V_ALIGNS: string[] = ["Top", "Middle", "Bottom"];
 
 const DiagramPropertiesTab = (props: DiagramPropertiesPanelProps) => {
     const paperService = props.controller.getService(isPaperService);
@@ -278,6 +280,16 @@ function getFontSize(selectedElements: DiagramElementNode[], unitMultiplier: num
     return selectedElements.length ? (parseFloat((selectedElements[0].props as TextStyleProps).textStyle?.fontSize?.toString() || "") || 0) * unitMultiplier || defaultFontSize : "";
 }
 
+function getTextAlign(selectedElements: DiagramElementNode[]) {
+    const defaultTextAlign = "center";
+    return selectedElements.length ? (selectedElements[0].props as TextStyleProps).textStyle?.textAlign || defaultTextAlign : "";
+}
+
+function getTextVAlign(selectedElements: DiagramElementNode[]) {
+    const defaultTextVAlign = "middle";
+    return selectedElements.length ? (selectedElements[0].props as TextStyleProps).textStyle?.verticalAlign || defaultTextVAlign : "";
+}
+
 const ElementsPropertiesTab = (props: DiagramPropertiesPanelProps) => {
     const [strokeWidth, setStrokeWidth] = useState(getStrokeWidth(props.selectedElements, props.unitMultiplier));
     const [fontSize, setFontSize] = useState(getFontSize(props.selectedElements, props.unitMultiplier));
@@ -285,6 +297,8 @@ const ElementsPropertiesTab = (props: DiagramPropertiesPanelProps) => {
     const [fontBold, setFontBold] = useState(getFontBold(props.selectedElements));
     const [fontItalic, setFontItalic] = useState(getFontItalic(props.selectedElements));
     const [fontUnderline, setFontUnderline] = useState(getFontUnderline(props.selectedElements));
+    const [textAlign, setTextAlign] = useState(getTextAlign(props.selectedElements));
+    const [textVAlign, setTextVAlign] = useState(getTextVAlign(props.selectedElements));
 
     useEffect(() => {
         setStrokeWidth(getStrokeWidth(props.selectedElements, props.unitMultiplier));
@@ -293,6 +307,8 @@ const ElementsPropertiesTab = (props: DiagramPropertiesPanelProps) => {
         setFontBold(getFontBold(props.selectedElements));
         setFontItalic(getFontItalic(props.selectedElements));
         setFontUnderline(getFontUnderline(props.selectedElements));
+        setTextAlign(getTextAlign(props.selectedElements));
+        setTextVAlign(getTextVAlign(props.selectedElements));
     }, [props.selectedElements, props.unitMultiplier]);
 
     function updateElement<T>(element: DiagramElementNode<T>, elementProps: DiagramElementProps<T>) {
@@ -361,6 +377,20 @@ const ElementsPropertiesTab = (props: DiagramPropertiesPanelProps) => {
         fontSize = isNaN(fontSize) ? 0 : fontSize / props.unitMultiplier;
         props.selectedElements.forEach(element => {
             updateElement<TextStyleProps>(element, { ...element.props, textStyle: { ...element.props.textStyle, fontSize: fontSize } });
+        });
+    }
+
+    function updateTextAligh(value: string) {
+        setTextAlign(value);
+        props.selectedElements.forEach(element => {
+            updateElement<TextStyleProps>(element, { ...element.props, textStyle: { ...element.props.textStyle, textAlign: value } });
+        });
+    }
+
+    function updateTextVAligh(value: string) {
+        setTextVAlign(value);
+        props.selectedElements.forEach(element => {
+            updateElement<TextStyleProps>(element, { ...element.props, textStyle: { ...element.props.textStyle, verticalAlign: value } });
         });
     }
 
@@ -438,6 +468,32 @@ const ElementsPropertiesTab = (props: DiagramPropertiesPanelProps) => {
                             onChange={(e) => updateFontSize(e.target.value)}
                             sx={{backgroundColor: "background.default"}}
                         />
+                        <FormControl fullWidth variant="outlined" size="small" margin="dense" sx={{backgroundColor: "background.default"}}>
+                            <InputLabel id="text-align-label">Text alignment</InputLabel>
+                            <Select
+                                labelId="text-align-label"
+                                label="Text alignment"
+                                value={textAlign}
+                                onChange={(e) => updateTextAligh(e.target.value)}
+                            >
+                                {TEXT_ALIGNS.map(textAlign => (
+                                    <MenuItem key={textAlign} value={textAlign.toLowerCase()}>{textAlign}</MenuItem>
+                                ))}
+                            </Select>
+                        </FormControl>
+                        <FormControl fullWidth variant="outlined" size="small" margin="dense" sx={{backgroundColor: "background.default"}}>
+                            <InputLabel id="text-valign-label">Vertical alignment</InputLabel>
+                            <Select
+                                labelId="text-valign-label"
+                                label="Vertical alignment"
+                                value={textVAlign}
+                                onChange={(e) => updateTextVAligh(e.target.value)}
+                            >
+                                {TEXT_V_ALIGNS.map(textVAlign => (
+                                    <MenuItem key={textVAlign} value={textVAlign.toLowerCase()}>{textVAlign}</MenuItem>
+                                ))}
+                            </Select>
+                        </FormControl>
                         <ColorInput 
                             fullWidth variant="outlined" size="small" margin="dense"
                             label="Text color"
