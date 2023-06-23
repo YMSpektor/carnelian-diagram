@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { IconButton, InputAdornment, Popover, TextField, TextFieldProps } from "@mui/material";
-import MoreHorizIcon from '@mui/icons-material/MoreHoriz';
+import ArrowDropDownIcon from '@mui/icons-material/ArrowDropDown';
 import ColorPicker from "./ColorPicker";
 
 export interface ColorInputProps {
@@ -40,7 +40,7 @@ const ColorInput = (props: ColorInputProps & Omit<TextFieldProps, "InputProps" |
                 InputProps={{
                     endAdornment: <InputAdornment position="end" sx={{mr: -1}}>
                         <IconButton size="small" onClick={(e) => setAnchorEl(e.currentTarget)}>
-                            <MoreHorizIcon />
+                            <ArrowDropDownIcon />
                         </IconButton>
                     </InputAdornment>  
                 }}

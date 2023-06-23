@@ -1,6 +1,6 @@
-import { useEffect, useReducer, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { InteractionController, isGridSnappingService, isPaperService, Paper } from "@carnelian-diagram/interaction";
-import { Accordion, AccordionDetails, AccordionSummary, Box, FormControl, FormControlLabel, FormLabel, InputAdornment, InputLabel, MenuItem, Radio, RadioGroup, Select, Tab, Tabs, TextField, Typography } from "@mui/material";
+import { Accordion, AccordionDetails, AccordionSummary, Box, Divider, FormControl, FormControlLabel, FormLabel, InputAdornment, InputLabel, MenuItem, Radio, RadioGroup, Select, Tab, Tabs, TextField, Typography } from "@mui/material";
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
 import TabPanel from "./TabPanel";
 import FormGroup from "@mui/material/FormGroup";
@@ -31,6 +31,9 @@ const PAGE_SIZES: PageSize[] = [
     { name: "A4", width: 210, height: 297 },
     { name: "A5", width: 148, height: 210 },
 ];
+
+const DEFAULT_FONT_FAMILY = "[Default]"
+const FONT_FAMILIES: string[] = ["Arial", "Comic Sans MS", "Courier New", "Garamond", "Lucida Console", "Tahoma", "Times New Roman"];
 
 const DiagramPropertiesTab = (props: DiagramPropertiesPanelProps) => {
     const paperService = props.controller.getService(isPaperService);
@@ -254,31 +257,27 @@ function getTextColor(selectedElements: DiagramElementNode[]) {
     return selectedElements.length ? (selectedElements[0].props as TextStyleProps).textStyle?.fill || defaultFontColor : "";
 }
 
+function getFontFamily(selectedElements: DiagramElementNode[]) {
+    return selectedElements.length ? (selectedElements[0].props as TextStyleProps).textStyle?.fontFamily || DEFAULT_FONT_FAMILY : DEFAULT_FONT_FAMILY;
+}
+
 function getFontSize(selectedElements: DiagramElementNode[], unitMultiplier: number) {
     const defaultFontSize = 1;
     return selectedElements.length ? (parseFloat((selectedElements[0].props as TextStyleProps).textStyle?.fontSize?.toString() || "") || 0) * unitMultiplier || defaultFontSize : "";
 }
 
 const ElementsPropertiesTab = (props: DiagramPropertiesPanelProps) => {
-    // eslint-disable-next-line
-    const [_, forceUpdate] = useReducer(x => x + 1, 0);
     const [strokeWidth, setStrokeWidth] = useState(getStrokeWidth(props.selectedElements, props.unitMultiplier));
     const [fontSize, setFontSize] = useState(getFontSize(props.selectedElements, props.unitMultiplier));
 
-    useEffect(() => {
-        const subscription = props.diagram.subscribe(() => {
-            setStrokeWidth(getStrokeWidth(props.selectedElements, props.unitMultiplier));
-            setFontSize(getFontSize(props.selectedElements, props.unitMultiplier));
-            forceUpdate();
-        });
-
-        return () => subscription.unsubscribe();
-    }, [props.diagram, props.selectedElements, props.unitMultiplier]);
-
-    useEffect(() => {
+    const updateEditorValues = useCallback(() => {
         setStrokeWidth(getStrokeWidth(props.selectedElements, props.unitMultiplier));
         setFontSize(getFontSize(props.selectedElements, props.unitMultiplier));
     }, [props.selectedElements, props.unitMultiplier]);
+
+    useEffect(() => {
+        updateEditorValues();
+    }, [updateEditorValues]);
 
     function updateElement<T>(element: DiagramElementNode<T>, elementProps: DiagramElementProps<T>) {
         props.diagram.update(element, elementProps);
@@ -302,6 +301,13 @@ const ElementsPropertiesTab = (props: DiagramPropertiesPanelProps) => {
         strokeWidth = isNaN(strokeWidth) ? 0 : strokeWidth / props.unitMultiplier;
         props.selectedElements.forEach(element => {
             updateElement<ClosedFigureStyleProps>(element, { ...element.props, style: { ...element.props.style, strokeWidth: strokeWidth } });
+        });
+    }
+
+    function updateFontFamily(value: string) {
+        const fontFamily = value === DEFAULT_FONT_FAMILY ? undefined : value;
+        props.selectedElements.forEach(element => {
+            updateElement<TextStyleProps>(element, { ...element.props, textStyle: { ...element.props.textStyle, fontFamily: fontFamily } });
         });
     }
 
@@ -364,12 +370,21 @@ const ElementsPropertiesTab = (props: DiagramPropertiesPanelProps) => {
                         <Typography>Text</Typography>
                     </AccordionSummary>
                     <AccordionDetails>
-                    <ColorInput 
-                            fullWidth variant="outlined" size="small" margin="dense"
-                            label="Text color"
-                            value={getTextColor(props.selectedElements)}
-                            onChange={updateTextColor}
-                        />
+                        <FormControl fullWidth variant="outlined" size="small" margin="dense" sx={{backgroundColor: "background.default"}}>
+                            <InputLabel id="font-family-label">Font family</InputLabel>
+                            <Select
+                                labelId="font-family-label"
+                                label="Font family"
+                                value={getFontFamily(props.selectedElements)}
+                                onChange={(e) => updateFontFamily(e.target.value)}
+                            >
+                                <MenuItem value={DEFAULT_FONT_FAMILY}>{DEFAULT_FONT_FAMILY}</MenuItem>
+                                <Divider />
+                                {FONT_FAMILIES.map(fontFamily => (
+                                    <MenuItem key={fontFamily} value={fontFamily} style={{fontFamily: fontFamily}}>{fontFamily}</MenuItem>
+                                ))}
+                            </Select>
+                        </FormControl>
                         <TextField 
                             fullWidth variant="outlined" size="small" margin="dense"
                             label="Font size"
@@ -379,6 +394,12 @@ const ElementsPropertiesTab = (props: DiagramPropertiesPanelProps) => {
                             value={fontSize}
                             onChange={(e) => updateFontSize(e.target.value)}
                             sx={{backgroundColor: "background.default"}}
+                        />
+                        <ColorInput 
+                            fullWidth variant="outlined" size="small" margin="dense"
+                            label="Text color"
+                            value={getTextColor(props.selectedElements)}
+                            onChange={updateTextColor}
                         />
                     </AccordionDetails>
                 </Accordion>
