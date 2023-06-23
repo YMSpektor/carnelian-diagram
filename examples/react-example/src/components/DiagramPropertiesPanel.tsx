@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import { InteractionController, isGridSnappingService, isPaperService, Paper } from "@carnelian-diagram/interaction";
 import { Accordion, AccordionDetails, AccordionSummary, Box, Divider, FormControl, FormControlLabel, FormLabel, InputAdornment, InputLabel, MenuItem, Radio, RadioGroup, Select, Tab, Tabs, TextField, Typography } from "@mui/material";
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
@@ -269,15 +269,13 @@ function getFontSize(selectedElements: DiagramElementNode[], unitMultiplier: num
 const ElementsPropertiesTab = (props: DiagramPropertiesPanelProps) => {
     const [strokeWidth, setStrokeWidth] = useState(getStrokeWidth(props.selectedElements, props.unitMultiplier));
     const [fontSize, setFontSize] = useState(getFontSize(props.selectedElements, props.unitMultiplier));
-
-    const updateEditorValues = useCallback(() => {
-        setStrokeWidth(getStrokeWidth(props.selectedElements, props.unitMultiplier));
-        setFontSize(getFontSize(props.selectedElements, props.unitMultiplier));
-    }, [props.selectedElements, props.unitMultiplier]);
+    const [fontFamily, setFontFamily] = useState(getFontFamily(props.selectedElements));
 
     useEffect(() => {
-        updateEditorValues();
-    }, [updateEditorValues]);
+        setStrokeWidth(getStrokeWidth(props.selectedElements, props.unitMultiplier));
+        setFontSize(getFontSize(props.selectedElements, props.unitMultiplier));
+        setFontFamily(getFontFamily(props.selectedElements));
+    }, [props.selectedElements, props.unitMultiplier]);
 
     function updateElement<T>(element: DiagramElementNode<T>, elementProps: DiagramElementProps<T>) {
         props.diagram.update(element, elementProps);
@@ -305,6 +303,7 @@ const ElementsPropertiesTab = (props: DiagramPropertiesPanelProps) => {
     }
 
     function updateFontFamily(value: string) {
+        setFontFamily(value);
         const fontFamily = value === DEFAULT_FONT_FAMILY ? undefined : value;
         props.selectedElements.forEach(element => {
             updateElement<TextStyleProps>(element, { ...element.props, textStyle: { ...element.props.textStyle, fontFamily: fontFamily } });
@@ -375,7 +374,7 @@ const ElementsPropertiesTab = (props: DiagramPropertiesPanelProps) => {
                             <Select
                                 labelId="font-family-label"
                                 label="Font family"
-                                value={getFontFamily(props.selectedElements)}
+                                value={fontFamily}
                                 onChange={(e) => updateFontFamily(e.target.value)}
                             >
                                 <MenuItem value={DEFAULT_FONT_FAMILY}>{DEFAULT_FONT_FAMILY}</MenuItem>
