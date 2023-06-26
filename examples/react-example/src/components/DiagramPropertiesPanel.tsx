@@ -32,7 +32,19 @@ const PAGE_SIZES: PageSize[] = [
     { name: "A5", width: 148, height: 210 },
 ];
 
-const DEFAULT_FONT_FAMILY = "[Default]"
+interface StrokeStyle {
+    name: string;
+    dasharray: string | undefined;
+}
+
+const SOLID_STROKE_STYLE = "Solid";
+const STROKE_STYLES: StrokeStyle[] = [
+    { name: SOLID_STROKE_STYLE, dasharray: undefined },
+    { name: "Dashed", dasharray: "20 10"},
+    { name: "Dotted", dasharray: "5 5"},
+    { name: "Dashdot", dasharray: "20 5 5 5"}
+];
+const DEFAULT_FONT_FAMILY = "[Default]";
 const FONT_FAMILIES: string[] = ["Arial", "Comic Sans MS", "Courier New", "Garamond", "Lucida Console", "Tahoma", "Times New Roman"];
 const TEXT_ALIGNS: string[] = ["Left", "Center", "Right"];
 const TEXT_V_ALIGNS: string[] = ["Top", "Middle", "Bottom"];
@@ -254,6 +266,11 @@ function getStrokeWidth(selectedElements: DiagramElementNode[], unitMultiplier: 
     return selectedElements.length ? (parseFloat((selectedElements[0].props as ClosedFigureStyleProps).style?.strokeWidth?.toString() || "") || 0) * unitMultiplier || defaultStrokeWidth : "";
 }
 
+function getStrokeStyle(selectedElements: DiagramElementNode[]) {
+    const value = selectedElements.length ? (selectedElements[0].props as ClosedFigureStyleProps).style?.strokeDasharray || undefined : undefined;
+    return STROKE_STYLES.find(x => x.dasharray === value)?.name || SOLID_STROKE_STYLE;
+}
+
 function getTextColor(selectedElements: DiagramElementNode[]) {
     const defaultFontColor = "#000000";
     return selectedElements.length ? (selectedElements[0].props as TextStyleProps).textStyle?.fill || defaultFontColor : "";
@@ -292,6 +309,7 @@ function getTextVAlign(selectedElements: DiagramElementNode[]) {
 
 const ElementsPropertiesTab = (props: DiagramPropertiesPanelProps) => {
     const [strokeWidth, setStrokeWidth] = useState(getStrokeWidth(props.selectedElements, props.unitMultiplier));
+    const [strokeStyle, setStrokeStyle] = useState(getStrokeStyle(props.selectedElements));
     const [fontSize, setFontSize] = useState(getFontSize(props.selectedElements, props.unitMultiplier));
     const [fontFamily, setFontFamily] = useState(getFontFamily(props.selectedElements));
     const [fontBold, setFontBold] = useState(getFontBold(props.selectedElements));
@@ -302,6 +320,7 @@ const ElementsPropertiesTab = (props: DiagramPropertiesPanelProps) => {
 
     useEffect(() => {
         setStrokeWidth(getStrokeWidth(props.selectedElements, props.unitMultiplier));
+        setStrokeStyle(getStrokeStyle(props.selectedElements));
         setFontSize(getFontSize(props.selectedElements, props.unitMultiplier));
         setFontFamily(getFontFamily(props.selectedElements));
         setFontBold(getFontBold(props.selectedElements));
@@ -334,6 +353,16 @@ const ElementsPropertiesTab = (props: DiagramPropertiesPanelProps) => {
         props.selectedElements.forEach(element => {
             updateElement<ClosedFigureStyleProps>(element, { ...element.props, style: { ...element.props.style, strokeWidth: strokeWidth } });
         });
+    }
+
+    function updateStrokeStyle(value: string) {
+        setStrokeStyle(value);
+        const strokeStyle = STROKE_STYLES.find(x => x.name === value);
+        if (strokeStyle) {
+            props.selectedElements.forEach(element => {
+                updateElement<ClosedFigureStyleProps>(element, { ...element.props, style: { ...element.props.style, strokeDasharray: strokeStyle.dasharray } });
+            });
+        }
     }
 
     function updateFontFamily(value: string) {
@@ -412,18 +441,18 @@ const ElementsPropertiesTab = (props: DiagramPropertiesPanelProps) => {
                 </Accordion>
                 <Accordion disableGutters={true}  defaultExpanded={true}>
                     <AccordionSummary expandIcon={<ExpandMoreIcon />}>
-                        <Typography>Stroke</Typography>
+                        <Typography>Line</Typography>
                     </AccordionSummary>
                     <AccordionDetails>
                         <ColorInput 
                             fullWidth variant="outlined" size="small" margin="dense"
-                            label="Stroke color"
+                            label="Line color"
                             value={getStrokeColor(props.selectedElements)}
                             onChange={updateStrokeColor}
                         />
                         <TextField 
                             fullWidth variant="outlined" size="small" margin="dense"
-                            label="Stroke width"
+                            label="Line width"
                             InputProps={{
                                 endAdornment: <InputAdornment position="end">mm</InputAdornment>  
                             }}
@@ -431,6 +460,19 @@ const ElementsPropertiesTab = (props: DiagramPropertiesPanelProps) => {
                             onChange={(e) => updateStrokeWidth(e.target.value)}
                             sx={{backgroundColor: "background.default"}}
                         />
+                        <FormControl fullWidth variant="outlined" size="small" margin="dense" sx={{backgroundColor: "background.default"}}>
+                            <InputLabel id="line-style-label">Line Style</InputLabel>
+                            <Select
+                                labelId="line-style-label"
+                                label="Line style"
+                                value={strokeStyle}
+                                onChange={(e) => updateStrokeStyle(e.target.value)}
+                            >
+                                {STROKE_STYLES.map(strokeStyle => (
+                                    <MenuItem key={strokeStyle.name} value={strokeStyle.name}>{strokeStyle.name}</MenuItem>
+                                ))}
+                            </Select>
+                        </FormControl>
                     </AccordionDetails>
                 </Accordion>
                 <Accordion disableGutters={true}  defaultExpanded={true}>
