@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useLayoutEffect, useState } from "react";
 import { InteractionController, isGridSnappingService, isPaperService, Paper } from "@carnelian-diagram/interaction";
 import { Accordion, AccordionDetails, AccordionSummary, Box, Divider, FormControl, FormControlLabel, FormLabel, InputAdornment, InputLabel, MenuItem, Radio, RadioGroup, Select, Tab, Tabs, TextField, Typography } from "@mui/material";
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
@@ -257,7 +257,8 @@ function getHasFill(selectedElements: DiagramElementNode[]) {
 
 function getFillColor(selectedElements: DiagramElementNode[]) {
     const defaultFillColor = "#ffffff";
-    return selectedElements.length ? (selectedElements[0].props as ClosedFigureStyleProps).style?.fill || defaultFillColor : "";
+    const result = selectedElements.length ? (selectedElements[0].props as ClosedFigureStyleProps).style?.fill || defaultFillColor : defaultFillColor;
+    return result !== "none" ? result : defaultFillColor;
 }
 
 function getHasStroke(selectedElements: DiagramElementNode[]) {
@@ -266,7 +267,8 @@ function getHasStroke(selectedElements: DiagramElementNode[]) {
 
 function getStrokeColor(selectedElements: DiagramElementNode[]) {
     const defaultStrokeColor = "#000000";
-    return selectedElements.length ? (selectedElements[0].props as ClosedFigureStyleProps).style?.stroke || defaultStrokeColor : "";
+    const result = selectedElements.length ? (selectedElements[0].props as ClosedFigureStyleProps).style?.stroke || defaultStrokeColor : defaultStrokeColor;
+    return result !== "none" ? result : defaultStrokeColor;
 }
 
 function getStrokeWidth(selectedElements: DiagramElementNode[], unitMultiplier: number) {
@@ -285,7 +287,8 @@ function getHasText(selectedElements: DiagramElementNode[]) {
 
 function getTextColor(selectedElements: DiagramElementNode[]) {
     const defaultFontColor = "#000000";
-    return selectedElements.length ? (selectedElements[0].props as TextStyleProps).textStyle?.fill || defaultFontColor : "";
+    const result = selectedElements.length ? (selectedElements[0].props as TextStyleProps).textStyle?.fill || defaultFontColor : defaultFontColor;
+    return result !== "none" ? result : defaultFontColor;
 }
 
 function getFontFamily(selectedElements: DiagramElementNode[]) {
@@ -336,16 +339,21 @@ const ElementsPropertiesTab = (props: DiagramPropertiesPanelProps) => {
     const [textAlign, setTextAlign] = useState(getTextAlign(props.selectedElements));
     const [textVAlign, setTextVAlign] = useState(getTextVAlign(props.selectedElements));
 
-    useEffect(() => {
-        setStrokeWidth(getStrokeWidth(props.selectedElements, props.unitMultiplier));
-        setStrokeStyle(getStrokeStyle(props.selectedElements));
-        setFontSize(getFontSize(props.selectedElements, props.unitMultiplier));
-        setFontFamily(getFontFamily(props.selectedElements));
-        setFontBold(getFontBold(props.selectedElements));
-        setFontItalic(getFontItalic(props.selectedElements));
-        setFontUnderline(getFontUnderline(props.selectedElements));
-        setTextAlign(getTextAlign(props.selectedElements));
-        setTextVAlign(getTextVAlign(props.selectedElements));
+    useLayoutEffect(() => {
+        if (props.selectedElements.length) {
+            setFillColor(getFillColor(props.selectedElements));
+            setStrokeColor(getStrokeColor(props.selectedElements));
+            setStrokeWidth(getStrokeWidth(props.selectedElements, props.unitMultiplier));
+            setStrokeStyle(getStrokeStyle(props.selectedElements));
+            setTextColor(getTextColor(props.selectedElements));
+            setFontSize(getFontSize(props.selectedElements, props.unitMultiplier));
+            setFontFamily(getFontFamily(props.selectedElements));
+            setFontBold(getFontBold(props.selectedElements));
+            setFontItalic(getFontItalic(props.selectedElements));
+            setFontUnderline(getFontUnderline(props.selectedElements));
+            setTextAlign(getTextAlign(props.selectedElements));
+            setTextVAlign(getTextVAlign(props.selectedElements));
+        }
     }, [props.selectedElements, props.unitMultiplier]);
 
     function updateElement<T>(element: DiagramElementNode<T>, elementProps: DiagramElementProps<T>) {
@@ -354,8 +362,10 @@ const ElementsPropertiesTab = (props: DiagramPropertiesPanelProps) => {
 
     function updateHasFill(value: boolean) {
         setHasFill(value);
+        const color = fillColor !== "none" ? fillColor : "#ffffff";
+        setFillColor(color);
         props.selectedElements.forEach(element => {
-            updateElement<ClosedFigureStyleProps>(element, { ...element.props, style: { ...element.props.style, fill: value ? fillColor : "none" } });
+            updateElement<ClosedFigureStyleProps>(element, { ...element.props, style: { ...element.props.style, fill: value ? color : "none" } });
         });
     }
 
@@ -368,8 +378,10 @@ const ElementsPropertiesTab = (props: DiagramPropertiesPanelProps) => {
 
     function updateHasStroke(value: boolean) {
         setHasStroke(value);
+        const color = strokeColor !== "none" ? strokeColor : "#000000";
+        setStrokeColor(color);
         props.selectedElements.forEach(element => {
-            updateElement<ClosedFigureStyleProps>(element, { ...element.props, style: { ...element.props.style, stroke: value ? strokeColor : "none" } });
+            updateElement<ClosedFigureStyleProps>(element, { ...element.props, style: { ...element.props.style, stroke: value ? color : "none" } });
         });
     }
 
@@ -401,8 +413,10 @@ const ElementsPropertiesTab = (props: DiagramPropertiesPanelProps) => {
 
     function updateHasText(value: boolean) {
         setHasText(value);
+        const color = textColor !== "none" ? textColor : "#000000";
+        setTextColor(color);
         props.selectedElements.forEach(element => {
-            updateElement<TextStyleProps>(element, { ...element.props, textStyle: { ...element.props.textStyle, fill: value ? textColor : "none" } });
+            updateElement<TextStyleProps>(element, { ...element.props, textStyle: { ...element.props.textStyle, fill: value ? color : "none" } });
         });
     }
 
