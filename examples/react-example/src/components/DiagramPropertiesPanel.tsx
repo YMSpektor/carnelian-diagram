@@ -251,9 +251,17 @@ const DiagramPropertiesTab = (props: DiagramPropertiesPanelProps) => {
     );
 }
 
+function getHasFill(selectedElements: DiagramElementNode[]) {
+    return selectedElements.length ? (selectedElements[0].props as ClosedFigureStyleProps).style?.fill !== "none" : true;
+}
+
 function getFillColor(selectedElements: DiagramElementNode[]) {
     const defaultFillColor = "#ffffff";
     return selectedElements.length ? (selectedElements[0].props as ClosedFigureStyleProps).style?.fill || defaultFillColor : "";
+}
+
+function getHasStroke(selectedElements: DiagramElementNode[]) {
+    return selectedElements.length ? (selectedElements[0].props as ClosedFigureStyleProps).style?.stroke !== "none" : true;
 }
 
 function getStrokeColor(selectedElements: DiagramElementNode[]) {
@@ -269,6 +277,10 @@ function getStrokeWidth(selectedElements: DiagramElementNode[], unitMultiplier: 
 function getStrokeStyle(selectedElements: DiagramElementNode[]) {
     const value = selectedElements.length ? (selectedElements[0].props as ClosedFigureStyleProps).style?.strokeDasharray || undefined : undefined;
     return STROKE_STYLES.find(x => x.dasharray === value)?.name || SOLID_STROKE_STYLE;
+}
+
+function getHasText(selectedElements: DiagramElementNode[]) {
+    return selectedElements.length ? (selectedElements[0].props as TextStyleProps).textStyle?.fill !== "none" : true;
 }
 
 function getTextColor(selectedElements: DiagramElementNode[]) {
@@ -308,8 +320,14 @@ function getTextVAlign(selectedElements: DiagramElementNode[]) {
 }
 
 const ElementsPropertiesTab = (props: DiagramPropertiesPanelProps) => {
+    const [hasFill, setHasFill] = useState(getHasFill(props.selectedElements));
+    const [fillColor, setFillColor] = useState(getFillColor(props.selectedElements));
+    const [hasStroke, setHasStroke] = useState(getHasStroke(props.selectedElements));
+    const [strokeColor, setStrokeColor] = useState(getStrokeColor(props.selectedElements));
     const [strokeWidth, setStrokeWidth] = useState(getStrokeWidth(props.selectedElements, props.unitMultiplier));
     const [strokeStyle, setStrokeStyle] = useState(getStrokeStyle(props.selectedElements));
+    const [textColor, setTextColor] = useState(getTextColor(props.selectedElements));
+    const [hasText, setHasText] = useState(getHasText(props.selectedElements));
     const [fontSize, setFontSize] = useState(getFontSize(props.selectedElements, props.unitMultiplier));
     const [fontFamily, setFontFamily] = useState(getFontFamily(props.selectedElements));
     const [fontBold, setFontBold] = useState(getFontBold(props.selectedElements));
@@ -334,13 +352,29 @@ const ElementsPropertiesTab = (props: DiagramPropertiesPanelProps) => {
         props.diagram.update(element, elementProps);
     }
 
+    function updateHasFill(value: boolean) {
+        setHasFill(value);
+        props.selectedElements.forEach(element => {
+            updateElement<ClosedFigureStyleProps>(element, { ...element.props, style: { ...element.props.style, fill: value ? fillColor : "none" } });
+        });
+    }
+
     function updateFillColor(value: string) {
+        setFillColor(value);
         props.selectedElements.forEach(element => {
             updateElement<ClosedFigureStyleProps>(element, { ...element.props, style: { ...element.props.style, fill: value } });
         });
     }
 
+    function updateHasStroke(value: boolean) {
+        setHasStroke(value);
+        props.selectedElements.forEach(element => {
+            updateElement<ClosedFigureStyleProps>(element, { ...element.props, style: { ...element.props.style, stroke: value ? strokeColor : "none" } });
+        });
+    }
+
     function updateStrokeColor(value: string) {
+        setStrokeColor(value);
         props.selectedElements.forEach(element => {
             updateElement<ClosedFigureStyleProps>(element, { ...element.props, style: { ...element.props.style, stroke: value } });
         });
@@ -363,6 +397,13 @@ const ElementsPropertiesTab = (props: DiagramPropertiesPanelProps) => {
                 updateElement<ClosedFigureStyleProps>(element, { ...element.props, style: { ...element.props.style, strokeDasharray: strokeStyle.dasharray } });
             });
         }
+    }
+
+    function updateHasText(value: boolean) {
+        setHasText(value);
+        props.selectedElements.forEach(element => {
+            updateElement<TextStyleProps>(element, { ...element.props, textStyle: { ...element.props.textStyle, fill: value ? textColor : "none" } });
+        });
     }
 
     function updateFontFamily(value: string) {
@@ -395,6 +436,7 @@ const ElementsPropertiesTab = (props: DiagramPropertiesPanelProps) => {
     }
 
     function updateTextColor(value: string) {
+        setTextColor(value);
         props.selectedElements.forEach(element => {
             updateElement<TextStyleProps>(element, { ...element.props, textStyle: { ...element.props.textStyle, fill: value } });
         });
@@ -428,31 +470,34 @@ const ElementsPropertiesTab = (props: DiagramPropertiesPanelProps) => {
             {props.selectedElements.length ? <>
                 <Accordion disableGutters={true} defaultExpanded={true}>
                     <AccordionSummary expandIcon={<ExpandMoreIcon />}>
-                        <Typography>Fill</Typography>
+                        <FormControlLabel onClick={e => e.stopPropagation()} control={<Checkbox checked={hasFill} onChange={(e, checked) => updateHasFill(checked)} />} label="Fill" />
                     </AccordionSummary>
                     <AccordionDetails>
                         <ColorInput 
                             fullWidth variant="outlined" size="small" margin="dense"
                             label="Fill color"
-                            value={getFillColor(props.selectedElements)}
+                            disabled={!hasFill}
+                            value={fillColor}
                             onChange={updateFillColor}
                         />
                     </AccordionDetails>
                 </Accordion>
                 <Accordion disableGutters={true}  defaultExpanded={true}>
                     <AccordionSummary expandIcon={<ExpandMoreIcon />}>
-                        <Typography>Line</Typography>
+                        <FormControlLabel onClick={e => e.stopPropagation()} control={<Checkbox checked={hasStroke} onChange={(e, checked) => updateHasStroke(checked)} />} label="Line" />
                     </AccordionSummary>
                     <AccordionDetails>
                         <ColorInput 
                             fullWidth variant="outlined" size="small" margin="dense"
                             label="Line color"
-                            value={getStrokeColor(props.selectedElements)}
+                            disabled={!hasStroke}
+                            value={strokeColor}
                             onChange={updateStrokeColor}
                         />
                         <TextField 
                             fullWidth variant="outlined" size="small" margin="dense"
                             label="Line width"
+                            disabled={!hasStroke}
                             InputProps={{
                                 endAdornment: <InputAdornment position="end">mm</InputAdornment>  
                             }}
@@ -460,7 +505,7 @@ const ElementsPropertiesTab = (props: DiagramPropertiesPanelProps) => {
                             onChange={(e) => updateStrokeWidth(e.target.value)}
                             sx={{backgroundColor: "background.default"}}
                         />
-                        <FormControl fullWidth variant="outlined" size="small" margin="dense" sx={{backgroundColor: "background.default"}}>
+                        <FormControl fullWidth variant="outlined" size="small" margin="dense" disabled={!hasStroke} sx={{backgroundColor: "background.default"}}>
                             <InputLabel id="line-style-label">Line Style</InputLabel>
                             <Select
                                 labelId="line-style-label"
@@ -477,10 +522,10 @@ const ElementsPropertiesTab = (props: DiagramPropertiesPanelProps) => {
                 </Accordion>
                 <Accordion disableGutters={true}  defaultExpanded={true}>
                     <AccordionSummary expandIcon={<ExpandMoreIcon />}>
-                        <Typography>Text</Typography>
+                        <FormControlLabel onClick={e => e.stopPropagation()} control={<Checkbox checked={hasText} onChange={(e, checked) => updateHasText(checked)} />} label="Text" />
                     </AccordionSummary>
                     <AccordionDetails>
-                        <FormControl fullWidth variant="outlined" size="small" margin="dense" sx={{backgroundColor: "background.default"}}>
+                        <FormControl fullWidth variant="outlined" size="small" margin="dense" disabled={!hasText} sx={{backgroundColor: "background.default"}}>
                             <InputLabel id="font-family-label">Font family</InputLabel>
                             <Select
                                 labelId="font-family-label"
@@ -496,13 +541,14 @@ const ElementsPropertiesTab = (props: DiagramPropertiesPanelProps) => {
                             </Select>
                         </FormControl>
                         <FormGroup>
-                            <FormControlLabel control={<Checkbox checked={fontBold} onChange={(e, checked) => updateFontBold(checked)} />} label="Bold" />
-                            <FormControlLabel control={<Checkbox checked={fontItalic} onChange={(e, checked) => updateFontItalic(checked)} />} label="Italic" />
-                            <FormControlLabel control={<Checkbox checked={fontUnderline} onChange={(e, checked) => updateFontUnderline(checked)} />} label="Underline" />
+                            <FormControlLabel disabled={!hasText} control={<Checkbox checked={fontBold} onChange={(e, checked) => updateFontBold(checked)} />} label="Bold" />
+                            <FormControlLabel disabled={!hasText} control={<Checkbox checked={fontItalic} onChange={(e, checked) => updateFontItalic(checked)} />} label="Italic" />
+                            <FormControlLabel disabled={!hasText} control={<Checkbox checked={fontUnderline} onChange={(e, checked) => updateFontUnderline(checked)} />} label="Underline" />
                         </FormGroup>
                         <TextField 
                             fullWidth variant="outlined" size="small" margin="dense"
                             label="Font size"
+                            disabled={!hasText}
                             InputProps={{
                                 endAdornment: <InputAdornment position="end">mm</InputAdornment>  
                             }}
@@ -510,7 +556,7 @@ const ElementsPropertiesTab = (props: DiagramPropertiesPanelProps) => {
                             onChange={(e) => updateFontSize(e.target.value)}
                             sx={{backgroundColor: "background.default"}}
                         />
-                        <FormControl fullWidth variant="outlined" size="small" margin="dense" sx={{backgroundColor: "background.default"}}>
+                        <FormControl fullWidth variant="outlined" size="small" margin="dense" disabled={!hasText} sx={{backgroundColor: "background.default"}}>
                             <InputLabel id="text-align-label">Text alignment</InputLabel>
                             <Select
                                 labelId="text-align-label"
@@ -523,7 +569,7 @@ const ElementsPropertiesTab = (props: DiagramPropertiesPanelProps) => {
                                 ))}
                             </Select>
                         </FormControl>
-                        <FormControl fullWidth variant="outlined" size="small" margin="dense" sx={{backgroundColor: "background.default"}}>
+                        <FormControl fullWidth variant="outlined" size="small" margin="dense" disabled={!hasText} sx={{backgroundColor: "background.default"}}>
                             <InputLabel id="text-valign-label">Vertical alignment</InputLabel>
                             <Select
                                 labelId="text-valign-label"
@@ -539,7 +585,8 @@ const ElementsPropertiesTab = (props: DiagramPropertiesPanelProps) => {
                         <ColorInput 
                             fullWidth variant="outlined" size="small" margin="dense"
                             label="Text color"
-                            value={getTextColor(props.selectedElements)}
+                            disabled={!hasText}
+                            value={textColor}
                             onChange={updateTextColor}
                         />
                     </AccordionDetails>

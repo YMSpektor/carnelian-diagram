@@ -39,7 +39,7 @@ const ColorInput = (props: ColorInputProps & Omit<TextFieldProps, "InputProps" |
                 onChange={(e) => updateTextValue(e.target.value)}
                 InputProps={{
                     endAdornment: <InputAdornment position="end" sx={{mr: -1}}>
-                        <IconButton size="small" onClick={(e) => setAnchorEl(e.currentTarget)}>
+                        <IconButton size="small" disabled={props.disabled} onClick={(e) => setAnchorEl(e.currentTarget)}>
                             <ArrowDropDownIcon />
                         </IconButton>
                     </InputAdornment>  
