@@ -1,17 +1,11 @@
 import { useCallback, useEffect, useState } from "react";
-import { Button, Divider, IconButton, Menu, MenuItem, Popover, SvgIcon, ToggleButton, ToggleButtonGroup } from "@mui/material";
+import { Button, Divider, IconButton, Menu, MenuItem, SvgIcon, ToggleButton, ToggleButtonGroup } from "@mui/material";
 import KeyboardArrowDownIcon from '@mui/icons-material/KeyboardArrowDown';
 import ZoomInIcon from '@mui/icons-material/ZoomIn';
 import ZoomOutIcon from '@mui/icons-material/ZoomOut';
-import BorderColorIcon from '@mui/icons-material/BorderColor';
-import FormatColorFillIcon from '@mui/icons-material/FormatColorFill';
-import LineWeightIcon from '@mui/icons-material/LineWeight';
 import CircleOutlinedIcon from '@mui/icons-material/CircleOutlined';
-import FormatColorTextIcon from '@mui/icons-material/FormatColorText';
-import FormatSizeIcon from '@mui/icons-material/FormatSize';
 import { DrawingModeElementFactory, DRAW_ELEMENT_EVENT, InteractionController, isElementDrawingService } from "@carnelian-diagram/interaction";
-import { ClosedFigureStyleProps, TextStyleProps } from "@carnelian-diagram/shapes";
-import { Diagram, DiagramElementNode, DiagramElementProps } from "@carnelian-diagram/core";
+import { Diagram } from "@carnelian-diagram/core";
 import {
     InteractiveLine as Line,
     InteractivePolyline as Polyline,
@@ -20,8 +14,7 @@ import {
     InteractiveCircleWithText as Circle,
     InteractiveMultilineText as Text,
 } from "@carnelian-diagram/shapes/basic";
-import { defaultTextStyles } from "../diagram";
-import ColorPicker from "./ColorPicker";
+import { defaultTextStyles, diagram } from "../diagram";
 
 interface DiagramToolbarProps {
     diagram: Diagram;
@@ -80,18 +73,32 @@ function TextIcon() {
     );
 }
 
+function BringToFrontIcon() {
+    return (
+        <SvgIcon>
+            <path d="M2,2H11V6H9V4H4V9H6V11H2V2M22,13V22H13V18H15V20H20V15H18V13H22M8,8H16V16H8V8Z" />
+        </SvgIcon>
+    );
+}
+
+function SendToBackIcon() {
+    return (
+        <SvgIcon>
+            <path d="M2,2H11V11H2V2M9,4H4V9H9V4M22,13V22H13V13H22M15,20H20V15H15V20M16,8V11H13V8H16M11,16H8V13H11V16Z" />
+        </SvgIcon>
+    );
+}
+
+function ToolbarDivider() {
+    return (
+        <Divider orientation="vertical" flexItem sx={{margin: 1}} />
+    )
+}
+
 function DiagramToolbar(props: DiagramToolbarProps) {
     const scaleOptions = [25, 50, 100, 200, 500];
-    const lineWeightOptions = [0.1, 0.25, 0.5, 1, 2, 5];
-    const textSizeOptions = [1, 2, 5, 10, 20];
 
     const [scaleMenuAnchorEl, setScaleMenuAnchorEl] = useState<null | HTMLElement>(null);
-    const [colorPopoverAnchorEl, setColorPopoverAnchorEl] = useState<null | HTMLElement>(null);
-    const [lineWeightMenuAnchorEl, setLineWeightMenuAnchorEl] = useState<null | HTMLElement>(null);
-    const [textSizeMenuAnchorEl, setTextSizeMenuAnchorEl] = useState<null | HTMLElement>(null);
-    const [color, setColor] = useState<string>("black");
-    const [styleProperty, setStyleProperty] = useState<"style" | "textStyle">("style");
-    const [colorProperty, setColorProperty] = useState<"fill" | "stroke">("fill");
     const [drawingMode, setDrawingMode] = useState("");
 
     const changeDrawinMode = useCallback((value: string) => {
@@ -133,11 +140,7 @@ function DiagramToolbar(props: DiagramToolbarProps) {
         return () => {
             props.controller.removeEventListener(DRAW_ELEMENT_EVENT, drawElementHandler);
         }
-    }, [props.controller, drawElementHandler])
-
-    function updateElement<T>(element: DiagramElementNode<T>, elementProps: DiagramElementProps<T>) {
-        props.diagram.update(element, elementProps);
-    }
+    }, [props.controller, drawElementHandler]);
 
     const closeScaleMenu = (value?: number) => {
         if (value !== undefined) {
@@ -145,68 +148,6 @@ function DiagramToolbar(props: DiagramToolbarProps) {
         }
         setScaleMenuAnchorEl(null);
     };
-
-    const closeLineWeightMenu = (value?: number | null) => {
-        if (value !== undefined) {
-            props.controller.getSelectedElements().forEach(element => {
-                updateElement<ClosedFigureStyleProps>(element, { ...element.props, style: { ...element.props.style, strokeWidth: value !== null ? value / props.unitMultiplier : undefined } });
-            });
-        }
-        setLineWeightMenuAnchorEl(null);
-    };
-
-    const closeTextSizeMenu = (value?: number) => {
-        if (value !== undefined) {
-            props.controller.getSelectedElements().forEach(element => {
-                updateElement<TextStyleProps>(element, { ...element.props, textStyle: { ...element.props.textStyle, fontSize: `${value / props.unitMultiplier}px` } });
-            });
-        }
-        setTextSizeMenuAnchorEl(null);
-    };
-
-    const colorToHex = (color: string) => {
-        var ctx = document.createElement('canvas').getContext('2d')
-        if (ctx) {
-            ctx.fillStyle = color;
-            return ctx.fillStyle;
-        }
-        return color;
-    }
-
-    const setElementColor = (color: string) => {
-        setColor(color);
-        props.controller.getSelectedElements().forEach(element => {
-            updateElement<ClosedFigureStyleProps>(element, { ...element.props, [styleProperty]: { ...element.props[styleProperty], [colorProperty]: color } });
-        });
-    }
-
-    const openBorderColorPicker = (anchor: HTMLElement) => {
-        const color = (props.controller.getSelectedElements()[0]?.props as ClosedFigureStyleProps)?.style?.stroke || "black";
-        setColor(colorToHex(color));
-        setColorPopoverAnchorEl(anchor);
-        setStyleProperty("style");
-        setColorProperty("stroke");
-    }
-
-    const openBackgroundColorPicker = (anchor: HTMLElement) => {
-        const color = (props.controller.getSelectedElements()[0]?.props as ClosedFigureStyleProps)?.style?.fill || "white";
-        setColor(colorToHex(color));
-        setColorPopoverAnchorEl(anchor);
-        setStyleProperty("style");
-        setColorProperty("fill");
-    }
-
-    const openTextColorPicker = (anchor: HTMLElement) => {
-        const color = (props.controller.getSelectedElements()[0]?.props as TextStyleProps)?.textStyle?.fill || "black";
-        setColor(colorToHex(color));
-        setColorPopoverAnchorEl(anchor);
-        setStyleProperty("textStyle");
-        setColorProperty("fill");
-    }
-
-    const closeColorPopover = () => {
-        setColorPopoverAnchorEl(null);
-    }
 
     function zoom(sign: number) {
         let value: number;
@@ -223,6 +164,18 @@ function DiagramToolbar(props: DiagramToolbarProps) {
             value = 100
         }
         props.onScaleChange(Math.max(props.scale + value * sign, 5));
+    }
+
+    function bringToFront() {
+        props.controller.getSelectedElements().sort((a, b) => diagram.indexOf(a) - diagram.indexOf(b)).forEach(element => {
+            props.diagram.rearrange(element, props.diagram.count() - 1);
+        });
+    }
+
+    function sendToBack() {
+        props.controller.getSelectedElements().sort((a, b) => diagram.indexOf(b) - diagram.indexOf(a)).forEach(element => {
+            props.diagram.rearrange(element, 0);
+        });
     }
 
     const lineFactory: DrawingModeElementFactory = (diagram, x, y) => {
@@ -260,61 +213,23 @@ function DiagramToolbar(props: DiagramToolbarProps) {
                 onClose={() => closeScaleMenu()}
             >
                 {scaleOptions.map(scale => (
-                    <MenuItem key={scale} onClick={() => closeScaleMenu(scale)}>{scale}%</MenuItem>
+                    <MenuItem key={scale} sx={{minWidth: 150}} onClick={() => closeScaleMenu(scale)}>{scale}%</MenuItem>
                 ))}
             </Menu>
+            <ToolbarDivider />
             <IconButton color="inherit" onClick={(e) => zoom(1)}>
                 <ZoomInIcon />
             </IconButton>
             <IconButton color="inherit" onClick={(e) => zoom(-1)}>
                 <ZoomOutIcon />
             </IconButton>
-            <IconButton color="inherit" onClick={(e) => openBorderColorPicker(e.currentTarget)}>
-                <BorderColorIcon />
+            <ToolbarDivider />
+            <IconButton color="inherit" onClick={(e) => bringToFront()}>
+                <BringToFrontIcon />
             </IconButton>
-            <IconButton color="inherit" onClick={(e) => openBackgroundColorPicker(e.currentTarget)}>
-                <FormatColorFillIcon />
+            <IconButton color="inherit" onClick={(e) => sendToBack()}>
+                <SendToBackIcon />
             </IconButton>
-            <IconButton color="inherit" onClick={(e) => setLineWeightMenuAnchorEl(e.currentTarget)}>
-                <LineWeightIcon />
-            </IconButton>
-            <IconButton color="inherit" onClick={(e) => openTextColorPicker(e.currentTarget)}>
-                <FormatColorTextIcon />
-            </IconButton>
-            <IconButton color="inherit" onClick={(e) => setTextSizeMenuAnchorEl(e.currentTarget)}>
-                <FormatSizeIcon />
-            </IconButton>
-            <Menu
-                anchorEl={lineWeightMenuAnchorEl}
-                open={!!lineWeightMenuAnchorEl}
-                onClose={() => closeLineWeightMenu()}
-            >
-                <MenuItem onClick={() => closeLineWeightMenu(null)}>Default</MenuItem>
-                <Divider />
-                {lineWeightOptions.map(lineWeight => (
-                    <MenuItem key={lineWeight} onClick={() => closeLineWeightMenu(lineWeight)}>{lineWeight} {props.unit}</MenuItem>
-                ))}
-            </Menu>
-            <Menu
-                anchorEl={textSizeMenuAnchorEl}
-                open={!!textSizeMenuAnchorEl}
-                onClose={() => closeTextSizeMenu()}
-            >
-                {textSizeOptions.map(textSize => (
-                    <MenuItem key={textSize} onClick={() => closeTextSizeMenu(textSize)}>{textSize} {props.unit}</MenuItem>
-                ))}
-            </Menu>
-            <Popover
-                anchorEl={colorPopoverAnchorEl}
-                open={!!colorPopoverAnchorEl}
-                onClose={() => closeColorPopover()}
-                anchorOrigin={{
-                    vertical: 'bottom',
-                    horizontal: 'left',
-                }}
-            >
-                <ColorPicker color={color} onChange={(color) => setElementColor(color.hex)} />
-            </Popover>
             <ToggleButtonGroup exclusive size="small" value={drawingMode} onChange={(e, value) => changeDrawinMode(value)}>
                 <ToggleButton value="" sx={{ color: "inherit !important" }}>
                     <DefaultCursorIcon />
