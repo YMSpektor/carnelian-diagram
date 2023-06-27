@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { IconButton, InputAdornment, Popover, TextField, TextFieldProps } from "@mui/material";
+import { Box, IconButton, InputAdornment, Popover, TextField, TextFieldProps } from "@mui/material";
 import ArrowDropDownIcon from '@mui/icons-material/ArrowDropDown';
 import ColorPicker from "./ColorPicker";
 
@@ -38,11 +38,16 @@ const ColorInput = (props: ColorInputProps & Omit<TextFieldProps, "InputProps" |
                 value={textValue}
                 onChange={(e) => updateTextValue(e.target.value)}
                 InputProps={{
-                    endAdornment: <InputAdornment position="end" sx={{mr: -1}}>
-                        <IconButton size="small" disabled={props.disabled} onClick={(e) => setAnchorEl(e.currentTarget)}>
-                            <ArrowDropDownIcon />
-                        </IconButton>
-                    </InputAdornment>  
+                    endAdornment: 
+                        <InputAdornment position="end" sx={{mr: -1}}>
+                            <IconButton size="small" disabled={props.disabled} onClick={(e) => setAnchorEl(e.currentTarget)}>
+                                <ArrowDropDownIcon />
+                            </IconButton>
+                        </InputAdornment>,
+                    startAdornment: 
+                        <InputAdornment position="start">
+                            <Box sx={{width: "10px", height: "10px", border: "1px solid black", backgroundColor: textValue}} />
+                        </InputAdornment>
                 }}
                 sx={{backgroundColor: "background.default"}}
             />
