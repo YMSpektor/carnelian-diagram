@@ -5,7 +5,8 @@ import KeyboardArrowDownIcon from '@mui/icons-material/KeyboardArrowDown';
 import ZoomInIcon from '@mui/icons-material/ZoomIn';
 import ZoomOutIcon from '@mui/icons-material/ZoomOut';
 import CircleOutlinedIcon from '@mui/icons-material/CircleOutlined';
-import { DrawingModeElementFactory, DRAW_ELEMENT_EVENT, InteractionController, isElementDrawingService } from "@carnelian-diagram/interaction";
+import DeleteForeverIcon from '@mui/icons-material/DeleteForever';
+import { DrawingModeElementFactory, DRAW_ELEMENT_EVENT, InteractionController, isDeletionService, isElementDrawingService } from "@carnelian-diagram/interaction";
 import { Diagram } from "@carnelian-diagram/core";
 import {
     InteractiveLine as Line,
@@ -178,6 +179,11 @@ function DiagramToolbar(props: DiagramToolbarProps) {
         });
     }
 
+    function deleteElements() {
+        const srv = props.controller.getService(isDeletionService);
+        srv?.delete(props.controller.getSelectedElements());
+    }
+
     const lineFactory: DrawingModeElementFactory = (diagram, x, y) => {
         return diagram.add(Line, { x1: x, y1: y, x2: x, y2: y });
     }
@@ -240,7 +246,13 @@ function DiagramToolbar(props: DiagramToolbarProps) {
                     <SendToBackIcon />
                 </IconButton>
             </Tooltip>
-            <ToggleButtonGroup exclusive size="small" value={drawingMode} onChange={(e, value) => changeDrawinMode(value)}>
+            <ToolbarDivider />
+            <Tooltip title="Delete">
+                <IconButton color="inherit" onClick={(e) => deleteElements()}>
+                    <DeleteForeverIcon />
+                </IconButton>
+            </Tooltip>
+            <ToggleButtonGroup exclusive size="small" value={drawingMode} onChange={(e, value) => changeDrawinMode(value)} sx={{ml: 1}}>
                 <ToggleButton value="" sx={{ color: "inherit !important" }}>
                     <Tooltip title="Selection mode">
                         <DefaultCursorIcon />
