@@ -1,19 +1,38 @@
-import { useLayoutEffect, useState } from "react";
+import { useState } from "react";
 import { InteractionController, isGridSnappingService, isPaperService, Paper } from "@carnelian-diagram/interaction";
 import { Accordion, AccordionDetails, AccordionSummary, Box, Divider, FormControl, FormControlLabel, FormLabel, InputAdornment, InputLabel, MenuItem, Radio, RadioGroup, Select, Tab, Tabs, TextField, Typography } from "@mui/material";
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
 import TabPanel from "./TabPanel";
 import FormGroup from "@mui/material/FormGroup";
 import Checkbox from "@mui/material/Checkbox";
-import { Diagram, DiagramElementNode, DiagramElementProps } from "@carnelian-diagram/core";
+import { Diagram } from "@carnelian-diagram/core";
 import ColorInput from "./ColorInput";
-import { ClosedFigureStyleProps, TextStyleProps } from "@carnelian-diagram/shapes";
+import { DEFAULT_FONT_FAMILY } from "@carnelian-diagram/shapes";
+
+export interface ElementStyle {
+    hasFill?: boolean;
+    fillColor?: string;
+    hasStroke?: boolean;
+    strokeColor?: string;
+    strokeWidth?: string;
+    strokeDasharray?: string;
+    hasText?: boolean;
+    textColor?: string;
+    fontFamily?: string;
+    fontSize?: string;
+    fontBold?: boolean;
+    fontItalic?: boolean;
+    fontUnderline?: boolean;
+    textAlign?: string;
+    textVAlign?: string; 
+}
 
 export interface DiagramPropertiesPanelProps {
     diagram: Diagram;
     controller: InteractionController;
     unitMultiplier: number;
-    selectedElements: DiagramElementNode[];
+    elementStyle: ElementStyle | null;
+    onElementChange: (elementStyle: ElementStyle) => void;
     onPaperChange: (paper: Paper) => void;
 }
 
@@ -44,7 +63,6 @@ const STROKE_STYLES: StrokeStyle[] = [
     { name: "Dotted", dasharray: "5 5"},
     { name: "Dashdot", dasharray: "20 5 5 5"}
 ];
-const DEFAULT_FONT_FAMILY = "[Default]";
 const FONT_FAMILIES: string[] = ["Arial", "Comic Sans MS", "Courier New", "Garamond", "Lucida Console", "Tahoma", "Times New Roman"];
 const TEXT_ALIGNS: string[] = ["Left", "Center", "Right"];
 const TEXT_V_ALIGNS: string[] = ["Top", "Middle", "Bottom"];
@@ -251,280 +269,166 @@ const DiagramPropertiesTab = (props: DiagramPropertiesPanelProps) => {
     );
 }
 
-function getHasFill(selectedElements: DiagramElementNode[]) {
-    return selectedElements.length ? (selectedElements[0].props as ClosedFigureStyleProps).style?.fill !== "none" : true;
-}
-
-function getFillColor(selectedElements: DiagramElementNode[]) {
-    const defaultFillColor = "#ffffff";
-    const result = selectedElements.length ? (selectedElements[0].props as ClosedFigureStyleProps).style?.fill || defaultFillColor : defaultFillColor;
-    return result !== "none" ? result : defaultFillColor;
-}
-
-function getHasStroke(selectedElements: DiagramElementNode[]) {
-    return selectedElements.length ? (selectedElements[0].props as ClosedFigureStyleProps).style?.stroke !== "none" : true;
-}
-
-function getStrokeColor(selectedElements: DiagramElementNode[]) {
-    const defaultStrokeColor = "#000000";
-    const result = selectedElements.length ? (selectedElements[0].props as ClosedFigureStyleProps).style?.stroke || defaultStrokeColor : defaultStrokeColor;
-    return result !== "none" ? result : defaultStrokeColor;
-}
-
-function getStrokeWidth(selectedElements: DiagramElementNode[], unitMultiplier: number) {
-    const defaultStrokeWidth = 0.25;
-    return selectedElements.length ? (parseFloat((selectedElements[0].props as ClosedFigureStyleProps).style?.strokeWidth?.toString() || "") || 0) * unitMultiplier || defaultStrokeWidth : "";
-}
-
-function getStrokeStyle(selectedElements: DiagramElementNode[]) {
-    const value = selectedElements.length ? (selectedElements[0].props as ClosedFigureStyleProps).style?.strokeDasharray || undefined : undefined;
-    return STROKE_STYLES.find(x => x.dasharray === value)?.name || SOLID_STROKE_STYLE;
-}
-
-function getHasText(selectedElements: DiagramElementNode[]) {
-    return selectedElements.length ? (selectedElements[0].props as TextStyleProps).textStyle?.fill !== "none" : true;
-}
-
-function getTextColor(selectedElements: DiagramElementNode[]) {
-    const defaultFontColor = "#000000";
-    const result = selectedElements.length ? (selectedElements[0].props as TextStyleProps).textStyle?.fill || defaultFontColor : defaultFontColor;
-    return result !== "none" ? result : defaultFontColor;
-}
-
-function getFontFamily(selectedElements: DiagramElementNode[]) {
-    return selectedElements.length ? (selectedElements[0].props as TextStyleProps).textStyle?.fontFamily || DEFAULT_FONT_FAMILY : DEFAULT_FONT_FAMILY;
-}
-
-function getFontBold(selectedElements: DiagramElementNode[]): boolean {
-    return selectedElements.length ? (selectedElements[0].props as TextStyleProps).textStyle?.fontWeight === "bold" : false;
-}
-
-function getFontItalic(selectedElements: DiagramElementNode[]): boolean {
-    return selectedElements.length ? (selectedElements[0].props as TextStyleProps).textStyle?.fontStyle === "italic" : false;
-}
-
-function getFontUnderline(selectedElements: DiagramElementNode[]): boolean {
-    return selectedElements.length ? (selectedElements[0].props as TextStyleProps).textStyle?.textDecoration === "underline" : false;
-}
-
-function getFontSize(selectedElements: DiagramElementNode[], unitMultiplier: number) {
-    const defaultFontSize = 1;
-    return selectedElements.length ? (parseFloat((selectedElements[0].props as TextStyleProps).textStyle?.fontSize?.toString() || "") || 0) * unitMultiplier || defaultFontSize : "";
-}
-
-function getTextAlign(selectedElements: DiagramElementNode[]) {
-    const defaultTextAlign = "center";
-    return selectedElements.length ? (selectedElements[0].props as TextStyleProps).textStyle?.textAlign || defaultTextAlign : "";
-}
-
-function getTextVAlign(selectedElements: DiagramElementNode[]) {
-    const defaultTextVAlign = "middle";
-    return selectedElements.length ? (selectedElements[0].props as TextStyleProps).textStyle?.verticalAlign || defaultTextVAlign : "";
-}
-
 const ElementsPropertiesTab = (props: DiagramPropertiesPanelProps) => {
-    const [hasFill, setHasFill] = useState(getHasFill(props.selectedElements));
-    const [fillColor, setFillColor] = useState(getFillColor(props.selectedElements));
-    const [hasStroke, setHasStroke] = useState(getHasStroke(props.selectedElements));
-    const [strokeColor, setStrokeColor] = useState(getStrokeColor(props.selectedElements));
-    const [strokeWidth, setStrokeWidth] = useState(getStrokeWidth(props.selectedElements, props.unitMultiplier));
-    const [strokeStyle, setStrokeStyle] = useState(getStrokeStyle(props.selectedElements));
-    const [textColor, setTextColor] = useState(getTextColor(props.selectedElements));
-    const [hasText, setHasText] = useState(getHasText(props.selectedElements));
-    const [fontSize, setFontSize] = useState(getFontSize(props.selectedElements, props.unitMultiplier));
-    const [fontFamily, setFontFamily] = useState(getFontFamily(props.selectedElements));
-    const [fontBold, setFontBold] = useState(getFontBold(props.selectedElements));
-    const [fontItalic, setFontItalic] = useState(getFontItalic(props.selectedElements));
-    const [fontUnderline, setFontUnderline] = useState(getFontUnderline(props.selectedElements));
-    const [textAlign, setTextAlign] = useState(getTextAlign(props.selectedElements));
-    const [textVAlign, setTextVAlign] = useState(getTextVAlign(props.selectedElements));
-
-    useLayoutEffect(() => {
-        if (props.selectedElements.length) {
-            setFillColor(getFillColor(props.selectedElements));
-            setStrokeColor(getStrokeColor(props.selectedElements));
-            setStrokeWidth(getStrokeWidth(props.selectedElements, props.unitMultiplier));
-            setStrokeStyle(getStrokeStyle(props.selectedElements));
-            setTextColor(getTextColor(props.selectedElements));
-            setFontSize(getFontSize(props.selectedElements, props.unitMultiplier));
-            setFontFamily(getFontFamily(props.selectedElements));
-            setFontBold(getFontBold(props.selectedElements));
-            setFontItalic(getFontItalic(props.selectedElements));
-            setFontUnderline(getFontUnderline(props.selectedElements));
-            setTextAlign(getTextAlign(props.selectedElements));
-            setTextVAlign(getTextVAlign(props.selectedElements));
-        }
-    }, [props.selectedElements, props.unitMultiplier]);
-
-    function updateElement<T>(element: DiagramElementNode<T>, elementProps: DiagramElementProps<T>) {
-        props.diagram.update(element, elementProps);
+    function getStrokeStyle() {
+        return STROKE_STYLES.find(x => x.dasharray === props.elementStyle?.strokeDasharray)?.name || SOLID_STROKE_STYLE;
     }
 
     function updateHasFill(value: boolean) {
-        setHasFill(value);
-        const color = fillColor !== "none" ? fillColor : "#ffffff";
-        setFillColor(color);
-        props.selectedElements.forEach(element => {
-            updateElement<ClosedFigureStyleProps>(element, { ...element.props, style: { ...element.props.style, fill: value ? color : "none" } });
+        props.onElementChange({
+            ...props.elementStyle,
+            hasFill: value,
+            fillColor: props.elementStyle?.fillColor !== "none" ? props.elementStyle?.fillColor : "#ffffff"
         });
     }
 
     function updateFillColor(value: string) {
-        setFillColor(value);
-        props.selectedElements.forEach(element => {
-            updateElement<ClosedFigureStyleProps>(element, { ...element.props, style: { ...element.props.style, fill: value } });
+        props.onElementChange({
+            ...props.elementStyle,
+            fillColor: value
         });
     }
 
     function updateHasStroke(value: boolean) {
-        setHasStroke(value);
-        const color = strokeColor !== "none" ? strokeColor : "#000000";
-        setStrokeColor(color);
-        props.selectedElements.forEach(element => {
-            updateElement<ClosedFigureStyleProps>(element, { ...element.props, style: { ...element.props.style, stroke: value ? color : "none" } });
+        props.onElementChange({
+            ...props.elementStyle,
+            hasStroke: value,
+            strokeColor: props.elementStyle?.strokeColor !== "none" ? props.elementStyle?.strokeColor : "#000000"
         });
     }
 
     function updateStrokeColor(value: string) {
-        setStrokeColor(value);
-        props.selectedElements.forEach(element => {
-            updateElement<ClosedFigureStyleProps>(element, { ...element.props, style: { ...element.props.style, stroke: value } });
+        props.onElementChange({
+            ...props.elementStyle,
+            strokeColor: value
         });
     }
 
     function updateStrokeWidth(value: string) {
-        setStrokeWidth(value);
-        let strokeWidth = parseFloat(value);
-        strokeWidth = isNaN(strokeWidth) ? 0 : strokeWidth / props.unitMultiplier;
-        props.selectedElements.forEach(element => {
-            updateElement<ClosedFigureStyleProps>(element, { ...element.props, style: { ...element.props.style, strokeWidth: strokeWidth } });
+        props.onElementChange({
+            ...props.elementStyle,
+            strokeWidth: value
         });
     }
 
     function updateStrokeStyle(value: string) {
-        setStrokeStyle(value);
         const strokeStyle = STROKE_STYLES.find(x => x.name === value);
-        if (strokeStyle) {
-            props.selectedElements.forEach(element => {
-                updateElement<ClosedFigureStyleProps>(element, { ...element.props, style: { ...element.props.style, strokeDasharray: strokeStyle.dasharray } });
-            });
-        }
+        props.onElementChange({
+            ...props.elementStyle,
+            strokeDasharray: strokeStyle?.dasharray
+        });
     }
 
     function updateHasText(value: boolean) {
-        setHasText(value);
-        const color = textColor !== "none" ? textColor : "#000000";
-        setTextColor(color);
-        props.selectedElements.forEach(element => {
-            updateElement<TextStyleProps>(element, { ...element.props, textStyle: { ...element.props.textStyle, fill: value ? color : "none" } });
+        props.onElementChange({
+            ...props.elementStyle,
+            hasText: value,
+            strokeColor: props.elementStyle?.textColor !== "none" ? props.elementStyle?.textColor : "#000000"
         });
     }
 
     function updateFontFamily(value: string) {
-        setFontFamily(value);
-        const fontFamily = value === DEFAULT_FONT_FAMILY ? undefined : value;
-        props.selectedElements.forEach(element => {
-            updateElement<TextStyleProps>(element, { ...element.props, textStyle: { ...element.props.textStyle, fontFamily: fontFamily } });
+        props.onElementChange({
+            ...props.elementStyle,
+            fontFamily: value === DEFAULT_FONT_FAMILY ? undefined : value
         });
     }
 
     function updateFontBold(value: boolean) {
-        setFontBold(value);
-        props.selectedElements.forEach(element => {
-            updateElement<TextStyleProps>(element, { ...element.props, textStyle: { ...element.props.textStyle, fontWeight: value ? "bold" : undefined } });
+        props.onElementChange({
+            ...props.elementStyle,
+            fontBold: value
         });
     }
 
     function updateFontItalic(value: boolean) {
-        setFontItalic(value);
-        props.selectedElements.forEach(element => {
-            updateElement<TextStyleProps>(element, { ...element.props, textStyle: { ...element.props.textStyle, fontStyle: value ? "italic" : undefined } });
+        props.onElementChange({
+            ...props.elementStyle,
+            fontItalic: value
         });
     }
 
     function updateFontUnderline(value: boolean) {
-        setFontUnderline(value);
-        props.selectedElements.forEach(element => {
-            updateElement<TextStyleProps>(element, { ...element.props, textStyle: { ...element.props.textStyle, textDecoration: value ? "underline" : undefined } });
+        props.onElementChange({
+            ...props.elementStyle,
+            fontUnderline: value
         });
     }
 
     function updateTextColor(value: string) {
-        setTextColor(value);
-        props.selectedElements.forEach(element => {
-            updateElement<TextStyleProps>(element, { ...element.props, textStyle: { ...element.props.textStyle, fill: value } });
+        props.onElementChange({
+            ...props.elementStyle,
+            textColor: value
         });
     }
 
     function updateFontSize(value: string) {
-        setFontSize(value);
-        let fontSize = parseFloat(value);
-        fontSize = isNaN(fontSize) ? 0 : fontSize / props.unitMultiplier;
-        props.selectedElements.forEach(element => {
-            updateElement<TextStyleProps>(element, { ...element.props, textStyle: { ...element.props.textStyle, fontSize: fontSize } });
+        props.onElementChange({
+            ...props.elementStyle,
+            fontSize: value
         });
     }
 
     function updateTextAligh(value: string) {
-        setTextAlign(value);
-        props.selectedElements.forEach(element => {
-            updateElement<TextStyleProps>(element, { ...element.props, textStyle: { ...element.props.textStyle, textAlign: value } });
+        props.onElementChange({
+            ...props.elementStyle,
+            textAlign: value
         });
     }
 
     function updateTextVAligh(value: string) {
-        setTextVAlign(value);
-        props.selectedElements.forEach(element => {
-            updateElement<TextStyleProps>(element, { ...element.props, textStyle: { ...element.props.textStyle, verticalAlign: value } });
+        props.onElementChange({
+            ...props.elementStyle,
+            textVAlign: value
         });
     }
 
     return (
         <>
-            {props.selectedElements.length ? <>
+            {props.elementStyle ? <>
                 <Accordion disableGutters={true} defaultExpanded={true}>
                     <AccordionSummary expandIcon={<ExpandMoreIcon />}>
-                        <FormControlLabel onClick={e => e.stopPropagation()} control={<Checkbox checked={hasFill} onChange={(e, checked) => updateHasFill(checked)} />} label="Fill" />
+                        <FormControlLabel onClick={e => e.stopPropagation()} control={<Checkbox checked={props.elementStyle.hasFill} onChange={(e, checked) => updateHasFill(checked)} />} label="Fill" />
                     </AccordionSummary>
                     <AccordionDetails>
                         <ColorInput 
                             fullWidth variant="outlined" size="small" margin="dense"
                             label="Fill color"
-                            disabled={!hasFill}
-                            value={fillColor}
+                            disabled={!props.elementStyle.hasFill}
+                            value={props.elementStyle.fillColor}
                             onChange={updateFillColor}
                         />
                     </AccordionDetails>
                 </Accordion>
                 <Accordion disableGutters={true}  defaultExpanded={true}>
                     <AccordionSummary expandIcon={<ExpandMoreIcon />}>
-                        <FormControlLabel onClick={e => e.stopPropagation()} control={<Checkbox checked={hasStroke} onChange={(e, checked) => updateHasStroke(checked)} />} label="Line" />
+                        <FormControlLabel onClick={e => e.stopPropagation()} control={<Checkbox checked={props.elementStyle.hasStroke} onChange={(e, checked) => updateHasStroke(checked)} />} label="Line" />
                     </AccordionSummary>
                     <AccordionDetails>
                         <ColorInput 
                             fullWidth variant="outlined" size="small" margin="dense"
                             label="Line color"
-                            disabled={!hasStroke}
-                            value={strokeColor}
+                            disabled={!props.elementStyle.hasStroke}
+                            value={props.elementStyle.strokeColor}
                             onChange={updateStrokeColor}
                         />
                         <TextField 
                             fullWidth variant="outlined" size="small" margin="dense"
                             label="Line width"
-                            disabled={!hasStroke}
+                            disabled={!props.elementStyle.hasStroke}
                             InputProps={{
                                 endAdornment: <InputAdornment position="end">mm</InputAdornment>  
                             }}
-                            value={strokeWidth}
+                            value={props.elementStyle.strokeWidth}
                             onChange={(e) => updateStrokeWidth(e.target.value)}
                             sx={{backgroundColor: "background.default"}}
                         />
-                        <FormControl fullWidth variant="outlined" size="small" margin="dense" disabled={!hasStroke} sx={{backgroundColor: "background.default"}}>
+                        <FormControl fullWidth variant="outlined" size="small" margin="dense" disabled={!props.elementStyle.hasStroke} sx={{backgroundColor: "background.default"}}>
                             <InputLabel id="line-style-label">Line Style</InputLabel>
                             <Select
                                 labelId="line-style-label"
                                 label="Line style"
-                                value={strokeStyle}
+                                value={getStrokeStyle()}
                                 onChange={(e) => updateStrokeStyle(e.target.value)}
                             >
                                 {STROKE_STYLES.map(strokeStyle => (
@@ -536,18 +440,18 @@ const ElementsPropertiesTab = (props: DiagramPropertiesPanelProps) => {
                 </Accordion>
                 <Accordion disableGutters={true}  defaultExpanded={true}>
                     <AccordionSummary expandIcon={<ExpandMoreIcon />}>
-                        <FormControlLabel onClick={e => e.stopPropagation()} control={<Checkbox checked={hasText} onChange={(e, checked) => updateHasText(checked)} />} label="Text" />
+                        <FormControlLabel onClick={e => e.stopPropagation()} control={<Checkbox checked={props.elementStyle.hasText} onChange={(e, checked) => updateHasText(checked)} />} label="Text" />
                     </AccordionSummary>
                     <AccordionDetails>
-                        <FormControl fullWidth variant="outlined" size="small" margin="dense" disabled={!hasText} sx={{backgroundColor: "background.default"}}>
+                        <FormControl fullWidth variant="outlined" size="small" margin="dense" disabled={!props.elementStyle.hasText} sx={{backgroundColor: "background.default"}}>
                             <InputLabel id="font-family-label">Font family</InputLabel>
                             <Select
                                 labelId="font-family-label"
                                 label="Font family"
-                                value={fontFamily}
+                                value={props.elementStyle.fontFamily || DEFAULT_FONT_FAMILY}
                                 onChange={(e) => updateFontFamily(e.target.value)}
                             >
-                                <MenuItem value={DEFAULT_FONT_FAMILY}>{DEFAULT_FONT_FAMILY}</MenuItem>
+                                <MenuItem value={DEFAULT_FONT_FAMILY}>[Default]</MenuItem>
                                 <Divider />
                                 {FONT_FAMILIES.map(fontFamily => (
                                     <MenuItem key={fontFamily} value={fontFamily} style={{fontFamily: fontFamily}}>{fontFamily}</MenuItem>
@@ -555,27 +459,27 @@ const ElementsPropertiesTab = (props: DiagramPropertiesPanelProps) => {
                             </Select>
                         </FormControl>
                         <FormGroup>
-                            <FormControlLabel disabled={!hasText} control={<Checkbox checked={fontBold} onChange={(e, checked) => updateFontBold(checked)} />} label="Bold" />
-                            <FormControlLabel disabled={!hasText} control={<Checkbox checked={fontItalic} onChange={(e, checked) => updateFontItalic(checked)} />} label="Italic" />
-                            <FormControlLabel disabled={!hasText} control={<Checkbox checked={fontUnderline} onChange={(e, checked) => updateFontUnderline(checked)} />} label="Underline" />
+                            <FormControlLabel disabled={!props.elementStyle.hasText} control={<Checkbox checked={props.elementStyle.fontBold} onChange={(e, checked) => updateFontBold(checked)} />} label="Bold" />
+                            <FormControlLabel disabled={!props.elementStyle.hasText} control={<Checkbox checked={props.elementStyle.fontItalic} onChange={(e, checked) => updateFontItalic(checked)} />} label="Italic" />
+                            <FormControlLabel disabled={!props.elementStyle.hasText} control={<Checkbox checked={props.elementStyle.fontUnderline} onChange={(e, checked) => updateFontUnderline(checked)} />} label="Underline" />
                         </FormGroup>
                         <TextField 
                             fullWidth variant="outlined" size="small" margin="dense"
                             label="Font size"
-                            disabled={!hasText}
+                            disabled={!props.elementStyle.hasText}
                             InputProps={{
                                 endAdornment: <InputAdornment position="end">mm</InputAdornment>  
                             }}
-                            value={fontSize}
+                            value={props.elementStyle.fontSize}
                             onChange={(e) => updateFontSize(e.target.value)}
                             sx={{backgroundColor: "background.default"}}
                         />
-                        <FormControl fullWidth variant="outlined" size="small" margin="dense" disabled={!hasText} sx={{backgroundColor: "background.default"}}>
+                        <FormControl fullWidth variant="outlined" size="small" margin="dense" disabled={!props.elementStyle.hasText} sx={{backgroundColor: "background.default"}}>
                             <InputLabel id="text-align-label">Text alignment</InputLabel>
                             <Select
                                 labelId="text-align-label"
                                 label="Text alignment"
-                                value={textAlign}
+                                value={props.elementStyle.textAlign}
                                 onChange={(e) => updateTextAligh(e.target.value)}
                             >
                                 {TEXT_ALIGNS.map(textAlign => (
@@ -583,12 +487,12 @@ const ElementsPropertiesTab = (props: DiagramPropertiesPanelProps) => {
                                 ))}
                             </Select>
                         </FormControl>
-                        <FormControl fullWidth variant="outlined" size="small" margin="dense" disabled={!hasText} sx={{backgroundColor: "background.default"}}>
+                        <FormControl fullWidth variant="outlined" size="small" margin="dense" disabled={!props.elementStyle.hasText} sx={{backgroundColor: "background.default"}}>
                             <InputLabel id="text-valign-label">Vertical alignment</InputLabel>
                             <Select
                                 labelId="text-valign-label"
                                 label="Vertical alignment"
-                                value={textVAlign}
+                                value={props.elementStyle.textVAlign}
                                 onChange={(e) => updateTextVAligh(e.target.value)}
                             >
                                 {TEXT_V_ALIGNS.map(textVAlign => (
@@ -599,8 +503,8 @@ const ElementsPropertiesTab = (props: DiagramPropertiesPanelProps) => {
                         <ColorInput 
                             fullWidth variant="outlined" size="small" margin="dense"
                             label="Text color"
-                            disabled={!hasText}
-                            value={textColor}
+                            disabled={!props.elementStyle.hasText}
+                            value={props.elementStyle.textColor}
                             onChange={updateTextColor}
                         />
                     </AccordionDetails>

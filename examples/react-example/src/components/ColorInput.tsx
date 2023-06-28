@@ -4,7 +4,7 @@ import ArrowDropDownIcon from '@mui/icons-material/ArrowDropDown';
 import ColorPicker from "./ColorPicker";
 
 export interface ColorInputProps {
-    value: string;
+    value?: string;
     onChange: (color: string) => void;
 }
 
