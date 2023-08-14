@@ -13,7 +13,7 @@ export interface PacmanProps extends CircleBaseProps {
     eyeRadius: NumberOrPercentage;
 }
 
-function getCirclePoint(x: number, y: number, radius: number, angle: number): Point {
+function getPointOnCircle(x: number, y: number, radius: number, angle: number): Point {
     return {
         x: x + radius * Math.cos(degToRad(angle)),
         y: y + radius * Math.sin(degToRad(angle))
@@ -25,7 +25,7 @@ function clampEyeRadius(value: number, radius: number) {
 }
 
 function calcEyeRadius(props: PacmanProps): number {
-    return clampEyeRadius(convertPercentage(props.eyeRadius, props.radius / 2), props.radius);
+    return clampEyeRadius(convertPercentage(props.eyeRadius, props.radius), props.radius);
 }
 
 function getEyeCenter(props: PacmanProps): Point {
@@ -43,7 +43,7 @@ const mouthKnobController: KnobController<PacmanProps> = {
     },
     getPosition(props) {
         const mouthAngle = clamp(props.mouthAngle, 0, MAX_MOUTH_ANGLE);
-        return getCirclePoint(props.x, props.y, props.radius, mouthAngle / 2);
+        return getPointOnCircle(props.x, props.y, props.radius, mouthAngle / 2);
     },
     setPosition(props, {rawPosition: position, snapAngle, snapToGrid}) {
         let angle = radToDeg(Math.atan2(position.y - props.y, position.x - props.x));
@@ -72,7 +72,7 @@ const eyeKnobController: KnobController<PacmanProps> = {
         const eyeCenter = getEyeCenter(props);
         let eyeRadius: NumberOrPercentage = clampEyeRadius(eyeCenter.y - position.y, props.radius);
         eyeRadius = isPercentage(props.eyeRadius)
-            ? props.radius > 0 ? `${eyeRadius / props.radius * 2 * 100}%` : props.eyeRadius
+            ? props.radius > 0 ? `${eyeRadius / props.radius * 100}%` : props.eyeRadius
             : eyeRadius;
         return {
             ...props,
@@ -86,8 +86,8 @@ function PacmanCollider(props: PacmanProps) {
 
     mouthAngle = clamp(mouthAngle, 0, MAX_MOUTH_ANGLE);
     const center = {x, y};
-    const start = getCirclePoint(x, y, radius, mouthAngle / 2);
-    const end = getCirclePoint(x, y, radius, -mouthAngle / 2);
+    const start = getPointOnCircle(x, y, radius, mouthAngle / 2);
+    const end = getPointOnCircle(x, y, radius, -mouthAngle / 2);
     
     return IntersectionCollider(
         DiffCollider(
@@ -105,8 +105,8 @@ export const Pacman: DiagramElement<PacmanProps> = function(props) {
     let { onChange, x, y, radius, mouthAngle, eyeRadius, ...rest } = props;
 
     mouthAngle = clamp(mouthAngle, 0.001, MAX_MOUTH_ANGLE);
-    const mouthStart = getCirclePoint(x, y, radius, mouthAngle / 2);
-    const mouthEnd = getCirclePoint(x, y, radius, -mouthAngle / 2);
+    const mouthStart = getPointOnCircle(x, y, radius, mouthAngle / 2);
+    const mouthEnd = getPointOnCircle(x, y, radius, -mouthAngle / 2);
 
     const eyeCenter = getEyeCenter(props);
     eyeRadius = calcEyeRadius(props);

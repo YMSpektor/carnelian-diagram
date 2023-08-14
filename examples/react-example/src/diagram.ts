@@ -206,7 +206,7 @@ addToPalette({
 addToPalette({
     category: "examples",
     elementType: Pacman,
-    elementProps: {x: 160, y: 160, radius: 150, mouthAngle: 90, eyeRadius: "25%"},
+    elementProps: {x: 160, y: 160, radius: 150, mouthAngle: 90, eyeRadius: "15%"},
     viewBox: "0 0 340 340",
     title: "Pacman",
     factory: (point, props) => ({
