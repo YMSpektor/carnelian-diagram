@@ -111,6 +111,7 @@ See [Examples folder](https://github.com/YMSpektor/carnelian-diagram/tree/main/e
 
 * [Carnelian Diagram core](https://github.com/YMSpektor/carnelian-diagram/blob/main/docs/core.md)
 * [Interactivity](https://github.com/YMSpektor/carnelian-diagram/blob/main/docs/interactivity.md)
+* [Tutorial: Creating custom interactive elements](https://github.com/YMSpektor/carnelian-diagram/blob/main/docs/custom-elements.md)
 
 ## Demo application
 
