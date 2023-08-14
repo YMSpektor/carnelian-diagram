@@ -21,6 +21,7 @@ export interface TextStyle extends ClosedFigureStyle {
     fontWeight?: number | "normal" | "bold" | "bolder" | "lighter";
     fontStretch?: string;
     textAlign?: "left" | "center" | "right";
+    textDecoration?: string;
     verticalAlign?: "top" | "middle" | "bottom";
 }
 

@@ -164,10 +164,22 @@ export class Diagram {
         return [...this.elements];
     }
 
+    count(): number {
+        return this.elements.length;
+    }
+
     add<P extends object>(type: DiagramElement<P>, props: P): DiagramElementNode<P> {
         const element = this.createElementNode(type, props, this.lastElementId++);
         element.element = element;
         this.elements.push(element);
+        this.invalidate(element);
+        return element;
+    }
+
+    insert<P extends object>(index: number, type: DiagramElement<P>, props: P): DiagramElementNode<P> {
+        const element = this.createElementNode(type, props, this.lastElementId++);
+        element.element = element;
+        this.elements.splice(index, 0, element);
         this.invalidate(element);
         return element;
     }
@@ -195,6 +207,19 @@ export class Diagram {
     clear() {
         this.elements = [];
         this.invalidate();
+    }
+
+    indexOf(element: DiagramElementNode): number {
+        return this.elements.indexOf(element);
+    }
+
+    rearrange(element: DiagramElementNode, newIndex: number): void {
+        const index = this.indexOf(element);
+        if (index >= 0) {
+            this.elements = this.elements.filter(x => x !== element);
+            this.elements.splice(newIndex, 0, element);
+            this.invalidate();
+        }
     }
 }
 

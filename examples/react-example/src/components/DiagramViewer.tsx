@@ -81,7 +81,7 @@ function DiagramViewer(props: DiagramViewerProps & HTMLAttributes<HTMLDivElement
             const element = diagram.add(draggedElement.elementType, props);
             controller.select(element);
 
-            container.current?.focus();
+            container.current?.focus({preventScroll: true});
         }
     }
 

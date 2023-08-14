@@ -17,8 +17,8 @@ export interface DragActionPayload {
     rawDeltaX: number;
     rawDeltaY: number;
     hitArea: HitArea;
-    snapGridSize: number | null;
-    snapAngle: number | null;
+    snapGridSize: number | null | undefined;
+    snapAngle: number | null | undefined;
     snapToGrid?: {
         (value: number, snapGridSize?: number | null): number;
         (point: DOMPointReadOnly, snapGridSize?: number | null): DOMPointReadOnly;
@@ -30,8 +30,8 @@ export interface ClickActionPayload {
     position: DOMPointReadOnly;
     rawPosition: DOMPointReadOnly;
     hitArea: HitArea;
-    snapGridSize: number | null;
-    snapAngle: number | null;
+    snapGridSize: number | null | undefined;
+    snapAngle: number | null | undefined;
     snapToGrid?: {
         (value: number, snapGridSize?: number | null): number;
         (point: DOMPointReadOnly, snapGridSize?: number | null): DOMPointReadOnly;
@@ -44,8 +44,8 @@ export interface ACT_DRAW_POINT_PLACE_Payload {
     controller: InteractionController;
     position: DOMPointReadOnly;
     rawPosition: DOMPointReadOnly;
-    snapGridSize: number | null;
-    snapAngle: number | null;
+    snapGridSize: number | null | undefined;
+    snapAngle: number | null | undefined;
     snapToGrid?: {
         (value: number, snapGridSize?: number | null): number;
         (point: DOMPointReadOnly, snapGridSize?: number | null): DOMPointReadOnly;
@@ -58,8 +58,8 @@ export interface ACT_DRAW_POINT_MOVE_Payload {
     controller: InteractionController;
     position: DOMPointReadOnly;
     rawPosition: DOMPointReadOnly;
-    snapGridSize: number | null;
-    snapAngle: number | null;
+    snapGridSize: number | null | undefined;
+    snapAngle: number | null | undefined;
     snapToGrid?: {
         (value: number, snapGridSize?: number | null): number;
         (point: DOMPointReadOnly, snapGridSize?: number | null): DOMPointReadOnly;

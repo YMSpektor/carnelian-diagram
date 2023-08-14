@@ -31,9 +31,10 @@ export class DiagramDOMBuilder {
             if (isVirtualNode(child)) {
                 return this.transformNode(child as DiagramNode);
             }
-            else {
-                return child;
+            if (typeof child === "boolean") {
+                return null;
             }
+            return child;
         }
 
         if (node) {

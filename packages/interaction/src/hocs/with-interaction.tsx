@@ -73,7 +73,7 @@ function DiagramPaper(props: Paper & {matrix?: DOMMatrixReadOnly}) {
                 </pattern>
             </defs>}
             <g className="paper-layer" transform={getTransformAttribute(matrix?.inverse())}>
-                <rect x={x} y={y} width={width} height={height} className="paper" fill="url(#paper-grid)" />
+                <rect x={x} y={y} width={width} height={height} className="paper" fill={patternSize > 0 ? "url(#paper-grid)" : "white"} />
             </g>
         </>
     )

@@ -4,9 +4,10 @@ import { InteractionController } from "../interaction-controller";
 
 export interface DeletionService extends InteractionServive {
     type: "deletion_service";
+    delete(elements: DiagramElementNode[]): Promise<boolean>;
 }
 
-export function isDeletionService(service: DeletionService): service is DeletionService {
+export function isDeletionService(service: InteractionServive): service is DeletionService {
     return service.type === "deletion_service";
 }
 
