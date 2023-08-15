@@ -5,8 +5,8 @@ import KeyboardDoubleArrowLeftIcon from '@mui/icons-material/KeyboardDoubleArrow
 
 export interface LayoutSidebarProps {
     width: number;
-    mobileOpen: boolean;
-    onClose: () => void;
+    mobileOpen?: boolean;
+    onClose?: () => void;
     children?: React.ReactNode;
 }
 

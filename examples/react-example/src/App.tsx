@@ -1,11 +1,11 @@
 /** @jsxImportSource @emotion/react */
-import React, { useEffect, useState } from 'react';
+import React, { useCallback, useEffect, useState } from 'react';
 import { Diagram, DiagramElementNode } from '@carnelian-diagram/core';
 import DiagramPalette, { DiagramPaletteElement } from './components/DiagramPalette';
 import DiagramToolbar from './components/DiagramToolbar';
 import DiagramViewer from './components/DiagramViewer';
 import { InteractionController, isPaperService, SelectEventArgs, SELECT_EVENT } from '@carnelian-diagram/interaction';
-import { Accordion, AccordionDetails, AccordionSummary, createTheme, Divider, ThemeProvider, Typography } from '@mui/material';
+import { Accordion, AccordionDetails, AccordionSummary, createTheme, ThemeProvider, Typography } from '@mui/material';
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
 import LayoutSidebar from './components/LayoutSidebar';
 import LayoutToolbar from './components/LayoutToolbar';
@@ -41,6 +41,7 @@ function App(props: AppProps) {
     const [elementStyle, setElementStyle] = useState<ElementStyle | null>(null);
 
     const unitMultiplier = 0.1;
+    const sidebarWidth = 270;
 
     function getHasFill(selectedElements: DiagramElementNode[]) {
         return selectedElements.length ? (selectedElements[0].props as ClosedFigureStyleProps).style?.fill !== "none" : true;
@@ -112,7 +113,7 @@ function App(props: AppProps) {
         return selectedElements.length ? (selectedElements[0].props as TextStyleProps).textStyle?.verticalAlign || defaultTextVAlign : "";
     }
 
-    function selectionChangeHandler(e: SelectEventArgs) {
+    const selectionChangeHandler = useCallback((e: SelectEventArgs) => {
         if (e.selectedElements.length) {
             setElementStyle({
                 hasFill: getHasFill(e.selectedElements),
@@ -135,7 +136,7 @@ function App(props: AppProps) {
         else {
             setElementStyle(null);
         }
-    }
+    }, []);
 
     function updateElementStyle(value: ElementStyle) {
         setElementStyle(value);
@@ -174,7 +175,7 @@ function App(props: AppProps) {
         return () => {
             controller.removeEventListener(SELECT_EVENT, selectionChangeHandler);
         }
-    }, [controller]);
+    }, [controller, selectionChangeHandler]);
 
     return (
         <ThemeProvider theme={theme}>
@@ -183,44 +184,31 @@ function App(props: AppProps) {
                     <DiagramToolbar diagram={diagram} controller={controller} scale={scale} onScaleChange={setScale} unit="mm" unitMultiplier={0.1} />
                 </LayoutToolbar>
                 <div css={{flex: 1, display: "flex", alignItems: "stretch", overflow: "hidden"}}>
-                    <LayoutSidebar width={340} mobileOpen={sidebarOpen} onClose={() => setSidebarOpen(!sidebarOpen)}>
-                        <div css={{flex: "1 1 50%", overflow: "auto"}}>
-                            <Accordion defaultExpanded={true} disableGutters={true}>
-                                <AccordionSummary expandIcon={<ExpandMoreIcon />}>
-                                    <Typography>Basic Shapes</Typography>
-                                </AccordionSummary>
-                                <AccordionDetails>
-                                    <DiagramPalette 
-                                        iconWidth={48} 
-                                        iconHeight={32} 
-                                        palette={palette.filter(x => x.category === "basic")} 
-                                    />
-                                </AccordionDetails>
-                            </Accordion>
-                            <Accordion disableGutters={true}>
-                                <AccordionSummary expandIcon={<ExpandMoreIcon />}>
-                                    <Typography>Examples</Typography>
-                                </AccordionSummary>
-                                <AccordionDetails>
+                    <LayoutSidebar width={sidebarWidth} mobileOpen={sidebarOpen} onClose={() => setSidebarOpen(!sidebarOpen)}>
+                        <Accordion defaultExpanded={true} disableGutters={true}>
+                            <AccordionSummary expandIcon={<ExpandMoreIcon />}>
+                                <Typography>Basic Shapes</Typography>
+                            </AccordionSummary>
+                            <AccordionDetails>
                                 <DiagramPalette 
-                                        iconWidth={48} 
-                                        iconHeight={32} 
-                                        palette={palette.filter(x => x.category === "examples")}
-                                    />
-                                </AccordionDetails>
-                            </Accordion>
-                        </div>
-                        <Divider />
-                        <div css={{flex: "1 1 50%", overflow: "auto"}}>
-                            <DiagramPropertiesPanel
-                                diagram={diagram}
-                                controller={controller} 
-                                unitMultiplier={unitMultiplier}
-                                elementStyle={elementStyle}
-                                onElementChange={updateElementStyle}
-                                onPaperChange={setPaper} 
-                            />
-                        </div>
+                                    iconWidth={48} 
+                                    iconHeight={32} 
+                                    palette={palette.filter(x => x.category === "basic")} 
+                                />
+                            </AccordionDetails>
+                        </Accordion>
+                        <Accordion disableGutters={true}>
+                            <AccordionSummary expandIcon={<ExpandMoreIcon />}>
+                                <Typography>Examples</Typography>
+                            </AccordionSummary>
+                            <AccordionDetails>
+                            <DiagramPalette 
+                                    iconWidth={48} 
+                                    iconHeight={32} 
+                                    palette={palette.filter(x => x.category === "examples")}
+                                />
+                            </AccordionDetails>
+                        </Accordion>                    
                     </LayoutSidebar>
                     <DiagramViewer
                         css={{flex: 1, backgroundColor: "#ddd"}}
@@ -228,6 +216,16 @@ function App(props: AppProps) {
                         diagramSize={{width: paper?.width || 0, height: paper?.height || 0}} 
                         scale={scale} unit="mm" unitMultiplier={unitMultiplier} 
                     />
+                    <LayoutSidebar width={sidebarWidth}>
+                        <DiagramPropertiesPanel
+                            diagram={diagram}
+                            controller={controller} 
+                            unitMultiplier={unitMultiplier}
+                            elementStyle={elementStyle}
+                            onElementChange={updateElementStyle}
+                            onPaperChange={setPaper} 
+                        />
+                    </LayoutSidebar>
                 </div>
             </div>
         </ThemeProvider>
