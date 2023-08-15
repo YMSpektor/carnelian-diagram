@@ -522,7 +522,7 @@ const DiagramPropertiesPanel = (props: DiagramPropertiesPanelProps) => {
 
     return (
         <>
-            <Tabs value={currentTab} onChange={(e, value) => setCurrentTab(value)}>
+            <Tabs value={currentTab} onChange={(e, value) => setCurrentTab(value)} sx={{paddingLeft: 1}}>
                 <Tab label="Elements"></Tab>
                 <Tab label="Diagram"></Tab>
             </Tabs>
