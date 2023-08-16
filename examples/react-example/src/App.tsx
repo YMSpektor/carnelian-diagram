@@ -199,6 +199,18 @@ function App(props: AppProps) {
                         </Accordion>
                         <Accordion disableGutters={true}>
                             <AccordionSummary expandIcon={<ExpandMoreIcon />}>
+                                <Typography>Advanced Shapes</Typography>
+                            </AccordionSummary>
+                            <AccordionDetails>
+                            <DiagramPalette 
+                                    iconWidth={48} 
+                                    iconHeight={32} 
+                                    palette={palette.filter(x => x.category === "advanced")}
+                                />
+                            </AccordionDetails>
+                        </Accordion>  
+                        <Accordion disableGutters={true}>
+                            <AccordionSummary expandIcon={<ExpandMoreIcon />}>
                                 <Typography>Examples</Typography>
                             </AccordionSummary>
                             <AccordionDetails>

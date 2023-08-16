@@ -13,8 +13,11 @@ import {
     InteractiveCircleWithText as Circle,
     InteractiveDonutWithText as Donut,
     InteractiveCrossWithText as Cross,
-    InteractivePie as Pie,
+    InteractivePie as Pie
 } from "@carnelian-diagram/shapes/basic";
+import {
+    InteractiveBlockWithText as Block
+} from "@carnelian-diagram/shapes/advanced";
 import {
     InteractivePacman as Pacman
 } from "./examples"
@@ -200,6 +203,19 @@ addToPalette({
         ...props,
         x: point.x,
         y: point.y
+    }),
+});
+
+addToPalette({
+    category: "advanced",
+    elementType: Block,
+    elementProps: {x: 20, y: 20, width: 300, height: 200, offset: "10%", textStyle: defaultTextStyles},
+    viewBox: "0 0 340 240",
+    title: "Block",
+    factory: (point, props) => ({
+        ...props,
+        x: point.x - props.width / 2,
+        y: point.y - props.height / 2
     }),
 });
 
