@@ -17,7 +17,8 @@ import {
 } from "@carnelian-diagram/shapes/basic";
 import {
     InteractiveBlockWithText as Block,
-    InteractiveNoteWithText as Note
+    InteractiveNoteWithText as Note,
+    InteractiveStepWithText as Step
 } from "@carnelian-diagram/shapes/advanced";
 import {
     InteractivePacman as Pacman
@@ -226,6 +227,19 @@ addToPalette({
     elementProps: {x: 20, y: 20, width: 200, height: 300, offset: "20%", textStyle: defaultTextStyles},
     viewBox: "0 0 240 340",
     title: "Note",
+    factory: (point, props) => ({
+        ...props,
+        x: point.x - props.width / 2,
+        y: point.y - props.height / 2
+    }),
+});
+
+addToPalette({
+    category: "advanced",
+    elementType: Step,
+    elementProps: {x: 20, y: 20, width: 300, height: 200, offset: "20%", textStyle: defaultTextStyles},
+    viewBox: "0 0 340 240",
+    title: "Step",
     factory: (point, props) => ({
         ...props,
         x: point.x - props.width / 2,
