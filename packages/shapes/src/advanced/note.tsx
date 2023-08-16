@@ -56,7 +56,8 @@ const NoteColliderFactory = (props: NoteProps) => PolygonCollider(toPolygon(prop
 
 export const Note: DiagramElement<NoteProps> = function(props) {
     let { x, y, width, height, offset, style } = props;
-    offset = convertPercentage(offset, Math.min(width, height));
+    const base = Math.min(width, height);
+    offset = clamp(convertPercentage(offset, base), 0, base);
     const points = toPolygon(props);
 
     return (

@@ -38,7 +38,7 @@ const knobController: KnobController<BlockProps, number> = {
 
 export const Block: DiagramElement<BlockProps> = function(props) {
     let { x, y, width, height, offset, style } = props;
-    offset = convertPercentage(offset, width);
+    offset = clamp(convertPercentage(offset, width), 0, width / 2);
 
     return (
         <g style={style}>
