@@ -111,7 +111,7 @@ export const Pacman: DiagramElement<PacmanProps> = function(props) {
     const eyeCenter = getEyeCenter(props);
     eyeRadius = calcEyeRadius(props);
 
-    let path = `
+    const path = `
         M${mouthStart.x} ${mouthStart.y} A${radius},${radius} 0 1 1 ${mouthEnd.x} ${mouthEnd.y} L${x} ${y}Z
         M${eyeCenter.x - eyeRadius} ${eyeCenter.y} a${eyeRadius},${eyeRadius} 0 1 0 ${eyeRadius * 2} 0 a${eyeRadius} ${eyeRadius} 0 1 0 -${eyeRadius * 2} 0`;
 

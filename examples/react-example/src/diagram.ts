@@ -19,6 +19,7 @@ import {
     InteractiveBlockWithText as Block,
     InteractiveNoteWithText as Note,
     InteractiveStepWithText as Step,
+    InteractiveCloudWithText as Cloud,
     InteractiveArrow as Arrow,
     InteractiveDoubleArrow as DoubleArrow
 } from "@carnelian-diagram/shapes/advanced";
@@ -242,6 +243,19 @@ addToPalette({
     elementProps: {x: 20, y: 20, width: 300, height: 200, offset: "20%", textStyle: defaultTextStyles},
     viewBox: "0 0 340 240",
     title: "Step",
+    factory: (point, props) => ({
+        ...props,
+        x: point.x - props.width / 2,
+        y: point.y - props.height / 2
+    }),
+});
+
+addToPalette({
+    category: "advanced",
+    elementType: Cloud,
+    elementProps: {x: 20, y: 20, width: 300, height: 200, textStyle: defaultTextStyles},
+    viewBox: "0 0 340 240",
+    title: "Cloud",
     factory: (point, props) => ({
         ...props,
         x: point.x - props.width / 2,
