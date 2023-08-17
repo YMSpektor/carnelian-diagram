@@ -12,11 +12,11 @@ export interface NoteProps extends RectBaseProps {
 }
 
 const knobController: KnobController<NoteProps, number> = {
-    hitArea: (props) => ({
+    hitArea: {
         type: "knob_handle",
         cursor: "default",
         action: "knob_move"
-    }),
+    },
     getPosition(props) {
         const base = Math.min(props.width, props.height);
         const offset = clamp(convertPercentage(props.offset, base), 0, base);

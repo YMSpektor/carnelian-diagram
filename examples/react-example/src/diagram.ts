@@ -18,6 +18,7 @@ import {
 import {
     InteractiveBlockWithText as Block,
     InteractiveNoteWithText as Note,
+    InteractiveCalloutWithText as Callout,
     InteractiveStepWithText as Step,
     InteractiveCloudWithText as Cloud,
     InteractiveArrow as Arrow,
@@ -230,6 +231,19 @@ addToPalette({
     elementProps: {x: 20, y: 20, width: 200, height: 300, offset: "20%", textStyle: defaultTextStyles},
     viewBox: "0 0 240 340",
     title: "Note",
+    factory: (point, props) => ({
+        ...props,
+        x: point.x - props.width / 2,
+        y: point.y - props.height / 2
+    }),
+});
+
+addToPalette({
+    category: "advanced",
+    elementType: Callout,
+    elementProps: {x: 20, y: 20, width: 300, height: 200, tailOffset: "20%", tailWidth: "15%", tailPointerPositionX: "10%", tailPointerPositionY: 50, textStyle: defaultTextStyles},
+    viewBox: "0 0 340 280",
+    title: "Callout",
     factory: (point, props) => ({
         ...props,
         x: point.x - props.width / 2,

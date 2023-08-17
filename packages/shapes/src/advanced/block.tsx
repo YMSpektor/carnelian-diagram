@@ -12,11 +12,11 @@ export interface BlockProps extends RectBaseProps {
 }
 
 const knobController: KnobController<BlockProps, number> = {
-    hitArea: (props) => ({
+    hitArea: {
         type: "knob_handle",
         cursor: "default",
         action: "knob_move"
-    }),
+    },
     getPosition(props) {
         const offset = clamp(convertPercentage(props.offset, props.width), 0, props.width / 2);
         return {
