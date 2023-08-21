@@ -67,7 +67,7 @@ export function useInteractivePolyline<T extends InteractivePolylineProps>(
     useAction<ACT_DRAW_POINT_MOVE_Payload>(ACT_DRAW_POINT_MOVE, (payload) => {
         onChange(props => ({
             ...props,
-            points: props.points.map((p, i) => i !== payload.pointIndex ? p : { x: payload.position.x, y: payload.position.y })
+            points: props.points.map((p, i) => i === 0 || i !== payload.pointIndex ? p : { x: payload.position.x, y: payload.position.y })
         }));
     });
 
