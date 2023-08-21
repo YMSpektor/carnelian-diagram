@@ -1,18 +1,9 @@
 /** @jsxImportSource @emotion/react */
 import { HTMLAttributes, useContext } from "react";
 import { Tooltip, Typography } from "@mui/material";
-import { DiagramElement } from "@carnelian-diagram/core";
 import DiagramElementIcon from "./DiagramElementIcon";
-import { DragDropContext, ElementFactory } from "../context/DragDropContext";
-
-export interface DiagramPaletteElement<T extends object> {
-    category: string;
-    elementType: DiagramElement<T>;
-    elementProps: T;
-    viewBox: string;
-    title: string;
-    factory: ElementFactory<T>;
-}
+import { DragDropContext } from "../context/DragDropContext";
+import { DiagramPaletteElement } from "../diagram/palette";
 
 interface DiagramPaletteProps {
     iconWidth: number;

@@ -16,7 +16,8 @@ import {
     InteractiveCircleWithText as Circle,
     InteractiveMultilineText as Text,
 } from "@carnelian-diagram/shapes/basic";
-import { defaultTextStyles, diagram } from "../diagram";
+import { diagram } from "../diagram/diagram";
+import { defaultTextStyles } from "../diagram/palette";
 
 interface DiagramToolbarProps {
     diagram: Diagram;

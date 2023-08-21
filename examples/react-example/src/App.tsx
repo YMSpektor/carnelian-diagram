@@ -1,7 +1,7 @@
 /** @jsxImportSource @emotion/react */
 import React, { useCallback, useEffect, useState } from 'react';
 import { Diagram, DiagramElementNode } from '@carnelian-diagram/core';
-import DiagramPalette, { DiagramPaletteElement } from './components/DiagramPalette';
+import DiagramPalette from './components/DiagramPalette';
 import DiagramToolbar from './components/DiagramToolbar';
 import DiagramViewer from './components/DiagramViewer';
 import { InteractionController, isPaperService, SelectEventArgs, SELECT_EVENT } from '@carnelian-diagram/interaction';
@@ -11,6 +11,7 @@ import LayoutSidebar from './components/LayoutSidebar';
 import LayoutToolbar from './components/LayoutToolbar';
 import DiagramPropertiesPanel, { ElementStyle } from './components/DiagramPropertiesPanel';
 import { ClosedFigureStyleProps, DEFAULT_FONT_FAMILY, TextStyleProps } from '@carnelian-diagram/shapes';
+import { DiagramPaletteElement } from './diagram/palette';
 
 const theme = createTheme({
     palette: {

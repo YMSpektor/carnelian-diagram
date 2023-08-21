@@ -1,6 +1,3 @@
-import { Diagram } from "@carnelian-diagram/core";
-import { InteractionController, isGridSnappingService, isPaperService } from "@carnelian-diagram/interaction";
-import { DiagramPaletteElement } from "./components/DiagramPalette";
 import {
     InteractiveRectWithText as Rect, 
     InteractiveEllipseWithText as Ellipse, 
@@ -26,27 +23,19 @@ import {
 } from "@carnelian-diagram/shapes/advanced";
 import {
     InteractivePacman as Pacman
-} from "./examples"
+} from "../examples"
 import { TextStyle } from "@carnelian-diagram/shapes";
+import { DiagramElement } from "@carnelian-diagram/core";
+import { ElementFactory } from "../context/DragDropContext";
 
-export const diagram = new Diagram();
-export const controller = new InteractionController(diagram, (services) => {
-    services.configure(isPaperService, (service) => {
-        service.paper = {
-            x: 0,
-            y: 0,
-            width: 2100,
-            height: 2970,
-            majorGridSize: 200,
-            minorGridSize: 50
-        };
-    });
-
-    services.configure(isGridSnappingService, (service) => {
-        service.snapGridSize = 50;
-        service.snapAngle = 5;
-    });
-});
+export interface DiagramPaletteElement<T extends object> {
+    category: string;
+    elementType: DiagramElement<T>;
+    elementProps: T;
+    viewBox: string;
+    title: string;
+    factory: ElementFactory<T>;
+}
 
 export const palette: DiagramPaletteElement<any>[] = [];
 
@@ -315,4 +304,3 @@ addToPalette({
         y: point.y
     }),
 });
-
