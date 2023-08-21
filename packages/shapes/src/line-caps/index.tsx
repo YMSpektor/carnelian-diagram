@@ -41,7 +41,22 @@ export const LineCap: DiagramComponent<LineCapProps> = function(props) {
 }
 
 import { Arrow1 } from "./arrow1";
+import { Arrow2 } from "./arrow2";
+import { Arrow3 } from "./arrow3";
+import { Diamond } from "./diamond";
+import { Square } from "./square";
+import { Circle } from "./circle";
 
 registerLineCap("arrow1", Arrow1);
+registerLineCap("arrow2", Arrow2);
+registerLineCap("arrow3", Arrow3);
+registerLineCap("diamond", Diamond);
+registerLineCap("square", Square);
+registerLineCap("circle", Circle);
 
 export * from "./arrow1";
+export * from "./arrow2";
+export * from "./arrow3";
+export * from "./diamond";
+export * from "./square";
+export * from "./circle";
