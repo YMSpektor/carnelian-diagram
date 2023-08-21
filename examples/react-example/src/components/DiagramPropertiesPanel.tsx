@@ -8,6 +8,7 @@ import Checkbox from "@mui/material/Checkbox";
 import { Diagram } from "@carnelian-diagram/core";
 import ColorInput from "./ColorInput";
 import { DEFAULT_FONT_FAMILY } from "@carnelian-diagram/shapes";
+import { ShapeMetadata } from "../diagram/shape-metadata";
 
 export interface ElementStyle {
     hasFill?: boolean;
@@ -32,6 +33,7 @@ export interface DiagramPropertiesPanelProps {
     controller: InteractionController;
     unitMultiplier: number;
     elementStyle: ElementStyle | null;
+    elementMetadata: ShapeMetadata | null;
     onElementChange: (elementStyle: ElementStyle) => void;
     onPaperChange: (paper: Paper) => void;
 }
@@ -386,7 +388,7 @@ const ElementsPropertiesTab = (props: DiagramPropertiesPanelProps) => {
     return (
         <>
             {props.elementStyle ? <>
-                <Accordion disableGutters={true} defaultExpanded={true}>
+                {props.elementMetadata?.hasFill && <Accordion disableGutters={true} defaultExpanded={true}>
                     <AccordionSummary expandIcon={<ExpandMoreIcon />}>
                         <FormControlLabel onClick={e => e.stopPropagation()} control={<Checkbox checked={props.elementStyle.hasFill} onChange={(e, checked) => updateHasFill(checked)} />} label="Fill" />
                     </AccordionSummary>
@@ -399,8 +401,8 @@ const ElementsPropertiesTab = (props: DiagramPropertiesPanelProps) => {
                             onChange={updateFillColor}
                         />
                     </AccordionDetails>
-                </Accordion>
-                <Accordion disableGutters={true}  defaultExpanded={true}>
+                </Accordion>}
+                {props.elementMetadata?.hasStroke && <Accordion disableGutters={true}  defaultExpanded={true}>
                     <AccordionSummary expandIcon={<ExpandMoreIcon />}>
                         <FormControlLabel onClick={e => e.stopPropagation()} control={<Checkbox checked={props.elementStyle.hasStroke} onChange={(e, checked) => updateHasStroke(checked)} />} label="Line" />
                     </AccordionSummary>
@@ -437,8 +439,8 @@ const ElementsPropertiesTab = (props: DiagramPropertiesPanelProps) => {
                             </Select>
                         </FormControl>
                     </AccordionDetails>
-                </Accordion>
-                <Accordion disableGutters={true}  defaultExpanded={true}>
+                </Accordion>}
+                {props.elementMetadata?.hasText && <Accordion disableGutters={true}  defaultExpanded={true}>
                     <AccordionSummary expandIcon={<ExpandMoreIcon />}>
                         <FormControlLabel onClick={e => e.stopPropagation()} control={<Checkbox checked={props.elementStyle.hasText} onChange={(e, checked) => updateHasText(checked)} />} label="Text" />
                     </AccordionSummary>
@@ -508,7 +510,7 @@ const ElementsPropertiesTab = (props: DiagramPropertiesPanelProps) => {
                             onChange={updateTextColor}
                         />
                     </AccordionDetails>
-                </Accordion>
+                </Accordion>}
             </>
             : <Box sx={{ p: 3, textAlign: "center" }}>
                 <Typography variant="subtitle2">Please select elements to edit their properties</Typography>

@@ -1,6 +1,6 @@
 /** @jsxImportSource @emotion/react */
 import React, { useCallback, useEffect, useState } from 'react';
-import { Diagram, DiagramElementNode } from '@carnelian-diagram/core';
+import { Diagram, DiagramElement, DiagramElementNode } from '@carnelian-diagram/core';
 import DiagramPalette from './components/DiagramPalette';
 import DiagramToolbar from './components/DiagramToolbar';
 import DiagramViewer from './components/DiagramViewer';
@@ -12,6 +12,7 @@ import LayoutToolbar from './components/LayoutToolbar';
 import DiagramPropertiesPanel, { ElementStyle } from './components/DiagramPropertiesPanel';
 import { ClosedFigureStyleProps, DEFAULT_FONT_FAMILY, TextStyleProps } from '@carnelian-diagram/shapes';
 import { DiagramPaletteElement } from './diagram/palette';
+import { getShapeMetadata, ShapeMetadata } from './diagram/shape-metadata';
 
 const theme = createTheme({
     palette: {
@@ -40,6 +41,7 @@ function App(props: AppProps) {
     const [paper, setPaper] = useState(controller.getService(isPaperService)?.paper);
     const [sidebarOpen, setSidebarOpen] = useState(false);
     const [elementStyle, setElementStyle] = useState<ElementStyle | null>(null);
+    const [elementMetadata, setElementMetadata] = useState<ShapeMetadata | null>(null);
 
     const unitMultiplier = 0.1;
     const sidebarWidth = 270;
@@ -133,9 +135,16 @@ function App(props: AppProps) {
                 textAlign: getTextAlign(e.selectedElements),
                 textVAlign: getTextVAlign(e.selectedElements)
             });
+            setElementMetadata({
+                hasFill: e.selectedElements.some(x => getShapeMetadata(x.type as DiagramElement<any>).hasFill),
+                hasStroke: e.selectedElements.some(x => getShapeMetadata(x.type as DiagramElement<any>).hasStroke),
+                hasText: e.selectedElements.some(x => getShapeMetadata(x.type as DiagramElement<any>).hasText),
+                hasLineCaps: e.selectedElements.some(x => getShapeMetadata(x.type as DiagramElement<any>).hasLineCaps)
+            });
         }
         else {
             setElementStyle(null);
+            setElementMetadata(null);
         }
     }, []);
 
@@ -235,6 +244,7 @@ function App(props: AppProps) {
                             controller={controller} 
                             unitMultiplier={unitMultiplier}
                             elementStyle={elementStyle}
+                            elementMetadata={elementMetadata}
                             onElementChange={updateElementStyle}
                             onPaperChange={setPaper} 
                         />
