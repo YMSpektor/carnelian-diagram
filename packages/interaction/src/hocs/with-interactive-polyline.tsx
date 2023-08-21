@@ -48,11 +48,12 @@ export function useInteractivePolyline<T extends InteractivePolylineProps>(
     }
 
     const collider = options?.collider?.(props) || PolylineCollider(points);
+    const tolerance = isClosed ? 0 : 2;
     let hitArea: HitArea = { type: "in", action: ACT_MOVE, cursor: "move" };
     if (options?.innerHitArea) {
         hitArea = options.innerHitArea(hitArea);
     }
-    useCollider(collider, hitArea);
+    useCollider(collider, hitArea, tolerance);
     useAction(hitArea.action, move);
     useAction("vertex_move", moveVertex);
 
