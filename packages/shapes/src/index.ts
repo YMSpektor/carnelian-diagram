@@ -1,4 +1,5 @@
 import { Point } from "@carnelian-diagram/interaction/geometry";
+import { LineCapSyle } from "./line-caps";
 
 export let DEFAULT_FONT_SIZE = "10px";
 export let DEFAULT_FONT_FAMILY = "sans-serif";
@@ -30,6 +31,8 @@ export interface MultilineTextStyle extends TextStyle {
 }
 
 export interface LineFigureStyleProps {
+    startLineCap?: LineCapSyle | null;
+    endLineCap?: LineCapSyle | null;
     style?: LineFigureStyle;
 }
 
