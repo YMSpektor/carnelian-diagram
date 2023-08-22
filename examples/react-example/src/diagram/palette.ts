@@ -1,6 +1,3 @@
-import { Diagram } from "@carnelian-diagram/core";
-import { InteractionController, isGridSnappingService, isPaperService } from "@carnelian-diagram/interaction";
-import { DiagramPaletteElement } from "./components/DiagramPalette";
 import {
     InteractiveRectWithText as Rect, 
     InteractiveEllipseWithText as Ellipse, 
@@ -13,31 +10,32 @@ import {
     InteractiveCircleWithText as Circle,
     InteractiveDonutWithText as Donut,
     InteractiveCrossWithText as Cross,
-    InteractivePie as Pie,
+    InteractivePie as Pie
 } from "@carnelian-diagram/shapes/basic";
 import {
+    InteractiveBlockWithText as Block,
+    InteractiveNoteWithText as Note,
+    InteractiveCalloutWithText as Callout,
+    InteractiveStepWithText as Step,
+    InteractiveCloudWithText as Cloud,
+    InteractiveArrow as Arrow,
+    InteractiveDoubleArrow as DoubleArrow
+} from "@carnelian-diagram/shapes/advanced";
+import {
     InteractivePacman as Pacman
-} from "./examples"
+} from "../examples"
 import { TextStyle } from "@carnelian-diagram/shapes";
+import { DiagramElement } from "@carnelian-diagram/core";
+import { ElementFactory } from "../context/DragDropContext";
 
-export const diagram = new Diagram();
-export const controller = new InteractionController(diagram, (services) => {
-    services.configure(isPaperService, (service) => {
-        service.paper = {
-            x: 0,
-            y: 0,
-            width: 2100,
-            height: 2970,
-            majorGridSize: 200,
-            minorGridSize: 50
-        };
-    });
-
-    services.configure(isGridSnappingService, (service) => {
-        service.snapGridSize = 50;
-        service.snapAngle = 5;
-    });
-});
+export interface DiagramPaletteElement<T extends object> {
+    category: string;
+    elementType: DiagramElement<T>;
+    elementProps: T;
+    viewBox: string;
+    title: string;
+    factory: ElementFactory<T>;
+}
 
 export const palette: DiagramPaletteElement<any>[] = [];
 
@@ -204,6 +202,97 @@ addToPalette({
 });
 
 addToPalette({
+    category: "advanced",
+    elementType: Block,
+    elementProps: {x: 20, y: 20, width: 300, height: 200, offset: "10%", textStyle: defaultTextStyles},
+    viewBox: "0 0 340 240",
+    title: "Block",
+    factory: (point, props) => ({
+        ...props,
+        x: point.x - props.width / 2,
+        y: point.y - props.height / 2
+    }),
+});
+
+addToPalette({
+    category: "advanced",
+    elementType: Note,
+    elementProps: {x: 20, y: 20, width: 200, height: 300, offset: "20%", textStyle: defaultTextStyles},
+    viewBox: "0 0 240 340",
+    title: "Note",
+    factory: (point, props) => ({
+        ...props,
+        x: point.x - props.width / 2,
+        y: point.y - props.height / 2
+    }),
+});
+
+addToPalette({
+    category: "advanced",
+    elementType: Callout,
+    elementProps: {x: 20, y: 20, width: 300, height: 200, tailOffset: "20%", tailWidth: "15%", tailPointerPositionX: "10%", tailPointerPositionY: 50, textStyle: defaultTextStyles},
+    viewBox: "0 0 340 280",
+    title: "Callout",
+    factory: (point, props) => ({
+        ...props,
+        x: point.x - props.width / 2,
+        y: point.y - props.height / 2
+    }),
+});
+
+addToPalette({
+    category: "advanced",
+    elementType: Step,
+    elementProps: {x: 20, y: 20, width: 300, height: 200, offset: "20%", textStyle: defaultTextStyles},
+    viewBox: "0 0 340 240",
+    title: "Step",
+    factory: (point, props) => ({
+        ...props,
+        x: point.x - props.width / 2,
+        y: point.y - props.height / 2
+    }),
+});
+
+addToPalette({
+    category: "advanced",
+    elementType: Cloud,
+    elementProps: {x: 20, y: 20, width: 300, height: 200, textStyle: defaultTextStyles},
+    viewBox: "0 0 340 240",
+    title: "Cloud",
+    factory: (point, props) => ({
+        ...props,
+        x: point.x - props.width / 2,
+        y: point.y - props.height / 2
+    }),
+});
+
+addToPalette({
+    category: "advanced",
+    elementType: Arrow,
+    elementProps: {x: 20, y: 20, width: 300, height: 200, arrowWidth: "50%", arrowHeight: "50%"},
+    viewBox: "0 0 340 240",
+    title: "Arrow",
+    factory: (point, props) => ({
+        ...props,
+        x: point.x - props.width / 2,
+        y: point.y - props.height / 2
+    }),
+});
+
+addToPalette({
+    category: "advanced",
+    elementType: DoubleArrow,
+    elementProps: {x: 20, y: 20, width: 300, height: 200, arrowWidth: "25%", arrowHeight: "50%"},
+    viewBox: "0 0 340 240",
+    title: "Double Arrow",
+    factory: (point, props) => ({
+        ...props,
+        x: point.x - props.width / 2,
+        y: point.y - props.height / 2
+    }),
+});
+
+addToPalette({
     category: "examples",
     elementType: Pacman,
     elementProps: {x: 160, y: 160, radius: 150, mouthAngle: 90, eyeRadius: "15%"},
@@ -215,4 +304,3 @@ addToPalette({
         y: point.y
     }),
 });
-

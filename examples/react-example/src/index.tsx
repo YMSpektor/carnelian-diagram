@@ -3,7 +3,8 @@ import ReactDOM from 'react-dom/client';
 import './index.css';
 import App from './App';
 import reportWebVitals from './reportWebVitals';
-import { controller, diagram, palette } from "./diagram";
+import { controller, diagram } from "./diagram/diagram";
+import { palette } from './diagram/palette';
 
 const root = ReactDOM.createRoot(
   document.getElementById('root') as HTMLElement

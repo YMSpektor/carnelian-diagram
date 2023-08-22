@@ -105,8 +105,8 @@ export type DiagramElementChangeHandler<P> = (callback: (oldProps: P) => P) => v
 export type DiagramElementProps<P> = P & {
     onChange: DiagramElementChangeHandler<P>;
 }
-export type DiagramComponent<P> = WithThis<DiagramNode<P>, FunctionComponent<P>>;
-export type DiagramElement<P extends object> = DiagramComponent<DiagramElementProps<P>>;
+export type DiagramComponent<P = any> = WithThis<DiagramNode<P>, FunctionComponent<P>>;
+export type DiagramElement<P extends object = any> = DiagramComponent<DiagramElementProps<P>>;
 export type DiagramElementNode<P = any> = DiagramNode<DiagramElementProps<P>>;
 
 export interface DiagramRootProps {

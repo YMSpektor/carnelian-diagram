@@ -1,7 +1,7 @@
 /** @jsxImportSource @emotion/react */
 import React, { useCallback, useEffect, useState } from 'react';
-import { Diagram, DiagramElementNode } from '@carnelian-diagram/core';
-import DiagramPalette, { DiagramPaletteElement } from './components/DiagramPalette';
+import { Diagram, DiagramElement, DiagramElementNode } from '@carnelian-diagram/core';
+import DiagramPalette from './components/DiagramPalette';
 import DiagramToolbar from './components/DiagramToolbar';
 import DiagramViewer from './components/DiagramViewer';
 import { InteractionController, isPaperService, SelectEventArgs, SELECT_EVENT } from '@carnelian-diagram/interaction';
@@ -10,7 +10,9 @@ import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
 import LayoutSidebar from './components/LayoutSidebar';
 import LayoutToolbar from './components/LayoutToolbar';
 import DiagramPropertiesPanel, { ElementStyle } from './components/DiagramPropertiesPanel';
-import { ClosedFigureStyleProps, DEFAULT_FONT_FAMILY, TextStyleProps } from '@carnelian-diagram/shapes';
+import { ClosedFigureStyleProps, DEFAULT_FONT_FAMILY, LineFigureStyleProps, TextStyleProps } from '@carnelian-diagram/shapes';
+import { DiagramPaletteElement } from './diagram/palette';
+import { getShapeMetadata, ShapeMetadata } from './diagram/shape-metadata';
 
 const theme = createTheme({
     palette: {
@@ -33,85 +35,127 @@ interface AppProps {
     palette: DiagramPaletteElement<any>[];
 }
 
+function hasFillProps(element: DiagramElementNode): boolean {
+    return !!getShapeMetadata(element.type as DiagramElement)?.hasFill;
+}
+
+function hasStrokeProps(element: DiagramElementNode): boolean {
+    return !!getShapeMetadata(element.type as DiagramElement)?.hasStroke;
+}
+
+function hasTextProps(element: DiagramElementNode): boolean {
+    return !!getShapeMetadata(element.type as DiagramElement)?.hasText;
+}
+
+function hasLineCapProps(element: DiagramElementNode): boolean {
+    return !!getShapeMetadata(element.type as DiagramElement)?.hasLineCaps;
+}
+
+function getHasFill(selectedElements: DiagramElementNode[]) {
+    const element = selectedElements.find(x => hasFillProps(x));
+    return element ? (element.props as ClosedFigureStyleProps).style?.fill !== "none" : true;
+}
+
+function getFillColor(selectedElements: DiagramElementNode[]) {
+    const defaultFillColor = "#ffffff";
+    const element = selectedElements.find(x => hasFillProps(x));
+    const result = element ? (element.props as ClosedFigureStyleProps).style?.fill || defaultFillColor : defaultFillColor;
+    return result !== "none" ? result : defaultFillColor;
+}
+
+function getHasStroke(selectedElements: DiagramElementNode[]) {
+    const element = selectedElements.find(x => hasStrokeProps(x));
+    return element ? (element.props as ClosedFigureStyleProps).style?.stroke !== "none" : true;
+}
+
+function getStrokeColor(selectedElements: DiagramElementNode[]) {
+    const defaultStrokeColor = "#000000";
+    const element = selectedElements.find(x => hasStrokeProps(x));
+    const result = element ? (element.props as ClosedFigureStyleProps).style?.stroke || defaultStrokeColor : defaultStrokeColor;
+    return result !== "none" ? result : defaultStrokeColor;
+}
+
+function getStrokeWidth(selectedElements: DiagramElementNode[], unitMultiplier: number) {
+    const defaultStrokeWidth = 0.25;
+    const element = selectedElements.find(x => hasStrokeProps(x));
+    return element ? (parseFloat((element.props as ClosedFigureStyleProps).style?.strokeWidth?.toString() || "") || 0) * unitMultiplier || defaultStrokeWidth : "";
+}
+
+function getStrokeDasharray(selectedElements: DiagramElementNode[]) {
+    const element = selectedElements.find(x => hasStrokeProps(x));
+    return element ? (element.props as ClosedFigureStyleProps).style?.strokeDasharray || undefined : undefined;
+}
+
+function getStartLineCap(selectedElements: DiagramElementNode[]) {
+    const element = selectedElements.find(x => hasLineCapProps(x));
+    return element ? (element.props as LineFigureStyleProps).startLineCap?.kind || "" : "";
+}
+
+function getEndLineCap(selectedElements: DiagramElementNode[]) {
+    const element = selectedElements.find(x => hasLineCapProps(x));
+    return element ? (element.props as LineFigureStyleProps).endLineCap?.kind || "" : "";
+}
+
+function getHasText(selectedElements: DiagramElementNode[]) {
+    const element = selectedElements.find(x => hasTextProps(x));
+    return element ? (element.props as TextStyleProps).textStyle?.fill !== "none" : true;
+}
+
+function getTextColor(selectedElements: DiagramElementNode[]) {
+    const defaultFontColor = "#000000";
+    const element = selectedElements.find(x => hasTextProps(x));
+    const result = element ? (element.props as TextStyleProps).textStyle?.fill || defaultFontColor : defaultFontColor;
+    return result !== "none" ? result : defaultFontColor;
+}
+
+function getFontFamily(selectedElements: DiagramElementNode[]) {
+    const element = selectedElements.find(x => hasTextProps(x));
+    return element ? (element.props as TextStyleProps).textStyle?.fontFamily || DEFAULT_FONT_FAMILY : DEFAULT_FONT_FAMILY;
+}
+
+function getFontBold(selectedElements: DiagramElementNode[]): boolean {
+    const element = selectedElements.find(x => hasTextProps(x));
+    return element ? (element.props as TextStyleProps).textStyle?.fontWeight === "bold" : false;
+}
+
+function getFontItalic(selectedElements: DiagramElementNode[]): boolean {
+    const element = selectedElements.find(x => hasTextProps(x));
+    return element ? (element.props as TextStyleProps).textStyle?.fontStyle === "italic" : false;
+}
+
+function getFontUnderline(selectedElements: DiagramElementNode[]): boolean {
+    const element = selectedElements.find(x => hasTextProps(x));
+    return element ? (element.props as TextStyleProps).textStyle?.textDecoration === "underline" : false;
+}
+
+function getFontSize(selectedElements: DiagramElementNode[], unitMultiplier: number) {
+    const defaultFontSize = 1;
+    const element = selectedElements.find(x => hasTextProps(x));
+    return element ? (parseFloat((element.props as TextStyleProps).textStyle?.fontSize?.toString() || "") || 0) * unitMultiplier || defaultFontSize : "";
+}
+
+function getTextAlign(selectedElements: DiagramElementNode[]) {
+    const defaultTextAlign = "center";
+    const element = selectedElements.find(x => hasTextProps(x));
+    return element ? (element.props as TextStyleProps).textStyle?.textAlign || defaultTextAlign : "";
+}
+
+function getTextVAlign(selectedElements: DiagramElementNode[]) {
+    const defaultTextVAlign = "middle";
+    const element = selectedElements.find(x => hasTextProps(x));
+    return element ? (element.props as TextStyleProps).textStyle?.verticalAlign || defaultTextVAlign : "";
+}
+
 function App(props: AppProps) {
     const { controller, diagram, palette } = props;
     const [scale, setScale] = useState(100);
     const [paper, setPaper] = useState(controller.getService(isPaperService)?.paper);
     const [sidebarOpen, setSidebarOpen] = useState(false);
     const [elementStyle, setElementStyle] = useState<ElementStyle | null>(null);
+    const [elementMetadata, setElementMetadata] = useState<ShapeMetadata | null>(null);
 
     const unitMultiplier = 0.1;
     const sidebarWidth = 270;
-
-    function getHasFill(selectedElements: DiagramElementNode[]) {
-        return selectedElements.length ? (selectedElements[0].props as ClosedFigureStyleProps).style?.fill !== "none" : true;
-    }
-    
-    function getFillColor(selectedElements: DiagramElementNode[]) {
-        const defaultFillColor = "#ffffff";
-        const result = selectedElements.length ? (selectedElements[0].props as ClosedFigureStyleProps).style?.fill || defaultFillColor : defaultFillColor;
-        return result !== "none" ? result : defaultFillColor;
-    }
-    
-    function getHasStroke(selectedElements: DiagramElementNode[]) {
-        return selectedElements.length ? (selectedElements[0].props as ClosedFigureStyleProps).style?.stroke !== "none" : true;
-    }
-    
-    function getStrokeColor(selectedElements: DiagramElementNode[]) {
-        const defaultStrokeColor = "#000000";
-        const result = selectedElements.length ? (selectedElements[0].props as ClosedFigureStyleProps).style?.stroke || defaultStrokeColor : defaultStrokeColor;
-        return result !== "none" ? result : defaultStrokeColor;
-    }
-    
-    function getStrokeWidth(selectedElements: DiagramElementNode[], unitMultiplier: number) {
-        const defaultStrokeWidth = 0.25;
-        return selectedElements.length ? (parseFloat((selectedElements[0].props as ClosedFigureStyleProps).style?.strokeWidth?.toString() || "") || 0) * unitMultiplier || defaultStrokeWidth : "";
-    }
-    
-    function getStrokeDasharray(selectedElements: DiagramElementNode[]) {
-        return selectedElements.length ? (selectedElements[0].props as ClosedFigureStyleProps).style?.strokeDasharray || undefined : undefined;
-    }
-    
-    function getHasText(selectedElements: DiagramElementNode[]) {
-        return selectedElements.length ? (selectedElements[0].props as TextStyleProps).textStyle?.fill !== "none" : true;
-    }
-    
-    function getTextColor(selectedElements: DiagramElementNode[]) {
-        const defaultFontColor = "#000000";
-        const result = selectedElements.length ? (selectedElements[0].props as TextStyleProps).textStyle?.fill || defaultFontColor : defaultFontColor;
-        return result !== "none" ? result : defaultFontColor;
-    }
-    
-    function getFontFamily(selectedElements: DiagramElementNode[]) {
-        return selectedElements.length ? (selectedElements[0].props as TextStyleProps).textStyle?.fontFamily || DEFAULT_FONT_FAMILY : DEFAULT_FONT_FAMILY;
-    }
-    
-    function getFontBold(selectedElements: DiagramElementNode[]): boolean {
-        return selectedElements.length ? (selectedElements[0].props as TextStyleProps).textStyle?.fontWeight === "bold" : false;
-    }
-    
-    function getFontItalic(selectedElements: DiagramElementNode[]): boolean {
-        return selectedElements.length ? (selectedElements[0].props as TextStyleProps).textStyle?.fontStyle === "italic" : false;
-    }
-    
-    function getFontUnderline(selectedElements: DiagramElementNode[]): boolean {
-        return selectedElements.length ? (selectedElements[0].props as TextStyleProps).textStyle?.textDecoration === "underline" : false;
-    }
-    
-    function getFontSize(selectedElements: DiagramElementNode[], unitMultiplier: number) {
-        const defaultFontSize = 1;
-        return selectedElements.length ? (parseFloat((selectedElements[0].props as TextStyleProps).textStyle?.fontSize?.toString() || "") || 0) * unitMultiplier || defaultFontSize : "";
-    }
-    
-    function getTextAlign(selectedElements: DiagramElementNode[]) {
-        const defaultTextAlign = "center";
-        return selectedElements.length ? (selectedElements[0].props as TextStyleProps).textStyle?.textAlign || defaultTextAlign : "";
-    }
-    
-    function getTextVAlign(selectedElements: DiagramElementNode[]) {
-        const defaultTextVAlign = "middle";
-        return selectedElements.length ? (selectedElements[0].props as TextStyleProps).textStyle?.verticalAlign || defaultTextVAlign : "";
-    }
 
     const selectionChangeHandler = useCallback((e: SelectEventArgs) => {
         if (e.selectedElements.length) {
@@ -122,6 +166,8 @@ function App(props: AppProps) {
                 strokeColor: getStrokeColor(e.selectedElements),
                 strokeWidth: getStrokeWidth(e.selectedElements, unitMultiplier).toString(),
                 strokeDasharray: getStrokeDasharray(e.selectedElements),
+                startLineCap: getStartLineCap(e.selectedElements),
+                endLineCap: getEndLineCap(e.selectedElements),
                 hasText: getHasText(e.selectedElements),
                 textColor: getTextColor(e.selectedElements),
                 fontFamily: getFontFamily(e.selectedElements),
@@ -132,13 +178,21 @@ function App(props: AppProps) {
                 textAlign: getTextAlign(e.selectedElements),
                 textVAlign: getTextVAlign(e.selectedElements)
             });
+            setElementMetadata({
+                hasFill: e.selectedElements.some(x => getShapeMetadata(x.type as DiagramElement<any>).hasFill),
+                hasStroke: e.selectedElements.some(x => getShapeMetadata(x.type as DiagramElement<any>).hasStroke),
+                hasText: e.selectedElements.some(x => getShapeMetadata(x.type as DiagramElement<any>).hasText),
+                hasLineCaps: e.selectedElements.some(x => getShapeMetadata(x.type as DiagramElement<any>).hasLineCaps)
+            });
         }
         else {
             setElementStyle(null);
+            setElementMetadata(null);
         }
     }, []);
 
     function updateElementStyle(value: ElementStyle) {
+        const LINE_CAP_SIZE = 20;
         setElementStyle(value);
         controller.getSelectedElements().forEach(element => {
             let strokeWidth = parseFloat(value.strokeWidth || "");
@@ -164,6 +218,16 @@ function App(props: AppProps) {
                     textDecoration: value.fontUnderline ? "underline" : undefined,
                     textAlign: value.textAlign,
                     verticalAlign: value.textVAlign
+                },
+                startLineCap: {
+                    ...element.props.startLineCap,
+                    kind: value.startLineCap ? value.startLineCap : undefined,
+                    size: LINE_CAP_SIZE
+                },
+                endLineCap: {
+                    ...element.props.endLineCap,
+                    kind: value.endLineCap ? value.endLineCap : undefined,
+                    size: LINE_CAP_SIZE
                 }
             })
         });
@@ -199,6 +263,18 @@ function App(props: AppProps) {
                         </Accordion>
                         <Accordion disableGutters={true}>
                             <AccordionSummary expandIcon={<ExpandMoreIcon />}>
+                                <Typography>Advanced Shapes</Typography>
+                            </AccordionSummary>
+                            <AccordionDetails>
+                            <DiagramPalette 
+                                    iconWidth={48} 
+                                    iconHeight={32} 
+                                    palette={palette.filter(x => x.category === "advanced")}
+                                />
+                            </AccordionDetails>
+                        </Accordion>  
+                        <Accordion disableGutters={true}>
+                            <AccordionSummary expandIcon={<ExpandMoreIcon />}>
                                 <Typography>Examples</Typography>
                             </AccordionSummary>
                             <AccordionDetails>
@@ -222,6 +298,7 @@ function App(props: AppProps) {
                             controller={controller} 
                             unitMultiplier={unitMultiplier}
                             elementStyle={elementStyle}
+                            elementMetadata={elementMetadata}
                             onElementChange={updateElementStyle}
                             onPaperChange={setPaper} 
                         />

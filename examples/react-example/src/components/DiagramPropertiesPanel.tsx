@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { InteractionController, isGridSnappingService, isPaperService, Paper } from "@carnelian-diagram/interaction";
+import { allLineCapNames } from "@carnelian-diagram/shapes/line-caps";
 import { Accordion, AccordionDetails, AccordionSummary, Box, Divider, FormControl, FormControlLabel, FormLabel, InputAdornment, InputLabel, MenuItem, Radio, RadioGroup, Select, Tab, Tabs, TextField, Typography } from "@mui/material";
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
 import TabPanel from "./TabPanel";
@@ -8,6 +9,7 @@ import Checkbox from "@mui/material/Checkbox";
 import { Diagram } from "@carnelian-diagram/core";
 import ColorInput from "./ColorInput";
 import { DEFAULT_FONT_FAMILY } from "@carnelian-diagram/shapes";
+import { ShapeMetadata } from "../diagram/shape-metadata";
 
 export interface ElementStyle {
     hasFill?: boolean;
@@ -16,6 +18,8 @@ export interface ElementStyle {
     strokeColor?: string;
     strokeWidth?: string;
     strokeDasharray?: string;
+    startLineCap?: string;
+    endLineCap?: string;
     hasText?: boolean;
     textColor?: string;
     fontFamily?: string;
@@ -32,6 +36,7 @@ export interface DiagramPropertiesPanelProps {
     controller: InteractionController;
     unitMultiplier: number;
     elementStyle: ElementStyle | null;
+    elementMetadata: ShapeMetadata | null;
     onElementChange: (elementStyle: ElementStyle) => void;
     onPaperChange: (paper: Paper) => void;
 }
@@ -66,6 +71,17 @@ const STROKE_STYLES: StrokeStyle[] = [
 const FONT_FAMILIES: string[] = ["Arial", "Comic Sans MS", "Courier New", "Garamond", "Lucida Console", "Tahoma", "Times New Roman"];
 const TEXT_ALIGNS: string[] = ["Left", "Center", "Right"];
 const TEXT_V_ALIGNS: string[] = ["Top", "Middle", "Bottom"];
+
+interface LineCap {
+    name: string;
+    value: string;
+}
+
+const NONE_LINE_CAP = "None";
+const LINE_CAPS: LineCap[] = [{name: NONE_LINE_CAP, value: ""}].concat(allLineCapNames().map(x => ({
+    name: x.charAt(0).toUpperCase() + x.slice(1),
+    value: x
+})));
 
 const DiagramPropertiesTab = (props: DiagramPropertiesPanelProps) => {
     const paperService = props.controller.getService(isPaperService);
@@ -274,6 +290,14 @@ const ElementsPropertiesTab = (props: DiagramPropertiesPanelProps) => {
         return STROKE_STYLES.find(x => x.dasharray === props.elementStyle?.strokeDasharray)?.name || SOLID_STROKE_STYLE;
     }
 
+    function getStartLineCap() {
+        return LINE_CAPS.find(x => x.value === props.elementStyle?.startLineCap)?.name || NONE_LINE_CAP;
+    }
+
+    function getEndLineCap() {
+        return LINE_CAPS.find(x => x.value === props.elementStyle?.endLineCap)?.name || NONE_LINE_CAP;
+    }
+
     function updateHasFill(value: boolean) {
         props.onElementChange({
             ...props.elementStyle,
@@ -316,6 +340,22 @@ const ElementsPropertiesTab = (props: DiagramPropertiesPanelProps) => {
         props.onElementChange({
             ...props.elementStyle,
             strokeDasharray: strokeStyle?.dasharray
+        });
+    }
+
+    function updateStartLineCap(value: string) {
+        const lineCap = LINE_CAPS.find(x => x.name === value);
+        props.onElementChange({
+            ...props.elementStyle,
+            startLineCap: lineCap?.value
+        });
+    }
+
+    function updateEndLineCap(value: string) {
+        const lineCap = LINE_CAPS.find(x => x.name === value);
+        props.onElementChange({
+            ...props.elementStyle,
+            endLineCap: lineCap?.value
         });
     }
 
@@ -386,7 +426,7 @@ const ElementsPropertiesTab = (props: DiagramPropertiesPanelProps) => {
     return (
         <>
             {props.elementStyle ? <>
-                <Accordion disableGutters={true} defaultExpanded={true}>
+                {props.elementMetadata?.hasFill && <Accordion disableGutters={true} defaultExpanded={true}>
                     <AccordionSummary expandIcon={<ExpandMoreIcon />}>
                         <FormControlLabel onClick={e => e.stopPropagation()} control={<Checkbox checked={props.elementStyle.hasFill} onChange={(e, checked) => updateHasFill(checked)} />} label="Fill" />
                     </AccordionSummary>
@@ -399,8 +439,8 @@ const ElementsPropertiesTab = (props: DiagramPropertiesPanelProps) => {
                             onChange={updateFillColor}
                         />
                     </AccordionDetails>
-                </Accordion>
-                <Accordion disableGutters={true}  defaultExpanded={true}>
+                </Accordion>}
+                {props.elementMetadata?.hasStroke && <Accordion disableGutters={true}  defaultExpanded={true}>
                     <AccordionSummary expandIcon={<ExpandMoreIcon />}>
                         <FormControlLabel onClick={e => e.stopPropagation()} control={<Checkbox checked={props.elementStyle.hasStroke} onChange={(e, checked) => updateHasStroke(checked)} />} label="Line" />
                     </AccordionSummary>
@@ -424,7 +464,7 @@ const ElementsPropertiesTab = (props: DiagramPropertiesPanelProps) => {
                             sx={{backgroundColor: "background.default"}}
                         />
                         <FormControl fullWidth variant="outlined" size="small" margin="dense" disabled={!props.elementStyle.hasStroke} sx={{backgroundColor: "background.default"}}>
-                            <InputLabel id="line-style-label">Line Style</InputLabel>
+                            <InputLabel id="line-style-label">Line style</InputLabel>
                             <Select
                                 labelId="line-style-label"
                                 label="Line style"
@@ -436,9 +476,37 @@ const ElementsPropertiesTab = (props: DiagramPropertiesPanelProps) => {
                                 ))}
                             </Select>
                         </FormControl>
+                        {props.elementMetadata?.hasLineCaps && <>
+                            <FormControl fullWidth variant="outlined" size="small" margin="dense" disabled={!props.elementStyle.hasStroke} sx={{backgroundColor: "background.default"}}>
+                                <InputLabel id="start-line-cap-label">Start line cap</InputLabel>
+                                <Select
+                                    labelId="start-line-cap-label"
+                                    label="Start line cap"
+                                    value={getStartLineCap()}
+                                    onChange={(e) => updateStartLineCap(e.target.value)}
+                                >
+                                    {LINE_CAPS.map(lineCap => (
+                                        <MenuItem key={lineCap.name} value={lineCap.name}>{lineCap.name}</MenuItem>
+                                    ))}
+                                </Select>
+                            </FormControl>
+                            <FormControl fullWidth variant="outlined" size="small" margin="dense" disabled={!props.elementStyle.hasStroke} sx={{backgroundColor: "background.default"}}>
+                                <InputLabel id="end-line-cap-label">End line cap</InputLabel>
+                                <Select
+                                    labelId="end-line-cap-label"
+                                    label="End line cap"
+                                    value={getEndLineCap()}
+                                    onChange={(e) => updateEndLineCap(e.target.value)}
+                                >
+                                    {LINE_CAPS.map(lineCap => (
+                                        <MenuItem key={lineCap.name} value={lineCap.name}>{lineCap.name}</MenuItem>
+                                    ))}
+                                </Select>
+                            </FormControl>
+                        </>}
                     </AccordionDetails>
-                </Accordion>
-                <Accordion disableGutters={true}  defaultExpanded={true}>
+                </Accordion>}
+                {props.elementMetadata?.hasText && <Accordion disableGutters={true}  defaultExpanded={true}>
                     <AccordionSummary expandIcon={<ExpandMoreIcon />}>
                         <FormControlLabel onClick={e => e.stopPropagation()} control={<Checkbox checked={props.elementStyle.hasText} onChange={(e, checked) => updateHasText(checked)} />} label="Text" />
                     </AccordionSummary>
@@ -508,7 +576,7 @@ const ElementsPropertiesTab = (props: DiagramPropertiesPanelProps) => {
                             onChange={updateTextColor}
                         />
                     </AccordionDetails>
-                </Accordion>
+                </Accordion>}
             </>
             : <Box sx={{ p: 3, textAlign: "center" }}>
                 <Typography variant="subtitle2">Please select elements to edit their properties</Typography>

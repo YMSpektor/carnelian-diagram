@@ -47,7 +47,7 @@ export interface PacmanProps extends CircleBaseProps {
 
 Please note that we are using the NumberOrPercentage type from the *@carnelian-diagram/shapes/utils*. This type allows us defining the values both using the absolute numbers or percentage values, like "10%" (considering 100% is the character radius). In the second case the eye will be scaled together with the character.
 
-Now we can draw the element using the SVG path tag. We will also define some helper functions to calculate parameters needed for drawing:
+Now we can draw the element using the SVG *path* tag. We will also define some helper functions to calculate parameters needed for drawing:
 
 ```typescript
 import { clamp, degToRad, Point } from "@carnelian-diagram/interaction/geometry";
