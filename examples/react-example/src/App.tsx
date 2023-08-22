@@ -35,6 +35,103 @@ interface AppProps {
     palette: DiagramPaletteElement<any>[];
 }
 
+function hasFillProps(element: DiagramElementNode): boolean {
+    return !!getShapeMetadata(element.type as DiagramElement)?.hasFill;
+}
+
+function hasStrokeProps(element: DiagramElementNode): boolean {
+    return !!getShapeMetadata(element.type as DiagramElement)?.hasStroke;
+}
+
+function hasTextProps(element: DiagramElementNode): boolean {
+    return !!getShapeMetadata(element.type as DiagramElement)?.hasText;
+}
+
+function getHasFill(selectedElements: DiagramElementNode[]) {
+    const element = selectedElements.find(x => hasFillProps(x));
+    return element ? (element.props as ClosedFigureStyleProps).style?.fill !== "none" : true;
+}
+
+function getFillColor(selectedElements: DiagramElementNode[]) {
+    const defaultFillColor = "#ffffff";
+    const element = selectedElements.find(x => hasFillProps(x));
+    const result = element ? (element.props as ClosedFigureStyleProps).style?.fill || defaultFillColor : defaultFillColor;
+    return result !== "none" ? result : defaultFillColor;
+}
+
+function getHasStroke(selectedElements: DiagramElementNode[]) {
+    const element = selectedElements.find(x => hasStrokeProps(x));
+    return element ? (element.props as ClosedFigureStyleProps).style?.stroke !== "none" : true;
+}
+
+function getStrokeColor(selectedElements: DiagramElementNode[]) {
+    const defaultStrokeColor = "#000000";
+    const element = selectedElements.find(x => hasStrokeProps(x));
+    const result = element ? (element.props as ClosedFigureStyleProps).style?.stroke || defaultStrokeColor : defaultStrokeColor;
+    return result !== "none" ? result : defaultStrokeColor;
+}
+
+function getStrokeWidth(selectedElements: DiagramElementNode[], unitMultiplier: number) {
+    const defaultStrokeWidth = 0.25;
+    const element = selectedElements.find(x => hasStrokeProps(x));
+    return element ? (parseFloat((element.props as ClosedFigureStyleProps).style?.strokeWidth?.toString() || "") || 0) * unitMultiplier || defaultStrokeWidth : "";
+}
+
+function getStrokeDasharray(selectedElements: DiagramElementNode[]) {
+    const element = selectedElements.find(x => hasStrokeProps(x));
+    return element ? (element.props as ClosedFigureStyleProps).style?.strokeDasharray || undefined : undefined;
+}
+
+function getHasText(selectedElements: DiagramElementNode[]) {
+    const element = selectedElements.find(x => hasTextProps(x));
+    return element ? (element.props as TextStyleProps).textStyle?.fill !== "none" : true;
+}
+
+function getTextColor(selectedElements: DiagramElementNode[]) {
+    const defaultFontColor = "#000000";
+    const element = selectedElements.find(x => hasTextProps(x));
+    const result = element ? (element.props as TextStyleProps).textStyle?.fill || defaultFontColor : defaultFontColor;
+    return result !== "none" ? result : defaultFontColor;
+}
+
+function getFontFamily(selectedElements: DiagramElementNode[]) {
+    const element = selectedElements.find(x => hasTextProps(x));
+    return element ? (element.props as TextStyleProps).textStyle?.fontFamily || DEFAULT_FONT_FAMILY : DEFAULT_FONT_FAMILY;
+}
+
+function getFontBold(selectedElements: DiagramElementNode[]): boolean {
+    const element = selectedElements.find(x => hasTextProps(x));
+    return element ? (element.props as TextStyleProps).textStyle?.fontWeight === "bold" : false;
+}
+
+function getFontItalic(selectedElements: DiagramElementNode[]): boolean {
+    const element = selectedElements.find(x => hasTextProps(x));
+    return element ? (element.props as TextStyleProps).textStyle?.fontStyle === "italic" : false;
+}
+
+function getFontUnderline(selectedElements: DiagramElementNode[]): boolean {
+    const element = selectedElements.find(x => hasTextProps(x));
+    return element ? (element.props as TextStyleProps).textStyle?.textDecoration === "underline" : false;
+}
+
+function getFontSize(selectedElements: DiagramElementNode[], unitMultiplier: number) {
+    const defaultFontSize = 1;
+    const element = selectedElements.find(x => hasTextProps(x));
+    return element ? (parseFloat((element.props as TextStyleProps).textStyle?.fontSize?.toString() || "") || 0) * unitMultiplier || defaultFontSize : "";
+}
+
+function getTextAlign(selectedElements: DiagramElementNode[]) {
+    const defaultTextAlign = "center";
+    const element = selectedElements.find(x => hasTextProps(x));
+    return element ? (element.props as TextStyleProps).textStyle?.textAlign || defaultTextAlign : "";
+}
+
+function getTextVAlign(selectedElements: DiagramElementNode[]) {
+    const defaultTextVAlign = "middle";
+    const element = selectedElements.find(x => hasTextProps(x));
+    return element ? (element.props as TextStyleProps).textStyle?.verticalAlign || defaultTextVAlign : "";
+}
+
 function App(props: AppProps) {
     const { controller, diagram, palette } = props;
     const [scale, setScale] = useState(100);
@@ -45,76 +142,6 @@ function App(props: AppProps) {
 
     const unitMultiplier = 0.1;
     const sidebarWidth = 270;
-
-    function getHasFill(selectedElements: DiagramElementNode[]) {
-        return selectedElements.length ? (selectedElements[0].props as ClosedFigureStyleProps).style?.fill !== "none" : true;
-    }
-    
-    function getFillColor(selectedElements: DiagramElementNode[]) {
-        const defaultFillColor = "#ffffff";
-        const result = selectedElements.length ? (selectedElements[0].props as ClosedFigureStyleProps).style?.fill || defaultFillColor : defaultFillColor;
-        return result !== "none" ? result : defaultFillColor;
-    }
-    
-    function getHasStroke(selectedElements: DiagramElementNode[]) {
-        return selectedElements.length ? (selectedElements[0].props as ClosedFigureStyleProps).style?.stroke !== "none" : true;
-    }
-    
-    function getStrokeColor(selectedElements: DiagramElementNode[]) {
-        const defaultStrokeColor = "#000000";
-        const result = selectedElements.length ? (selectedElements[0].props as ClosedFigureStyleProps).style?.stroke || defaultStrokeColor : defaultStrokeColor;
-        return result !== "none" ? result : defaultStrokeColor;
-    }
-    
-    function getStrokeWidth(selectedElements: DiagramElementNode[], unitMultiplier: number) {
-        const defaultStrokeWidth = 0.25;
-        return selectedElements.length ? (parseFloat((selectedElements[0].props as ClosedFigureStyleProps).style?.strokeWidth?.toString() || "") || 0) * unitMultiplier || defaultStrokeWidth : "";
-    }
-    
-    function getStrokeDasharray(selectedElements: DiagramElementNode[]) {
-        return selectedElements.length ? (selectedElements[0].props as ClosedFigureStyleProps).style?.strokeDasharray || undefined : undefined;
-    }
-    
-    function getHasText(selectedElements: DiagramElementNode[]) {
-        return selectedElements.length ? (selectedElements[0].props as TextStyleProps).textStyle?.fill !== "none" : true;
-    }
-    
-    function getTextColor(selectedElements: DiagramElementNode[]) {
-        const defaultFontColor = "#000000";
-        const result = selectedElements.length ? (selectedElements[0].props as TextStyleProps).textStyle?.fill || defaultFontColor : defaultFontColor;
-        return result !== "none" ? result : defaultFontColor;
-    }
-    
-    function getFontFamily(selectedElements: DiagramElementNode[]) {
-        return selectedElements.length ? (selectedElements[0].props as TextStyleProps).textStyle?.fontFamily || DEFAULT_FONT_FAMILY : DEFAULT_FONT_FAMILY;
-    }
-    
-    function getFontBold(selectedElements: DiagramElementNode[]): boolean {
-        return selectedElements.length ? (selectedElements[0].props as TextStyleProps).textStyle?.fontWeight === "bold" : false;
-    }
-    
-    function getFontItalic(selectedElements: DiagramElementNode[]): boolean {
-        return selectedElements.length ? (selectedElements[0].props as TextStyleProps).textStyle?.fontStyle === "italic" : false;
-    }
-    
-    function getFontUnderline(selectedElements: DiagramElementNode[]): boolean {
-        return selectedElements.length ? (selectedElements[0].props as TextStyleProps).textStyle?.textDecoration === "underline" : false;
-    }
-    
-    function getFontSize(selectedElements: DiagramElementNode[], unitMultiplier: number) {
-        const defaultFontSize = 1;
-        return selectedElements.length ? (parseFloat((selectedElements[0].props as TextStyleProps).textStyle?.fontSize?.toString() || "") || 0) * unitMultiplier || defaultFontSize : "";
-    }
-    
-    function getTextAlign(selectedElements: DiagramElementNode[]) {
-        const defaultTextAlign = "center";
-        return selectedElements.length ? (selectedElements[0].props as TextStyleProps).textStyle?.textAlign || defaultTextAlign : "";
-    }
-    
-    function getTextVAlign(selectedElements: DiagramElementNode[]) {
-        const defaultTextVAlign = "middle";
-        return selectedElements.length ? (selectedElements[0].props as TextStyleProps).textStyle?.verticalAlign || defaultTextVAlign : "";
-    }
 
     const selectionChangeHandler = useCallback((e: SelectEventArgs) => {
         if (e.selectedElements.length) {
