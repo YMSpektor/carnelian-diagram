@@ -10,7 +10,7 @@ import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
 import LayoutSidebar from './components/LayoutSidebar';
 import LayoutToolbar from './components/LayoutToolbar';
 import DiagramPropertiesPanel, { ElementStyle } from './components/DiagramPropertiesPanel';
-import { ClosedFigureStyleProps, DEFAULT_FONT_FAMILY, TextStyleProps } from '@carnelian-diagram/shapes';
+import { ClosedFigureStyleProps, DEFAULT_FONT_FAMILY, LineFigureStyleProps, TextStyleProps } from '@carnelian-diagram/shapes';
 import { DiagramPaletteElement } from './diagram/palette';
 import { getShapeMetadata, ShapeMetadata } from './diagram/shape-metadata';
 
@@ -47,6 +47,10 @@ function hasTextProps(element: DiagramElementNode): boolean {
     return !!getShapeMetadata(element.type as DiagramElement)?.hasText;
 }
 
+function hasLineCapProps(element: DiagramElementNode): boolean {
+    return !!getShapeMetadata(element.type as DiagramElement)?.hasLineCaps;
+}
+
 function getHasFill(selectedElements: DiagramElementNode[]) {
     const element = selectedElements.find(x => hasFillProps(x));
     return element ? (element.props as ClosedFigureStyleProps).style?.fill !== "none" : true;
@@ -80,6 +84,16 @@ function getStrokeWidth(selectedElements: DiagramElementNode[], unitMultiplier: 
 function getStrokeDasharray(selectedElements: DiagramElementNode[]) {
     const element = selectedElements.find(x => hasStrokeProps(x));
     return element ? (element.props as ClosedFigureStyleProps).style?.strokeDasharray || undefined : undefined;
+}
+
+function getStartLineCap(selectedElements: DiagramElementNode[]) {
+    const element = selectedElements.find(x => hasLineCapProps(x));
+    return element ? (element.props as LineFigureStyleProps).startLineCap?.kind || "" : "";
+}
+
+function getEndLineCap(selectedElements: DiagramElementNode[]) {
+    const element = selectedElements.find(x => hasLineCapProps(x));
+    return element ? (element.props as LineFigureStyleProps).endLineCap?.kind || "" : "";
 }
 
 function getHasText(selectedElements: DiagramElementNode[]) {
@@ -152,6 +166,8 @@ function App(props: AppProps) {
                 strokeColor: getStrokeColor(e.selectedElements),
                 strokeWidth: getStrokeWidth(e.selectedElements, unitMultiplier).toString(),
                 strokeDasharray: getStrokeDasharray(e.selectedElements),
+                startLineCap: getStartLineCap(e.selectedElements),
+                endLineCap: getEndLineCap(e.selectedElements),
                 hasText: getHasText(e.selectedElements),
                 textColor: getTextColor(e.selectedElements),
                 fontFamily: getFontFamily(e.selectedElements),
@@ -176,6 +192,7 @@ function App(props: AppProps) {
     }, []);
 
     function updateElementStyle(value: ElementStyle) {
+        const LINE_CAP_SIZE = 20;
         setElementStyle(value);
         controller.getSelectedElements().forEach(element => {
             let strokeWidth = parseFloat(value.strokeWidth || "");
@@ -201,6 +218,16 @@ function App(props: AppProps) {
                     textDecoration: value.fontUnderline ? "underline" : undefined,
                     textAlign: value.textAlign,
                     verticalAlign: value.textVAlign
+                },
+                startLineCap: {
+                    ...element.props.startLineCap,
+                    kind: value.startLineCap ? value.startLineCap : undefined,
+                    size: LINE_CAP_SIZE
+                },
+                endLineCap: {
+                    ...element.props.endLineCap,
+                    kind: value.endLineCap ? value.endLineCap : undefined,
+                    size: LINE_CAP_SIZE
                 }
             })
         });
