@@ -1,10 +1,10 @@
 /** @jsxImportSource @carnelian-diagram/core */
 
-import { DiagramNode, useContext } from "@carnelian-diagram/core";
+import { DiagramElementNode, useContext } from "@carnelian-diagram/core";
 import { ActionCallback, ControlsContext, HitArea, lineHitTest, DragActionPayload, useAction, useHitTest } from "..";
 
 export interface EdgeControlProps {
-    element: DiagramNode;
+    element: DiagramElementNode;
     kind: string;
     x1: number;
     y1: number;

@@ -1,10 +1,10 @@
 /** @jsxImportSource @carnelian-diagram/core */
 
-import { DiagramNode, useContext } from "@carnelian-diagram/core";
+import { DiagramElementNode, useContext } from "@carnelian-diagram/core";
 import { ActionCallback, ControlsContext, createHitTestProps, HitArea, DragActionPayload, useAction } from "..";
 
 export interface HandleControlProps {
-    element: DiagramNode;
+    element: DiagramElementNode;
     kind: string;
     x: number;
     y: number;
