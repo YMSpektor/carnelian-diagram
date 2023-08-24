@@ -11,6 +11,7 @@ export interface ClipboardService extends InteractionServive {
     canCopy(): boolean;
     canPaste(): boolean;
     copy(): void;
+    cut(): void;
     paste(): void;
 }
 
@@ -72,6 +73,15 @@ export class DefaultClipboardService implements ClipboardService {
         }
     }
 
+    cut() {
+        if (this.canCopy()) {
+            this.copy();
+            this.pasteIndex = -1;
+            this.diagram?.delete(this.controller.getSelectedElements());
+            this.controller.select([]);
+        }
+    }
+
     paste() {
         if (this.canPaste()) {
             this.pasteIndex++;
@@ -97,6 +107,9 @@ export class DefaultClipboardService implements ClipboardService {
         const ctrl = e.ctrlKey || e.metaKey;
         if (ctrl && e.key === "c") {
             this.copy();
+        }
+        if (ctrl && e.key === "x") {
+            this.cut();
         }
         if (ctrl && e.key === "v") {
             this.paste();
