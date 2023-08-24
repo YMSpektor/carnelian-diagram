@@ -1,6 +1,6 @@
 /** @jsxImportSource @emotion/react */
 import React, { useCallback, useEffect, useState } from 'react';
-import { Diagram, DiagramElement, DiagramElementNode } from '@carnelian-diagram/core';
+import { Diagram, DiagramElementNode } from '@carnelian-diagram/core';
 import DiagramPalette from './components/DiagramPalette';
 import DiagramToolbar from './components/DiagramToolbar';
 import DiagramViewer from './components/DiagramViewer';
@@ -36,19 +36,19 @@ interface AppProps {
 }
 
 function hasFillProps(element: DiagramElementNode): boolean {
-    return !!getShapeMetadata(element.type as DiagramElement)?.hasFill;
+    return !!getShapeMetadata(element.type)?.hasFill;
 }
 
 function hasStrokeProps(element: DiagramElementNode): boolean {
-    return !!getShapeMetadata(element.type as DiagramElement)?.hasStroke;
+    return !!getShapeMetadata(element.type)?.hasStroke;
 }
 
 function hasTextProps(element: DiagramElementNode): boolean {
-    return !!getShapeMetadata(element.type as DiagramElement)?.hasText;
+    return !!getShapeMetadata(element.type)?.hasText;
 }
 
 function hasLineCapProps(element: DiagramElementNode): boolean {
-    return !!getShapeMetadata(element.type as DiagramElement)?.hasLineCaps;
+    return !!getShapeMetadata(element.type)?.hasLineCaps;
 }
 
 function getHasFill(selectedElements: DiagramElementNode[]) {
@@ -179,10 +179,10 @@ function App(props: AppProps) {
                 textVAlign: getTextVAlign(e.selectedElements)
             });
             setElementMetadata({
-                hasFill: e.selectedElements.some(x => getShapeMetadata(x.type as DiagramElement<any>).hasFill),
-                hasStroke: e.selectedElements.some(x => getShapeMetadata(x.type as DiagramElement<any>).hasStroke),
-                hasText: e.selectedElements.some(x => getShapeMetadata(x.type as DiagramElement<any>).hasText),
-                hasLineCaps: e.selectedElements.some(x => getShapeMetadata(x.type as DiagramElement<any>).hasLineCaps)
+                hasFill: e.selectedElements.some(x => getShapeMetadata(x.type).hasFill),
+                hasStroke: e.selectedElements.some(x => getShapeMetadata(x.type).hasStroke),
+                hasText: e.selectedElements.some(x => getShapeMetadata(x.type).hasText),
+                hasLineCaps: e.selectedElements.some(x => getShapeMetadata(x.type).hasLineCaps)
             });
         }
         else {
