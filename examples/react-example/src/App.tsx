@@ -13,6 +13,7 @@ import DiagramPropertiesPanel, { ElementStyle } from './components/DiagramProper
 import { ClosedFigureStyleProps, DEFAULT_FONT_FAMILY, LineFigureStyleProps, TextStyleProps } from '@carnelian-diagram/shapes';
 import { DiagramPaletteElement } from './diagram/palette';
 import { getShapeMetadata, ShapeMetadata } from './diagram/shape-metadata';
+import DiagramContextMenu from './components/DiagramContexMenu';
 
 const theme = createTheme({
     palette: {
@@ -153,9 +154,26 @@ function App(props: AppProps) {
     const [sidebarOpen, setSidebarOpen] = useState(false);
     const [elementStyle, setElementStyle] = useState<ElementStyle | null>(null);
     const [elementMetadata, setElementMetadata] = useState<ShapeMetadata | null>(null);
+    const [contextMenu, setContextMenu] = React.useState<DOMPoint | null>(null);
 
     const unitMultiplier = 0.1;
     const sidebarWidth = 270;
+
+    function handleContextMenu(event: React.MouseEvent) {
+        event.preventDefault();
+
+        setContextMenu(!contextMenu
+            ? new DOMPoint(
+                event.clientX + 2,
+                event.clientY - 6,
+            )
+            : null,  
+        );
+    }
+
+    function closeContextMenu() {
+        setContextMenu(null);
+    };
 
     const selectionChangeHandler = useCallback((e: SelectEventArgs) => {
         if (e.selectedElements.length) {
@@ -291,6 +309,20 @@ function App(props: AppProps) {
                         diagram={diagram} controller={controller}
                         diagramSize={{width: paper?.width || 0, height: paper?.height || 0}} 
                         scale={scale} unit="mm" unitMultiplier={unitMultiplier} 
+                        onContextMenu={handleContextMenu}
+                    />
+                    <DiagramContextMenu
+                        open={!!contextMenu} 
+                        onClose={closeContextMenu}
+                        onSelect={closeContextMenu}
+                        anchorReference="anchorPosition"
+                        anchorPosition={
+                            contextMenu
+                              ? { left: contextMenu.x, top: contextMenu.y }
+                              : undefined
+                          }
+                        diagram={diagram}
+                        controller={controller}
                     />
                     <LayoutSidebar width={sidebarWidth}>
                         <DiagramPropertiesPanel

@@ -6,8 +6,8 @@ import ZoomInIcon from '@mui/icons-material/ZoomIn';
 import ZoomOutIcon from '@mui/icons-material/ZoomOut';
 import CircleOutlinedIcon from '@mui/icons-material/CircleOutlined';
 import DeleteForeverIcon from '@mui/icons-material/DeleteForever';
-import { DrawingModeElementFactory, DRAW_ELEMENT_EVENT, InteractionController, isDeletionService, isElementDrawingService } from "@carnelian-diagram/interaction";
-import { Diagram } from "@carnelian-diagram/core";
+import { DrawingModeElementFactory, DRAW_ELEMENT_EVENT, InteractionController, isDeletionService, isElementDrawingService, SelectEventArgs, SELECT_EVENT } from "@carnelian-diagram/interaction";
+import { Diagram, DiagramElementNode } from "@carnelian-diagram/core";
 import {
     InteractiveLine as Line,
     InteractivePolyline as Polyline,
@@ -102,6 +102,7 @@ function DiagramToolbar(props: DiagramToolbarProps) {
 
     const [scaleMenuAnchorEl, setScaleMenuAnchorEl] = useState<null | HTMLElement>(null);
     const [drawingMode, setDrawingMode] = useState("");
+    const [selectedElements, setSelectedElements] = useState<DiagramElementNode[]>([]);
 
     const changeDrawinMode = useCallback((value: string) => {
         const service = props.controller.getService(isElementDrawingService);
@@ -209,6 +210,18 @@ function DiagramToolbar(props: DiagramToolbarProps) {
         return diagram.add(Text, { x, y, width: 0, height: 0, text: "", textStyle: defaultTextStyles });
     }
 
+    const selectionChangeHandler = useCallback((e: SelectEventArgs) => {
+        setSelectedElements(e.selectedElements);
+    }, []);
+
+    useEffect(() => {
+        props.controller.addEventListener(SELECT_EVENT, selectionChangeHandler);
+
+        return () => {
+            props.controller.removeEventListener(SELECT_EVENT, selectionChangeHandler);
+        }
+    }, [props.controller, selectionChangeHandler]);
+
     return (
         <>
             <Tooltip title="Scale">
@@ -238,18 +251,18 @@ function DiagramToolbar(props: DiagramToolbarProps) {
             </Tooltip>
             <ToolbarDivider />
             <Tooltip title="Bring to front">
-                <IconButton color="inherit" onClick={(e) => bringToFront()}>
+                <IconButton color="inherit" onClick={(e) => bringToFront()} disabled={selectedElements.length < 1}>
                     <BringToFrontIcon />
                 </IconButton>
             </Tooltip>
             <Tooltip title="Send to back">
-                <IconButton color="inherit" onClick={(e) => sendToBack()}>
+                <IconButton color="inherit" onClick={(e) => sendToBack()} disabled={selectedElements.length < 1}>
                     <SendToBackIcon />
                 </IconButton>
             </Tooltip>
             <ToolbarDivider />
             <Tooltip title="Delete">
-                <IconButton color="inherit" onClick={(e) => deleteElements()}>
+                <IconButton color="inherit" onClick={(e) => deleteElements()} disabled={selectedElements.length < 1}>
                     <DeleteForeverIcon />
                 </IconButton>
             </Tooltip>

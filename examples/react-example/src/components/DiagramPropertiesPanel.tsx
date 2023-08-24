@@ -579,7 +579,7 @@ const ElementsPropertiesTab = (props: DiagramPropertiesPanelProps) => {
                 </Accordion>}
             </>
             : <Box sx={{ p: 3, textAlign: "center" }}>
-                <Typography variant="subtitle2">Please select elements to edit their properties</Typography>
+                <Typography variant="subtitle1">No elements selected</Typography>
             </Box>}
         </>
     );
