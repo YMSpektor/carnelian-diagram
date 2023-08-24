@@ -21,13 +21,13 @@ export function isClipboardService(service: InteractionServive): service is Clip
 interface ClipboardElementData<P extends object> {
     type: DiagramElement<P>;
     props: P;
+    relativeOffset: DOMPointReadOnly;
 }
 
 export class DefaultClipboardService implements ClipboardService {
     private diagram: Diagram | null = null;
     private copiedElements: ClipboardElementData<any>[] = [];
-    private currentOffsetX = 0;
-    private currentOffsetY = 0;
+    private pasteIndex = 0;
     type: "clipboard_service" = "clipboard_service";
     offsetXOnPaste = 0;
     offsetYOnPaste = 0;
@@ -65,28 +65,29 @@ export class DefaultClipboardService implements ClipboardService {
             });
             this.copiedElements = selectedElements.map(x => ({
                 type: x.type,
-                props: deepcopy(x.props)
+                props: deepcopy(x.props),
+                relativeOffset: this.controller.diagramToElement(new DOMPoint(this.offsetXOnPaste, this.offsetYOnPaste), x)
             }));
-            this.currentOffsetX = 0;
-            this.currentOffsetY = 0;
+            this.pasteIndex = 0;
         }
     }
 
     paste() {
         if (this.canPaste()) {
-            this.currentOffsetX += this.offsetXOnPaste;
-            this.currentOffsetY += this.offsetYOnPaste;
+            this.pasteIndex++;
             const newElements: DiagramElementNode[] = [];
             this.copiedElements.forEach(x => {
                 if (this.diagram) {
                     const element = this.diagram.add(x.type, x.props);
                     newElements.push(element);
+                    const offsetX = x.relativeOffset.x * this.pasteIndex;
+                    const offsetY = x.relativeOffset.y * this.pasteIndex;
+                    this.controller.dispatchAction<ACT_PASTE_Payload>([element], ACT_PASTE, {
+                        controller: this.controller,
+                        offsetX,
+                        offsetY
+                    });
                 }
-            });
-            this.controller.dispatchAction<ACT_PASTE_Payload>(newElements, ACT_PASTE, {
-                controller: this.controller,
-                offsetX: this.currentOffsetX,
-                offsetY: this.currentOffsetY
             });
             this.controller.select(newElements);
         }
