@@ -7,6 +7,8 @@ export const ACT_DRAW_POINT_PLACE = "draw_point:place";
 export const ACT_DRAW_POINT_MOVE = "draw_point:move";
 export const ACT_DRAW_POINT_CANCEL = "draw_point:cancel";
 export const ACT_EDIT_TEXT = "edit_text";
+export const ACT_COPY = "copy";
+export const ACT_PASTE = "paste";
 
 export interface DragActionPayload {
     controller: InteractionController;
@@ -74,3 +76,13 @@ export interface ACT_DRAW_POINT_CANCEL_Payload {
 }
 
 export type ACT_EDIT_TEXT_Payload = ClickActionPayload;
+
+export interface ACT_COPY_Payload {
+    controller: InteractionController;
+}
+
+export interface ACT_PASTE_Payload {
+    controller: InteractionController;
+    offsetX: number;
+    offsetY: number;
+}

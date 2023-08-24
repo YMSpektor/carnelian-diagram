@@ -17,7 +17,9 @@ import {
     ACT_DRAW_POINT_CANCEL,
     ACT_DRAW_POINT_CANCEL_Payload,
     HitArea,
-    useTransform
+    useTransform,
+    ACT_PASTE_Payload,
+    ACT_PASTE
 } from "..";
 import { Collider, RectCollider } from "../collisions";
 import { radToDeg, transformPoint } from "../geometry";
@@ -160,6 +162,14 @@ export function useInteractiveRect<T extends InteractiveRectProps>(
 
     useAction<ACT_DRAW_POINT_CANCEL_Payload>(ACT_DRAW_POINT_CANCEL, (payload) => {
         payload.result.current = false;
+    });
+
+    useAction<ACT_PASTE_Payload>(ACT_PASTE, (payload) => {
+        onChange(props => ({
+            ...props,
+            x: props.x + payload.offsetX,
+            y: props.y + payload.offsetY
+        }));
     });
 
     useInteractiveRectControls(

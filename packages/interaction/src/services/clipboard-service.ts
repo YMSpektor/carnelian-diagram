@@ -1,11 +1,13 @@
 import deepcopy from 'deepcopy';
 import { Diagram, DiagramElement } from "@carnelian-diagram/core";
 import { InteractionServive } from ".";
-import { InteractionController } from "..";
+import { ACT_COPY, ACT_COPY_Payload, ACT_PASTE, ACT_PASTE_Payload, InteractionController } from "..";
 import { DiagramElementNode } from '@carnelian-diagram/core';
 
 export interface ClipboardService extends InteractionServive {
     type: "clipboard_service";
+    offsetXOnPaste: number;
+    offsetYOnPaste: number;
     canCopy(): boolean;
     canPaste(): boolean;
     copy(): void;
@@ -24,7 +26,11 @@ interface ClipboardElementData<P extends object> {
 export class DefaultClipboardService implements ClipboardService {
     private diagram: Diagram | null = null;
     private copiedElements: ClipboardElementData<any>[] = [];
+    private currentOffsetX = 0;
+    private currentOffsetY = 0;
     type: "clipboard_service" = "clipboard_service";
+    offsetXOnPaste = 0;
+    offsetYOnPaste = 0;
     deactivate?: () => void;
 
     constructor(private controller: InteractionController) {}
@@ -53,23 +59,36 @@ export class DefaultClipboardService implements ClipboardService {
 
     copy() {
         if (this.canCopy()) {
-            this.copiedElements = this.controller.getSelectedElements().map(x => ({
+            const selectedElements = this.controller.getSelectedElements();
+            this.controller.dispatchAction<ACT_COPY_Payload>(selectedElements, ACT_COPY, {
+                controller: this.controller
+            });
+            this.copiedElements = selectedElements.map(x => ({
                 type: x.type,
                 props: deepcopy(x.props)
             }));
+            this.currentOffsetX = 0;
+            this.currentOffsetY = 0;
         }
     }
 
     paste() {
         if (this.canPaste()) {
+            this.currentOffsetX += this.offsetXOnPaste;
+            this.currentOffsetY += this.offsetYOnPaste;
             const newElements: DiagramElementNode[] = [];
             this.copiedElements.forEach(x => {
                 if (this.diagram) {
-                    const element = this.diagram.add(x.type, x.props);  // TODO: offset element
+                    const element = this.diagram.add(x.type, x.props);
                     newElements.push(element);
                 }
             });
-            this.controller.select(newElements)
+            this.controller.dispatchAction<ACT_PASTE_Payload>(newElements, ACT_PASTE, {
+                controller: this.controller,
+                offsetX: this.currentOffsetX,
+                offsetY: this.currentOffsetY
+            });
+            this.controller.select(newElements);
         }
     }
 

@@ -1,5 +1,5 @@
 import { Diagram } from "@carnelian-diagram/core";
-import { InteractionController, isGridSnappingService, isPaperService } from "@carnelian-diagram/interaction";
+import { InteractionController, isClipboardService, isGridSnappingService, isPaperService } from "@carnelian-diagram/interaction";
 
 export const diagram = new Diagram();
 export const controller = new InteractionController(diagram, (services) => {
@@ -17,5 +17,10 @@ export const controller = new InteractionController(diagram, (services) => {
     services.configure(isGridSnappingService, (service) => {
         service.snapGridSize = 50;
         service.snapAngle = 5;
+    });
+
+    services.configure(isClipboardService, (service) => {
+        service.offsetXOnPaste = 50;
+        service.offsetYOnPaste = 50;
     });
 });
