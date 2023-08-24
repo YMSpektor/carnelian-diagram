@@ -1,6 +1,6 @@
 {
   "name": "@carnelian-diagram/interaction",
-  "version": "0.3.0",
+  "version": "0.4.0",
   "main": "index.js",
   "description": "Carnelian Diagram package for interactive elements",
   "author": "Yuri Spektor",
@@ -43,6 +43,6 @@
     "type-pubsub": "^0.1.4"
   },
   "peerDependencies": {
-    "@carnelian-diagram/core": "~0.3.0"
+    "@carnelian-diagram/core": "~0.4.0"
   }
 }
