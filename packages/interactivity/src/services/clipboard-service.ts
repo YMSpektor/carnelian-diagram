@@ -19,6 +19,17 @@ export function isClipboardService(service: InteractionServive): service is Clip
     return service.type === "clipboard_service";
 }
 
+export const COPY_EVENT = "copy";
+export const PASTE_EVENT = "paste";
+
+export interface CopyEventArg {
+    elements: DiagramElementNode[];
+}
+
+export interface PasteEventArg {
+    elements: DiagramElementNode[];
+}
+
 interface ClipboardElementData<P extends object> {
     type: DiagramElement<P>;
     props: P;
@@ -70,6 +81,7 @@ export class DefaultClipboardService implements ClipboardService {
                 relativeOffset: this.controller.diagramToElement(new DOMPoint(this.offsetXOnPaste, this.offsetYOnPaste), x)
             }));
             this.pasteIndex = 0;
+            this.controller.dispatchEvent<CopyEventArg>(COPY_EVENT, { elements: selectedElements });
         }
     }
 
@@ -100,6 +112,7 @@ export class DefaultClipboardService implements ClipboardService {
                 }
             });
             this.controller.select(newElements);
+            this.controller.dispatchEvent<PasteEventArg>(COPY_EVENT, { elements: newElements });
         }
     }
 
