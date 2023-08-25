@@ -1,4 +1,4 @@
-export * from "./with-interaction";
+export * from "./with-interactivity";
 export * from "./with-interactive-line";
 export * from "./with-interactive-polyline";
 export * from "./with-interactive-rect";

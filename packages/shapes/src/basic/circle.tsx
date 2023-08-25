@@ -1,7 +1,7 @@
 /** @jsxImportSource @carnelian-diagram/core */
 
 import { DiagramElement } from "@carnelian-diagram/core";
-import { CircleCollider } from "@carnelian-diagram/interaction";
+import { CircleCollider } from "@carnelian-diagram/interactivity";
 import { CircleBaseProps } from "..";
 import { withInteractiveRotatableCircle, withInteractiveRotatableTextCircle } from "../hocs";
 

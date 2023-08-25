@@ -1,288 +1,21 @@
 (function(){function r(e,n,t){function o(i,f){if(!n[i]){if(!e[i]){var c="function"==typeof require&&require;if(!f&&c)return c(i,!0);if(u)return u(i,!0);var a=new Error("Cannot find module '"+i+"'");throw a.code="MODULE_NOT_FOUND",a}var p=n[i]={exports:{}};e[i][0].call(p.exports,function(r){var n=e[i][1][r];return o(n||r)},p,p.exports,r,e,n,t)}return n[i].exports}for(var u="function"==typeof require&&require,i=0;i<t.length;i++)o(t[i]);return o}return r})()({1:[function(require,module,exports){
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-var diagram_1 = require("@carnelian-diagram/core");
-var interaction_1 = require("@carnelian-diagram/interaction");
+var core_1 = require("@carnelian-diagram/core");
+var interactivity_1 = require("@carnelian-diagram/interactivity");
 var basic_1 = require("@carnelian-diagram/shapes/basic");
 var root = document.getElementById("root");
 if (root && root instanceof SVGGraphicsElement) {
-    var diagram = new diagram_1.Diagram();
+    var diagram = new core_1.Diagram();
     diagram.add(basic_1.InteractiveRoundedRect, { x: 100, y: 100, width: 200, height: 150, radius: "25%", style: { fill: "yellow" } });
     diagram.add(basic_1.InteractiveCircle, { x: 280, y: 220, radius: 80, style: { fill: "blue" } });
-    var controller = new interaction_1.InteractionController(diagram);
-    var diagramDOM = diagram_1.DiagramDOM.createRoot(diagram, root, (0, interaction_1.withInteraction)(diagram_1.DiagramRoot, controller));
+    var controller = new interactivity_1.InteractionController(diagram);
+    var diagramDOM = core_1.DiagramDOM.createRoot(diagram, root, (0, interactivity_1.withInteractivity)(core_1.DiagramRoot, controller));
     controller.attach(root);
     diagramDOM.attach();
 }
 
-},{"@carnelian-diagram/core":16,"@carnelian-diagram/interaction":87,"@carnelian-diagram/shapes/basic":114}],2:[function(require,module,exports){
-
-},{}],3:[function(require,module,exports){
-// shim for using process in browser
-var process = module.exports = {};
-
-// cached from whatever global is present so that test runners that stub it
-// don't break things.  But we need to wrap it in a try catch in case it is
-// wrapped in strict mode code which doesn't define any globals.  It's inside a
-// function because try/catches deoptimize in certain engines.
-
-var cachedSetTimeout;
-var cachedClearTimeout;
-
-function defaultSetTimout() {
-    throw new Error('setTimeout has not been defined');
-}
-function defaultClearTimeout () {
-    throw new Error('clearTimeout has not been defined');
-}
-(function () {
-    try {
-        if (typeof setTimeout === 'function') {
-            cachedSetTimeout = setTimeout;
-        } else {
-            cachedSetTimeout = defaultSetTimout;
-        }
-    } catch (e) {
-        cachedSetTimeout = defaultSetTimout;
-    }
-    try {
-        if (typeof clearTimeout === 'function') {
-            cachedClearTimeout = clearTimeout;
-        } else {
-            cachedClearTimeout = defaultClearTimeout;
-        }
-    } catch (e) {
-        cachedClearTimeout = defaultClearTimeout;
-    }
-} ())
-function runTimeout(fun) {
-    if (cachedSetTimeout === setTimeout) {
-        //normal enviroments in sane situations
-        return setTimeout(fun, 0);
-    }
-    // if setTimeout wasn't available but was latter defined
-    if ((cachedSetTimeout === defaultSetTimout || !cachedSetTimeout) && setTimeout) {
-        cachedSetTimeout = setTimeout;
-        return setTimeout(fun, 0);
-    }
-    try {
-        // when when somebody has screwed with setTimeout but no I.E. maddness
-        return cachedSetTimeout(fun, 0);
-    } catch(e){
-        try {
-            // When we are in I.E. but the script has been evaled so I.E. doesn't trust the global object when called normally
-            return cachedSetTimeout.call(null, fun, 0);
-        } catch(e){
-            // same as above but when it's a version of I.E. that must have the global object for 'this', hopfully our context correct otherwise it will throw a global error
-            return cachedSetTimeout.call(this, fun, 0);
-        }
-    }
-
-
-}
-function runClearTimeout(marker) {
-    if (cachedClearTimeout === clearTimeout) {
-        //normal enviroments in sane situations
-        return clearTimeout(marker);
-    }
-    // if clearTimeout wasn't available but was latter defined
-    if ((cachedClearTimeout === defaultClearTimeout || !cachedClearTimeout) && clearTimeout) {
-        cachedClearTimeout = clearTimeout;
-        return clearTimeout(marker);
-    }
-    try {
-        // when when somebody has screwed with setTimeout but no I.E. maddness
-        return cachedClearTimeout(marker);
-    } catch (e){
-        try {
-            // When we are in I.E. but the script has been evaled so I.E. doesn't  trust the global object when called normally
-            return cachedClearTimeout.call(null, marker);
-        } catch (e){
-            // same as above but when it's a version of I.E. that must have the global object for 'this', hopfully our context correct otherwise it will throw a global error.
-            // Some versions of I.E. have different rules for clearTimeout vs setTimeout
-            return cachedClearTimeout.call(this, marker);
-        }
-    }
-
-
-
-}
-var queue = [];
-var draining = false;
-var currentQueue;
-var queueIndex = -1;
-
-function cleanUpNextTick() {
-    if (!draining || !currentQueue) {
-        return;
-    }
-    draining = false;
-    if (currentQueue.length) {
-        queue = currentQueue.concat(queue);
-    } else {
-        queueIndex = -1;
-    }
-    if (queue.length) {
-        drainQueue();
-    }
-}
-
-function drainQueue() {
-    if (draining) {
-        return;
-    }
-    var timeout = runTimeout(cleanUpNextTick);
-    draining = true;
-
-    var len = queue.length;
-    while(len) {
-        currentQueue = queue;
-        queue = [];
-        while (++queueIndex < len) {
-            if (currentQueue) {
-                currentQueue[queueIndex].run();
-            }
-        }
-        queueIndex = -1;
-        len = queue.length;
-    }
-    currentQueue = null;
-    draining = false;
-    runClearTimeout(timeout);
-}
-
-process.nextTick = function (fun) {
-    var args = new Array(arguments.length - 1);
-    if (arguments.length > 1) {
-        for (var i = 1; i < arguments.length; i++) {
-            args[i - 1] = arguments[i];
-        }
-    }
-    queue.push(new Item(fun, args));
-    if (queue.length === 1 && !draining) {
-        runTimeout(drainQueue);
-    }
-};
-
-// v8 likes predictible objects
-function Item(fun, array) {
-    this.fun = fun;
-    this.array = array;
-}
-Item.prototype.run = function () {
-    this.fun.apply(null, this.array);
-};
-process.title = 'browser';
-process.browser = true;
-process.env = {};
-process.argv = [];
-process.version = ''; // empty string to avoid regexp issues
-process.versions = {};
-
-function noop() {}
-
-process.on = noop;
-process.addListener = noop;
-process.once = noop;
-process.off = noop;
-process.removeListener = noop;
-process.removeAllListeners = noop;
-process.emit = noop;
-process.prependListener = noop;
-process.prependOnceListener = noop;
-
-process.listeners = function (name) { return [] }
-
-process.binding = function (name) {
-    throw new Error('process.binding is not supported');
-};
-
-process.cwd = function () { return '/' };
-process.chdir = function (dir) {
-    throw new Error('process.chdir is not supported');
-};
-process.umask = function() { return 0; };
-
-},{}],4:[function(require,module,exports){
-(function (setImmediate,clearImmediate){(function (){
-var nextTick = require('process/browser.js').nextTick;
-var apply = Function.prototype.apply;
-var slice = Array.prototype.slice;
-var immediateIds = {};
-var nextImmediateId = 0;
-
-// DOM APIs, for completeness
-
-exports.setTimeout = function() {
-  return new Timeout(apply.call(setTimeout, window, arguments), clearTimeout);
-};
-exports.setInterval = function() {
-  return new Timeout(apply.call(setInterval, window, arguments), clearInterval);
-};
-exports.clearTimeout =
-exports.clearInterval = function(timeout) { timeout.close(); };
-
-function Timeout(id, clearFn) {
-  this._id = id;
-  this._clearFn = clearFn;
-}
-Timeout.prototype.unref = Timeout.prototype.ref = function() {};
-Timeout.prototype.close = function() {
-  this._clearFn.call(window, this._id);
-};
-
-// Does not start the time, just sets up the members needed.
-exports.enroll = function(item, msecs) {
-  clearTimeout(item._idleTimeoutId);
-  item._idleTimeout = msecs;
-};
-
-exports.unenroll = function(item) {
-  clearTimeout(item._idleTimeoutId);
-  item._idleTimeout = -1;
-};
-
-exports._unrefActive = exports.active = function(item) {
-  clearTimeout(item._idleTimeoutId);
-
-  var msecs = item._idleTimeout;
-  if (msecs >= 0) {
-    item._idleTimeoutId = setTimeout(function onTimeout() {
-      if (item._onTimeout)
-        item._onTimeout();
-    }, msecs);
-  }
-};
-
-// That's not how node.js implements it but the exposed api is the same.
-exports.setImmediate = typeof setImmediate === "function" ? setImmediate : function(fn) {
-  var id = nextImmediateId++;
-  var args = arguments.length < 2 ? false : slice.call(arguments, 1);
-
-  immediateIds[id] = true;
-
-  nextTick(function onNextTick() {
-    if (immediateIds[id]) {
-      // fn.call() is faster so we optimize for the common use-case
-      // @see http://jsperf.com/call-apply-segu
-      if (args) {
-        fn.apply(null, args);
-      } else {
-        fn.call(null);
-      }
-      // Prevent ids from leaking
-      exports.clearImmediate(id);
-    }
-  });
-
-  return id;
-};
-
-exports.clearImmediate = typeof clearImmediate === "function" ? clearImmediate : function(id) {
-  delete immediateIds[id];
-};
-}).call(this)}).call(this,require("timers").setImmediate,require("timers").clearImmediate)
-},{"process/browser.js":3,"timers":4}],5:[function(require,module,exports){
+},{"@carnelian-diagram/core":13,"@carnelian-diagram/interactivity":48,"@carnelian-diagram/shapes/basic":68}],2:[function(require,module,exports){
 "use strict";
 var __assign = (this && this.__assign) || function () {
     __assign = Object.assign || function(t) {
@@ -311,7 +44,7 @@ var App = function (props) {
 };
 exports.App = App;
 
-},{"..":16,"../jsx-runtime":17}],6:[function(require,module,exports){
+},{"..":13,"../jsx-runtime":14}],3:[function(require,module,exports){
 "use strict";
 /** @jsxImportSource .. */
 Object.defineProperty(exports, "__esModule", { value: true });
@@ -319,7 +52,7 @@ exports.DiagramRoot = void 0;
 var DiagramRoot = function (props) { return props.children; };
 exports.DiagramRoot = DiagramRoot;
 
-},{}],7:[function(require,module,exports){
+},{}],4:[function(require,module,exports){
 "use strict";
 var __createBinding = (this && this.__createBinding) || (Object.create ? (function(o, m, k, k2) {
     if (k2 === undefined) k2 = k;
@@ -339,7 +72,7 @@ Object.defineProperty(exports, "__esModule", { value: true });
 __exportStar(require("./app"), exports);
 __exportStar(require("./diagram-root"), exports);
 
-},{"./app":5,"./diagram-root":6}],8:[function(require,module,exports){
+},{"./app":2,"./diagram-root":3}],5:[function(require,module,exports){
 "use strict";
 var __read = (this && this.__read) || function (o, n) {
     var m = typeof Symbol === "function" && o[Symbol.iterator];
@@ -417,7 +150,7 @@ function createContext(defaultValue) {
 }
 exports.createContext = createContext;
 
-},{"./diagram":9}],9:[function(require,module,exports){
+},{"./diagram":6}],6:[function(require,module,exports){
 "use strict";
 var __assign = (this && this.__assign) || function () {
     __assign = Object.assign || function(t) {
@@ -526,6 +259,7 @@ function isVirtualNode(node) {
     return isDiagramNode(node);
 }
 exports.isVirtualNode = isVirtualNode;
+;
 var Diagram = /** @class */ (function () {
     function Diagram() {
         this.lastElementId = 0;
@@ -557,6 +291,9 @@ var Diagram = /** @class */ (function () {
     Diagram.prototype.getElements = function () {
         return __spreadArray([], __read(this.elements), false);
     };
+    Diagram.prototype.count = function () {
+        return this.elements.length;
+    };
     Diagram.prototype.add = function (type, props) {
         var element = this.createElementNode(type, props, this.lastElementId++);
         element.element = element;
@@ -564,8 +301,19 @@ var Diagram = /** @class */ (function () {
         this.invalidate(element);
         return element;
     };
+    Diagram.prototype.insert = function (index, type, props) {
+        var element = this.createElementNode(type, props, this.lastElementId++);
+        element.element = element;
+        this.elements.splice(index, 0, element);
+        this.invalidate(element);
+        return element;
+    };
     Diagram.prototype.update = function (element, props) {
-        element.props = props;
+        var _this = this;
+        var onChange = function (callback) {
+            _this.update(element, callback(element.props));
+        };
+        element.props = __assign(__assign({}, props), { onChange: onChange });
         this.invalidate(element);
     };
     Diagram.prototype.delete = function (elements) {
@@ -581,6 +329,17 @@ var Diagram = /** @class */ (function () {
         this.elements = [];
         this.invalidate();
     };
+    Diagram.prototype.indexOf = function (element) {
+        return this.elements.indexOf(element);
+    };
+    Diagram.prototype.rearrange = function (element, newIndex) {
+        var index = this.indexOf(element);
+        if (index >= 0) {
+            this.elements = this.elements.filter(function (x) { return x !== element; });
+            this.elements.splice(newIndex, 0, element);
+            this.invalidate();
+        }
+    };
     return Diagram;
 }());
 exports.Diagram = Diagram;
@@ -590,7 +349,7 @@ var DiagramDOM;
         var domBuilder = new dom_builder_1.DiagramDOMBuilder(root);
         var isAttached = false;
         var isValid = false;
-        var subscription = undefined;
+        var subscription = diagram.subscribe(function (node) { return invalidate(node); });
         var storedRootNode = undefined;
         var renderContext = new RenderContextType(function (node) { return invalidate(node); });
         var storedNodesMap = new Map();
@@ -713,14 +472,17 @@ var DiagramDOM;
             storedNode && (storedNode.isValid = false);
             if (isValid) {
                 isValid = false;
-                scheduleRender();
+                isAttached && scheduleRender();
             }
+        };
+        var release = function () {
+            subscription === null || subscription === void 0 ? void 0 : subscription.unsubscribe();
+            subscription = undefined;
         };
         var attach = function () {
             if (!isAttached) {
                 isAttached = true;
                 scheduleRender();
-                subscription = diagram.subscribe(function (node) { return invalidate(node); });
             }
         };
         var detach = function (clearDom) {
@@ -729,8 +491,7 @@ var DiagramDOM;
                 if (clearDom) {
                     clear();
                 }
-                subscription === null || subscription === void 0 ? void 0 : subscription.unsubscribe();
-                subscription = undefined;
+                release();
             }
         };
         var scheduleRender = function () {
@@ -745,7 +506,8 @@ var DiagramDOM;
             clear: clear,
             isAttached: function () { return isAttached; },
             attach: attach,
-            detach: detach
+            detach: detach,
+            release: release
         };
     }
     DiagramDOM.createRoot = createRoot;
@@ -800,7 +562,7 @@ var RenderContextType = /** @class */ (function () {
 exports.RenderContextType = RenderContextType;
 exports.RenderContext = (0, context_1.createContext)(undefined);
 
-},{"./components/app":5,"./context":8,"./dom-builder":10,"./jsx-runtime":17,"./utils/schedule":19}],10:[function(require,module,exports){
+},{"./components/app":2,"./context":5,"./dom-builder":7,"./jsx-runtime":14,"./utils/schedule":16}],7:[function(require,module,exports){
 "use strict";
 var __rest = (this && this.__rest) || function (s, e) {
     var t = {};
@@ -840,9 +602,10 @@ var DiagramDOMBuilder = /** @class */ (function () {
             if ((0, diagram_1.isVirtualNode)(child)) {
                 return _this.transformNode(child);
             }
-            else {
-                return child;
+            if (typeof child === "boolean") {
+                return null;
             }
+            return child;
         };
         if (node) {
             if (typeof node.type === 'string') {
@@ -868,7 +631,7 @@ var DiagramDOMBuilder = /** @class */ (function () {
 }());
 exports.DiagramDOMBuilder = DiagramDOMBuilder;
 
-},{"./diagram":9,"virtual-dom":30,"virtual-dom/h":29,"virtual-dom/virtual-hyperscript/svg":44}],11:[function(require,module,exports){
+},{"./diagram":6,"virtual-dom":128,"virtual-dom/h":127,"virtual-dom/virtual-hyperscript/svg":142}],8:[function(require,module,exports){
 "use strict";
 var __createBinding = (this && this.__createBinding) || (Object.create ? (function(o, m, k, k2) {
     if (k2 === undefined) k2 = k;
@@ -890,7 +653,7 @@ __exportStar(require("./use-context"), exports);
 __exportStar(require("./use-effect"), exports);
 __exportStar(require("./use-ref"), exports);
 
-},{"./use-context":12,"./use-effect":13,"./use-ref":14,"./use-state":15}],12:[function(require,module,exports){
+},{"./use-context":9,"./use-effect":10,"./use-ref":11,"./use-state":12}],9:[function(require,module,exports){
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.useContext = void 0;
@@ -899,7 +662,7 @@ function useContext(context) {
 }
 exports.useContext = useContext;
 
-},{}],13:[function(require,module,exports){
+},{}],10:[function(require,module,exports){
 "use strict";
 var __read = (this && this.__read) || function (o, n) {
     var m = typeof Symbol === "function" && o[Symbol.iterator];
@@ -945,7 +708,7 @@ function useEffect(effect, dependencies) {
 }
 exports.useEffect = useEffect;
 
-},{".":11,"..":16}],14:[function(require,module,exports){
+},{".":8,"..":13}],11:[function(require,module,exports){
 "use strict";
 var __read = (this && this.__read) || function (o, n) {
     var m = typeof Symbol === "function" && o[Symbol.iterator];
@@ -972,7 +735,7 @@ function useRef(initialValue) {
 }
 exports.useRef = useRef;
 
-},{"./use-state":15}],15:[function(require,module,exports){
+},{"./use-state":12}],12:[function(require,module,exports){
 "use strict";
 var __read = (this && this.__read) || function (o, n) {
     var m = typeof Symbol === "function" && o[Symbol.iterator];
@@ -1015,7 +778,7 @@ function useState(initialValue) {
 }
 exports.useState = useState;
 
-},{"../diagram":9,"./use-context":12}],16:[function(require,module,exports){
+},{"../diagram":6,"./use-context":9}],13:[function(require,module,exports){
 "use strict";
 var __createBinding = (this && this.__createBinding) || (Object.create ? (function(o, m, k, k2) {
     if (k2 === undefined) k2 = k;
@@ -1037,7 +800,7 @@ __exportStar(require("./context"), exports);
 __exportStar(require("./components"), exports);
 __exportStar(require("./hooks"), exports);
 
-},{"./components":7,"./context":8,"./diagram":9,"./hooks":11}],17:[function(require,module,exports){
+},{"./components":4,"./context":5,"./diagram":6,"./hooks":8}],14:[function(require,module,exports){
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.Fragment = exports.jsxDEV = exports.jsxs = exports.jsx = exports.createElement = exports.jsxCore = void 0;
@@ -1062,7 +825,7 @@ function Fragment(props) {
 }
 exports.Fragment = Fragment;
 
-},{}],18:[function(require,module,exports){
+},{}],15:[function(require,module,exports){
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.CustomPropHook = void 0;
@@ -1080,7 +843,7 @@ var CustomPropHook = /** @class */ (function () {
 }());
 exports.CustomPropHook = CustomPropHook;
 
-},{}],19:[function(require,module,exports){
+},{}],16:[function(require,module,exports){
 (function (setImmediate,clearImmediate){(function (){
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
@@ -1116,2289 +879,19 @@ exports.scheduleIdle = scheduleIdle;
 ;
 
 }).call(this)}).call(this,require("timers").setImmediate,require("timers").clearImmediate)
-},{"setimmediate":26,"timers":4}],20:[function(require,module,exports){
-/*!
- * Cross-Browser Split 1.1.1
- * Copyright 2007-2012 Steven Levithan <stevenlevithan.com>
- * Available under the MIT License
- * ECMAScript compliant, uniform cross-browser split method
- */
-
-/**
- * Splits a string into an array of strings using a regex or string separator. Matches of the
- * separator are not included in the result array. However, if `separator` is a regex that contains
- * capturing groups, backreferences are spliced into the result each time `separator` is matched.
- * Fixes browser bugs compared to the native `String.prototype.split` and can be used reliably
- * cross-browser.
- * @param {String} str String to split.
- * @param {RegExp|String} separator Regex or string to use for separating the string.
- * @param {Number} [limit] Maximum number of items to include in the result array.
- * @returns {Array} Array of substrings.
- * @example
- *
- * // Basic use
- * split('a b c d', ' ');
- * // -> ['a', 'b', 'c', 'd']
- *
- * // With limit
- * split('a b c d', ' ', 2);
- * // -> ['a', 'b']
- *
- * // Backreferences in result array
- * split('..word1 word2..', /([a-z]+)(\d+)/i);
- * // -> ['..', 'word', '1', ' ', 'word', '2', '..']
- */
-module.exports = (function split(undef) {
-
-  var nativeSplit = String.prototype.split,
-    compliantExecNpcg = /()??/.exec("")[1] === undef,
-    // NPCG: nonparticipating capturing group
-    self;
-
-  self = function(str, separator, limit) {
-    // If `separator` is not a regex, use `nativeSplit`
-    if (Object.prototype.toString.call(separator) !== "[object RegExp]") {
-      return nativeSplit.call(str, separator, limit);
-    }
-    var output = [],
-      flags = (separator.ignoreCase ? "i" : "") + (separator.multiline ? "m" : "") + (separator.extended ? "x" : "") + // Proposed for ES6
-      (separator.sticky ? "y" : ""),
-      // Firefox 3+
-      lastLastIndex = 0,
-      // Make `global` and avoid `lastIndex` issues by working with a copy
-      separator = new RegExp(separator.source, flags + "g"),
-      separator2, match, lastIndex, lastLength;
-    str += ""; // Type-convert
-    if (!compliantExecNpcg) {
-      // Doesn't need flags gy, but they don't hurt
-      separator2 = new RegExp("^" + separator.source + "$(?!\\s)", flags);
-    }
-    /* Values for `limit`, per the spec:
-     * If undefined: 4294967295 // Math.pow(2, 32) - 1
-     * If 0, Infinity, or NaN: 0
-     * If positive number: limit = Math.floor(limit); if (limit > 4294967295) limit -= 4294967296;
-     * If negative number: 4294967296 - Math.floor(Math.abs(limit))
-     * If other: Type-convert, then use the above rules
-     */
-    limit = limit === undef ? -1 >>> 0 : // Math.pow(2, 32) - 1
-    limit >>> 0; // ToUint32(limit)
-    while (match = separator.exec(str)) {
-      // `separator.lastIndex` is not reliable cross-browser
-      lastIndex = match.index + match[0].length;
-      if (lastIndex > lastLastIndex) {
-        output.push(str.slice(lastLastIndex, match.index));
-        // Fix browsers whose `exec` methods don't consistently return `undefined` for
-        // nonparticipating capturing groups
-        if (!compliantExecNpcg && match.length > 1) {
-          match[0].replace(separator2, function() {
-            for (var i = 1; i < arguments.length - 2; i++) {
-              if (arguments[i] === undef) {
-                match[i] = undef;
-              }
-            }
-          });
-        }
-        if (match.length > 1 && match.index < str.length) {
-          Array.prototype.push.apply(output, match.slice(1));
-        }
-        lastLength = match[0].length;
-        lastLastIndex = lastIndex;
-        if (output.length >= limit) {
-          break;
-        }
-      }
-      if (separator.lastIndex === match.index) {
-        separator.lastIndex++; // Avoid an infinite loop
-      }
-    }
-    if (lastLastIndex === str.length) {
-      if (lastLength || !separator.test("")) {
-        output.push("");
-      }
-    } else {
-      output.push(str.slice(lastLastIndex));
-    }
-    return output.length > limit ? output.slice(0, limit) : output;
-  };
-
-  return self;
-})();
-
-},{}],21:[function(require,module,exports){
-'use strict';
-
-var OneVersionConstraint = require('individual/one-version');
-
-var MY_VERSION = '7';
-OneVersionConstraint('ev-store', MY_VERSION);
-
-var hashKey = '__EV_STORE_KEY@' + MY_VERSION;
-
-module.exports = EvStore;
-
-function EvStore(elem) {
-    var hash = elem[hashKey];
-
-    if (!hash) {
-        hash = elem[hashKey] = {};
-    }
-
-    return hash;
-}
-
-},{"individual/one-version":24}],22:[function(require,module,exports){
-(function (global){(function (){
-var topLevel = typeof global !== 'undefined' ? global :
-    typeof window !== 'undefined' ? window : {}
-var minDoc = require('min-document');
-
-var doccy;
-
-if (typeof document !== 'undefined') {
-    doccy = document;
-} else {
-    doccy = topLevel['__GLOBAL_DOCUMENT_CACHE@4'];
-
-    if (!doccy) {
-        doccy = topLevel['__GLOBAL_DOCUMENT_CACHE@4'] = minDoc;
-    }
-}
-
-module.exports = doccy;
-
-}).call(this)}).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
-},{"min-document":2}],23:[function(require,module,exports){
-(function (global){(function (){
-'use strict';
-
-/*global window, global*/
-
-var root = typeof window !== 'undefined' ?
-    window : typeof global !== 'undefined' ?
-    global : {};
-
-module.exports = Individual;
-
-function Individual(key, value) {
-    if (key in root) {
-        return root[key];
-    }
-
-    root[key] = value;
-
-    return value;
-}
-
-}).call(this)}).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
-},{}],24:[function(require,module,exports){
-'use strict';
-
-var Individual = require('./index.js');
-
-module.exports = OneVersion;
-
-function OneVersion(moduleName, version, defaultValue) {
-    var key = '__INDIVIDUAL_ONE_VERSION_' + moduleName;
-    var enforceKey = key + '_ENFORCE_SINGLETON';
-
-    var versionValue = Individual(enforceKey, version);
-
-    if (versionValue !== version) {
-        throw new Error('Can only have one copy of ' +
-            moduleName + '.\n' +
-            'You already have version ' + versionValue +
-            ' installed.\n' +
-            'This means you cannot install version ' + version);
-    }
-
-    return Individual(key, defaultValue);
-}
-
-},{"./index.js":23}],25:[function(require,module,exports){
-'use strict';
-
-module.exports = function isObject(x) {
-	return typeof x === 'object' && x !== null;
-};
-
-},{}],26:[function(require,module,exports){
-(function (process,global){(function (){
-(function (global, undefined) {
-    "use strict";
-
-    if (global.setImmediate) {
-        return;
-    }
-
-    var nextHandle = 1; // Spec says greater than zero
-    var tasksByHandle = {};
-    var currentlyRunningATask = false;
-    var doc = global.document;
-    var registerImmediate;
-
-    function setImmediate(callback) {
-      // Callback can either be a function or a string
-      if (typeof callback !== "function") {
-        callback = new Function("" + callback);
-      }
-      // Copy function arguments
-      var args = new Array(arguments.length - 1);
-      for (var i = 0; i < args.length; i++) {
-          args[i] = arguments[i + 1];
-      }
-      // Store and register the task
-      var task = { callback: callback, args: args };
-      tasksByHandle[nextHandle] = task;
-      registerImmediate(nextHandle);
-      return nextHandle++;
-    }
-
-    function clearImmediate(handle) {
-        delete tasksByHandle[handle];
-    }
-
-    function run(task) {
-        var callback = task.callback;
-        var args = task.args;
-        switch (args.length) {
-        case 0:
-            callback();
-            break;
-        case 1:
-            callback(args[0]);
-            break;
-        case 2:
-            callback(args[0], args[1]);
-            break;
-        case 3:
-            callback(args[0], args[1], args[2]);
-            break;
-        default:
-            callback.apply(undefined, args);
-            break;
-        }
-    }
-
-    function runIfPresent(handle) {
-        // From the spec: "Wait until any invocations of this algorithm started before this one have completed."
-        // So if we're currently running a task, we'll need to delay this invocation.
-        if (currentlyRunningATask) {
-            // Delay by doing a setTimeout. setImmediate was tried instead, but in Firefox 7 it generated a
-            // "too much recursion" error.
-            setTimeout(runIfPresent, 0, handle);
-        } else {
-            var task = tasksByHandle[handle];
-            if (task) {
-                currentlyRunningATask = true;
-                try {
-                    run(task);
-                } finally {
-                    clearImmediate(handle);
-                    currentlyRunningATask = false;
-                }
-            }
-        }
-    }
-
-    function installNextTickImplementation() {
-        registerImmediate = function(handle) {
-            process.nextTick(function () { runIfPresent(handle); });
-        };
-    }
-
-    function canUsePostMessage() {
-        // The test against `importScripts` prevents this implementation from being installed inside a web worker,
-        // where `global.postMessage` means something completely different and can't be used for this purpose.
-        if (global.postMessage && !global.importScripts) {
-            var postMessageIsAsynchronous = true;
-            var oldOnMessage = global.onmessage;
-            global.onmessage = function() {
-                postMessageIsAsynchronous = false;
-            };
-            global.postMessage("", "*");
-            global.onmessage = oldOnMessage;
-            return postMessageIsAsynchronous;
-        }
-    }
-
-    function installPostMessageImplementation() {
-        // Installs an event handler on `global` for the `message` event: see
-        // * https://developer.mozilla.org/en/DOM/window.postMessage
-        // * http://www.whatwg.org/specs/web-apps/current-work/multipage/comms.html#crossDocumentMessages
-
-        var messagePrefix = "setImmediate$" + Math.random() + "$";
-        var onGlobalMessage = function(event) {
-            if (event.source === global &&
-                typeof event.data === "string" &&
-                event.data.indexOf(messagePrefix) === 0) {
-                runIfPresent(+event.data.slice(messagePrefix.length));
-            }
-        };
-
-        if (global.addEventListener) {
-            global.addEventListener("message", onGlobalMessage, false);
-        } else {
-            global.attachEvent("onmessage", onGlobalMessage);
-        }
-
-        registerImmediate = function(handle) {
-            global.postMessage(messagePrefix + handle, "*");
-        };
-    }
-
-    function installMessageChannelImplementation() {
-        var channel = new MessageChannel();
-        channel.port1.onmessage = function(event) {
-            var handle = event.data;
-            runIfPresent(handle);
-        };
-
-        registerImmediate = function(handle) {
-            channel.port2.postMessage(handle);
-        };
-    }
-
-    function installReadyStateChangeImplementation() {
-        var html = doc.documentElement;
-        registerImmediate = function(handle) {
-            // Create a <script> element; its readystatechange event will be fired asynchronously once it is inserted
-            // into the document. Do so, thus queuing up the task. Remember to clean up once it's been called.
-            var script = doc.createElement("script");
-            script.onreadystatechange = function () {
-                runIfPresent(handle);
-                script.onreadystatechange = null;
-                html.removeChild(script);
-                script = null;
-            };
-            html.appendChild(script);
-        };
-    }
-
-    function installSetTimeoutImplementation() {
-        registerImmediate = function(handle) {
-            setTimeout(runIfPresent, 0, handle);
-        };
-    }
-
-    // If supported, we should attach to the prototype of global, since that is where setTimeout et al. live.
-    var attachTo = Object.getPrototypeOf && Object.getPrototypeOf(global);
-    attachTo = attachTo && attachTo.setTimeout ? attachTo : global;
-
-    // Don't get fooled by e.g. browserify environments.
-    if ({}.toString.call(global.process) === "[object process]") {
-        // For Node.js before 0.9
-        installNextTickImplementation();
-
-    } else if (canUsePostMessage()) {
-        // For non-IE10 modern browsers
-        installPostMessageImplementation();
-
-    } else if (global.MessageChannel) {
-        // For web workers, where supported
-        installMessageChannelImplementation();
-
-    } else if (doc && "onreadystatechange" in doc.createElement("script")) {
-        // For IE 6–8
-        installReadyStateChangeImplementation();
-
-    } else {
-        // For older browsers
-        installSetTimeoutImplementation();
-    }
-
-    attachTo.setImmediate = setImmediate;
-    attachTo.clearImmediate = clearImmediate;
-}(typeof self === "undefined" ? typeof global === "undefined" ? this : global : self));
-
-}).call(this)}).call(this,require('_process'),typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
-},{"_process":3}],27:[function(require,module,exports){
-var createElement = require("./vdom/create-element.js")
-
-module.exports = createElement
-
-},{"./vdom/create-element.js":33}],28:[function(require,module,exports){
-var diff = require("./vtree/diff.js")
-
-module.exports = diff
-
-},{"./vtree/diff.js":56}],29:[function(require,module,exports){
-var h = require("./virtual-hyperscript/index.js")
-
-module.exports = h
-
-},{"./virtual-hyperscript/index.js":41}],30:[function(require,module,exports){
-var diff = require("./diff.js")
-var patch = require("./patch.js")
-var h = require("./h.js")
-var create = require("./create-element.js")
-var VNode = require('./vnode/vnode.js')
-var VText = require('./vnode/vtext.js')
-
-module.exports = {
-    diff: diff,
-    patch: patch,
-    h: h,
-    create: create,
-    VNode: VNode,
-    VText: VText
-}
-
-},{"./create-element.js":27,"./diff.js":28,"./h.js":29,"./patch.js":31,"./vnode/vnode.js":52,"./vnode/vtext.js":54}],31:[function(require,module,exports){
-var patch = require("./vdom/patch.js")
-
-module.exports = patch
-
-},{"./vdom/patch.js":36}],32:[function(require,module,exports){
-var isObject = require("is-object")
-var isHook = require("../vnode/is-vhook.js")
-
-module.exports = applyProperties
-
-function applyProperties(node, props, previous) {
-    for (var propName in props) {
-        var propValue = props[propName]
-
-        if (propValue === undefined) {
-            removeProperty(node, propName, propValue, previous);
-        } else if (isHook(propValue)) {
-            removeProperty(node, propName, propValue, previous)
-            if (propValue.hook) {
-                propValue.hook(node,
-                    propName,
-                    previous ? previous[propName] : undefined)
-            }
-        } else {
-            if (isObject(propValue)) {
-                patchObject(node, props, previous, propName, propValue);
-            } else {
-                node[propName] = propValue
-            }
-        }
-    }
-}
-
-function removeProperty(node, propName, propValue, previous) {
-    if (previous) {
-        var previousValue = previous[propName]
-
-        if (!isHook(previousValue)) {
-            if (propName === "attributes") {
-                for (var attrName in previousValue) {
-                    node.removeAttribute(attrName)
-                }
-            } else if (propName === "style") {
-                for (var i in previousValue) {
-                    node.style[i] = ""
-                }
-            } else if (typeof previousValue === "string") {
-                node[propName] = ""
-            } else {
-                node[propName] = null
-            }
-        } else if (previousValue.unhook) {
-            previousValue.unhook(node, propName, propValue)
-        }
-    }
-}
-
-function patchObject(node, props, previous, propName, propValue) {
-    var previousValue = previous ? previous[propName] : undefined
-
-    // Set attributes
-    if (propName === "attributes") {
-        for (var attrName in propValue) {
-            var attrValue = propValue[attrName]
-
-            if (attrValue === undefined) {
-                node.removeAttribute(attrName)
-            } else {
-                node.setAttribute(attrName, attrValue)
-            }
-        }
-
-        return
-    }
-
-    if(previousValue && isObject(previousValue) &&
-        getPrototype(previousValue) !== getPrototype(propValue)) {
-        node[propName] = propValue
-        return
-    }
-
-    if (!isObject(node[propName])) {
-        node[propName] = {}
-    }
-
-    var replacer = propName === "style" ? "" : undefined
-
-    for (var k in propValue) {
-        var value = propValue[k]
-        node[propName][k] = (value === undefined) ? replacer : value
-    }
-}
-
-function getPrototype(value) {
-    if (Object.getPrototypeOf) {
-        return Object.getPrototypeOf(value)
-    } else if (value.__proto__) {
-        return value.__proto__
-    } else if (value.constructor) {
-        return value.constructor.prototype
-    }
-}
-
-},{"../vnode/is-vhook.js":47,"is-object":25}],33:[function(require,module,exports){
-var document = require("global/document")
-
-var applyProperties = require("./apply-properties")
-
-var isVNode = require("../vnode/is-vnode.js")
-var isVText = require("../vnode/is-vtext.js")
-var isWidget = require("../vnode/is-widget.js")
-var handleThunk = require("../vnode/handle-thunk.js")
-
-module.exports = createElement
-
-function createElement(vnode, opts) {
-    var doc = opts ? opts.document || document : document
-    var warn = opts ? opts.warn : null
-
-    vnode = handleThunk(vnode).a
-
-    if (isWidget(vnode)) {
-        return vnode.init()
-    } else if (isVText(vnode)) {
-        return doc.createTextNode(vnode.text)
-    } else if (!isVNode(vnode)) {
-        if (warn) {
-            warn("Item is not a valid virtual dom node", vnode)
-        }
-        return null
-    }
-
-    var node = (vnode.namespace === null) ?
-        doc.createElement(vnode.tagName) :
-        doc.createElementNS(vnode.namespace, vnode.tagName)
-
-    var props = vnode.properties
-    applyProperties(node, props)
-
-    var children = vnode.children
-
-    for (var i = 0; i < children.length; i++) {
-        var childNode = createElement(children[i], opts)
-        if (childNode) {
-            node.appendChild(childNode)
-        }
-    }
-
-    return node
-}
-
-},{"../vnode/handle-thunk.js":45,"../vnode/is-vnode.js":48,"../vnode/is-vtext.js":49,"../vnode/is-widget.js":50,"./apply-properties":32,"global/document":22}],34:[function(require,module,exports){
-// Maps a virtual DOM tree onto a real DOM tree in an efficient manner.
-// We don't want to read all of the DOM nodes in the tree so we use
-// the in-order tree indexing to eliminate recursion down certain branches.
-// We only recurse into a DOM node if we know that it contains a child of
-// interest.
-
-var noChild = {}
-
-module.exports = domIndex
-
-function domIndex(rootNode, tree, indices, nodes) {
-    if (!indices || indices.length === 0) {
-        return {}
-    } else {
-        indices.sort(ascending)
-        return recurse(rootNode, tree, indices, nodes, 0)
-    }
-}
-
-function recurse(rootNode, tree, indices, nodes, rootIndex) {
-    nodes = nodes || {}
-
-
-    if (rootNode) {
-        if (indexInRange(indices, rootIndex, rootIndex)) {
-            nodes[rootIndex] = rootNode
-        }
-
-        var vChildren = tree.children
-
-        if (vChildren) {
-
-            var childNodes = rootNode.childNodes
-
-            for (var i = 0; i < tree.children.length; i++) {
-                rootIndex += 1
-
-                var vChild = vChildren[i] || noChild
-                var nextIndex = rootIndex + (vChild.count || 0)
-
-                // skip recursion down the tree if there are no nodes down here
-                if (indexInRange(indices, rootIndex, nextIndex)) {
-                    recurse(childNodes[i], vChild, indices, nodes, rootIndex)
-                }
-
-                rootIndex = nextIndex
-            }
-        }
-    }
-
-    return nodes
-}
-
-// Binary search for an index in the interval [left, right]
-function indexInRange(indices, left, right) {
-    if (indices.length === 0) {
-        return false
-    }
-
-    var minIndex = 0
-    var maxIndex = indices.length - 1
-    var currentIndex
-    var currentItem
-
-    while (minIndex <= maxIndex) {
-        currentIndex = ((maxIndex + minIndex) / 2) >> 0
-        currentItem = indices[currentIndex]
-
-        if (minIndex === maxIndex) {
-            return currentItem >= left && currentItem <= right
-        } else if (currentItem < left) {
-            minIndex = currentIndex + 1
-        } else  if (currentItem > right) {
-            maxIndex = currentIndex - 1
-        } else {
-            return true
-        }
-    }
-
-    return false;
-}
-
-function ascending(a, b) {
-    return a > b ? 1 : -1
-}
-
-},{}],35:[function(require,module,exports){
-var applyProperties = require("./apply-properties")
-
-var isWidget = require("../vnode/is-widget.js")
-var VPatch = require("../vnode/vpatch.js")
-
-var updateWidget = require("./update-widget")
-
-module.exports = applyPatch
-
-function applyPatch(vpatch, domNode, renderOptions) {
-    var type = vpatch.type
-    var vNode = vpatch.vNode
-    var patch = vpatch.patch
-
-    switch (type) {
-        case VPatch.REMOVE:
-            return removeNode(domNode, vNode)
-        case VPatch.INSERT:
-            return insertNode(domNode, patch, renderOptions)
-        case VPatch.VTEXT:
-            return stringPatch(domNode, vNode, patch, renderOptions)
-        case VPatch.WIDGET:
-            return widgetPatch(domNode, vNode, patch, renderOptions)
-        case VPatch.VNODE:
-            return vNodePatch(domNode, vNode, patch, renderOptions)
-        case VPatch.ORDER:
-            reorderChildren(domNode, patch)
-            return domNode
-        case VPatch.PROPS:
-            applyProperties(domNode, patch, vNode.properties)
-            return domNode
-        case VPatch.THUNK:
-            return replaceRoot(domNode,
-                renderOptions.patch(domNode, patch, renderOptions))
-        default:
-            return domNode
-    }
-}
-
-function removeNode(domNode, vNode) {
-    var parentNode = domNode.parentNode
-
-    if (parentNode) {
-        parentNode.removeChild(domNode)
-    }
-
-    destroyWidget(domNode, vNode);
-
-    return null
-}
-
-function insertNode(parentNode, vNode, renderOptions) {
-    var newNode = renderOptions.render(vNode, renderOptions)
-
-    if (parentNode) {
-        parentNode.appendChild(newNode)
-    }
-
-    return parentNode
-}
-
-function stringPatch(domNode, leftVNode, vText, renderOptions) {
-    var newNode
-
-    if (domNode.nodeType === 3) {
-        domNode.replaceData(0, domNode.length, vText.text)
-        newNode = domNode
-    } else {
-        var parentNode = domNode.parentNode
-        newNode = renderOptions.render(vText, renderOptions)
-
-        if (parentNode && newNode !== domNode) {
-            parentNode.replaceChild(newNode, domNode)
-        }
-    }
-
-    return newNode
-}
-
-function widgetPatch(domNode, leftVNode, widget, renderOptions) {
-    var updating = updateWidget(leftVNode, widget)
-    var newNode
-
-    if (updating) {
-        newNode = widget.update(leftVNode, domNode) || domNode
-    } else {
-        newNode = renderOptions.render(widget, renderOptions)
-    }
-
-    var parentNode = domNode.parentNode
-
-    if (parentNode && newNode !== domNode) {
-        parentNode.replaceChild(newNode, domNode)
-    }
-
-    if (!updating) {
-        destroyWidget(domNode, leftVNode)
-    }
-
-    return newNode
-}
-
-function vNodePatch(domNode, leftVNode, vNode, renderOptions) {
-    var parentNode = domNode.parentNode
-    var newNode = renderOptions.render(vNode, renderOptions)
-
-    if (parentNode && newNode !== domNode) {
-        parentNode.replaceChild(newNode, domNode)
-    }
-
-    return newNode
-}
-
-function destroyWidget(domNode, w) {
-    if (typeof w.destroy === "function" && isWidget(w)) {
-        w.destroy(domNode)
-    }
-}
-
-function reorderChildren(domNode, moves) {
-    var childNodes = domNode.childNodes
-    var keyMap = {}
-    var node
-    var remove
-    var insert
-
-    for (var i = 0; i < moves.removes.length; i++) {
-        remove = moves.removes[i]
-        node = childNodes[remove.from]
-        if (remove.key) {
-            keyMap[remove.key] = node
-        }
-        domNode.removeChild(node)
-    }
-
-    var length = childNodes.length
-    for (var j = 0; j < moves.inserts.length; j++) {
-        insert = moves.inserts[j]
-        node = keyMap[insert.key]
-        // this is the weirdest bug i've ever seen in webkit
-        domNode.insertBefore(node, insert.to >= length++ ? null : childNodes[insert.to])
-    }
-}
-
-function replaceRoot(oldRoot, newRoot) {
-    if (oldRoot && newRoot && oldRoot !== newRoot && oldRoot.parentNode) {
-        oldRoot.parentNode.replaceChild(newRoot, oldRoot)
-    }
-
-    return newRoot;
-}
-
-},{"../vnode/is-widget.js":50,"../vnode/vpatch.js":53,"./apply-properties":32,"./update-widget":37}],36:[function(require,module,exports){
-var document = require("global/document")
-var isArray = require("x-is-array")
-
-var render = require("./create-element")
-var domIndex = require("./dom-index")
-var patchOp = require("./patch-op")
-module.exports = patch
-
-function patch(rootNode, patches, renderOptions) {
-    renderOptions = renderOptions || {}
-    renderOptions.patch = renderOptions.patch && renderOptions.patch !== patch
-        ? renderOptions.patch
-        : patchRecursive
-    renderOptions.render = renderOptions.render || render
-
-    return renderOptions.patch(rootNode, patches, renderOptions)
-}
-
-function patchRecursive(rootNode, patches, renderOptions) {
-    var indices = patchIndices(patches)
-
-    if (indices.length === 0) {
-        return rootNode
-    }
-
-    var index = domIndex(rootNode, patches.a, indices)
-    var ownerDocument = rootNode.ownerDocument
-
-    if (!renderOptions.document && ownerDocument !== document) {
-        renderOptions.document = ownerDocument
-    }
-
-    for (var i = 0; i < indices.length; i++) {
-        var nodeIndex = indices[i]
-        rootNode = applyPatch(rootNode,
-            index[nodeIndex],
-            patches[nodeIndex],
-            renderOptions)
-    }
-
-    return rootNode
-}
-
-function applyPatch(rootNode, domNode, patchList, renderOptions) {
-    if (!domNode) {
-        return rootNode
-    }
-
-    var newNode
-
-    if (isArray(patchList)) {
-        for (var i = 0; i < patchList.length; i++) {
-            newNode = patchOp(patchList[i], domNode, renderOptions)
-
-            if (domNode === rootNode) {
-                rootNode = newNode
-            }
-        }
-    } else {
-        newNode = patchOp(patchList, domNode, renderOptions)
-
-        if (domNode === rootNode) {
-            rootNode = newNode
-        }
-    }
-
-    return rootNode
-}
-
-function patchIndices(patches) {
-    var indices = []
-
-    for (var key in patches) {
-        if (key !== "a") {
-            indices.push(Number(key))
-        }
-    }
-
-    return indices
-}
-
-},{"./create-element":33,"./dom-index":34,"./patch-op":35,"global/document":22,"x-is-array":57}],37:[function(require,module,exports){
-var isWidget = require("../vnode/is-widget.js")
-
-module.exports = updateWidget
-
-function updateWidget(a, b) {
-    if (isWidget(a) && isWidget(b)) {
-        if ("name" in a && "name" in b) {
-            return a.id === b.id
-        } else {
-            return a.init === b.init
-        }
-    }
-
-    return false
-}
-
-},{"../vnode/is-widget.js":50}],38:[function(require,module,exports){
-'use strict';
-
-module.exports = AttributeHook;
-
-function AttributeHook(namespace, value) {
-    if (!(this instanceof AttributeHook)) {
-        return new AttributeHook(namespace, value);
-    }
-
-    this.namespace = namespace;
-    this.value = value;
-}
-
-AttributeHook.prototype.hook = function (node, prop, prev) {
-    if (prev && prev.type === 'AttributeHook' &&
-        prev.value === this.value &&
-        prev.namespace === this.namespace) {
-        return;
-    }
-
-    node.setAttributeNS(this.namespace, prop, this.value);
-};
-
-AttributeHook.prototype.unhook = function (node, prop, next) {
-    if (next && next.type === 'AttributeHook' &&
-        next.namespace === this.namespace) {
-        return;
-    }
-
-    var colonPosition = prop.indexOf(':');
-    var localName = colonPosition > -1 ? prop.substr(colonPosition + 1) : prop;
-    node.removeAttributeNS(this.namespace, localName);
-};
-
-AttributeHook.prototype.type = 'AttributeHook';
-
-},{}],39:[function(require,module,exports){
-'use strict';
-
-var EvStore = require('ev-store');
-
-module.exports = EvHook;
-
-function EvHook(value) {
-    if (!(this instanceof EvHook)) {
-        return new EvHook(value);
-    }
-
-    this.value = value;
-}
-
-EvHook.prototype.hook = function (node, propertyName) {
-    var es = EvStore(node);
-    var propName = propertyName.substr(3);
-
-    es[propName] = this.value;
-};
-
-EvHook.prototype.unhook = function(node, propertyName) {
-    var es = EvStore(node);
-    var propName = propertyName.substr(3);
-
-    es[propName] = undefined;
-};
-
-},{"ev-store":21}],40:[function(require,module,exports){
-'use strict';
-
-module.exports = SoftSetHook;
-
-function SoftSetHook(value) {
-    if (!(this instanceof SoftSetHook)) {
-        return new SoftSetHook(value);
-    }
-
-    this.value = value;
-}
-
-SoftSetHook.prototype.hook = function (node, propertyName) {
-    if (node[propertyName] !== this.value) {
-        node[propertyName] = this.value;
-    }
-};
-
-},{}],41:[function(require,module,exports){
-'use strict';
-
-var isArray = require('x-is-array');
-
-var VNode = require('../vnode/vnode.js');
-var VText = require('../vnode/vtext.js');
-var isVNode = require('../vnode/is-vnode');
-var isVText = require('../vnode/is-vtext');
-var isWidget = require('../vnode/is-widget');
-var isHook = require('../vnode/is-vhook');
-var isVThunk = require('../vnode/is-thunk');
-
-var parseTag = require('./parse-tag.js');
-var softSetHook = require('./hooks/soft-set-hook.js');
-var evHook = require('./hooks/ev-hook.js');
-
-module.exports = h;
-
-function h(tagName, properties, children) {
-    var childNodes = [];
-    var tag, props, key, namespace;
-
-    if (!children && isChildren(properties)) {
-        children = properties;
-        props = {};
-    }
-
-    props = props || properties || {};
-    tag = parseTag(tagName, props);
-
-    // support keys
-    if (props.hasOwnProperty('key')) {
-        key = props.key;
-        props.key = undefined;
-    }
-
-    // support namespace
-    if (props.hasOwnProperty('namespace')) {
-        namespace = props.namespace;
-        props.namespace = undefined;
-    }
-
-    // fix cursor bug
-    if (tag === 'INPUT' &&
-        !namespace &&
-        props.hasOwnProperty('value') &&
-        props.value !== undefined &&
-        !isHook(props.value)
-    ) {
-        props.value = softSetHook(props.value);
-    }
-
-    transformProperties(props);
-
-    if (children !== undefined && children !== null) {
-        addChild(children, childNodes, tag, props);
-    }
-
-
-    return new VNode(tag, props, childNodes, key, namespace);
-}
-
-function addChild(c, childNodes, tag, props) {
-    if (typeof c === 'string') {
-        childNodes.push(new VText(c));
-    } else if (typeof c === 'number') {
-        childNodes.push(new VText(String(c)));
-    } else if (isChild(c)) {
-        childNodes.push(c);
-    } else if (isArray(c)) {
-        for (var i = 0; i < c.length; i++) {
-            addChild(c[i], childNodes, tag, props);
-        }
-    } else if (c === null || c === undefined) {
-        return;
-    } else {
-        throw UnexpectedVirtualElement({
-            foreignObject: c,
-            parentVnode: {
-                tagName: tag,
-                properties: props
-            }
-        });
-    }
-}
-
-function transformProperties(props) {
-    for (var propName in props) {
-        if (props.hasOwnProperty(propName)) {
-            var value = props[propName];
-
-            if (isHook(value)) {
-                continue;
-            }
-
-            if (propName.substr(0, 3) === 'ev-') {
-                // add ev-foo support
-                props[propName] = evHook(value);
-            }
-        }
-    }
-}
-
-function isChild(x) {
-    return isVNode(x) || isVText(x) || isWidget(x) || isVThunk(x);
-}
-
-function isChildren(x) {
-    return typeof x === 'string' || isArray(x) || isChild(x);
-}
-
-function UnexpectedVirtualElement(data) {
-    var err = new Error();
-
-    err.type = 'virtual-hyperscript.unexpected.virtual-element';
-    err.message = 'Unexpected virtual child passed to h().\n' +
-        'Expected a VNode / Vthunk / VWidget / string but:\n' +
-        'got:\n' +
-        errorString(data.foreignObject) +
-        '.\n' +
-        'The parent vnode is:\n' +
-        errorString(data.parentVnode)
-        '\n' +
-        'Suggested fix: change your `h(..., [ ... ])` callsite.';
-    err.foreignObject = data.foreignObject;
-    err.parentVnode = data.parentVnode;
-
-    return err;
-}
-
-function errorString(obj) {
-    try {
-        return JSON.stringify(obj, null, '    ');
-    } catch (e) {
-        return String(obj);
-    }
-}
-
-},{"../vnode/is-thunk":46,"../vnode/is-vhook":47,"../vnode/is-vnode":48,"../vnode/is-vtext":49,"../vnode/is-widget":50,"../vnode/vnode.js":52,"../vnode/vtext.js":54,"./hooks/ev-hook.js":39,"./hooks/soft-set-hook.js":40,"./parse-tag.js":42,"x-is-array":57}],42:[function(require,module,exports){
-'use strict';
-
-var split = require('browser-split');
-
-var classIdSplit = /([\.#]?[a-zA-Z0-9\u007F-\uFFFF_:-]+)/;
-var notClassId = /^\.|#/;
-
-module.exports = parseTag;
-
-function parseTag(tag, props) {
-    if (!tag) {
-        return 'DIV';
-    }
-
-    var noId = !(props.hasOwnProperty('id'));
-
-    var tagParts = split(tag, classIdSplit);
-    var tagName = null;
-
-    if (notClassId.test(tagParts[1])) {
-        tagName = 'DIV';
-    }
-
-    var classes, part, type, i;
-
-    for (i = 0; i < tagParts.length; i++) {
-        part = tagParts[i];
-
-        if (!part) {
-            continue;
-        }
-
-        type = part.charAt(0);
-
-        if (!tagName) {
-            tagName = part;
-        } else if (type === '.') {
-            classes = classes || [];
-            classes.push(part.substring(1, part.length));
-        } else if (type === '#' && noId) {
-            props.id = part.substring(1, part.length);
-        }
-    }
-
-    if (classes) {
-        if (props.className) {
-            classes.push(props.className);
-        }
-
-        props.className = classes.join(' ');
-    }
-
-    return props.namespace ? tagName : tagName.toUpperCase();
-}
-
-},{"browser-split":20}],43:[function(require,module,exports){
-'use strict';
-
-var DEFAULT_NAMESPACE = null;
-var EV_NAMESPACE = 'http://www.w3.org/2001/xml-events';
-var XLINK_NAMESPACE = 'http://www.w3.org/1999/xlink';
-var XML_NAMESPACE = 'http://www.w3.org/XML/1998/namespace';
-
-// http://www.w3.org/TR/SVGTiny12/attributeTable.html
-// http://www.w3.org/TR/SVG/attindex.html
-var SVG_PROPERTIES = {
-    'about': DEFAULT_NAMESPACE,
-    'accent-height': DEFAULT_NAMESPACE,
-    'accumulate': DEFAULT_NAMESPACE,
-    'additive': DEFAULT_NAMESPACE,
-    'alignment-baseline': DEFAULT_NAMESPACE,
-    'alphabetic': DEFAULT_NAMESPACE,
-    'amplitude': DEFAULT_NAMESPACE,
-    'arabic-form': DEFAULT_NAMESPACE,
-    'ascent': DEFAULT_NAMESPACE,
-    'attributeName': DEFAULT_NAMESPACE,
-    'attributeType': DEFAULT_NAMESPACE,
-    'azimuth': DEFAULT_NAMESPACE,
-    'bandwidth': DEFAULT_NAMESPACE,
-    'baseFrequency': DEFAULT_NAMESPACE,
-    'baseProfile': DEFAULT_NAMESPACE,
-    'baseline-shift': DEFAULT_NAMESPACE,
-    'bbox': DEFAULT_NAMESPACE,
-    'begin': DEFAULT_NAMESPACE,
-    'bias': DEFAULT_NAMESPACE,
-    'by': DEFAULT_NAMESPACE,
-    'calcMode': DEFAULT_NAMESPACE,
-    'cap-height': DEFAULT_NAMESPACE,
-    'class': DEFAULT_NAMESPACE,
-    'clip': DEFAULT_NAMESPACE,
-    'clip-path': DEFAULT_NAMESPACE,
-    'clip-rule': DEFAULT_NAMESPACE,
-    'clipPathUnits': DEFAULT_NAMESPACE,
-    'color': DEFAULT_NAMESPACE,
-    'color-interpolation': DEFAULT_NAMESPACE,
-    'color-interpolation-filters': DEFAULT_NAMESPACE,
-    'color-profile': DEFAULT_NAMESPACE,
-    'color-rendering': DEFAULT_NAMESPACE,
-    'content': DEFAULT_NAMESPACE,
-    'contentScriptType': DEFAULT_NAMESPACE,
-    'contentStyleType': DEFAULT_NAMESPACE,
-    'cursor': DEFAULT_NAMESPACE,
-    'cx': DEFAULT_NAMESPACE,
-    'cy': DEFAULT_NAMESPACE,
-    'd': DEFAULT_NAMESPACE,
-    'datatype': DEFAULT_NAMESPACE,
-    'defaultAction': DEFAULT_NAMESPACE,
-    'descent': DEFAULT_NAMESPACE,
-    'diffuseConstant': DEFAULT_NAMESPACE,
-    'direction': DEFAULT_NAMESPACE,
-    'display': DEFAULT_NAMESPACE,
-    'divisor': DEFAULT_NAMESPACE,
-    'dominant-baseline': DEFAULT_NAMESPACE,
-    'dur': DEFAULT_NAMESPACE,
-    'dx': DEFAULT_NAMESPACE,
-    'dy': DEFAULT_NAMESPACE,
-    'edgeMode': DEFAULT_NAMESPACE,
-    'editable': DEFAULT_NAMESPACE,
-    'elevation': DEFAULT_NAMESPACE,
-    'enable-background': DEFAULT_NAMESPACE,
-    'end': DEFAULT_NAMESPACE,
-    'ev:event': EV_NAMESPACE,
-    'event': DEFAULT_NAMESPACE,
-    'exponent': DEFAULT_NAMESPACE,
-    'externalResourcesRequired': DEFAULT_NAMESPACE,
-    'fill': DEFAULT_NAMESPACE,
-    'fill-opacity': DEFAULT_NAMESPACE,
-    'fill-rule': DEFAULT_NAMESPACE,
-    'filter': DEFAULT_NAMESPACE,
-    'filterRes': DEFAULT_NAMESPACE,
-    'filterUnits': DEFAULT_NAMESPACE,
-    'flood-color': DEFAULT_NAMESPACE,
-    'flood-opacity': DEFAULT_NAMESPACE,
-    'focusHighlight': DEFAULT_NAMESPACE,
-    'focusable': DEFAULT_NAMESPACE,
-    'font-family': DEFAULT_NAMESPACE,
-    'font-size': DEFAULT_NAMESPACE,
-    'font-size-adjust': DEFAULT_NAMESPACE,
-    'font-stretch': DEFAULT_NAMESPACE,
-    'font-style': DEFAULT_NAMESPACE,
-    'font-variant': DEFAULT_NAMESPACE,
-    'font-weight': DEFAULT_NAMESPACE,
-    'format': DEFAULT_NAMESPACE,
-    'from': DEFAULT_NAMESPACE,
-    'fx': DEFAULT_NAMESPACE,
-    'fy': DEFAULT_NAMESPACE,
-    'g1': DEFAULT_NAMESPACE,
-    'g2': DEFAULT_NAMESPACE,
-    'glyph-name': DEFAULT_NAMESPACE,
-    'glyph-orientation-horizontal': DEFAULT_NAMESPACE,
-    'glyph-orientation-vertical': DEFAULT_NAMESPACE,
-    'glyphRef': DEFAULT_NAMESPACE,
-    'gradientTransform': DEFAULT_NAMESPACE,
-    'gradientUnits': DEFAULT_NAMESPACE,
-    'handler': DEFAULT_NAMESPACE,
-    'hanging': DEFAULT_NAMESPACE,
-    'height': DEFAULT_NAMESPACE,
-    'horiz-adv-x': DEFAULT_NAMESPACE,
-    'horiz-origin-x': DEFAULT_NAMESPACE,
-    'horiz-origin-y': DEFAULT_NAMESPACE,
-    'id': DEFAULT_NAMESPACE,
-    'ideographic': DEFAULT_NAMESPACE,
-    'image-rendering': DEFAULT_NAMESPACE,
-    'in': DEFAULT_NAMESPACE,
-    'in2': DEFAULT_NAMESPACE,
-    'initialVisibility': DEFAULT_NAMESPACE,
-    'intercept': DEFAULT_NAMESPACE,
-    'k': DEFAULT_NAMESPACE,
-    'k1': DEFAULT_NAMESPACE,
-    'k2': DEFAULT_NAMESPACE,
-    'k3': DEFAULT_NAMESPACE,
-    'k4': DEFAULT_NAMESPACE,
-    'kernelMatrix': DEFAULT_NAMESPACE,
-    'kernelUnitLength': DEFAULT_NAMESPACE,
-    'kerning': DEFAULT_NAMESPACE,
-    'keyPoints': DEFAULT_NAMESPACE,
-    'keySplines': DEFAULT_NAMESPACE,
-    'keyTimes': DEFAULT_NAMESPACE,
-    'lang': DEFAULT_NAMESPACE,
-    'lengthAdjust': DEFAULT_NAMESPACE,
-    'letter-spacing': DEFAULT_NAMESPACE,
-    'lighting-color': DEFAULT_NAMESPACE,
-    'limitingConeAngle': DEFAULT_NAMESPACE,
-    'local': DEFAULT_NAMESPACE,
-    'marker-end': DEFAULT_NAMESPACE,
-    'marker-mid': DEFAULT_NAMESPACE,
-    'marker-start': DEFAULT_NAMESPACE,
-    'markerHeight': DEFAULT_NAMESPACE,
-    'markerUnits': DEFAULT_NAMESPACE,
-    'markerWidth': DEFAULT_NAMESPACE,
-    'mask': DEFAULT_NAMESPACE,
-    'maskContentUnits': DEFAULT_NAMESPACE,
-    'maskUnits': DEFAULT_NAMESPACE,
-    'mathematical': DEFAULT_NAMESPACE,
-    'max': DEFAULT_NAMESPACE,
-    'media': DEFAULT_NAMESPACE,
-    'mediaCharacterEncoding': DEFAULT_NAMESPACE,
-    'mediaContentEncodings': DEFAULT_NAMESPACE,
-    'mediaSize': DEFAULT_NAMESPACE,
-    'mediaTime': DEFAULT_NAMESPACE,
-    'method': DEFAULT_NAMESPACE,
-    'min': DEFAULT_NAMESPACE,
-    'mode': DEFAULT_NAMESPACE,
-    'name': DEFAULT_NAMESPACE,
-    'nav-down': DEFAULT_NAMESPACE,
-    'nav-down-left': DEFAULT_NAMESPACE,
-    'nav-down-right': DEFAULT_NAMESPACE,
-    'nav-left': DEFAULT_NAMESPACE,
-    'nav-next': DEFAULT_NAMESPACE,
-    'nav-prev': DEFAULT_NAMESPACE,
-    'nav-right': DEFAULT_NAMESPACE,
-    'nav-up': DEFAULT_NAMESPACE,
-    'nav-up-left': DEFAULT_NAMESPACE,
-    'nav-up-right': DEFAULT_NAMESPACE,
-    'numOctaves': DEFAULT_NAMESPACE,
-    'observer': DEFAULT_NAMESPACE,
-    'offset': DEFAULT_NAMESPACE,
-    'opacity': DEFAULT_NAMESPACE,
-    'operator': DEFAULT_NAMESPACE,
-    'order': DEFAULT_NAMESPACE,
-    'orient': DEFAULT_NAMESPACE,
-    'orientation': DEFAULT_NAMESPACE,
-    'origin': DEFAULT_NAMESPACE,
-    'overflow': DEFAULT_NAMESPACE,
-    'overlay': DEFAULT_NAMESPACE,
-    'overline-position': DEFAULT_NAMESPACE,
-    'overline-thickness': DEFAULT_NAMESPACE,
-    'panose-1': DEFAULT_NAMESPACE,
-    'path': DEFAULT_NAMESPACE,
-    'pathLength': DEFAULT_NAMESPACE,
-    'patternContentUnits': DEFAULT_NAMESPACE,
-    'patternTransform': DEFAULT_NAMESPACE,
-    'patternUnits': DEFAULT_NAMESPACE,
-    'phase': DEFAULT_NAMESPACE,
-    'playbackOrder': DEFAULT_NAMESPACE,
-    'pointer-events': DEFAULT_NAMESPACE,
-    'points': DEFAULT_NAMESPACE,
-    'pointsAtX': DEFAULT_NAMESPACE,
-    'pointsAtY': DEFAULT_NAMESPACE,
-    'pointsAtZ': DEFAULT_NAMESPACE,
-    'preserveAlpha': DEFAULT_NAMESPACE,
-    'preserveAspectRatio': DEFAULT_NAMESPACE,
-    'primitiveUnits': DEFAULT_NAMESPACE,
-    'propagate': DEFAULT_NAMESPACE,
-    'property': DEFAULT_NAMESPACE,
-    'r': DEFAULT_NAMESPACE,
-    'radius': DEFAULT_NAMESPACE,
-    'refX': DEFAULT_NAMESPACE,
-    'refY': DEFAULT_NAMESPACE,
-    'rel': DEFAULT_NAMESPACE,
-    'rendering-intent': DEFAULT_NAMESPACE,
-    'repeatCount': DEFAULT_NAMESPACE,
-    'repeatDur': DEFAULT_NAMESPACE,
-    'requiredExtensions': DEFAULT_NAMESPACE,
-    'requiredFeatures': DEFAULT_NAMESPACE,
-    'requiredFonts': DEFAULT_NAMESPACE,
-    'requiredFormats': DEFAULT_NAMESPACE,
-    'resource': DEFAULT_NAMESPACE,
-    'restart': DEFAULT_NAMESPACE,
-    'result': DEFAULT_NAMESPACE,
-    'rev': DEFAULT_NAMESPACE,
-    'role': DEFAULT_NAMESPACE,
-    'rotate': DEFAULT_NAMESPACE,
-    'rx': DEFAULT_NAMESPACE,
-    'ry': DEFAULT_NAMESPACE,
-    'scale': DEFAULT_NAMESPACE,
-    'seed': DEFAULT_NAMESPACE,
-    'shape-rendering': DEFAULT_NAMESPACE,
-    'slope': DEFAULT_NAMESPACE,
-    'snapshotTime': DEFAULT_NAMESPACE,
-    'spacing': DEFAULT_NAMESPACE,
-    'specularConstant': DEFAULT_NAMESPACE,
-    'specularExponent': DEFAULT_NAMESPACE,
-    'spreadMethod': DEFAULT_NAMESPACE,
-    'startOffset': DEFAULT_NAMESPACE,
-    'stdDeviation': DEFAULT_NAMESPACE,
-    'stemh': DEFAULT_NAMESPACE,
-    'stemv': DEFAULT_NAMESPACE,
-    'stitchTiles': DEFAULT_NAMESPACE,
-    'stop-color': DEFAULT_NAMESPACE,
-    'stop-opacity': DEFAULT_NAMESPACE,
-    'strikethrough-position': DEFAULT_NAMESPACE,
-    'strikethrough-thickness': DEFAULT_NAMESPACE,
-    'string': DEFAULT_NAMESPACE,
-    'stroke': DEFAULT_NAMESPACE,
-    'stroke-dasharray': DEFAULT_NAMESPACE,
-    'stroke-dashoffset': DEFAULT_NAMESPACE,
-    'stroke-linecap': DEFAULT_NAMESPACE,
-    'stroke-linejoin': DEFAULT_NAMESPACE,
-    'stroke-miterlimit': DEFAULT_NAMESPACE,
-    'stroke-opacity': DEFAULT_NAMESPACE,
-    'stroke-width': DEFAULT_NAMESPACE,
-    'surfaceScale': DEFAULT_NAMESPACE,
-    'syncBehavior': DEFAULT_NAMESPACE,
-    'syncBehaviorDefault': DEFAULT_NAMESPACE,
-    'syncMaster': DEFAULT_NAMESPACE,
-    'syncTolerance': DEFAULT_NAMESPACE,
-    'syncToleranceDefault': DEFAULT_NAMESPACE,
-    'systemLanguage': DEFAULT_NAMESPACE,
-    'tableValues': DEFAULT_NAMESPACE,
-    'target': DEFAULT_NAMESPACE,
-    'targetX': DEFAULT_NAMESPACE,
-    'targetY': DEFAULT_NAMESPACE,
-    'text-anchor': DEFAULT_NAMESPACE,
-    'text-decoration': DEFAULT_NAMESPACE,
-    'text-rendering': DEFAULT_NAMESPACE,
-    'textLength': DEFAULT_NAMESPACE,
-    'timelineBegin': DEFAULT_NAMESPACE,
-    'title': DEFAULT_NAMESPACE,
-    'to': DEFAULT_NAMESPACE,
-    'transform': DEFAULT_NAMESPACE,
-    'transformBehavior': DEFAULT_NAMESPACE,
-    'type': DEFAULT_NAMESPACE,
-    'typeof': DEFAULT_NAMESPACE,
-    'u1': DEFAULT_NAMESPACE,
-    'u2': DEFAULT_NAMESPACE,
-    'underline-position': DEFAULT_NAMESPACE,
-    'underline-thickness': DEFAULT_NAMESPACE,
-    'unicode': DEFAULT_NAMESPACE,
-    'unicode-bidi': DEFAULT_NAMESPACE,
-    'unicode-range': DEFAULT_NAMESPACE,
-    'units-per-em': DEFAULT_NAMESPACE,
-    'v-alphabetic': DEFAULT_NAMESPACE,
-    'v-hanging': DEFAULT_NAMESPACE,
-    'v-ideographic': DEFAULT_NAMESPACE,
-    'v-mathematical': DEFAULT_NAMESPACE,
-    'values': DEFAULT_NAMESPACE,
-    'version': DEFAULT_NAMESPACE,
-    'vert-adv-y': DEFAULT_NAMESPACE,
-    'vert-origin-x': DEFAULT_NAMESPACE,
-    'vert-origin-y': DEFAULT_NAMESPACE,
-    'viewBox': DEFAULT_NAMESPACE,
-    'viewTarget': DEFAULT_NAMESPACE,
-    'visibility': DEFAULT_NAMESPACE,
-    'width': DEFAULT_NAMESPACE,
-    'widths': DEFAULT_NAMESPACE,
-    'word-spacing': DEFAULT_NAMESPACE,
-    'writing-mode': DEFAULT_NAMESPACE,
-    'x': DEFAULT_NAMESPACE,
-    'x-height': DEFAULT_NAMESPACE,
-    'x1': DEFAULT_NAMESPACE,
-    'x2': DEFAULT_NAMESPACE,
-    'xChannelSelector': DEFAULT_NAMESPACE,
-    'xlink:actuate': XLINK_NAMESPACE,
-    'xlink:arcrole': XLINK_NAMESPACE,
-    'xlink:href': XLINK_NAMESPACE,
-    'xlink:role': XLINK_NAMESPACE,
-    'xlink:show': XLINK_NAMESPACE,
-    'xlink:title': XLINK_NAMESPACE,
-    'xlink:type': XLINK_NAMESPACE,
-    'xml:base': XML_NAMESPACE,
-    'xml:id': XML_NAMESPACE,
-    'xml:lang': XML_NAMESPACE,
-    'xml:space': XML_NAMESPACE,
-    'y': DEFAULT_NAMESPACE,
-    'y1': DEFAULT_NAMESPACE,
-    'y2': DEFAULT_NAMESPACE,
-    'yChannelSelector': DEFAULT_NAMESPACE,
-    'z': DEFAULT_NAMESPACE,
-    'zoomAndPan': DEFAULT_NAMESPACE
-};
-
-module.exports = SVGAttributeNamespace;
-
-function SVGAttributeNamespace(value) {
-  if (SVG_PROPERTIES.hasOwnProperty(value)) {
-    return SVG_PROPERTIES[value];
-  }
-}
-
-},{}],44:[function(require,module,exports){
-'use strict';
-
-var isArray = require('x-is-array');
-
-var h = require('./index.js');
-
-
-var SVGAttributeNamespace = require('./svg-attribute-namespace');
-var attributeHook = require('./hooks/attribute-hook');
-
-var SVG_NAMESPACE = 'http://www.w3.org/2000/svg';
-
-module.exports = svg;
-
-function svg(tagName, properties, children) {
-    if (!children && isChildren(properties)) {
-        children = properties;
-        properties = {};
-    }
-
-    properties = properties || {};
-
-    // set namespace for svg
-    properties.namespace = SVG_NAMESPACE;
-
-    var attributes = properties.attributes || (properties.attributes = {});
-
-    for (var key in properties) {
-        if (!properties.hasOwnProperty(key)) {
-            continue;
-        }
-
-        var namespace = SVGAttributeNamespace(key);
-
-        if (namespace === undefined) { // not a svg attribute
-            continue;
-        }
-
-        var value = properties[key];
-
-        if (typeof value !== 'string' &&
-            typeof value !== 'number' &&
-            typeof value !== 'boolean'
-        ) {
-            continue;
-        }
-
-        if (namespace !== null) { // namespaced attribute
-            properties[key] = attributeHook(namespace, value);
-            continue;
-        }
-
-        attributes[key] = value
-        properties[key] = undefined
-    }
-
-    return h(tagName, properties, children);
-}
-
-function isChildren(x) {
-    return typeof x === 'string' || isArray(x);
-}
-
-},{"./hooks/attribute-hook":38,"./index.js":41,"./svg-attribute-namespace":43,"x-is-array":57}],45:[function(require,module,exports){
-var isVNode = require("./is-vnode")
-var isVText = require("./is-vtext")
-var isWidget = require("./is-widget")
-var isThunk = require("./is-thunk")
-
-module.exports = handleThunk
-
-function handleThunk(a, b) {
-    var renderedA = a
-    var renderedB = b
-
-    if (isThunk(b)) {
-        renderedB = renderThunk(b, a)
-    }
-
-    if (isThunk(a)) {
-        renderedA = renderThunk(a, null)
-    }
-
-    return {
-        a: renderedA,
-        b: renderedB
-    }
-}
-
-function renderThunk(thunk, previous) {
-    var renderedThunk = thunk.vnode
-
-    if (!renderedThunk) {
-        renderedThunk = thunk.vnode = thunk.render(previous)
-    }
-
-    if (!(isVNode(renderedThunk) ||
-            isVText(renderedThunk) ||
-            isWidget(renderedThunk))) {
-        throw new Error("thunk did not return a valid node");
-    }
-
-    return renderedThunk
-}
-
-},{"./is-thunk":46,"./is-vnode":48,"./is-vtext":49,"./is-widget":50}],46:[function(require,module,exports){
-module.exports = isThunk
-
-function isThunk(t) {
-    return t && t.type === "Thunk"
-}
-
-},{}],47:[function(require,module,exports){
-module.exports = isHook
-
-function isHook(hook) {
-    return hook &&
-      (typeof hook.hook === "function" && !hook.hasOwnProperty("hook") ||
-       typeof hook.unhook === "function" && !hook.hasOwnProperty("unhook"))
-}
-
-},{}],48:[function(require,module,exports){
-var version = require("./version")
-
-module.exports = isVirtualNode
-
-function isVirtualNode(x) {
-    return x && x.type === "VirtualNode" && x.version === version
-}
-
-},{"./version":51}],49:[function(require,module,exports){
-var version = require("./version")
-
-module.exports = isVirtualText
-
-function isVirtualText(x) {
-    return x && x.type === "VirtualText" && x.version === version
-}
-
-},{"./version":51}],50:[function(require,module,exports){
-module.exports = isWidget
-
-function isWidget(w) {
-    return w && w.type === "Widget"
-}
-
-},{}],51:[function(require,module,exports){
-module.exports = "2"
-
-},{}],52:[function(require,module,exports){
-var version = require("./version")
-var isVNode = require("./is-vnode")
-var isWidget = require("./is-widget")
-var isThunk = require("./is-thunk")
-var isVHook = require("./is-vhook")
-
-module.exports = VirtualNode
-
-var noProperties = {}
-var noChildren = []
-
-function VirtualNode(tagName, properties, children, key, namespace) {
-    this.tagName = tagName
-    this.properties = properties || noProperties
-    this.children = children || noChildren
-    this.key = key != null ? String(key) : undefined
-    this.namespace = (typeof namespace === "string") ? namespace : null
-
-    var count = (children && children.length) || 0
-    var descendants = 0
-    var hasWidgets = false
-    var hasThunks = false
-    var descendantHooks = false
-    var hooks
-
-    for (var propName in properties) {
-        if (properties.hasOwnProperty(propName)) {
-            var property = properties[propName]
-            if (isVHook(property) && property.unhook) {
-                if (!hooks) {
-                    hooks = {}
-                }
-
-                hooks[propName] = property
-            }
-        }
-    }
-
-    for (var i = 0; i < count; i++) {
-        var child = children[i]
-        if (isVNode(child)) {
-            descendants += child.count || 0
-
-            if (!hasWidgets && child.hasWidgets) {
-                hasWidgets = true
-            }
-
-            if (!hasThunks && child.hasThunks) {
-                hasThunks = true
-            }
-
-            if (!descendantHooks && (child.hooks || child.descendantHooks)) {
-                descendantHooks = true
-            }
-        } else if (!hasWidgets && isWidget(child)) {
-            if (typeof child.destroy === "function") {
-                hasWidgets = true
-            }
-        } else if (!hasThunks && isThunk(child)) {
-            hasThunks = true;
-        }
-    }
-
-    this.count = count + descendants
-    this.hasWidgets = hasWidgets
-    this.hasThunks = hasThunks
-    this.hooks = hooks
-    this.descendantHooks = descendantHooks
-}
-
-VirtualNode.prototype.version = version
-VirtualNode.prototype.type = "VirtualNode"
-
-},{"./is-thunk":46,"./is-vhook":47,"./is-vnode":48,"./is-widget":50,"./version":51}],53:[function(require,module,exports){
-var version = require("./version")
-
-VirtualPatch.NONE = 0
-VirtualPatch.VTEXT = 1
-VirtualPatch.VNODE = 2
-VirtualPatch.WIDGET = 3
-VirtualPatch.PROPS = 4
-VirtualPatch.ORDER = 5
-VirtualPatch.INSERT = 6
-VirtualPatch.REMOVE = 7
-VirtualPatch.THUNK = 8
-
-module.exports = VirtualPatch
-
-function VirtualPatch(type, vNode, patch) {
-    this.type = Number(type)
-    this.vNode = vNode
-    this.patch = patch
-}
-
-VirtualPatch.prototype.version = version
-VirtualPatch.prototype.type = "VirtualPatch"
-
-},{"./version":51}],54:[function(require,module,exports){
-var version = require("./version")
-
-module.exports = VirtualText
-
-function VirtualText(text) {
-    this.text = String(text)
-}
-
-VirtualText.prototype.version = version
-VirtualText.prototype.type = "VirtualText"
-
-},{"./version":51}],55:[function(require,module,exports){
-var isObject = require("is-object")
-var isHook = require("../vnode/is-vhook")
-
-module.exports = diffProps
-
-function diffProps(a, b) {
-    var diff
-
-    for (var aKey in a) {
-        if (!(aKey in b)) {
-            diff = diff || {}
-            diff[aKey] = undefined
-        }
-
-        var aValue = a[aKey]
-        var bValue = b[aKey]
-
-        if (aValue === bValue) {
-            continue
-        } else if (isObject(aValue) && isObject(bValue)) {
-            if (getPrototype(bValue) !== getPrototype(aValue)) {
-                diff = diff || {}
-                diff[aKey] = bValue
-            } else if (isHook(bValue)) {
-                 diff = diff || {}
-                 diff[aKey] = bValue
-            } else {
-                var objectDiff = diffProps(aValue, bValue)
-                if (objectDiff) {
-                    diff = diff || {}
-                    diff[aKey] = objectDiff
-                }
-            }
-        } else {
-            diff = diff || {}
-            diff[aKey] = bValue
-        }
-    }
-
-    for (var bKey in b) {
-        if (!(bKey in a)) {
-            diff = diff || {}
-            diff[bKey] = b[bKey]
-        }
-    }
-
-    return diff
-}
-
-function getPrototype(value) {
-  if (Object.getPrototypeOf) {
-    return Object.getPrototypeOf(value)
-  } else if (value.__proto__) {
-    return value.__proto__
-  } else if (value.constructor) {
-    return value.constructor.prototype
-  }
-}
-
-},{"../vnode/is-vhook":47,"is-object":25}],56:[function(require,module,exports){
-var isArray = require("x-is-array")
-
-var VPatch = require("../vnode/vpatch")
-var isVNode = require("../vnode/is-vnode")
-var isVText = require("../vnode/is-vtext")
-var isWidget = require("../vnode/is-widget")
-var isThunk = require("../vnode/is-thunk")
-var handleThunk = require("../vnode/handle-thunk")
-
-var diffProps = require("./diff-props")
-
-module.exports = diff
-
-function diff(a, b) {
-    var patch = { a: a }
-    walk(a, b, patch, 0)
-    return patch
-}
-
-function walk(a, b, patch, index) {
-    if (a === b) {
-        return
-    }
-
-    var apply = patch[index]
-    var applyClear = false
-
-    if (isThunk(a) || isThunk(b)) {
-        thunks(a, b, patch, index)
-    } else if (b == null) {
-
-        // If a is a widget we will add a remove patch for it
-        // Otherwise any child widgets/hooks must be destroyed.
-        // This prevents adding two remove patches for a widget.
-        if (!isWidget(a)) {
-            clearState(a, patch, index)
-            apply = patch[index]
-        }
-
-        apply = appendPatch(apply, new VPatch(VPatch.REMOVE, a, b))
-    } else if (isVNode(b)) {
-        if (isVNode(a)) {
-            if (a.tagName === b.tagName &&
-                a.namespace === b.namespace &&
-                a.key === b.key) {
-                var propsPatch = diffProps(a.properties, b.properties)
-                if (propsPatch) {
-                    apply = appendPatch(apply,
-                        new VPatch(VPatch.PROPS, a, propsPatch))
-                }
-                apply = diffChildren(a, b, patch, apply, index)
-            } else {
-                apply = appendPatch(apply, new VPatch(VPatch.VNODE, a, b))
-                applyClear = true
-            }
-        } else {
-            apply = appendPatch(apply, new VPatch(VPatch.VNODE, a, b))
-            applyClear = true
-        }
-    } else if (isVText(b)) {
-        if (!isVText(a)) {
-            apply = appendPatch(apply, new VPatch(VPatch.VTEXT, a, b))
-            applyClear = true
-        } else if (a.text !== b.text) {
-            apply = appendPatch(apply, new VPatch(VPatch.VTEXT, a, b))
-        }
-    } else if (isWidget(b)) {
-        if (!isWidget(a)) {
-            applyClear = true
-        }
-
-        apply = appendPatch(apply, new VPatch(VPatch.WIDGET, a, b))
-    }
-
-    if (apply) {
-        patch[index] = apply
-    }
-
-    if (applyClear) {
-        clearState(a, patch, index)
-    }
-}
-
-function diffChildren(a, b, patch, apply, index) {
-    var aChildren = a.children
-    var orderedSet = reorder(aChildren, b.children)
-    var bChildren = orderedSet.children
-
-    var aLen = aChildren.length
-    var bLen = bChildren.length
-    var len = aLen > bLen ? aLen : bLen
-
-    for (var i = 0; i < len; i++) {
-        var leftNode = aChildren[i]
-        var rightNode = bChildren[i]
-        index += 1
-
-        if (!leftNode) {
-            if (rightNode) {
-                // Excess nodes in b need to be added
-                apply = appendPatch(apply,
-                    new VPatch(VPatch.INSERT, null, rightNode))
-            }
-        } else {
-            walk(leftNode, rightNode, patch, index)
-        }
-
-        if (isVNode(leftNode) && leftNode.count) {
-            index += leftNode.count
-        }
-    }
-
-    if (orderedSet.moves) {
-        // Reorder nodes last
-        apply = appendPatch(apply, new VPatch(
-            VPatch.ORDER,
-            a,
-            orderedSet.moves
-        ))
-    }
-
-    return apply
-}
-
-function clearState(vNode, patch, index) {
-    // TODO: Make this a single walk, not two
-    unhook(vNode, patch, index)
-    destroyWidgets(vNode, patch, index)
-}
-
-// Patch records for all destroyed widgets must be added because we need
-// a DOM node reference for the destroy function
-function destroyWidgets(vNode, patch, index) {
-    if (isWidget(vNode)) {
-        if (typeof vNode.destroy === "function") {
-            patch[index] = appendPatch(
-                patch[index],
-                new VPatch(VPatch.REMOVE, vNode, null)
-            )
-        }
-    } else if (isVNode(vNode) && (vNode.hasWidgets || vNode.hasThunks)) {
-        var children = vNode.children
-        var len = children.length
-        for (var i = 0; i < len; i++) {
-            var child = children[i]
-            index += 1
-
-            destroyWidgets(child, patch, index)
-
-            if (isVNode(child) && child.count) {
-                index += child.count
-            }
-        }
-    } else if (isThunk(vNode)) {
-        thunks(vNode, null, patch, index)
-    }
-}
-
-// Create a sub-patch for thunks
-function thunks(a, b, patch, index) {
-    var nodes = handleThunk(a, b)
-    var thunkPatch = diff(nodes.a, nodes.b)
-    if (hasPatches(thunkPatch)) {
-        patch[index] = new VPatch(VPatch.THUNK, null, thunkPatch)
-    }
-}
-
-function hasPatches(patch) {
-    for (var index in patch) {
-        if (index !== "a") {
-            return true
-        }
-    }
-
-    return false
-}
-
-// Execute hooks when two nodes are identical
-function unhook(vNode, patch, index) {
-    if (isVNode(vNode)) {
-        if (vNode.hooks) {
-            patch[index] = appendPatch(
-                patch[index],
-                new VPatch(
-                    VPatch.PROPS,
-                    vNode,
-                    undefinedKeys(vNode.hooks)
-                )
-            )
-        }
-
-        if (vNode.descendantHooks || vNode.hasThunks) {
-            var children = vNode.children
-            var len = children.length
-            for (var i = 0; i < len; i++) {
-                var child = children[i]
-                index += 1
-
-                unhook(child, patch, index)
-
-                if (isVNode(child) && child.count) {
-                    index += child.count
-                }
-            }
-        }
-    } else if (isThunk(vNode)) {
-        thunks(vNode, null, patch, index)
-    }
-}
-
-function undefinedKeys(obj) {
-    var result = {}
-
-    for (var key in obj) {
-        result[key] = undefined
-    }
-
-    return result
-}
-
-// List diff, naive left to right reordering
-function reorder(aChildren, bChildren) {
-    // O(M) time, O(M) memory
-    var bChildIndex = keyIndex(bChildren)
-    var bKeys = bChildIndex.keys
-    var bFree = bChildIndex.free
-
-    if (bFree.length === bChildren.length) {
-        return {
-            children: bChildren,
-            moves: null
-        }
-    }
-
-    // O(N) time, O(N) memory
-    var aChildIndex = keyIndex(aChildren)
-    var aKeys = aChildIndex.keys
-    var aFree = aChildIndex.free
-
-    if (aFree.length === aChildren.length) {
-        return {
-            children: bChildren,
-            moves: null
-        }
-    }
-
-    // O(MAX(N, M)) memory
-    var newChildren = []
-
-    var freeIndex = 0
-    var freeCount = bFree.length
-    var deletedItems = 0
-
-    // Iterate through a and match a node in b
-    // O(N) time,
-    for (var i = 0 ; i < aChildren.length; i++) {
-        var aItem = aChildren[i]
-        var itemIndex
-
-        if (aItem.key) {
-            if (bKeys.hasOwnProperty(aItem.key)) {
-                // Match up the old keys
-                itemIndex = bKeys[aItem.key]
-                newChildren.push(bChildren[itemIndex])
-
-            } else {
-                // Remove old keyed items
-                itemIndex = i - deletedItems++
-                newChildren.push(null)
-            }
-        } else {
-            // Match the item in a with the next free item in b
-            if (freeIndex < freeCount) {
-                itemIndex = bFree[freeIndex++]
-                newChildren.push(bChildren[itemIndex])
-            } else {
-                // There are no free items in b to match with
-                // the free items in a, so the extra free nodes
-                // are deleted.
-                itemIndex = i - deletedItems++
-                newChildren.push(null)
-            }
-        }
-    }
-
-    var lastFreeIndex = freeIndex >= bFree.length ?
-        bChildren.length :
-        bFree[freeIndex]
-
-    // Iterate through b and append any new keys
-    // O(M) time
-    for (var j = 0; j < bChildren.length; j++) {
-        var newItem = bChildren[j]
-
-        if (newItem.key) {
-            if (!aKeys.hasOwnProperty(newItem.key)) {
-                // Add any new keyed items
-                // We are adding new items to the end and then sorting them
-                // in place. In future we should insert new items in place.
-                newChildren.push(newItem)
-            }
-        } else if (j >= lastFreeIndex) {
-            // Add any leftover non-keyed items
-            newChildren.push(newItem)
-        }
-    }
-
-    var simulate = newChildren.slice()
-    var simulateIndex = 0
-    var removes = []
-    var inserts = []
-    var simulateItem
-
-    for (var k = 0; k < bChildren.length;) {
-        var wantedItem = bChildren[k]
-        simulateItem = simulate[simulateIndex]
-
-        // remove items
-        while (simulateItem === null && simulate.length) {
-            removes.push(remove(simulate, simulateIndex, null))
-            simulateItem = simulate[simulateIndex]
-        }
-
-        if (!simulateItem || simulateItem.key !== wantedItem.key) {
-            // if we need a key in this position...
-            if (wantedItem.key) {
-                if (simulateItem && simulateItem.key) {
-                    // if an insert doesn't put this key in place, it needs to move
-                    if (bKeys[simulateItem.key] !== k + 1) {
-                        removes.push(remove(simulate, simulateIndex, simulateItem.key))
-                        simulateItem = simulate[simulateIndex]
-                        // if the remove didn't put the wanted item in place, we need to insert it
-                        if (!simulateItem || simulateItem.key !== wantedItem.key) {
-                            inserts.push({key: wantedItem.key, to: k})
-                        }
-                        // items are matching, so skip ahead
-                        else {
-                            simulateIndex++
-                        }
-                    }
-                    else {
-                        inserts.push({key: wantedItem.key, to: k})
-                    }
-                }
-                else {
-                    inserts.push({key: wantedItem.key, to: k})
-                }
-                k++
-            }
-            // a key in simulate has no matching wanted key, remove it
-            else if (simulateItem && simulateItem.key) {
-                removes.push(remove(simulate, simulateIndex, simulateItem.key))
-            }
-        }
-        else {
-            simulateIndex++
-            k++
-        }
-    }
-
-    // remove all the remaining nodes from simulate
-    while(simulateIndex < simulate.length) {
-        simulateItem = simulate[simulateIndex]
-        removes.push(remove(simulate, simulateIndex, simulateItem && simulateItem.key))
-    }
-
-    // If the only moves we have are deletes then we can just
-    // let the delete patch remove these items.
-    if (removes.length === deletedItems && !inserts.length) {
-        return {
-            children: newChildren,
-            moves: null
-        }
-    }
-
-    return {
-        children: newChildren,
-        moves: {
-            removes: removes,
-            inserts: inserts
-        }
-    }
-}
-
-function remove(arr, index, key) {
-    arr.splice(index, 1)
-
-    return {
-        from: index,
-        key: key
-    }
-}
-
-function keyIndex(children) {
-    var keys = {}
-    var free = []
-    var length = children.length
-
-    for (var i = 0; i < length; i++) {
-        var child = children[i]
-
-        if (child.key) {
-            keys[child.key] = i
-        } else {
-            free.push(i)
-        }
-    }
-
-    return {
-        keys: keys,     // A hash of key name to index
-        free: free      // An array of unkeyed item indices
-    }
-}
-
-function appendPatch(apply, patch) {
-    if (apply) {
-        if (isArray(apply)) {
-            apply.push(patch)
-        } else {
-            apply = [apply, patch]
-        }
-
-        return apply
-    } else {
-        return patch
-    }
-}
-
-},{"../vnode/handle-thunk":45,"../vnode/is-thunk":46,"../vnode/is-vnode":48,"../vnode/is-vtext":49,"../vnode/is-widget":50,"../vnode/vpatch":53,"./diff-props":55,"x-is-array":57}],57:[function(require,module,exports){
-var nativeIsArray = Array.isArray
-var toString = Object.prototype.toString
-
-module.exports = nativeIsArray || isArray
-
-function isArray(obj) {
-    return toString.call(obj) === "[object Array]"
-}
-
-},{}],58:[function(require,module,exports){
+},{"setimmediate":116,"timers":117}],17:[function(require,module,exports){
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.ACT_EDIT_TEXT = exports.ACT_DRAW_POINT_CANCEL = exports.ACT_DRAW_POINT_MOVE = exports.ACT_DRAW_POINT_PLACE = exports.ACT_MOVE = void 0;
+exports.ACT_PASTE = exports.ACT_COPY = exports.ACT_EDIT_TEXT = exports.ACT_DRAW_POINT_CANCEL = exports.ACT_DRAW_POINT_MOVE = exports.ACT_DRAW_POINT_PLACE = exports.ACT_MOVE = void 0;
 exports.ACT_MOVE = "move";
 exports.ACT_DRAW_POINT_PLACE = "draw_point:place";
 exports.ACT_DRAW_POINT_MOVE = "draw_point:move";
 exports.ACT_DRAW_POINT_CANCEL = "draw_point:cancel";
 exports.ACT_EDIT_TEXT = "edit_text";
+exports.ACT_COPY = "copy";
+exports.ACT_PASTE = "paste";
 
-},{}],59:[function(require,module,exports){
+},{}],18:[function(require,module,exports){
 "use strict";
 var __assign = (this && this.__assign) || function () {
     __assign = Object.assign || function(t) {
@@ -3617,7 +1110,7 @@ CollisionDetections.register("polygon", "polygon", collisions_1.CollisionFunctio
 CollisionDetections.register("polygon", "halfplane", collisions_1.CollisionFunctions.polygonHalfplane);
 CollisionDetections.register("halfplane", "halfplane", collisions_1.CollisionFunctions.halfplaneHalfplane);
 
-},{"../geometry":69,"./collisions":60}],60:[function(require,module,exports){
+},{"../geometry":28,"./collisions":19}],19:[function(require,module,exports){
 "use strict";
 var __assign = (this && this.__assign) || function () {
     __assign = Object.assign || function(t) {
@@ -4288,7 +1781,7 @@ var CollisionFunctions;
     CollisionFunctions.halfplaneHalfplane = halfplaneHalfplane;
 })(CollisionFunctions = exports.CollisionFunctions || (exports.CollisionFunctions = {}));
 
-},{"../geometry":69,"kld-intersections":99}],61:[function(require,module,exports){
+},{"../geometry":28,"kld-intersections":113}],20:[function(require,module,exports){
 "use strict";
 var __createBinding = (this && this.__createBinding) || (Object.create ? (function(o, m, k, k2) {
     if (k2 === undefined) k2 = k;
@@ -4308,17 +1801,17 @@ Object.defineProperty(exports, "__esModule", { value: true });
 __exportStar(require("./colliders"), exports);
 __exportStar(require("./collisions"), exports);
 
-},{"./colliders":59,"./collisions":60}],62:[function(require,module,exports){
+},{"./colliders":18,"./collisions":19}],21:[function(require,module,exports){
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.ControlsContext = void 0;
-var diagram_1 = require("@carnelian-diagram/core");
-exports.ControlsContext = (0, diagram_1.createContext)({
+var core_1 = require("@carnelian-diagram/core");
+exports.ControlsContext = (0, core_1.createContext)({
     renderHandle: function () { return null; },
     renderEdge: function () { return null; }
 });
 
-},{"@carnelian-diagram/core":16}],63:[function(require,module,exports){
+},{"@carnelian-diagram/core":13}],22:[function(require,module,exports){
 "use strict";
 var __createBinding = (this && this.__createBinding) || (Object.create ? (function(o, m, k, k2) {
     if (k2 === undefined) k2 = k;
@@ -4339,45 +1832,45 @@ __exportStar(require("./controls-context"), exports);
 __exportStar(require("./interaction-context"), exports);
 __exportStar(require("./selection-context"), exports);
 
-},{"./controls-context":62,"./interaction-context":64,"./selection-context":65}],64:[function(require,module,exports){
+},{"./controls-context":21,"./interaction-context":23,"./selection-context":24}],23:[function(require,module,exports){
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.InteractionContext = void 0;
-var diagram_1 = require("@carnelian-diagram/core");
-exports.InteractionContext = (0, diagram_1.createContext)(null);
+var core_1 = require("@carnelian-diagram/core");
+exports.InteractionContext = (0, core_1.createContext)(null);
 
-},{"@carnelian-diagram/core":16}],65:[function(require,module,exports){
+},{"@carnelian-diagram/core":13}],24:[function(require,module,exports){
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.SelectionContext = void 0;
-var diagram_1 = require("@carnelian-diagram/core");
-exports.SelectionContext = (0, diagram_1.createContext)([]);
+var core_1 = require("@carnelian-diagram/core");
+exports.SelectionContext = (0, core_1.createContext)([]);
 
-},{"@carnelian-diagram/core":16}],66:[function(require,module,exports){
+},{"@carnelian-diagram/core":13}],25:[function(require,module,exports){
 "use strict";
 /** @jsxImportSource @carnelian-diagram/core */
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.EdgeControl = void 0;
-var diagram_1 = require("@carnelian-diagram/core");
+var core_1 = require("@carnelian-diagram/core");
 var __1 = require("..");
 function EdgeControl(props) {
     var p1 = new DOMPoint(props.x1, props.y1).matrixTransform(props.transform);
     var p2 = new DOMPoint(props.x2, props.y2).matrixTransform(props.transform);
-    (0, __1.useHitTest)((0, __1.lineHitTest)(props.x1, props.y1, props.x2, props.y2, 2), props.hitArea, 1, props.element);
+    (0, __1.useHitTest)((0, __1.lineHitTest)(props.x1, props.y1, props.x2, props.y2), null, props.hitArea, 2, 1, props.element);
     (0, __1.useAction)(props.hitArea.action, props.onDrag && (function (payload) {
         var _a;
         if (props.hitArea.index === payload.hitArea.index) {
             (_a = props.onDrag) === null || _a === void 0 ? void 0 : _a.call(props, payload);
         }
     }), props.element);
-    var controlsContext = (0, diagram_1.useContext)(__1.ControlsContext);
+    var controlsContext = (0, core_1.useContext)(__1.ControlsContext);
     return controlsContext.renderEdge(props.kind, p1.x, p1.y, p2.x, p2.y, {
         className: "control-edge control-edge-".concat(props.kind)
     });
 }
 exports.EdgeControl = EdgeControl;
 
-},{"..":87,"@carnelian-diagram/core":16}],67:[function(require,module,exports){
+},{"..":48,"@carnelian-diagram/core":13}],26:[function(require,module,exports){
 "use strict";
 /** @jsxImportSource @carnelian-diagram/core */
 var __assign = (this && this.__assign) || function () {
@@ -4393,7 +1886,7 @@ var __assign = (this && this.__assign) || function () {
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.HandleControl = void 0;
-var diagram_1 = require("@carnelian-diagram/core");
+var core_1 = require("@carnelian-diagram/core");
 var __1 = require("..");
 function HandleControl(props) {
     var p = new DOMPoint(props.x, props.y).matrixTransform(props.transform);
@@ -4404,12 +1897,12 @@ function HandleControl(props) {
             (_a = props.onDrag) === null || _a === void 0 ? void 0 : _a.call(props, payload);
         }
     }), props.element);
-    var controlsContext = (0, diagram_1.useContext)(__1.ControlsContext);
+    var controlsContext = (0, core_1.useContext)(__1.ControlsContext);
     return controlsContext.renderHandle(props.kind, p.x, p.y, __assign({ className: "control-handle control-handle-".concat(props.kind) }, hitTestProps));
 }
 exports.HandleControl = HandleControl;
 
-},{"..":87,"@carnelian-diagram/core":16}],68:[function(require,module,exports){
+},{"..":48,"@carnelian-diagram/core":13}],27:[function(require,module,exports){
 "use strict";
 var __createBinding = (this && this.__createBinding) || (Object.create ? (function(o, m, k, k2) {
     if (k2 === undefined) k2 = k;
@@ -4429,7 +1922,7 @@ Object.defineProperty(exports, "__esModule", { value: true });
 __exportStar(require("./handle"), exports);
 __exportStar(require("./edge"), exports);
 
-},{"./edge":66,"./handle":67}],69:[function(require,module,exports){
+},{"./edge":25,"./handle":26}],28:[function(require,module,exports){
 "use strict";
 var __assign = (this && this.__assign) || function () {
     __assign = Object.assign || function(t) {
@@ -4470,7 +1963,7 @@ var __values = (this && this.__values) || function(o) {
     throw new TypeError(s ? "Object is not iterable." : "Symbol.iterator is not defined.");
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.pointOnPolygon = exports.pointOnEllipse = exports.pointOnRect = exports.pointOnCircle = exports.pointOnLine = exports.pointOnSegment = exports.polygonBounds = exports.ellipseBounds = exports.circleBounds = exports.lineBounds = exports.rectPoints = exports.unionRects = exports.intersectRects = exports.containsRect = exports.inflateRect = exports.unionRect = exports.intersectRect = exports.pointInHalfplane = exports.pointInRect = exports.pointInPolygon = exports.pointInEllipse = exports.pointInCircle = exports.extendLine = exports.intersectLines = exports.segmentBounds = exports.segmentDistance = exports.segmentDistanceSquared = exports.segmentClosestPoint = exports.lineDistance = exports.lineDistanceSquared = exports.lineClosestPoint = exports.distance = exports.distanceSquared = exports.radToDeg = exports.degToRad = exports.clamp = exports.sqr = void 0;
+exports.pointOnPolygon = exports.pointOnEllipse = exports.pointOnRect = exports.pointOnCircle = exports.pointOnLine = exports.pointOnSegment = exports.polygonBounds = exports.ellipseBounds = exports.circleBounds = exports.lineBounds = exports.rectPoints = exports.unionRects = exports.intersectRects = exports.containsRect = exports.inflateRect = exports.unionRect = exports.intersectRect = exports.pointInHalfplane = exports.pointInRect = exports.pointInPolygon = exports.pointInEllipse = exports.pointInCircle = exports.transformPoint = exports.extendLine = exports.intersectLines = exports.segmentBounds = exports.segmentDistance = exports.segmentDistanceSquared = exports.segmentClosestPoint = exports.lineDistance = exports.lineDistanceSquared = exports.lineClosestPoint = exports.distance = exports.distanceSquared = exports.radToDeg = exports.degToRad = exports.clamp = exports.sqr = void 0;
 function sqr(x) {
     return x * x;
 }
@@ -4594,6 +2087,10 @@ function extendLine(l, r) {
     };
 }
 exports.extendLine = extendLine;
+function transformPoint(p, transform) {
+    return new DOMPoint(p.x, p.y).matrixTransform(transform);
+}
+exports.transformPoint = transformPoint;
 function pointInCircle(p, circle) {
     return distanceSquared(p, circle.center) <= sqr(circle.radius);
 }
@@ -4760,7 +2257,7 @@ function ellipseBounds(e) {
 }
 exports.ellipseBounds = ellipseBounds;
 function polygonBounds(polygon) {
-    return unionRects(polygon.map(function (x) { return (__assign(__assign({}, x), { width: 0, height: 0 })); }));
+    return unionRects(polygon.map(function (p) { return ({ x: p.x, y: p.y, width: 0, height: 0 }); }));
 }
 exports.polygonBounds = polygonBounds;
 function pointOnSegment(p, line, tolerance) {
@@ -4802,11 +2299,11 @@ function pointOnPolygon(p, polygon, tolerance) {
 }
 exports.pointOnPolygon = pointOnPolygon;
 
-},{}],70:[function(require,module,exports){
+},{}],29:[function(require,module,exports){
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.polygonHitTest = exports.lineHitTest = exports.circleHitTest = exports.rectHitTest = exports.pointHitTest = exports.createHitTestProps = exports.addHitTestProps = exports.hasHitTestProps = void 0;
-var diagram_1 = require("@carnelian-diagram/core");
+var core_1 = require("@carnelian-diagram/core");
 var custom_prop_hook_1 = require("@carnelian-diagram/core/utils/custom-prop-hook");
 var geometry_1 = require("./geometry");
 function hasHitTestProps(target) {
@@ -4818,7 +2315,7 @@ function addHitTestProps(e, hitArea, element) {
 }
 exports.addHitTestProps = addHitTestProps;
 function createHitTestProps(hitArea, element) {
-    var renderContext = (0, diagram_1.useContext)(diagram_1.RenderContext);
+    var renderContext = (0, core_1.useContext)(core_1.RenderContext);
     var elem = element || (renderContext === null || renderContext === void 0 ? void 0 : renderContext.currentElement);
     if (!elem) {
         throw new Error("The createHitTestProps function is not allowed to be called from here. Current element is not defined");
@@ -4834,45 +2331,39 @@ function createHitTestProps(hitArea, element) {
     };
 }
 exports.createHitTestProps = createHitTestProps;
-function pointHitTest(x, y, tolerance) {
-    return function (point, transform) {
-        var p = new DOMPoint(x, y).matrixTransform(transform.inverse());
+function pointHitTest(x, y) {
+    return function (point, tolerance) {
+        var p = { x: x, y: y };
         return Math.abs(p.x - point.x) <= tolerance && Math.abs(p.y - point.y) <= tolerance;
     };
 }
 exports.pointHitTest = pointHitTest;
 function rectHitTest(x, y, width, height) {
-    return function (point, transform) {
-        var elemPoint = point.matrixTransform(transform);
-        return elemPoint.x >= x && elemPoint.y >= y && elemPoint.x <= x + width && elemPoint.y <= y + height;
+    return function (point) {
+        return (0, geometry_1.pointInRect)(point, { x: x, y: y, width: width, height: height });
     };
 }
 exports.rectHitTest = rectHitTest;
 function circleHitTest(x, y, radius) {
-    return function (point, transform) {
-        var elemPoint = point.matrixTransform(transform);
-        return (0, geometry_1.distance)(elemPoint, { x: x, y: y }) <= radius;
+    return function (point) {
+        return (0, geometry_1.distance)(point, { x: x, y: y }) <= radius;
     };
 }
 exports.circleHitTest = circleHitTest;
-function lineHitTest(x1, y1, x2, y2, tolerance) {
-    return function (point, transform) {
-        var p1 = new DOMPoint(x1, y1).matrixTransform(transform.inverse());
-        var p2 = new DOMPoint(x2, y2).matrixTransform(transform.inverse());
-        var d = (0, geometry_1.segmentDistance)(point, p1, p2);
-        return d <= tolerance;
+function lineHitTest(x1, y1, x2, y2) {
+    return function (point, tolerance) {
+        return (0, geometry_1.segmentDistance)(point, { x: x1, y: y1 }, { x: x2, y: y2 }) <= tolerance;
     };
 }
 exports.lineHitTest = lineHitTest;
 function polygonHitTest(polygon) {
-    return function (point, transform) {
-        var elemPoint = point.matrixTransform(transform);
-        return (0, geometry_1.pointInPolygon)(elemPoint, polygon);
+    return function (point) {
+        return (0, geometry_1.pointInPolygon)(point, polygon);
     };
 }
 exports.polygonHitTest = polygonHitTest;
 
-},{"./geometry":69,"@carnelian-diagram/core":16,"@carnelian-diagram/core/utils/custom-prop-hook":18}],71:[function(require,module,exports){
+},{"./geometry":28,"@carnelian-diagram/core":13,"@carnelian-diagram/core/utils/custom-prop-hook":15}],30:[function(require,module,exports){
 "use strict";
 var __createBinding = (this && this.__createBinding) || (Object.create ? (function(o, m, k, k2) {
     if (k2 === undefined) k2 = k;
@@ -4889,156 +2380,17 @@ var __exportStar = (this && this.__exportStar) || function(m, exports) {
     for (var p in m) if (p !== "default" && !Object.prototype.hasOwnProperty.call(exports, p)) __createBinding(exports, m, p);
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-__exportStar(require("./with-interaction"), exports);
+__exportStar(require("./with-interactivity"), exports);
 __exportStar(require("./with-interactive-line"), exports);
 __exportStar(require("./with-interactive-polyline"), exports);
 __exportStar(require("./with-interactive-rect"), exports);
 __exportStar(require("./with-interactive-square"), exports);
 __exportStar(require("./with-interactive-circle"), exports);
 __exportStar(require("./with-interactive-text"), exports);
+__exportStar(require("./with-interactive-rotation"), exports);
 __exportStar(require("./with-knob"), exports);
 
-},{"./with-interaction":72,"./with-interactive-circle":73,"./with-interactive-line":74,"./with-interactive-polyline":75,"./with-interactive-rect":76,"./with-interactive-square":77,"./with-interactive-text":78,"./with-knob":79}],72:[function(require,module,exports){
-"use strict";
-var __assign = (this && this.__assign) || function () {
-    __assign = Object.assign || function(t) {
-        for (var s, i = 1, n = arguments.length; i < n; i++) {
-            s = arguments[i];
-            for (var p in s) if (Object.prototype.hasOwnProperty.call(s, p))
-                t[p] = s[p];
-        }
-        return t;
-    };
-    return __assign.apply(this, arguments);
-};
-var __read = (this && this.__read) || function (o, n) {
-    var m = typeof Symbol === "function" && o[Symbol.iterator];
-    if (!m) return o;
-    var i = m.call(o), r, ar = [], e;
-    try {
-        while ((n === void 0 || n-- > 0) && !(r = i.next()).done) ar.push(r.value);
-    }
-    catch (error) { e = { error: error }; }
-    finally {
-        try {
-            if (r && !r.done && (m = i["return"])) m.call(i);
-        }
-        finally { if (e) throw e.error; }
-    }
-    return ar;
-};
-Object.defineProperty(exports, "__esModule", { value: true });
-exports.withInteraction = void 0;
-var jsx_runtime_1 = require("@carnelian-diagram/core/jsx-runtime");
-/** @jsxImportSource @carnelian-diagram/core */
-var diagram_1 = require("@carnelian-diagram/core");
-var __1 = require("..");
-var schedule_1 = require("@carnelian-diagram/core/utils/schedule");
-function getTransformAttribute(matrix) {
-    return matrix
-        ? "matrix(".concat(matrix.a, " ").concat(matrix.b, " ").concat(matrix.c, " ").concat(matrix.d, " ").concat(matrix.e, " ").concat(matrix.f, ")")
-        : undefined;
-}
-function DiagramPaper(props) {
-    var x = props.x, y = props.y, width = props.width, height = props.height, matrix = props.matrix;
-    var p1 = new DOMPoint(x, y).matrixTransform(matrix);
-    var p2 = new DOMPoint(x + width, y + height).matrixTransform(matrix);
-    var scale = matrix ? matrix.a : 1;
-    x = p1.x;
-    y = p1.y;
-    width = p2.x - p1.x;
-    height = p2.y - p1.y;
-    var patternSize = Math.max(props.majorGridSize || 0, props.minorGridSize || 0) * scale;
-    var minorGridSize = props.minorGridSize ? props.minorGridSize * scale : props.minorGridSize;
-    var majorGridSize = props.majorGridSize ? props.majorGridSize * scale : props.majorGridSize;
-    function drawGridLines(gridSize, color) {
-        var lines = [];
-        var x = 0;
-        var y = 0;
-        while (x < patternSize) {
-            lines.push((0, jsx_runtime_1.jsx)("line", { x1: x, y1: 0, x2: x, y2: patternSize, stroke: color }));
-            x += gridSize;
-        }
-        while (y < patternSize) {
-            lines.push((0, jsx_runtime_1.jsx)("line", { x1: 0, y1: y, x2: patternSize, y2: y, stroke: color }));
-            y += gridSize;
-        }
-        return lines;
-    }
-    return ((0, jsx_runtime_1.jsxs)(jsx_runtime_1.Fragment, { children: [patternSize > 0 && (0, jsx_runtime_1.jsx)("defs", { children: (0, jsx_runtime_1.jsxs)("pattern", __assign({ id: "paper-grid", x: x, y: y, width: patternSize, height: patternSize, patternUnits: "userSpaceOnUse" }, { children: [(0, jsx_runtime_1.jsx)("rect", { x: 0, y: 0, width: patternSize, height: patternSize, fill: "white", stroke: "none" }), minorGridSize && drawGridLines(minorGridSize, props.minorGridColor || "#eee"), majorGridSize && drawGridLines(majorGridSize, props.majorGridColor || "#bbb")] })) }), (0, jsx_runtime_1.jsx)("g", __assign({ className: "paper-container", transform: getTransformAttribute(matrix === null || matrix === void 0 ? void 0 : matrix.inverse()) }, { children: (0, jsx_runtime_1.jsx)("rect", { x: x, y: y, width: width, height: height, className: "paper", fill: "url(#paper-grid)" }) }))] }));
-}
-function DiagramElements(props) {
-    return ((0, jsx_runtime_1.jsx)("g", __assign({}, props.rootProps, { children: props.children })));
-}
-function DiagramControls(props) {
-    var _a;
-    var matrix = props.matrix, controller = props.controller;
-    var _b = __read((0, diagram_1.useState)(null), 2), rectSelection = _b[0], setRectSelection = _b[1];
-    var rect = null;
-    if (rectSelection) {
-        var p1 = new DOMPoint(rectSelection.x, rectSelection.y).matrixTransform(matrix);
-        var p2 = new DOMPoint(rectSelection.x + rectSelection.width, rectSelection.y + rectSelection.height).matrixTransform(matrix);
-        rect = {
-            x: p1.x,
-            y: p1.y,
-            width: p2.x - p1.x,
-            height: p2.y - p1.y
-        };
-    }
-    var handleRectSelection = function (e) { return setRectSelection(e.selectionRect); };
-    (0, diagram_1.useEffect)(function () {
-        controller.addEventListener(__1.RECT_SELECTION_EVENT, handleRectSelection);
-        return function () {
-            controller.removeEventListener(__1.RECT_SELECTION_EVENT, handleRectSelection);
-        };
-    }, [controller]);
-    var renderControlsContext = ((_a = controller.getService(__1.isControlRenderingService)) === null || _a === void 0 ? void 0 : _a.controlsContext) || __1.ControlsContext.defaultValue;
-    return ((0, jsx_runtime_1.jsx)(__1.ControlsContext.Provider, __assign({ value: renderControlsContext }, { children: (0, jsx_runtime_1.jsxs)("g", __assign({ transform: getTransformAttribute(matrix === null || matrix === void 0 ? void 0 : matrix.inverse()) }, { children: [controller.renderControls(matrix || new DOMMatrix()), rect && (0, jsx_runtime_1.jsx)("rect", __assign({ className: "selection-rect" }, rect, { fill: "none", stroke: "black", "stroke-dasharray": "4" }))] })) })));
-}
-function withInteraction(WrappedComponent, controller, options) {
-    return function (props) {
-        var _a;
-        var _b = __read((0, diagram_1.useState)(undefined), 2), matrix = _b[0], setMatrix = _b[1];
-        var _c = __read((0, diagram_1.useState)([]), 2), selectedElements = _c[0], setSelectedElements = _c[1];
-        var _d = __read((0, diagram_1.useState)(((_a = controller.getService(__1.isPaperService)) === null || _a === void 0 ? void 0 : _a.paper) || null), 2), paper = _d[0], setPaper = _d[1];
-        var handleSelect = function (e) { return setSelectedElements(e.selectedElements); };
-        var handlePaperChange = function (e) { return setPaper(e.paper); };
-        var calcCTM = function () { var _a, _b; return ((_b = (_a = props.svg).getCTM) === null || _b === void 0 ? void 0 : _b.call(_a)) || undefined; };
-        var calcScreenCTM = function () { var _a, _b; return ((_b = (_a = props.svg).getScreenCTM) === null || _b === void 0 ? void 0 : _b.call(_a)) || undefined; };
-        var ctm = calcCTM();
-        (0, diagram_1.useEffect)(function () {
-            controller.addEventListener(__1.SELECT_EVENT, handleSelect);
-            controller.addEventListener(__1.PAPER_CHANGE_EVENT, handlePaperChange);
-            return function () {
-                controller.removeEventListener(__1.SELECT_EVENT, handleSelect);
-                controller.removeEventListener(__1.PAPER_CHANGE_EVENT, handlePaperChange);
-            };
-        }, [controller]);
-        (0, diagram_1.useEffect)(function () {
-            var cancelSchedule;
-            var curMatrix = matrix;
-            var workloop = function () {
-                var CMT = calcCTM();
-                if ((CMT && !curMatrix) ||
-                    (curMatrix && !CMT) ||
-                    (CMT && curMatrix && (CMT.a !== curMatrix.a || CMT.b !== curMatrix.b || CMT.c !== curMatrix.c || CMT.d !== curMatrix.d || CMT.e !== curMatrix.e || CMT.f !== curMatrix.f))) {
-                    curMatrix = CMT;
-                    setMatrix(CMT);
-                }
-                controller.screenCTM = calcScreenCTM();
-                cancelSchedule = (0, schedule_1.scheduleIdle)(workloop);
-            };
-            cancelSchedule = (0, schedule_1.scheduleIdle)(workloop);
-            return function () {
-                cancelSchedule();
-            };
-        }, []);
-        return ((0, jsx_runtime_1.jsx)(__1.InteractionContext.Provider, __assign({ value: controller.interactionContext }, { children: (0, jsx_runtime_1.jsxs)(__1.SelectionContext.Provider, __assign({ value: selectedElements }, { children: [paper && (0, jsx_runtime_1.jsx)(DiagramPaper, __assign({}, paper, { matrix: ctm })), (0, jsx_runtime_1.jsx)(DiagramElements, __assign({ rootProps: options === null || options === void 0 ? void 0 : options.elementsRootProps }, { children: (0, jsx_runtime_1.jsx)(WrappedComponent, __assign({}, props)) })), (0, jsx_runtime_1.jsx)(DiagramControls, { matrix: ctm, controller: controller })] })) })));
-    };
-}
-exports.withInteraction = withInteraction;
-
-},{"..":87,"@carnelian-diagram/core":16,"@carnelian-diagram/core/jsx-runtime":17,"@carnelian-diagram/core/utils/schedule":19}],73:[function(require,module,exports){
+},{"./with-interactive-circle":31,"./with-interactive-line":32,"./with-interactive-polyline":33,"./with-interactive-rect":34,"./with-interactive-rotation":35,"./with-interactive-square":36,"./with-interactive-text":37,"./with-interactivity":38,"./with-knob":39}],31:[function(require,module,exports){
 "use strict";
 var __assign = (this && this.__assign) || function () {
     __assign = Object.assign || function(t) {
@@ -5071,8 +2423,8 @@ function withInteractiveCircle(WrappedElement, options) {
         var x = props.x, y = props.y, radius = props.radius, onChange = props.onChange;
         var squareOnChange = function (callback) {
             var circleCallback = function (props) {
-                var x = props.x, y = props.y, radius = props.radius, onChange = props.onChange, rest = __rest(props, ["x", "y", "radius", "onChange"]);
-                var squareProps = __assign(__assign({}, rest), { x: x - radius, y: y - radius, size: radius * 2, onChange: squareOnChange });
+                var x = props.x, y = props.y, radius = props.radius, rest = __rest(props, ["x", "y", "radius"]);
+                var squareProps = __assign(__assign({}, rest), { x: x - radius, y: y - radius, size: radius * 2 });
                 squareProps = callback(squareProps);
                 return __assign(__assign({}, props), { x: squareProps.x + squareProps.size / 2, y: squareProps.y + squareProps.size / 2, radius: squareProps.size / 2 });
             };
@@ -5093,7 +2445,7 @@ function withInteractiveCircle(WrappedElement, options) {
 }
 exports.withInteractiveCircle = withInteractiveCircle;
 
-},{"./with-interactive-square":77,"@carnelian-diagram/core/jsx-runtime":17}],74:[function(require,module,exports){
+},{"./with-interactive-square":36,"@carnelian-diagram/core/jsx-runtime":14}],32:[function(require,module,exports){
 "use strict";
 var __assign = (this && this.__assign) || function () {
     __assign = Object.assign || function(t) {
@@ -5119,7 +2471,7 @@ function useInteractiveLine(props, colliderFactory) {
         onChange(function (props) { return (__assign(__assign({}, props), { x1: payload.hitArea.index === 0 ? payload.position.x : props.x1, y1: payload.hitArea.index === 0 ? payload.position.y : props.y1, x2: payload.hitArea.index === 1 ? payload.position.x : props.x2, y2: payload.hitArea.index === 1 ? payload.position.y : props.y2 })); });
     }
     var collider = (colliderFactory === null || colliderFactory === void 0 ? void 0 : colliderFactory(props)) || (0, __1.LineCollider)({ a: { x: x1, y: y1 }, b: { x: x2, y: y2 } });
-    (0, __1.useCollider)(collider, { type: "in", cursor: "move", action: __1.ACT_MOVE }, 0, 2);
+    (0, __1.useCollider)(collider, { type: "in", cursor: "move", action: __1.ACT_MOVE }, 2);
     (0, __1.useAction)(__1.ACT_MOVE, move);
     (0, __1.useAction)("vertex_move", moveVertex);
     (0, __1.useAction)(__1.ACT_DRAW_POINT_PLACE, function (payload) {
@@ -5136,6 +2488,9 @@ function useInteractiveLine(props, colliderFactory) {
     });
     (0, __1.useAction)(__1.ACT_DRAW_POINT_CANCEL, function (payload) {
         payload.result.current = false;
+    });
+    (0, __1.useAction)(__1.ACT_PASTE, function (payload) {
+        onChange(function (props) { return (__assign(__assign({}, props), { x1: props.x1 + payload.offsetX, y1: props.y1 + payload.offsetY, x2: props.x2 + payload.offsetX, y2: props.y2 + payload.offsetY })); });
     });
     function createHandleControl(index, x, y) {
         return {
@@ -5166,7 +2521,7 @@ function withInteractiveLine(WrappedElement, colliderFactory) {
 }
 exports.withInteractiveLine = withInteractiveLine;
 
-},{"..":87,"@carnelian-diagram/core/jsx-runtime":17}],75:[function(require,module,exports){
+},{"..":48,"@carnelian-diagram/core/jsx-runtime":14}],33:[function(require,module,exports){
 "use strict";
 var __assign = (this && this.__assign) || function () {
     __assign = Object.assign || function(t) {
@@ -5228,18 +2583,19 @@ function useInteractivePolyline(props, isClosed, minPoints, options) {
         onChange(function (props) { return (__assign(__assign({}, props), { points: points.map(function (p, i) { return i !== payload.hitArea.index ? p : { x: payload.position.x, y: payload.position.y }; }) })); });
     }
     var collider = ((_a = options === null || options === void 0 ? void 0 : options.collider) === null || _a === void 0 ? void 0 : _a.call(options, props)) || PolylineCollider(points);
+    var tolerance = isClosed ? 0 : 2;
     var hitArea = { type: "in", action: __1.ACT_MOVE, cursor: "move" };
     if (options === null || options === void 0 ? void 0 : options.innerHitArea) {
         hitArea = options.innerHitArea(hitArea);
     }
-    (0, __1.useCollider)(collider, hitArea);
+    (0, __1.useCollider)(collider, hitArea, tolerance);
     (0, __1.useAction)(hitArea.action, move);
     (0, __1.useAction)("vertex_move", moveVertex);
     (0, __1.useAction)(__1.ACT_DRAW_POINT_PLACE, function (payload) {
         onChange(function (props) { return (__assign(__assign({}, props), { points: props.points.concat({ x: payload.position.x, y: payload.position.y }) })); });
     });
     (0, __1.useAction)(__1.ACT_DRAW_POINT_MOVE, function (payload) {
-        onChange(function (props) { return (__assign(__assign({}, props), { points: props.points.map(function (p, i) { return i !== payload.pointIndex ? p : { x: payload.position.x, y: payload.position.y }; }) })); });
+        onChange(function (props) { return (__assign(__assign({}, props), { points: props.points.map(function (p, i) { return i === 0 || i !== payload.pointIndex ? p : { x: payload.position.x, y: payload.position.y }; }) })); });
     });
     (0, __1.useAction)(__1.ACT_DRAW_POINT_CANCEL, function (payload) {
         if (payload.pointIndex < minPoints) {
@@ -5261,6 +2617,9 @@ function useInteractivePolyline(props, isClosed, minPoints, options) {
             newPoints_1.splice(index + 1, 0, { x: payload.position.x, y: payload.position.y });
             onChange(function (props) { return (__assign(__assign({}, props), { points: newPoints_1 })); });
         }
+    });
+    (0, __1.useAction)(__1.ACT_PASTE, function (payload) {
+        onChange(function (props) { return (__assign(__assign(__assign({}, props), props), { points: points.map(function (p) { return ({ x: p.x + payload.offsetX, y: p.y + payload.offsetY }); }) })); });
     });
     function createHandleControl(index, x, y) {
         return {
@@ -5312,7 +2671,7 @@ function withInteractivePolyline(WrappedElement, isClosed, minPoints, options) {
 }
 exports.withInteractivePolyline = withInteractivePolyline;
 
-},{"..":87,"@carnelian-diagram/core/jsx-runtime":17}],76:[function(require,module,exports){
+},{"..":48,"@carnelian-diagram/core/jsx-runtime":14}],34:[function(require,module,exports){
 "use strict";
 var __assign = (this && this.__assign) || function () {
     __assign = Object.assign || function(t) {
@@ -5330,6 +2689,7 @@ exports.withInteractiveRect = exports.useInteractiveRectControls = exports.useIn
 var jsx_runtime_1 = require("@carnelian-diagram/core/jsx-runtime");
 var __1 = require("..");
 var collisions_1 = require("../collisions");
+var geometry_1 = require("../geometry");
 function useInteractiveRect(props, options) {
     var _a;
     var x = props.x, y = props.y, width = props.width, height = props.height, onChange = props.onChange;
@@ -5387,24 +2747,33 @@ function useInteractiveRect(props, options) {
     (0, __1.useAction)(__1.ACT_DRAW_POINT_CANCEL, function (payload) {
         payload.result.current = false;
     });
+    (0, __1.useAction)(__1.ACT_PASTE, function (payload) {
+        onChange(function (props) { return (__assign(__assign({}, props), { x: props.x + payload.offsetX, y: props.y + payload.offsetY })); });
+    });
     useInteractiveRectControls(x, y, width, height, resizeTopLeft, resizeTopRight, resizeBottomLeft, resizeBottomRight, resizeLeft, resizeTop, resizeRight, resizeBottom);
 }
 exports.useInteractiveRect = useInteractiveRect;
 function useInteractiveRectControls(x, y, width, height, resizeTopLeft, resizeTopRight, resizeBottomLeft, resizeBottomRight, resizeLeft, resizeTop, resizeRight, resizeBottom) {
-    function createHandleControl(index, x, y, cursor, dragHandler) {
+    var transform = (0, __1.useTransform)();
+    var v = (0, geometry_1.transformPoint)({ x: 1, y: 0 }, transform);
+    var rotation = (0, geometry_1.radToDeg)(Math.atan2(v.y, v.x));
+    var cursors = ["ew-resize", "nwse-resize", "ns-resize", "nesw-resize"];
+    function createHandleControl(index, x, y, cursorRotation, dragHandler) {
+        var cursorIndex = Math.round((rotation + cursorRotation) / 45 + 4) % 4;
         return {
             x: x,
             y: y,
             hitArea: {
                 type: "resize_handle",
                 index: index,
-                cursor: cursor,
+                cursor: cursors[cursorIndex],
                 action: "resize_handle_move"
             },
             dragHandler: dragHandler
         };
     }
-    function createEdgeControl(index, x1, y1, x2, y2, cursor, dragHandler) {
+    function createEdgeControl(index, x1, y1, x2, y2, cursorRotation, dragHandler) {
+        var cursorIndex = Math.round((rotation + cursorRotation) / 45 + 4) % 4;
         return {
             x1: x1,
             y1: y1,
@@ -5413,7 +2782,7 @@ function useInteractiveRectControls(x, y, width, height, resizeTopLeft, resizeTo
             hitArea: {
                 type: "resize_edge",
                 index: index,
-                cursor: cursor,
+                cursor: cursors[cursorIndex],
                 action: "resize_edge_move"
             },
             dragHandler: dragHandler
@@ -5421,16 +2790,16 @@ function useInteractiveRectControls(x, y, width, height, resizeTopLeft, resizeTo
     }
     (0, __1.useControls)(function (transform, element) {
         var handles = [
-            createHandleControl(0, x, y, "nwse-resize", resizeTopLeft),
-            createHandleControl(1, x + width, y, "nesw-resize", resizeTopRight),
-            createHandleControl(2, x, y + height, "nesw-resize", resizeBottomLeft),
-            createHandleControl(3, x + width, y + height, "nwse-resize", resizeBottomRight),
+            createHandleControl(0, x, y, 45, resizeTopLeft),
+            createHandleControl(1, x + width, y, 135, resizeTopRight),
+            createHandleControl(2, x, y + height, 135, resizeBottomLeft),
+            createHandleControl(3, x + width, y + height, 45, resizeBottomRight),
         ];
         var edges = [
-            createEdgeControl(0, x, y, x, y + height, "ew-resize", resizeLeft),
-            createEdgeControl(1, x, y, x + width, y, "ns-resize", resizeTop),
-            createEdgeControl(2, x + width, y, x + width, y + height, "ew-resize", resizeRight),
-            createEdgeControl(3, x, y + height, x + width, y + height, "ns-resize", resizeBottom)
+            createEdgeControl(0, x, y, x, y + height, 0, resizeLeft),
+            createEdgeControl(1, x, y, x + width, y, 90, resizeTop),
+            createEdgeControl(2, x + width, y, x + width, y + height, 0, resizeRight),
+            createEdgeControl(3, x, y + height, x + width, y + height, 90, resizeBottom)
         ];
         return ((0, jsx_runtime_1.jsxs)(jsx_runtime_1.Fragment, { children: [edges.map(function (control) { return ((0, jsx_runtime_1.jsx)(__1.EdgeControl, { kind: "default", x1: control.x1, y1: control.y1, x2: control.x2, y2: control.y2, hitArea: control.hitArea, transform: transform, element: element, onDrag: control.dragHandler }, control.hitArea.index)); }), handles.map(function (control) { return ((0, jsx_runtime_1.jsx)(__1.HandleControl, { kind: "default", x: control.x, y: control.y, hitArea: control.hitArea, transform: transform, element: element, onDrag: control.dragHandler }, control.hitArea.index)); })] }));
     });
@@ -5444,7 +2813,71 @@ function withInteractiveRect(WrappedElement, options) {
 }
 exports.withInteractiveRect = withInteractiveRect;
 
-},{"..":87,"../collisions":61,"@carnelian-diagram/core/jsx-runtime":17}],77:[function(require,module,exports){
+},{"..":48,"../collisions":20,"../geometry":28,"@carnelian-diagram/core/jsx-runtime":14}],35:[function(require,module,exports){
+"use strict";
+var __assign = (this && this.__assign) || function () {
+    __assign = Object.assign || function(t) {
+        for (var s, i = 1, n = arguments.length; i < n; i++) {
+            s = arguments[i];
+            for (var p in s) if (Object.prototype.hasOwnProperty.call(s, p))
+                t[p] = s[p];
+        }
+        return t;
+    };
+    return __assign.apply(this, arguments);
+};
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.withInteractiveRotation = exports.useInteractiveRotation = void 0;
+var jsx_runtime_1 = require("@carnelian-diagram/core/jsx-runtime");
+var geometry_1 = require("../geometry");
+var with_knob_1 = require("./with-knob");
+function useInteractiveRotation(props, rotationController) {
+    var knobController = {
+        kind: "rotation",
+        hitArea: {
+            type: "rotation_handle",
+            cursor: "move",
+            action: "rotate"
+        },
+        getPosition: function (props, transform) {
+            var result = rotationController.handleAnchor(props);
+            if (rotationController.handleOffset) {
+                var origin_1 = rotationController.origin(props);
+                transform = transform.inverse();
+                var offset = (0, geometry_1.distance)(new DOMPoint(0, 0).matrixTransform(transform), new DOMPoint(rotationController.handleOffset, 0).matrixTransform(transform));
+                var l = (0, geometry_1.distance)(origin_1, result);
+                var v = l !== 0 ? {
+                    x: (result.x - origin_1.x) / l * offset,
+                    y: (result.y - origin_1.y) / l * offset
+                } : { x: offset, y: 0 };
+                result = {
+                    x: result.x + v.x,
+                    y: result.y + v.y
+                };
+            }
+            return result;
+        },
+        setPosition: function (props, payload) {
+            var origin = rotationController.origin(props);
+            var anchor = rotationController.handleAnchor(props);
+            var angle = (0, geometry_1.radToDeg)(Math.atan2(payload.rawPosition.y - origin.y, payload.rawPosition.x - origin.x) -
+                Math.atan2(anchor.y - origin.y, anchor.x - origin.x)) + rotationController.getRotation(props);
+            angle = payload.snapToGrid ? payload.snapToGrid(angle, payload.snapAngle) : angle;
+            return rotationController.setRotation(props, angle);
+        }
+    };
+    (0, with_knob_1.useKnob)(knobController, props);
+}
+exports.useInteractiveRotation = useInteractiveRotation;
+function withInteractiveRotation(WrappedElement, rotationController) {
+    return function (props) {
+        useInteractiveRotation(props, rotationController);
+        return (0, jsx_runtime_1.jsx)(WrappedElement, __assign({}, props));
+    };
+}
+exports.withInteractiveRotation = withInteractiveRotation;
+
+},{"../geometry":28,"./with-knob":39,"@carnelian-diagram/core/jsx-runtime":14}],36:[function(require,module,exports){
 "use strict";
 var __assign = (this && this.__assign) || function () {
     __assign = Object.assign || function(t) {
@@ -5534,6 +2967,9 @@ function useInteractiveSquare(props, options) {
     (0, __1.useAction)(__1.ACT_DRAW_POINT_CANCEL, function (payload) {
         payload.result.current = false;
     });
+    (0, __1.useAction)(__1.ACT_PASTE, function (payload) {
+        onChange(function (props) { return (__assign(__assign({}, props), { x: props.x + payload.offsetX, y: props.y + payload.offsetY })); });
+    });
     (0, with_interactive_rect_1.useInteractiveRectControls)(x, y, size, size, resizeTopLeft, resizeTopRight, resizeBottomLeft, resizeBottomRight, resizeLeft, resizeTop, resizeRight, resizeBottom);
 }
 exports.useInteractiveSquare = useInteractiveSquare;
@@ -5545,7 +2981,7 @@ function withInteractiveSquare(WrappedElement, options) {
 }
 exports.withInteractiveSquare = withInteractiveSquare;
 
-},{"..":87,"../collisions":61,"./with-interactive-rect":76,"@carnelian-diagram/core/jsx-runtime":17}],78:[function(require,module,exports){
+},{"..":48,"../collisions":20,"./with-interactive-rect":34,"@carnelian-diagram/core/jsx-runtime":14}],37:[function(require,module,exports){
 "use strict";
 var __assign = (this && this.__assign) || function () {
     __assign = Object.assign || function(t) {
@@ -5578,18 +3014,21 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.withInteractiveText = void 0;
 var jsx_runtime_1 = require("@carnelian-diagram/core/jsx-runtime");
 /** @jsxImportSource @carnelian-diagram/core */
-var diagram_1 = require("@carnelian-diagram/core");
+var core_1 = require("@carnelian-diagram/core");
 var __1 = require("..");
+var geometry_1 = require("../geometry");
 function withInteractiveText(WrappedElement, textBounds, editorStyle, options) {
     return function (props) {
-        var _a = __read((0, diagram_1.useState)(false), 2), isEditing = _a[0], setEditing = _a[1];
+        var _a = __read((0, core_1.useState)(false), 2), isEditing = _a[0], setEditing = _a[1];
         var elementNode = this.element;
         function showEditor(controller, updateProps) {
             var textEdititngService = controller.getService(__1.isTextEditingService);
-            if (textEdititngService) {
-                textEdititngService.showEditor(props.text, textBounds(props), editorStyle(props), function (text) {
+            if (elementNode && textEdititngService) {
+                var transform_1 = controller.getElementTransform(elementNode);
+                var bounds = (0, geometry_1.polygonBounds)((0, geometry_1.rectPoints)(textBounds(props)).map(function (p) { return (0, geometry_1.transformPoint)(p, transform_1); }));
+                textEdititngService.showEditor(props.text, bounds, editorStyle(props), function (text) {
                     if (!text.length && (options === null || options === void 0 ? void 0 : options.deleteOnEmpty)) {
-                        elementNode && controller.diagram.delete(elementNode);
+                        controller.diagram.delete(elementNode);
                     }
                     else {
                         props.onChange(function (props) { return updateProps(props, text); });
@@ -5615,7 +3054,150 @@ function withInteractiveText(WrappedElement, textBounds, editorStyle, options) {
 }
 exports.withInteractiveText = withInteractiveText;
 
-},{"..":87,"@carnelian-diagram/core":16,"@carnelian-diagram/core/jsx-runtime":17}],79:[function(require,module,exports){
+},{"..":48,"../geometry":28,"@carnelian-diagram/core":13,"@carnelian-diagram/core/jsx-runtime":14}],38:[function(require,module,exports){
+"use strict";
+var __assign = (this && this.__assign) || function () {
+    __assign = Object.assign || function(t) {
+        for (var s, i = 1, n = arguments.length; i < n; i++) {
+            s = arguments[i];
+            for (var p in s) if (Object.prototype.hasOwnProperty.call(s, p))
+                t[p] = s[p];
+        }
+        return t;
+    };
+    return __assign.apply(this, arguments);
+};
+var __read = (this && this.__read) || function (o, n) {
+    var m = typeof Symbol === "function" && o[Symbol.iterator];
+    if (!m) return o;
+    var i = m.call(o), r, ar = [], e;
+    try {
+        while ((n === void 0 || n-- > 0) && !(r = i.next()).done) ar.push(r.value);
+    }
+    catch (error) { e = { error: error }; }
+    finally {
+        try {
+            if (r && !r.done && (m = i["return"])) m.call(i);
+        }
+        finally { if (e) throw e.error; }
+    }
+    return ar;
+};
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.withInteractivity = void 0;
+var jsx_runtime_1 = require("@carnelian-diagram/core/jsx-runtime");
+/** @jsxImportSource @carnelian-diagram/core */
+var core_1 = require("@carnelian-diagram/core");
+var __1 = require("..");
+var schedule_1 = require("@carnelian-diagram/core/utils/schedule");
+function getTransformAttribute(matrix) {
+    return matrix
+        ? "matrix(".concat(matrix.a, " ").concat(matrix.b, " ").concat(matrix.c, " ").concat(matrix.d, " ").concat(matrix.e, " ").concat(matrix.f, ")")
+        : undefined;
+}
+function svgMatrixToDomMatrix(matrix) {
+    return matrix ? new DOMMatrix([matrix.a, matrix.b, matrix.c, matrix.d, matrix.e, matrix.f]) : matrix;
+}
+function DiagramPaper(props) {
+    var x = props.x, y = props.y, width = props.width, height = props.height, matrix = props.matrix;
+    var p1 = new DOMPoint(x, y).matrixTransform(matrix);
+    var p2 = new DOMPoint(x + width, y + height).matrixTransform(matrix);
+    var scale = matrix ? matrix.a : 1;
+    x = p1.x;
+    y = p1.y;
+    width = p2.x - p1.x;
+    height = p2.y - p1.y;
+    var patternSize = Math.max(props.majorGridSize || 0, props.minorGridSize || 0) * scale;
+    var minorGridSize = props.minorGridSize ? props.minorGridSize * scale : props.minorGridSize;
+    var majorGridSize = props.majorGridSize ? props.majorGridSize * scale : props.majorGridSize;
+    function drawGridLines(gridSize, color) {
+        var lines = [];
+        var x = 0;
+        var y = 0;
+        while (x < patternSize) {
+            lines.push((0, jsx_runtime_1.jsx)("line", { x1: x, y1: 0, x2: x, y2: patternSize, stroke: color }));
+            x += gridSize;
+        }
+        while (y < patternSize) {
+            lines.push((0, jsx_runtime_1.jsx)("line", { x1: 0, y1: y, x2: patternSize, y2: y, stroke: color }));
+            y += gridSize;
+        }
+        return lines;
+    }
+    return ((0, jsx_runtime_1.jsxs)(jsx_runtime_1.Fragment, { children: [patternSize > 0 && (0, jsx_runtime_1.jsx)("defs", { children: (0, jsx_runtime_1.jsxs)("pattern", __assign({ id: "paper-grid", x: x, y: y, width: patternSize, height: patternSize, patternUnits: "userSpaceOnUse" }, { children: [(0, jsx_runtime_1.jsx)("rect", { x: 0, y: 0, width: patternSize, height: patternSize, fill: "white", stroke: "none" }), minorGridSize && drawGridLines(minorGridSize, props.minorGridColor || "#eee"), majorGridSize && drawGridLines(majorGridSize, props.majorGridColor || "#bbb")] })) }), (0, jsx_runtime_1.jsx)("g", __assign({ className: "paper-layer", transform: getTransformAttribute(matrix === null || matrix === void 0 ? void 0 : matrix.inverse()) }, { children: (0, jsx_runtime_1.jsx)("rect", { x: x, y: y, width: width, height: height, className: "paper", fill: patternSize > 0 ? "url(#paper-grid)" : "white" }) }))] }));
+}
+function DiagramElements(props) {
+    return ((0, jsx_runtime_1.jsx)("g", __assign({ className: "elements-layer" }, props.rootProps, { children: props.children })));
+}
+function DiagramControls(props) {
+    var _a;
+    var matrix = props.matrix, controller = props.controller;
+    var _b = __read((0, core_1.useState)(null), 2), rectSelection = _b[0], setRectSelection = _b[1];
+    var rect = null;
+    if (rectSelection) {
+        var p1 = new DOMPoint(rectSelection.x, rectSelection.y).matrixTransform(matrix);
+        var p2 = new DOMPoint(rectSelection.x + rectSelection.width, rectSelection.y + rectSelection.height).matrixTransform(matrix);
+        rect = {
+            x: p1.x,
+            y: p1.y,
+            width: p2.x - p1.x,
+            height: p2.y - p1.y
+        };
+    }
+    var handleRectSelection = function (e) { return setRectSelection(e.selectionRect); };
+    (0, core_1.useEffect)(function () {
+        controller.addEventListener(__1.RECT_SELECTION_EVENT, handleRectSelection);
+        return function () {
+            controller.removeEventListener(__1.RECT_SELECTION_EVENT, handleRectSelection);
+        };
+    }, [controller]);
+    var renderControlsContext = ((_a = controller.getService(__1.isControlRenderingService)) === null || _a === void 0 ? void 0 : _a.controlsContext) || __1.ControlsContext.defaultValue;
+    return ((0, jsx_runtime_1.jsx)(__1.ControlsContext.Provider, __assign({ value: renderControlsContext }, { children: (0, jsx_runtime_1.jsxs)("g", __assign({ className: "element-controls-layer", transform: getTransformAttribute(matrix === null || matrix === void 0 ? void 0 : matrix.inverse()) }, { children: [controller.renderControls(matrix || new DOMMatrix()), rect && (0, jsx_runtime_1.jsx)("rect", __assign({ className: "selection-rect" }, rect, { fill: "none", stroke: "black", "stroke-dasharray": "4" }))] })) })));
+}
+function withInteractivity(WrappedComponent, controller, options) {
+    return function (props) {
+        var _a;
+        var _b = __read((0, core_1.useState)(undefined), 2), matrix = _b[0], setMatrix = _b[1];
+        var _c = __read((0, core_1.useState)([]), 2), selectedElements = _c[0], setSelectedElements = _c[1];
+        var _d = __read((0, core_1.useState)(((_a = controller.getService(__1.isPaperService)) === null || _a === void 0 ? void 0 : _a.paper) || null), 2), paper = _d[0], setPaper = _d[1];
+        var handleSelect = function (e) { return setSelectedElements(e.selectedElements); };
+        var handlePaperChange = function (e) { return setPaper(e.paper); };
+        var calcCTM = function () { var _a, _b; return svgMatrixToDomMatrix(((_b = (_a = props.svg).getCTM) === null || _b === void 0 ? void 0 : _b.call(_a)) || undefined); };
+        var calcScreenCTM = function () { var _a, _b; return svgMatrixToDomMatrix(((_b = (_a = props.svg).getScreenCTM) === null || _b === void 0 ? void 0 : _b.call(_a)) || undefined); };
+        var ctm = calcCTM();
+        (0, core_1.useEffect)(function () {
+            controller.addEventListener(__1.SELECT_EVENT, handleSelect);
+            controller.addEventListener(__1.PAPER_CHANGE_EVENT, handlePaperChange);
+            return function () {
+                controller.removeEventListener(__1.SELECT_EVENT, handleSelect);
+                controller.removeEventListener(__1.PAPER_CHANGE_EVENT, handlePaperChange);
+            };
+        }, [controller]);
+        (0, core_1.useEffect)(function () {
+            var cancelSchedule;
+            var curMatrix = matrix;
+            var workloop = function () {
+                var CTM = calcCTM();
+                if ((CTM && !curMatrix) ||
+                    (curMatrix && !CTM) ||
+                    (CTM && curMatrix && (CTM.a !== curMatrix.a || CTM.b !== curMatrix.b || CTM.c !== curMatrix.c || CTM.d !== curMatrix.d || CTM.e !== curMatrix.e || CTM.f !== curMatrix.f))) {
+                    curMatrix = CTM;
+                    setMatrix(CTM);
+                }
+                controller.screenCTM = calcScreenCTM();
+                cancelSchedule = (0, schedule_1.scheduleIdle)(workloop);
+            };
+            cancelSchedule = (0, schedule_1.scheduleIdle)(workloop);
+            return function () {
+                cancelSchedule();
+            };
+        }, []);
+        return ((0, jsx_runtime_1.jsx)(__1.InteractionContext.Provider, __assign({ value: controller.interactionContext }, { children: (0, jsx_runtime_1.jsxs)(__1.SelectionContext.Provider, __assign({ value: selectedElements }, { children: [paper && (0, jsx_runtime_1.jsx)(DiagramPaper, __assign({}, paper, { matrix: ctm })), (0, jsx_runtime_1.jsx)(DiagramElements, __assign({ rootProps: options === null || options === void 0 ? void 0 : options.elementsRootProps }, { children: (0, jsx_runtime_1.jsx)(WrappedComponent, __assign({}, props)) })), (0, jsx_runtime_1.jsx)(DiagramControls, { matrix: ctm, controller: controller })] })) })));
+    };
+}
+exports.withInteractivity = withInteractivity;
+
+},{"..":48,"@carnelian-diagram/core":13,"@carnelian-diagram/core/jsx-runtime":14,"@carnelian-diagram/core/utils/schedule":16}],39:[function(require,module,exports){
 "use strict";
 var __assign = (this && this.__assign) || function () {
     __assign = Object.assign || function(t) {
@@ -5633,13 +3215,14 @@ exports.withKnobs = exports.withKnob = exports.useKnob = void 0;
 var jsx_runtime_1 = require("@carnelian-diagram/core/jsx-runtime");
 var __1 = require("..");
 function useKnob(knobController, props) {
-    var pos = knobController.getPosition(props);
-    var hitArea = typeof knobController.hitArea === "function" ? knobController.hitArea(props) : knobController.hitArea;
     function dragHandler(payload) {
         props.onChange(function (props) { return knobController.setPosition(props, payload, payload.hitArea); });
     }
     (0, __1.useControls)(function (transform, element) {
-        return ((0, jsx_runtime_1.jsx)(__1.HandleControl, { kind: "knob", x: pos.x, y: pos.y, hitArea: hitArea, transform: transform, element: element, onDrag: dragHandler }));
+        var kind = knobController.kind || "knob";
+        var pos = knobController.getPosition(props, transform);
+        var hitArea = typeof knobController.hitArea === "function" ? knobController.hitArea(props) : knobController.hitArea;
+        return ((0, jsx_runtime_1.jsx)(__1.HandleControl, { kind: kind, x: pos.x, y: pos.y, hitArea: hitArea, transform: transform, element: element, onDrag: dragHandler }));
     });
 }
 exports.useKnob = useKnob;
@@ -5662,7 +3245,7 @@ function withKnobs(WrappedElement) {
 }
 exports.withKnobs = withKnobs;
 
-},{"..":87,"@carnelian-diagram/core/jsx-runtime":17}],80:[function(require,module,exports){
+},{"..":48,"@carnelian-diagram/core/jsx-runtime":14}],40:[function(require,module,exports){
 "use strict";
 var __createBinding = (this && this.__createBinding) || (Object.create ? (function(o, m, k, k2) {
     if (k2 === undefined) k2 = k;
@@ -5685,8 +3268,9 @@ __exportStar(require("./use-hit-test"), exports);
 __exportStar(require("./use-intersection-test"), exports);
 __exportStar(require("./use-selection"), exports);
 __exportStar(require("./use-collider"), exports);
+__exportStar(require("./use-transform"), exports);
 
-},{"./use-action":81,"./use-collider":82,"./use-controls":83,"./use-hit-test":84,"./use-intersection-test":85,"./use-selection":86}],81:[function(require,module,exports){
+},{"./use-action":41,"./use-collider":42,"./use-controls":43,"./use-hit-test":44,"./use-intersection-test":45,"./use-selection":46,"./use-transform":47}],41:[function(require,module,exports){
 "use strict";
 var __read = (this && this.__read) || function (o, n) {
     var m = typeof Symbol === "function" && o[Symbol.iterator];
@@ -5706,26 +3290,28 @@ var __read = (this && this.__read) || function (o, n) {
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.useAction = void 0;
-var diagram_1 = require("@carnelian-diagram/core");
+var core_1 = require("@carnelian-diagram/core");
 var __1 = require("..");
 function useAction(actionType, callback, element) {
-    var renderContext = (0, diagram_1.useContext)(diagram_1.RenderContext);
+    var renderContext = (0, core_1.useContext)(core_1.RenderContext);
     var curElement = element || (renderContext === null || renderContext === void 0 ? void 0 : renderContext.currentElement());
     if (!curElement) {
         throw new Error("The useAction hook is not allowed to be called from here. Current element is not defined");
     }
-    var interactions = (0, diagram_1.useContext)(__1.InteractionContext);
+    var interactions = (0, core_1.useContext)(__1.InteractionContext);
     if (!interactions) {
         return;
     }
-    var _a = __read((0, diagram_1.useState)({}), 1), key = _a[0];
+    var _a = __read((0, core_1.useState)({}), 1), key = _a[0];
     var action = callback && actionType ? {
         element: curElement,
         callback: callback,
         action: actionType
     } : undefined;
-    interactions.updateActions(key, action);
-    (0, diagram_1.useEffect)(function () {
+    renderContext === null || renderContext === void 0 ? void 0 : renderContext.queue(function () {
+        interactions.updateActions(key, action);
+    });
+    (0, core_1.useEffect)(function () {
         return function () {
             interactions.updateActions(key, undefined);
         };
@@ -5733,31 +3319,27 @@ function useAction(actionType, callback, element) {
 }
 exports.useAction = useAction;
 
-},{"..":87,"@carnelian-diagram/core":16}],82:[function(require,module,exports){
+},{"..":48,"@carnelian-diagram/core":13}],42:[function(require,module,exports){
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.useCollider = void 0;
 var colliders_1 = require("../collisions/colliders");
 var _1 = require(".");
-var geometry_1 = require("../geometry");
-function useCollider(collider, hitArea, priority, hitTestTolerance, element) {
+function useCollider(collider, hitArea, tolerance, priority, element) {
+    if (tolerance === void 0) { tolerance = 0; }
     if (priority === void 0) { priority = 0; }
-    if (hitTestTolerance === void 0) { hitTestTolerance = 0; }
-    var hitTestCallback = function (point, transform) {
-        var elemPoint = point.matrixTransform(transform);
-        var tolerance = hitTestTolerance * transform.a;
-        var bounds = collider.bounds ? (0, geometry_1.inflateRect)(collider.bounds, tolerance) : null;
-        return (!bounds || (0, geometry_1.pointInRect)(elemPoint, bounds)) && !!(0, colliders_1.collide)((0, colliders_1.PointCollider)(elemPoint), collider, tolerance);
+    var hitTestCallback = function (point, tolerance) {
+        return !!(0, colliders_1.collide)((0, colliders_1.PointCollider)(point), collider, tolerance);
     };
-    var intersectionTestCallback = function (selectionRect) {
-        return !!(0, colliders_1.collide)((0, colliders_1.RectCollider)(selectionRect), collider, 0);
+    var intersectionTestCallback = function (selection) {
+        return !!(0, colliders_1.collide)(selection, collider, 0);
     };
-    (0, _1.useHitTest)(hitTestCallback, hitArea, priority, element);
+    (0, _1.useHitTest)(hitTestCallback, collider.bounds, hitArea, tolerance, priority, element);
     (0, _1.useIntersectionTest)(intersectionTestCallback, collider.bounds);
 }
 exports.useCollider = useCollider;
 
-},{".":80,"../collisions/colliders":59,"../geometry":69}],83:[function(require,module,exports){
+},{".":40,"../collisions/colliders":18}],43:[function(require,module,exports){
 "use strict";
 var __read = (this && this.__read) || function (o, n) {
     var m = typeof Symbol === "function" && o[Symbol.iterator];
@@ -5777,25 +3359,25 @@ var __read = (this && this.__read) || function (o, n) {
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.useControls = void 0;
-var diagram_1 = require("@carnelian-diagram/core");
+var core_1 = require("@carnelian-diagram/core");
 var __1 = require("..");
 function useControls(callback) {
-    var renderContext = (0, diagram_1.useContext)(diagram_1.RenderContext);
+    var renderContext = (0, core_1.useContext)(core_1.RenderContext);
     var curElement = renderContext === null || renderContext === void 0 ? void 0 : renderContext.currentElement();
     if (!curElement) {
         throw new Error("The useControls hook is not allowed to be called from here. It must be called when element is rendering");
     }
-    var interactions = (0, diagram_1.useContext)(__1.InteractionContext);
+    var interactions = (0, core_1.useContext)(__1.InteractionContext);
     if (!interactions) {
         return;
     }
-    var _a = __read((0, diagram_1.useState)({}), 1), key = _a[0];
+    var _a = __read((0, core_1.useState)({}), 1), key = _a[0];
     var controls = {
         element: curElement,
         callback: callback
     };
     interactions.updateControls(curElement, key, controls);
-    (0, diagram_1.useEffect)(function () {
+    (0, core_1.useEffect)(function () {
         return function () {
             interactions.updateControls(curElement, key, undefined);
         };
@@ -5803,7 +3385,7 @@ function useControls(callback) {
 }
 exports.useControls = useControls;
 
-},{"..":87,"@carnelian-diagram/core":16}],84:[function(require,module,exports){
+},{"..":48,"@carnelian-diagram/core":13}],44:[function(require,module,exports){
 "use strict";
 var __read = (this && this.__read) || function (o, n) {
     var m = typeof Symbol === "function" && o[Symbol.iterator];
@@ -5823,28 +3405,31 @@ var __read = (this && this.__read) || function (o, n) {
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.useHitTest = void 0;
-var diagram_1 = require("@carnelian-diagram/core");
+var core_1 = require("@carnelian-diagram/core");
 var __1 = require("..");
-function useHitTest(callback, hitArea, priority, element) {
+function useHitTest(callback, bounds, hitArea, tolerance, priority, element) {
+    if (tolerance === void 0) { tolerance = 0; }
     if (priority === void 0) { priority = 0; }
-    var renderContext = (0, diagram_1.useContext)(diagram_1.RenderContext);
+    var renderContext = (0, core_1.useContext)(core_1.RenderContext);
     var curElement = element || (renderContext === null || renderContext === void 0 ? void 0 : renderContext.currentElement());
     if (!curElement) {
         throw new Error("The useHitTest hook is not allowed to be called from here. Current element is not defined");
     }
-    var interactions = (0, diagram_1.useContext)(__1.InteractionContext);
+    var interactions = (0, core_1.useContext)(__1.InteractionContext);
     if (!interactions) {
         return;
     }
-    var _a = __read((0, diagram_1.useState)({}), 1), key = _a[0];
+    var _a = __read((0, core_1.useState)({}), 1), key = _a[0];
     var hitTest = {
         element: curElement,
         callback: callback,
+        bounds: bounds,
         hitArea: hitArea,
+        tolerance: tolerance,
         priority: priority
     };
     interactions.updateHitTests(curElement, priority, key, hitTest);
-    (0, diagram_1.useEffect)(function () {
+    (0, core_1.useEffect)(function () {
         return function () {
             interactions.updateHitTests(curElement, priority, key, undefined);
         };
@@ -5852,7 +3437,7 @@ function useHitTest(callback, hitArea, priority, element) {
 }
 exports.useHitTest = useHitTest;
 
-},{"..":87,"@carnelian-diagram/core":16}],85:[function(require,module,exports){
+},{"..":48,"@carnelian-diagram/core":13}],45:[function(require,module,exports){
 "use strict";
 var __read = (this && this.__read) || function (o, n) {
     var m = typeof Symbol === "function" && o[Symbol.iterator];
@@ -5872,26 +3457,26 @@ var __read = (this && this.__read) || function (o, n) {
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.useIntersectionTest = void 0;
-var diagram_1 = require("@carnelian-diagram/core");
+var core_1 = require("@carnelian-diagram/core");
 var __1 = require("..");
 function useIntersectionTest(callback, bounds) {
-    var renderContext = (0, diagram_1.useContext)(diagram_1.RenderContext);
+    var renderContext = (0, core_1.useContext)(core_1.RenderContext);
     var curElement = renderContext === null || renderContext === void 0 ? void 0 : renderContext.currentElement();
     if (!curElement) {
         throw new Error("The useIntersectionTest hook is not allowed to be called from here. Current element is not defined");
     }
-    var interactions = (0, diagram_1.useContext)(__1.InteractionContext);
+    var interactions = (0, core_1.useContext)(__1.InteractionContext);
     if (!interactions) {
         return;
     }
-    var _a = __read((0, diagram_1.useState)({}), 1), key = _a[0];
+    var _a = __read((0, core_1.useState)({}), 1), key = _a[0];
     var intersectionTest = {
         element: curElement,
         callback: callback,
         bounds: bounds
     };
     interactions.updateIntersectionTests(key, intersectionTest);
-    (0, diagram_1.useEffect)(function () {
+    (0, core_1.useEffect)(function () {
         return function () {
             interactions.updateIntersectionTests(key, undefined);
         };
@@ -5899,26 +3484,75 @@ function useIntersectionTest(callback, bounds) {
 }
 exports.useIntersectionTest = useIntersectionTest;
 
-},{"..":87,"@carnelian-diagram/core":16}],86:[function(require,module,exports){
+},{"..":48,"@carnelian-diagram/core":13}],46:[function(require,module,exports){
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.useSelection = void 0;
-var diagram_1 = require("@carnelian-diagram/core");
+var core_1 = require("@carnelian-diagram/core");
 var __1 = require("..");
 function useSelection(element) {
-    var renderContext = (0, diagram_1.useContext)(diagram_1.RenderContext);
+    var renderContext = (0, core_1.useContext)(core_1.RenderContext);
     var curElement = element || (renderContext === null || renderContext === void 0 ? void 0 : renderContext.currentElement());
     if (!curElement) {
         throw new Error("The useSelection hook is not allowed to be called from here. Current element is not defined");
     }
-    var selectedElements = (0, diagram_1.useContext)(__1.SelectionContext);
+    var selectedElements = (0, core_1.useContext)(__1.SelectionContext);
     return {
         isSelected: selectedElements.indexOf(curElement) >= 0
     };
 }
 exports.useSelection = useSelection;
 
-},{"..":87,"@carnelian-diagram/core":16}],87:[function(require,module,exports){
+},{"..":48,"@carnelian-diagram/core":13}],47:[function(require,module,exports){
+"use strict";
+var __read = (this && this.__read) || function (o, n) {
+    var m = typeof Symbol === "function" && o[Symbol.iterator];
+    if (!m) return o;
+    var i = m.call(o), r, ar = [], e;
+    try {
+        while ((n === void 0 || n-- > 0) && !(r = i.next()).done) ar.push(r.value);
+    }
+    catch (error) { e = { error: error }; }
+    finally {
+        try {
+            if (r && !r.done && (m = i["return"])) m.call(i);
+        }
+        finally { if (e) throw e.error; }
+    }
+    return ar;
+};
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.useTransform = void 0;
+var core_1 = require("@carnelian-diagram/core");
+var __1 = require("..");
+function useTransform(transform) {
+    var renderContext = (0, core_1.useContext)(core_1.RenderContext);
+    var curElement = renderContext === null || renderContext === void 0 ? void 0 : renderContext.currentElement();
+    if (!curElement) {
+        throw new Error("The useTransform hook is not allowed to be called from here. It must be called when element is rendering");
+    }
+    var interactions = (0, core_1.useContext)(__1.InteractionContext);
+    if (!interactions) {
+        return new DOMMatrix();
+    }
+    if (arguments.length > 0) {
+        var _a = __read((0, core_1.useState)({}), 1), key_1 = _a[0];
+        var elementTransform = {
+            element: curElement,
+            transform: transform || new DOMMatrix()
+        };
+        interactions.updateTransforms(curElement, key_1, elementTransform);
+        (0, core_1.useEffect)(function () {
+            return function () {
+                interactions.updateTransforms(curElement, key_1, undefined);
+            };
+        }, []);
+    }
+    return interactions.getController().getElementTransform(curElement);
+}
+exports.useTransform = useTransform;
+
+},{"..":48,"@carnelian-diagram/core":13}],48:[function(require,module,exports){
 "use strict";
 var __createBinding = (this && this.__createBinding) || (Object.create ? (function(o, m, k, k2) {
     if (k2 === undefined) k2 = k;
@@ -5938,6 +3572,7 @@ Object.defineProperty(exports, "__esModule", { value: true });
 __exportStar(require("./actions"), exports);
 __exportStar(require("./hit-tests"), exports);
 __exportStar(require("./intersection-tests"), exports);
+__exportStar(require("./transforms"), exports);
 __exportStar(require("./interaction-controller"), exports);
 __exportStar(require("./context"), exports);
 __exportStar(require("./controls"), exports);
@@ -5946,7 +3581,7 @@ __exportStar(require("./hooks"), exports);
 __exportStar(require("./hocs"), exports);
 __exportStar(require("./services"), exports);
 
-},{"./actions":58,"./collisions":61,"./context":63,"./controls":68,"./hit-tests":70,"./hocs":71,"./hooks":80,"./interaction-controller":88,"./intersection-tests":89,"./services":95}],88:[function(require,module,exports){
+},{"./actions":17,"./collisions":20,"./context":22,"./controls":27,"./hit-tests":29,"./hocs":30,"./hooks":40,"./interaction-controller":49,"./intersection-tests":50,"./services":57,"./transforms":61}],49:[function(require,module,exports){
 "use strict";
 var __assign = (this && this.__assign) || function () {
     __assign = Object.assign || function(t) {
@@ -6002,6 +3637,8 @@ var hit_tests_1 = require("./hit-tests");
 var geometry_1 = require("./geometry");
 var services_1 = require("./services");
 var type_pubsub_1 = require("type-pubsub");
+var transforms_1 = require("./transforms");
+var collisions_1 = require("./collisions");
 exports.SELECT_EVENT = "select";
 var InteractionController = /** @class */ (function () {
     function InteractionController(diagram, configureServices) {
@@ -6009,6 +3646,7 @@ var InteractionController = /** @class */ (function () {
         this.controls = new Map();
         this.hitTests = {};
         this.intersectionTests = new Map;
+        this.transforms = new Map;
         this.actions = new Map();
         this.pendingActions = new Map();
         this.selectedElements = new Set();
@@ -6024,6 +3662,7 @@ var InteractionController = /** @class */ (function () {
             new services_1.DefaultElementDrawingService(this),
             new services_1.DefaultTextEditingService(this),
             new services_1.DefaultControlRenderingService(),
+            new services_1.DefaultClipboardService(this)
         ];
         configureServices === null || configureServices === void 0 ? void 0 : configureServices(new services_1.InteractiveServiceCollection(this.services));
     }
@@ -6148,19 +3787,59 @@ var InteractionController = /** @class */ (function () {
                 _this.actions.delete(key);
             }
         };
+        var updateTransforms = function (element, key, transform) {
+            var transforms = _this.transforms.get(element);
+            if (!transforms) {
+                transforms = {
+                    result: new DOMMatrix(),
+                    transformMap: new Map()
+                };
+                _this.transforms.set(element, transforms);
+            }
+            if (transform) {
+                transforms.transformMap.set(key, transform);
+                (0, transforms_1.computeTransformResult)(transforms);
+            }
+            else {
+                transforms.transformMap.delete(key);
+                (0, transforms_1.computeTransformResult)(transforms);
+                if (transforms.transformMap.size === 0) {
+                    _this.transforms.delete(element);
+                }
+            }
+        };
         return {
+            getController: function () { return _this; },
             updateControls: updateControls,
             updateHitTests: updateHitTests,
             updateIntersectionTests: updateIntersectionTests,
-            updateActions: updateActions
+            updateActions: updateActions,
+            updateTransforms: updateTransforms
         };
     };
-    InteractionController.prototype.clientToDiagram = function (point) {
-        var _a;
-        return point.matrixTransform((_a = this.screenCTM) === null || _a === void 0 ? void 0 : _a.inverse());
+    InteractionController.prototype.hasTransform = function (element) {
+        return !!this.transforms.get(element);
     };
-    InteractionController.prototype.diagramToClient = function (point) {
-        return point.matrixTransform(this.screenCTM);
+    InteractionController.prototype.getElementTransform = function (element, parentTransform) {
+        var transforms = this.transforms.get(element);
+        var localTransform = transforms ? transforms.result : new DOMMatrix();
+        return parentTransform ? parentTransform.multiply(localTransform) : localTransform;
+    };
+    InteractionController.prototype.clientToDiagram = function (point, element) {
+        var transform = element ? this.getElementTransform(element, this.screenCTM) : this.screenCTM;
+        return transform ? point.matrixTransform(transform.inverse()) : point;
+    };
+    InteractionController.prototype.diagramToClient = function (point, element) {
+        var transform = element ? this.getElementTransform(element, this.screenCTM) : this.screenCTM;
+        return transform ? point.matrixTransform(transform) : point;
+    };
+    InteractionController.prototype.elementToDiagram = function (point, element) {
+        var transform = element ? this.getElementTransform(element) : null;
+        return transform ? point.matrixTransform(transform) : point;
+    };
+    InteractionController.prototype.diagramToElement = function (point, element) {
+        var transform = element ? this.getElementTransform(element) : null;
+        return transform ? point.matrixTransform(transform.inverse()) : point;
     };
     InteractionController.prototype.isSelected = function (element) {
         return this.selectedElements.has(element);
@@ -6181,75 +3860,95 @@ var InteractionController = /** @class */ (function () {
             .map(function (x) {
             var key = x[0].key;
             var controls = __spreadArray([], __read(x[1].values()), false);
-            return (0, jsx_runtime_1.createElement)(jsx_runtime_1.Fragment, { children: controls.map(function (x) { return x.callback(transform, x.element); }) }, key);
+            return (0, jsx_runtime_1.createElement)(jsx_runtime_1.Fragment, { children: controls.map(function (x) { return x.callback(_this.getElementTransform(x.element, transform), x.element); }) }, key);
         });
+    };
+    InteractionController.prototype.transformBounds = function (element, bounds) {
+        var _this = this;
+        return this.hasTransform(element)
+            ? (0, geometry_1.polygonBounds)((0, geometry_1.rectPoints)(bounds).map(function (p) { return new DOMPoint(p.x, p.y).matrixTransform(_this.getElementTransform(element)); }))
+            : bounds;
     };
     InteractionController.prototype.hitTest = function (e) {
         var e_1, _a, e_2, _b;
+        var _this = this;
         var _c, _d;
-        if (this.screenCTM) {
-            var transform_1 = this.screenCTM.inverse();
-            var point_1 = new DOMPoint(e.clientX, e.clientY);
-            var elementPoint = this.clientToDiagram(point_1);
-            if ((0, hit_tests_1.hasHitTestProps)(e)) {
-                return __assign(__assign({}, e.__hitTest), { screenX: point_1.x, screenY: point_1.y, elementX: elementPoint.x, elementY: elementPoint.y });
-            }
-            if (e.target && (0, hit_tests_1.hasHitTestProps)(e.target)) {
-                (0, hit_tests_1.addHitTestProps)(e, e.target.__hitTest.hitArea, e.target.__hitTest.element);
-                return __assign(__assign({}, e.target.__hitTest), { screenX: point_1.x, screenY: point_1.y, elementX: elementPoint.x, elementY: elementPoint.y });
-            }
-            else {
-                var priorities = Object.keys(this.hitTests).map(function (x) { return parseInt(x); }).reverse();
-                var sortedElements = this.diagram.getElements().slice().reverse();
-                try {
-                    for (var priorities_1 = __values(priorities), priorities_1_1 = priorities_1.next(); !priorities_1_1.done; priorities_1_1 = priorities_1.next()) {
-                        var priority = priorities_1_1.value;
-                        var hit = void 0;
-                        try {
-                            for (var sortedElements_1 = (e_2 = void 0, __values(sortedElements)), sortedElements_1_1 = sortedElements_1.next(); !sortedElements_1_1.done; sortedElements_1_1 = sortedElements_1.next()) {
-                                var element = sortedElements_1_1.value;
-                                var list = __spreadArray([], __read((((_d = (_c = this.hitTests[priority]) === null || _c === void 0 ? void 0 : _c.get(element)) === null || _d === void 0 ? void 0 : _d.values()) || [])), false);
-                                hit = list.find(function (x) { return x.callback(point_1, transform_1); });
-                                if (hit)
-                                    break;
-                            }
-                        }
-                        catch (e_2_1) { e_2 = { error: e_2_1 }; }
-                        finally {
-                            try {
-                                if (sortedElements_1_1 && !sortedElements_1_1.done && (_b = sortedElements_1.return)) _b.call(sortedElements_1);
-                            }
-                            finally { if (e_2) throw e_2.error; }
-                        }
-                        if (hit) {
-                            (0, hit_tests_1.addHitTestProps)(e, hit.hitArea, hit.element);
-                            return {
-                                element: hit.element,
-                                screenX: point_1.x,
-                                screenY: point_1.y,
-                                elementX: elementPoint.x,
-                                elementY: elementPoint.y,
-                                hitArea: hit.hitArea
-                            };
-                        }
-                    }
-                }
-                catch (e_1_1) { e_1 = { error: e_1_1 }; }
-                finally {
+        var point = new DOMPoint(e.clientX, e.clientY);
+        if ((0, hit_tests_1.hasHitTestProps)(e)) {
+            var elementPoint = this.clientToDiagram(point, e.__hitTest.element);
+            return __assign(__assign({}, e.__hitTest), { screenX: point.x, screenY: point.y, elementX: elementPoint.x, elementY: elementPoint.y });
+        }
+        if (e.target && (0, hit_tests_1.hasHitTestProps)(e.target)) {
+            var elementPoint = this.clientToDiagram(point, e.target.__hitTest.element);
+            (0, hit_tests_1.addHitTestProps)(e, e.target.__hitTest.hitArea, e.target.__hitTest.element);
+            return __assign(__assign({}, e.target.__hitTest), { screenX: point.x, screenY: point.y, elementX: elementPoint.x, elementY: elementPoint.y });
+        }
+        else {
+            var priorities = Object.keys(this.hitTests).map(function (x) { return parseInt(x); }).reverse();
+            var sortedElements = this.diagram.getElements().slice().reverse();
+            var elementPoint_1;
+            try {
+                for (var priorities_1 = __values(priorities), priorities_1_1 = priorities_1.next(); !priorities_1_1.done; priorities_1_1 = priorities_1.next()) {
+                    var priority = priorities_1_1.value;
+                    var hit = void 0;
                     try {
-                        if (priorities_1_1 && !priorities_1_1.done && (_a = priorities_1.return)) _a.call(priorities_1);
+                        for (var sortedElements_1 = (e_2 = void 0, __values(sortedElements)), sortedElements_1_1 = sortedElements_1.next(); !sortedElements_1_1.done; sortedElements_1_1 = sortedElements_1.next()) {
+                            var element = sortedElements_1_1.value;
+                            var list = __spreadArray([], __read((((_d = (_c = this.hitTests[priority]) === null || _c === void 0 ? void 0 : _c.get(element)) === null || _d === void 0 ? void 0 : _d.values()) || [])), false);
+                            elementPoint_1 = this.clientToDiagram(point, element);
+                            hit = list.find(function (x) {
+                                var _a;
+                                var tolerance = x.tolerance / (((_a = _this.screenCTM) === null || _a === void 0 ? void 0 : _a.a) || 1);
+                                return elementPoint_1 && ((!x.bounds || (0, geometry_1.pointInRect)(elementPoint_1, (0, geometry_1.inflateRect)(x.bounds, tolerance))) && // Broad phase
+                                    x.callback(elementPoint_1, tolerance) // Narrow phase
+                                );
+                            });
+                            if (hit)
+                                break;
+                        }
                     }
-                    finally { if (e_1) throw e_1.error; }
+                    catch (e_2_1) { e_2 = { error: e_2_1 }; }
+                    finally {
+                        try {
+                            if (sortedElements_1_1 && !sortedElements_1_1.done && (_b = sortedElements_1.return)) _b.call(sortedElements_1);
+                        }
+                        finally { if (e_2) throw e_2.error; }
+                    }
+                    if (hit && elementPoint_1) {
+                        (0, hit_tests_1.addHitTestProps)(e, hit.hitArea, hit.element);
+                        return {
+                            element: hit.element,
+                            screenX: point.x,
+                            screenY: point.y,
+                            elementX: elementPoint_1.x,
+                            elementY: elementPoint_1.y,
+                            hitArea: hit.hitArea
+                        };
+                    }
                 }
+            }
+            catch (e_1_1) { e_1 = { error: e_1_1 }; }
+            finally {
+                try {
+                    if (priorities_1_1 && !priorities_1_1.done && (_a = priorities_1.return)) _a.call(priorities_1);
+                }
+                finally { if (e_1) throw e_1.error; }
             }
         }
     };
+    InteractionController.prototype.selectionRectCollider = function (element, rect) {
+        var _this = this;
+        return this.hasTransform(element)
+            ? (0, collisions_1.PolygonCollider)((0, geometry_1.rectPoints)(rect).map(function (p) { return (0, geometry_1.transformPoint)(p, _this.getElementTransform(element).inverse()); }))
+            : (0, collisions_1.RectCollider)(rect);
+    };
     InteractionController.prototype.rectIntersectionTest = function (rect) {
+        var _this = this;
         // Broad phase
-        var tests = __spreadArray([], __read(this.intersectionTests.values()), false).filter(function (test) { return !test.bounds || (0, geometry_1.intersectRect)(test.bounds, rect); });
+        var tests = __spreadArray([], __read(this.intersectionTests.values()), false).filter(function (test) { return !test.bounds || (0, geometry_1.intersectRect)(_this.transformBounds(test.element, test.bounds), rect); });
         // Narrow phase
         return tests
-            .filter(function (test) { return test.callback(rect); })
+            .filter(function (test) { return test.callback(_this.selectionRectCollider(test.element, rect)); })
             .map(function (test) { return test.element; });
     };
     InteractionController.prototype.dispatchAction = function (elements, action, payload) {
@@ -6292,29 +3991,135 @@ var InteractionController = /** @class */ (function () {
 }());
 exports.InteractionController = InteractionController;
 
-},{"./geometry":69,"./hit-tests":70,"./services":95,"@carnelian-diagram/core/jsx-runtime":17,"type-pubsub":107}],89:[function(require,module,exports){
+},{"./collisions":20,"./geometry":28,"./hit-tests":29,"./services":57,"./transforms":61,"@carnelian-diagram/core/jsx-runtime":14,"type-pubsub":124}],50:[function(require,module,exports){
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.polygonIntersectionTest = exports.circleIntersectionTest = exports.rectIntersectionTest = exports.lineIntersectionTest = void 0;
 var collisions_1 = require("./collisions");
 function lineIntersectionTest(x1, y1, x2, y2) {
-    return function (selectionRect) { return !!collisions_1.CollisionFunctions.lineRect({ a: { x: x1, y: y1 }, b: { x: x2, y: y2 } }, selectionRect); };
+    return function (selection) { return !!(0, collisions_1.collide)((0, collisions_1.LineCollider)({ a: { x: x1, y: y1 }, b: { x: x2, y: y2 } }), selection); };
 }
 exports.lineIntersectionTest = lineIntersectionTest;
 function rectIntersectionTest(x, y, width, height) {
-    return function (selectionRect) { return !!collisions_1.CollisionFunctions.rectRect(selectionRect, { x: x, y: y, width: width, height: height }); };
+    return function (selection) { return !!(0, collisions_1.collide)((0, collisions_1.RectCollider)({ x: x, y: y, width: width, height: height }), selection); };
 }
 exports.rectIntersectionTest = rectIntersectionTest;
 function circleIntersectionTest(x, y, radius) {
-    return function (selectionRect) { return !!collisions_1.CollisionFunctions.circleRect({ center: { x: x, y: y }, radius: radius }, selectionRect); };
+    return function (selection) { return !!(0, collisions_1.collide)((0, collisions_1.CircleCollider)({ center: { x: x, y: y }, radius: radius }), selection); };
 }
 exports.circleIntersectionTest = circleIntersectionTest;
 function polygonIntersectionTest(points) {
-    return function (selectionRect) { return !!collisions_1.CollisionFunctions.rectPolygon(selectionRect, points); };
+    return function (selection) { return !!(0, collisions_1.collide)((0, collisions_1.PolygonCollider)(points), selection); };
 }
 exports.polygonIntersectionTest = polygonIntersectionTest;
 
-},{"./collisions":61}],90:[function(require,module,exports){
+},{"./collisions":20}],51:[function(require,module,exports){
+"use strict";
+var __importDefault = (this && this.__importDefault) || function (mod) {
+    return (mod && mod.__esModule) ? mod : { "default": mod };
+};
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.DefaultClipboardService = exports.PASTE_EVENT = exports.COPY_EVENT = exports.isClipboardService = void 0;
+var deepcopy_1 = __importDefault(require("deepcopy"));
+var __1 = require("..");
+function isClipboardService(service) {
+    return service.type === "clipboard_service";
+}
+exports.isClipboardService = isClipboardService;
+exports.COPY_EVENT = "copy";
+exports.PASTE_EVENT = "paste";
+var DefaultClipboardService = /** @class */ (function () {
+    function DefaultClipboardService(controller) {
+        this.controller = controller;
+        this.diagram = null;
+        this.copiedElements = [];
+        this.pasteIndex = 0;
+        this.type = "clipboard_service";
+        this.offsetXOnPaste = 0;
+        this.offsetYOnPaste = 0;
+    }
+    DefaultClipboardService.prototype.activate = function (diagram, root) {
+        var _this = this;
+        this.diagram = diagram;
+        var keyDownHandler = function (e) { return _this.keyDownHandler(root, e); };
+        root.addEventListener("keydown", keyDownHandler);
+        this.deactivate = function () {
+            _this.diagram = null;
+            _this.deactivate = undefined;
+            root.removeEventListener("keydown", keyDownHandler);
+        };
+    };
+    DefaultClipboardService.prototype.canCopy = function () {
+        var selected = this.controller.getSelectedElements();
+        return !!this.diagram && !!selected.length;
+    };
+    DefaultClipboardService.prototype.canPaste = function () {
+        return !!this.diagram && !!this.copiedElements.length;
+    };
+    DefaultClipboardService.prototype.copy = function () {
+        var _this = this;
+        if (this.canCopy()) {
+            var selectedElements = this.controller.getSelectedElements();
+            this.controller.dispatchAction(selectedElements, __1.ACT_COPY, {
+                controller: this.controller
+            });
+            this.copiedElements = selectedElements.map(function (x) { return ({
+                type: x.type,
+                props: (0, deepcopy_1.default)(x.props),
+                relativeOffset: _this.controller.diagramToElement(new DOMPoint(_this.offsetXOnPaste, _this.offsetYOnPaste), x)
+            }); });
+            this.pasteIndex = 0;
+            this.controller.dispatchEvent(exports.COPY_EVENT, { elements: selectedElements });
+        }
+    };
+    DefaultClipboardService.prototype.cut = function () {
+        var _a;
+        if (this.canCopy()) {
+            this.copy();
+            this.pasteIndex = -1;
+            (_a = this.diagram) === null || _a === void 0 ? void 0 : _a.delete(this.controller.getSelectedElements());
+            this.controller.select([]);
+        }
+    };
+    DefaultClipboardService.prototype.paste = function () {
+        var _this = this;
+        if (this.canPaste()) {
+            this.pasteIndex++;
+            var newElements_1 = [];
+            this.copiedElements.forEach(function (x) {
+                if (_this.diagram) {
+                    var element = _this.diagram.add(x.type, x.props);
+                    newElements_1.push(element);
+                    var offsetX = x.relativeOffset.x * _this.pasteIndex;
+                    var offsetY = x.relativeOffset.y * _this.pasteIndex;
+                    _this.controller.dispatchAction([element], __1.ACT_PASTE, {
+                        controller: _this.controller,
+                        offsetX: offsetX,
+                        offsetY: offsetY
+                    });
+                }
+            });
+            this.controller.select(newElements_1);
+            this.controller.dispatchEvent(exports.COPY_EVENT, { elements: newElements_1 });
+        }
+    };
+    DefaultClipboardService.prototype.keyDownHandler = function (root, e) {
+        var ctrl = e.ctrlKey || e.metaKey;
+        if (ctrl && e.key === "c") {
+            this.copy();
+        }
+        if (ctrl && e.key === "x") {
+            this.cut();
+        }
+        if (ctrl && e.key === "v") {
+            this.paste();
+        }
+    };
+    return DefaultClipboardService;
+}());
+exports.DefaultClipboardService = DefaultClipboardService;
+
+},{"..":48,"deepcopy":106}],52:[function(require,module,exports){
 "use strict";
 var __assign = (this && this.__assign) || function () {
     __assign = Object.assign || function(t) {
@@ -6354,6 +4159,9 @@ var DefaultControlRenderingService = /** @class */ (function () {
                     { x: x, y: y + size / 2 }
                 ];
                 return (0, jsx_runtime_1.jsx)("polygon", __assign({ points: points.map(function (p) { return "".concat(p.x, ",").concat(p.y); }).join(" "), fill: "orange" }, otherProps));
+            case "rotation":
+                size = 10;
+                return (0, jsx_runtime_1.jsx)("path", __assign({ d: "M ".concat(x + size / 2, " ").concat(y, " a ").concat(size / 2, " ").concat(size / 2, " 0 1 1 ").concat(-size / 2, " ").concat(-size / 2, " l 2 0 l -3 -2 m 3 2 l -3 2"), stroke: "deepskyblue", "stroke-width": 2, fill: "white", "fill-opacity": 0 }, otherProps));
             default:
                 return (0, jsx_runtime_1.jsx)("rect", __assign({ x: x - size / 2, y: y - size / 2, width: size, height: size, fill: "yellow" }, otherProps));
         }
@@ -6365,7 +4173,7 @@ var DefaultControlRenderingService = /** @class */ (function () {
 }());
 exports.DefaultControlRenderingService = DefaultControlRenderingService;
 
-},{"@carnelian-diagram/core/jsx-runtime":17}],91:[function(require,module,exports){
+},{"@carnelian-diagram/core/jsx-runtime":14}],53:[function(require,module,exports){
 "use strict";
 var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
     function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
@@ -6487,7 +4295,7 @@ var DefaultDeletionService = /** @class */ (function () {
 }());
 exports.DefaultDeletionService = DefaultDeletionService;
 
-},{".":95}],92:[function(require,module,exports){
+},{".":57}],54:[function(require,module,exports){
 "use strict";
 var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
     function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
@@ -6678,7 +4486,7 @@ var DefaultElementDrawingService = /** @class */ (function () {
 }());
 exports.DefaultElementDrawingService = DefaultElementDrawingService;
 
-},{".":95,"../actions":58}],93:[function(require,module,exports){
+},{".":57,"../actions":17}],55:[function(require,module,exports){
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.DefaultElementInteractionService = exports.isElementInteractionService = void 0;
@@ -6716,32 +4524,48 @@ var DefaultElementInteractionService = /** @class */ (function () {
         var targetElement = e.target;
         targetElement.setPointerCapture(e.pointerId); // Set capture to target element to receive dblclick events for this target
         this.controller.setInputCapture(this);
-        var lastPoint = this.controller.clientToDiagram(new DOMPoint(e.clientX, e.clientY));
+        var lastPoint = new DOMPoint(e.clientX, e.clientY);
         var action = hitInfo.hitArea.action;
         if (action) {
             var mouseMoveHandler_1 = function (e) {
-                var _a, _b;
+                var _a;
                 var point = new DOMPoint(e.clientX, e.clientY);
                 var snapGridSize = !e.altKey && _this.gridSnappingService ? _this.gridSnappingService.snapGridSize : null;
-                var elementPoint = _this.controller.clientToDiagram(point);
-                var snappedElementPoint = ((_a = _this.gridSnappingService) === null || _a === void 0 ? void 0 : _a.snapToGrid(elementPoint, snapGridSize)) || elementPoint;
-                var rawDeltaX = elementPoint.x - lastPoint.x;
-                var rawDeltaY = elementPoint.y - lastPoint.y;
+                var diagramPoint = _this.controller.clientToDiagram(point);
+                var snappedDiagramPoint = ((_a = _this.gridSnappingService) === null || _a === void 0 ? void 0 : _a.snapToGrid(diagramPoint, snapGridSize)) || diagramPoint;
+                var lastDiagramPoint = _this.controller.clientToDiagram(lastPoint);
                 var elements = action === actions_1.ACT_MOVE ? _this.controller.getSelectedElements() : [hitInfo.element];
-                _this.controller.dispatchAction(elements, action, {
-                    controller: _this.controller,
-                    position: snappedElementPoint,
-                    deltaX: _this.gridSnappingService ? _this.gridSnappingService.snapToGrid(snappedElementPoint.x - lastPoint.x, snapGridSize) : rawDeltaX,
-                    deltaY: _this.gridSnappingService ? _this.gridSnappingService.snapToGrid(snappedElementPoint.y - lastPoint.y, snapGridSize) : rawDeltaY,
-                    rawPosition: elementPoint,
-                    rawDeltaX: rawDeltaX,
-                    rawDeltaY: rawDeltaY,
-                    hitArea: hitInfo.hitArea,
-                    snapGridSize: snapGridSize,
-                    snapAngle: !e.altKey && _this.gridSnappingService ? _this.gridSnappingService.snapAngle : null,
-                    snapToGrid: (_b = _this.gridSnappingService) === null || _b === void 0 ? void 0 : _b.snapToGrid.bind(_this.gridSnappingService)
+                elements.forEach(function (element) {
+                    var _a, _b;
+                    var lastElementPoint = _this.controller.clientToDiagram(lastPoint, element);
+                    var elementPoint = _this.controller.clientToDiagram(point, element);
+                    var snappedElementPoint = ((_a = _this.gridSnappingService) === null || _a === void 0 ? void 0 : _a.snapToGrid(elementPoint, snapGridSize)) || elementPoint;
+                    var rawDeltaX = elementPoint.x - lastElementPoint.x;
+                    var rawDeltaY = elementPoint.y - lastElementPoint.y;
+                    var deltaX = rawDeltaX;
+                    var deltaY = rawDeltaY;
+                    if (_this.gridSnappingService) {
+                        var dx = _this.gridSnappingService.snapToGrid(snappedDiagramPoint.x - lastDiagramPoint.x, snapGridSize);
+                        var dy = _this.gridSnappingService.snapToGrid(snappedDiagramPoint.y - lastDiagramPoint.y, snapGridSize);
+                        var deltaPoint = _this.controller.diagramToElement(new DOMPoint(lastDiagramPoint.x + dx, lastDiagramPoint.y + dy), element);
+                        deltaX = deltaPoint.x - lastElementPoint.x;
+                        deltaY = deltaPoint.y - lastElementPoint.y;
+                    }
+                    _this.controller.dispatchAction([element], action, {
+                        controller: _this.controller,
+                        position: snappedElementPoint,
+                        deltaX: deltaX,
+                        deltaY: deltaY,
+                        rawPosition: elementPoint,
+                        rawDeltaX: rawDeltaX,
+                        rawDeltaY: rawDeltaY,
+                        hitArea: hitInfo.hitArea,
+                        snapGridSize: snapGridSize,
+                        snapAngle: !e.altKey && _this.gridSnappingService ? _this.gridSnappingService.snapAngle : null,
+                        snapToGrid: (_b = _this.gridSnappingService) === null || _b === void 0 ? void 0 : _b.snapToGrid.bind(_this.gridSnappingService)
+                    });
                 });
-                lastPoint = elementPoint;
+                lastPoint = point;
             };
             var mouseUpHandler_1 = function (e) {
                 _this.dragging = false;
@@ -6778,7 +4602,7 @@ var DefaultElementInteractionService = /** @class */ (function () {
             if (hitInfo && hitInfo.hitArea.dblClickAction) {
                 var point = new DOMPoint(e.clientX, e.clientY);
                 var snapGridSize = !e.altKey && this.gridSnappingService ? this.gridSnappingService.snapGridSize : null;
-                var elementPoint = this.controller.clientToDiagram(point);
+                var elementPoint = this.controller.clientToDiagram(point, hitInfo.element);
                 var snappedElementPoint = ((_a = this.gridSnappingService) === null || _a === void 0 ? void 0 : _a.snapToGrid(elementPoint, snapGridSize)) || elementPoint;
                 this.controller.dispatchAction([hitInfo.element], hitInfo.hitArea.dblClickAction, {
                     controller: this.controller,
@@ -6796,7 +4620,7 @@ var DefaultElementInteractionService = /** @class */ (function () {
 }());
 exports.DefaultElementInteractionService = DefaultElementInteractionService;
 
-},{".":95,"../actions":58}],94:[function(require,module,exports){
+},{".":57,"../actions":17}],56:[function(require,module,exports){
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.DefaultGridSnappingService = exports.isGridSnappingService = void 0;
@@ -6806,8 +4630,6 @@ function isGridSnappingService(service) {
 exports.isGridSnappingService = isGridSnappingService;
 var DefaultGridSnappingService = /** @class */ (function () {
     function DefaultGridSnappingService(snapGridSize, snapAngle) {
-        if (snapGridSize === void 0) { snapGridSize = null; }
-        if (snapAngle === void 0) { snapAngle = null; }
         this.snapGridSize = snapGridSize;
         this.snapAngle = snapAngle;
         this.type = "grid_snapping_service";
@@ -6825,7 +4647,7 @@ var DefaultGridSnappingService = /** @class */ (function () {
 }());
 exports.DefaultGridSnappingService = DefaultGridSnappingService;
 
-},{}],95:[function(require,module,exports){
+},{}],57:[function(require,module,exports){
 "use strict";
 var __createBinding = (this && this.__createBinding) || (Object.create ? (function(o, m, k, k2) {
     if (k2 === undefined) k2 = k;
@@ -6931,8 +4753,9 @@ __exportStar(require("./element-drawing-service"), exports);
 __exportStar(require("./control-rendering-service"), exports);
 __exportStar(require("./paper-service"), exports);
 __exportStar(require("./text-editing-service"), exports);
+__exportStar(require("./clipboard-service"), exports);
 
-},{"./control-rendering-service":90,"./deletion-service":91,"./element-drawing-service":92,"./element-interaction-service":93,"./grid-snapping-service":94,"./paper-service":96,"./selection-service":97,"./text-editing-service":98}],96:[function(require,module,exports){
+},{"./clipboard-service":51,"./control-rendering-service":52,"./deletion-service":53,"./element-drawing-service":54,"./element-interaction-service":55,"./grid-snapping-service":56,"./paper-service":58,"./selection-service":59,"./text-editing-service":60}],58:[function(require,module,exports){
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.DefaultPaperService = exports.PAPER_CHANGE_EVENT = exports.isPaperService = void 0;
@@ -6960,7 +4783,7 @@ var DefaultPaperService = /** @class */ (function () {
 }());
 exports.DefaultPaperService = DefaultPaperService;
 
-},{}],97:[function(require,module,exports){
+},{}],59:[function(require,module,exports){
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.DefaultSelectionService = exports.RECT_SELECTION_EVENT = exports.isSelectionService = void 0;
@@ -7049,7 +4872,7 @@ var DefaultSelectionService = /** @class */ (function () {
 }());
 exports.DefaultSelectionService = DefaultSelectionService;
 
-},{}],98:[function(require,module,exports){
+},{}],60:[function(require,module,exports){
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.DefaultTextEditingService = exports.isTextEditingService = void 0;
@@ -7141,7 +4964,5034 @@ var DefaultTextEditingService = /** @class */ (function () {
 }());
 exports.DefaultTextEditingService = DefaultTextEditingService;
 
-},{}],99:[function(require,module,exports){
+},{}],61:[function(require,module,exports){
+"use strict";
+var __read = (this && this.__read) || function (o, n) {
+    var m = typeof Symbol === "function" && o[Symbol.iterator];
+    if (!m) return o;
+    var i = m.call(o), r, ar = [], e;
+    try {
+        while ((n === void 0 || n-- > 0) && !(r = i.next()).done) ar.push(r.value);
+    }
+    catch (error) { e = { error: error }; }
+    finally {
+        try {
+            if (r && !r.done && (m = i["return"])) m.call(i);
+        }
+        finally { if (e) throw e.error; }
+    }
+    return ar;
+};
+var __spreadArray = (this && this.__spreadArray) || function (to, from, pack) {
+    if (pack || arguments.length === 2) for (var i = 0, l = from.length, ar; i < l; i++) {
+        if (ar || !(i in from)) {
+            if (!ar) ar = Array.prototype.slice.call(from, 0, i);
+            ar[i] = from[i];
+        }
+    }
+    return to.concat(ar || Array.prototype.slice.call(from));
+};
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.rotateTransform = exports.computeTransformResult = void 0;
+var geometry_1 = require("./geometry");
+function computeTransformResult(transforms) {
+    transforms.result = __spreadArray([], __read(transforms.transformMap.values()), false).reduce(function (acc, cur) { return acc.multiply(cur.transform); }, new DOMMatrix());
+}
+exports.computeTransformResult = computeTransformResult;
+function rotateTransform(angle, p) {
+    angle = (0, geometry_1.degToRad)(angle);
+    return new DOMMatrix([
+        Math.cos(angle),
+        Math.sin(angle),
+        -Math.sin(angle),
+        Math.cos(angle),
+        p ? p.x * (1 - Math.cos(angle)) + p.y * Math.sin(angle) : 0,
+        p ? p.y * (1 - Math.cos(angle)) - p.x * Math.sin(angle) : 0
+    ]);
+}
+exports.rotateTransform = rotateTransform;
+
+},{"./geometry":28}],62:[function(require,module,exports){
+"use strict";
+var __assign = (this && this.__assign) || function () {
+    __assign = Object.assign || function(t) {
+        for (var s, i = 1, n = arguments.length; i < n; i++) {
+            s = arguments[i];
+            for (var p in s) if (Object.prototype.hasOwnProperty.call(s, p))
+                t[p] = s[p];
+        }
+        return t;
+    };
+    return __assign.apply(this, arguments);
+};
+var __rest = (this && this.__rest) || function (s, e) {
+    var t = {};
+    for (var p in s) if (Object.prototype.hasOwnProperty.call(s, p) && e.indexOf(p) < 0)
+        t[p] = s[p];
+    if (s != null && typeof Object.getOwnPropertySymbols === "function")
+        for (var i = 0, p = Object.getOwnPropertySymbols(s); i < p.length; i++) {
+            if (e.indexOf(p[i]) < 0 && Object.prototype.propertyIsEnumerable.call(s, p[i]))
+                t[p[i]] = s[p[i]];
+        }
+    return t;
+};
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.InteractiveCircleWithText = exports.InteractiveCircle = exports.Circle = void 0;
+var jsx_runtime_1 = require("@carnelian-diagram/core/jsx-runtime");
+var interactivity_1 = require("@carnelian-diagram/interactivity");
+var hocs_1 = require("../hocs");
+var CircleColliderFactory = function (props) { return (0, interactivity_1.CircleCollider)({ center: { x: props.x, y: props.y }, radius: props.radius }); };
+var Circle = function (props) {
+    var onChange = props.onChange, x = props.x, y = props.y, radius = props.radius, rest = __rest(props, ["onChange", "x", "y", "radius"]);
+    return ((0, jsx_runtime_1.jsx)("circle", __assign({ cx: x, cy: y, r: radius }, rest)));
+};
+exports.Circle = Circle;
+exports.InteractiveCircle = (0, hocs_1.withInteractiveRotatableCircle)(exports.Circle, CircleColliderFactory);
+exports.InteractiveCircleWithText = (0, hocs_1.withInteractiveRotatableTextCircle)(exports.Circle, CircleColliderFactory);
+
+},{"../hocs":80,"@carnelian-diagram/core/jsx-runtime":14,"@carnelian-diagram/interactivity":48}],63:[function(require,module,exports){
+"use strict";
+var __assign = (this && this.__assign) || function () {
+    __assign = Object.assign || function(t) {
+        for (var s, i = 1, n = arguments.length; i < n; i++) {
+            s = arguments[i];
+            for (var p in s) if (Object.prototype.hasOwnProperty.call(s, p))
+                t[p] = s[p];
+        }
+        return t;
+    };
+    return __assign.apply(this, arguments);
+};
+var __rest = (this && this.__rest) || function (s, e) {
+    var t = {};
+    for (var p in s) if (Object.prototype.hasOwnProperty.call(s, p) && e.indexOf(p) < 0)
+        t[p] = s[p];
+    if (s != null && typeof Object.getOwnPropertySymbols === "function")
+        for (var i = 0, p = Object.getOwnPropertySymbols(s); i < p.length; i++) {
+            if (e.indexOf(p[i]) < 0 && Object.prototype.propertyIsEnumerable.call(s, p[i]))
+                t[p[i]] = s[p[i]];
+        }
+    return t;
+};
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.InteractiveCrossWithText = exports.InteractiveCross = exports.Cross = void 0;
+var jsx_runtime_1 = require("@carnelian-diagram/core/jsx-runtime");
+var interactivity_1 = require("@carnelian-diagram/interactivity");
+var geometry_1 = require("@carnelian-diagram/interactivity/geometry");
+var hocs_1 = require("../hocs");
+var utils_1 = require("../utils");
+var knobController = {
+    hitArea: {
+        type: "knob_handle",
+        cursor: "default",
+        action: "offset_x_knob_move"
+    },
+    getPosition: function (props) {
+        var baseX = props.width;
+        var baseY = props.height;
+        var offsetX = (0, geometry_1.clamp)((0, utils_1.convertPercentage)(props.offsetX, baseX), 0, baseX / 2);
+        var offsetY = (0, geometry_1.clamp)((0, utils_1.convertPercentage)(props.offsetY, baseY), 0, baseY / 2);
+        return {
+            x: props.x + offsetX,
+            y: props.y + offsetY
+        };
+    },
+    setPosition: function (props, _a) {
+        var position = _a.position;
+        var baseX = props.width;
+        var baseY = props.height;
+        var offsetX = (0, geometry_1.clamp)(position.x - props.x, 0, baseX / 2);
+        var offsetY = (0, geometry_1.clamp)(position.y - props.y, 0, baseY / 2);
+        offsetX = (0, utils_1.isPercentage)(props.offsetX)
+            ? baseX > 0 ? "".concat(offsetX / baseX * 100, "%") : props.offsetX
+            : offsetX;
+        offsetY = (0, utils_1.isPercentage)(props.offsetY)
+            ? baseY > 0 ? "".concat(offsetY / baseY * 100, "%") : props.offsetY
+            : offsetY;
+        return __assign(__assign({}, props), { offsetX: offsetX, offsetY: offsetY });
+    }
+};
+function toPolygon(props) {
+    var x = props.x, y = props.y, width = props.width, height = props.height, offsetX = props.offsetX, offsetY = props.offsetY;
+    offsetX = (0, geometry_1.clamp)((0, utils_1.convertPercentage)(offsetX, width), 0, width / 2);
+    offsetY = (0, geometry_1.clamp)((0, utils_1.convertPercentage)(offsetY, height), 0, height / 2);
+    return [
+        { x: x + offsetX, y: y },
+        { x: x + width - offsetX, y: y },
+        { x: x + width - offsetX, y: y + offsetY },
+        { x: x + width, y: y + offsetY },
+        { x: x + width, y: y + height - offsetY },
+        { x: x + width - offsetX, y: y + height - offsetY },
+        { x: x + width - offsetX, y: y + height },
+        { x: x + offsetX, y: y + height },
+        { x: x + offsetX, y: y + height - offsetY },
+        { x: x, y: y + height - offsetY },
+        { x: x, y: y + offsetY },
+        { x: x + offsetX, y: y + offsetY }
+    ];
+}
+;
+var CrossColliderFactory = function (props) { return (0, interactivity_1.PolygonCollider)(toPolygon(props)); };
+var Cross = function (props) {
+    var onChange = props.onChange, x = props.x, y = props.y, width = props.width, height = props.height, offsetX = props.offsetX, offsetY = props.offsetY, rest = __rest(props, ["onChange", "x", "y", "width", "height", "offsetX", "offsetY"]);
+    var points = toPolygon(props);
+    return ((0, jsx_runtime_1.jsx)("polygon", __assign({ points: points.map(function (p) { return "".concat(p.x, ",").concat(p.y); }).join(" ") }, rest)));
+};
+exports.Cross = Cross;
+exports.InteractiveCross = (0, hocs_1.withInteractiveRotatableRect)((0, interactivity_1.withKnob)(exports.Cross, knobController), CrossColliderFactory);
+exports.InteractiveCrossWithText = (0, hocs_1.withInteractiveRotatableTextRect)((0, interactivity_1.withKnob)(exports.Cross, knobController), CrossColliderFactory);
+
+},{"../hocs":80,"../utils":99,"@carnelian-diagram/core/jsx-runtime":14,"@carnelian-diagram/interactivity":48,"@carnelian-diagram/interactivity/geometry":28}],64:[function(require,module,exports){
+"use strict";
+var __assign = (this && this.__assign) || function () {
+    __assign = Object.assign || function(t) {
+        for (var s, i = 1, n = arguments.length; i < n; i++) {
+            s = arguments[i];
+            for (var p in s) if (Object.prototype.hasOwnProperty.call(s, p))
+                t[p] = s[p];
+        }
+        return t;
+    };
+    return __assign.apply(this, arguments);
+};
+var __rest = (this && this.__rest) || function (s, e) {
+    var t = {};
+    for (var p in s) if (Object.prototype.hasOwnProperty.call(s, p) && e.indexOf(p) < 0)
+        t[p] = s[p];
+    if (s != null && typeof Object.getOwnPropertySymbols === "function")
+        for (var i = 0, p = Object.getOwnPropertySymbols(s); i < p.length; i++) {
+            if (e.indexOf(p[i]) < 0 && Object.prototype.propertyIsEnumerable.call(s, p[i]))
+                t[p[i]] = s[p[i]];
+        }
+    return t;
+};
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.InteractiveDiamondWithText = exports.InteractiveDiamond = exports.Diamond = void 0;
+var jsx_runtime_1 = require("@carnelian-diagram/core/jsx-runtime");
+var interactivity_1 = require("@carnelian-diagram/interactivity");
+var hocs_1 = require("../hocs");
+function toPolygon(props) {
+    var x = props.x, y = props.y, width = props.width, height = props.height;
+    var rx = width / 2;
+    var ry = height / 2;
+    return [
+        { x: x, y: y + ry },
+        { x: x + rx, y: y },
+        { x: x + width, y: y + ry },
+        { x: x + rx, y: y + height }
+    ];
+}
+var DiamondColliderFactory = function (props) { return (0, interactivity_1.PolygonCollider)(toPolygon(props)); };
+var Diamond = function (props) {
+    var onChange = props.onChange, x = props.x, y = props.y, width = props.width, height = props.height, rest = __rest(props, ["onChange", "x", "y", "width", "height"]);
+    var points = toPolygon(props);
+    return ((0, jsx_runtime_1.jsx)("polygon", __assign({ points: points.map(function (p) { return "".concat(p.x, ",").concat(p.y); }).join(" ") }, rest)));
+};
+exports.Diamond = Diamond;
+exports.InteractiveDiamond = (0, hocs_1.withInteractiveRotatableRect)(exports.Diamond, DiamondColliderFactory);
+exports.InteractiveDiamondWithText = (0, hocs_1.withInteractiveRotatableTextRect)(exports.Diamond, DiamondColliderFactory);
+
+},{"../hocs":80,"@carnelian-diagram/core/jsx-runtime":14,"@carnelian-diagram/interactivity":48}],65:[function(require,module,exports){
+"use strict";
+var __assign = (this && this.__assign) || function () {
+    __assign = Object.assign || function(t) {
+        for (var s, i = 1, n = arguments.length; i < n; i++) {
+            s = arguments[i];
+            for (var p in s) if (Object.prototype.hasOwnProperty.call(s, p))
+                t[p] = s[p];
+        }
+        return t;
+    };
+    return __assign.apply(this, arguments);
+};
+var __rest = (this && this.__rest) || function (s, e) {
+    var t = {};
+    for (var p in s) if (Object.prototype.hasOwnProperty.call(s, p) && e.indexOf(p) < 0)
+        t[p] = s[p];
+    if (s != null && typeof Object.getOwnPropertySymbols === "function")
+        for (var i = 0, p = Object.getOwnPropertySymbols(s); i < p.length; i++) {
+            if (e.indexOf(p[i]) < 0 && Object.prototype.propertyIsEnumerable.call(s, p[i]))
+                t[p[i]] = s[p[i]];
+        }
+    return t;
+};
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.InteractiveDonutWithText = exports.InteractiveDonut = exports.Donut = void 0;
+var jsx_runtime_1 = require("@carnelian-diagram/core/jsx-runtime");
+var interactivity_1 = require("@carnelian-diagram/interactivity");
+var geometry_1 = require("@carnelian-diagram/interactivity/geometry");
+var hocs_1 = require("../hocs");
+var utils_1 = require("../utils");
+function calcInnerRadius(props) {
+    return Math.min((0, utils_1.convertPercentage)(props.innerRadius, props.radius), props.radius);
+}
+var knobController = {
+    hitArea: {
+        type: "knob_handle",
+        cursor: "default",
+        action: "knob_move"
+    },
+    getPosition: function (props) {
+        var ir = calcInnerRadius(props);
+        return {
+            x: props.x,
+            y: props.y - ir
+        };
+    },
+    setPosition: function (props, _a) {
+        var position = _a.position;
+        var ir = (0, geometry_1.clamp)(props.y - position.y, 0, props.radius);
+        ir = (0, utils_1.isPercentage)(props.innerRadius)
+            ? props.radius > 0 ? "".concat(ir / props.radius * 100, "%") : props.innerRadius
+            : ir;
+        return __assign(__assign({}, props), { innerRadius: ir });
+    }
+};
+var DonutColliderFactory = function (props) { return (0, interactivity_1.DiffCollider)((0, interactivity_1.CircleCollider)({ center: { x: props.x, y: props.y }, radius: props.radius }), (0, interactivity_1.CircleCollider)({ center: { x: props.x, y: props.y }, radius: calcInnerRadius(props) })); };
+var Donut = function (props) {
+    var onChange = props.onChange, x = props.x, y = props.y, or = props.radius, ir = props.innerRadius, rest = __rest(props, ["onChange", "x", "y", "radius", "innerRadius"]);
+    ir = calcInnerRadius(props);
+    var path = "\n        M".concat(x - or, " ").concat(y, " a").concat(or, " ").concat(or, " 0 1 0 ").concat(or * 2, " 0 a").concat(or, " ").concat(or, " 0 1 0 -").concat(or * 2, " 0\n        M").concat(x - ir, " ").concat(y, " a").concat(ir, " ").concat(ir, " 0 0 1 ").concat(ir * 2, " 0 a").concat(ir, " ").concat(ir, " 0 0 1 -").concat(ir * 2, " 0");
+    return ((0, jsx_runtime_1.jsx)("path", __assign({ d: path }, rest)));
+};
+exports.Donut = Donut;
+exports.InteractiveDonut = (0, hocs_1.withInteractiveRotatableCircle)((0, interactivity_1.withKnob)(exports.Donut, knobController), DonutColliderFactory);
+exports.InteractiveDonutWithText = (0, hocs_1.withInteractiveRotatableTextCircle)((0, interactivity_1.withKnob)(exports.Donut, knobController), DonutColliderFactory);
+
+},{"../hocs":80,"../utils":99,"@carnelian-diagram/core/jsx-runtime":14,"@carnelian-diagram/interactivity":48,"@carnelian-diagram/interactivity/geometry":28}],66:[function(require,module,exports){
+"use strict";
+var __assign = (this && this.__assign) || function () {
+    __assign = Object.assign || function(t) {
+        for (var s, i = 1, n = arguments.length; i < n; i++) {
+            s = arguments[i];
+            for (var p in s) if (Object.prototype.hasOwnProperty.call(s, p))
+                t[p] = s[p];
+        }
+        return t;
+    };
+    return __assign.apply(this, arguments);
+};
+var __rest = (this && this.__rest) || function (s, e) {
+    var t = {};
+    for (var p in s) if (Object.prototype.hasOwnProperty.call(s, p) && e.indexOf(p) < 0)
+        t[p] = s[p];
+    if (s != null && typeof Object.getOwnPropertySymbols === "function")
+        for (var i = 0, p = Object.getOwnPropertySymbols(s); i < p.length; i++) {
+            if (e.indexOf(p[i]) < 0 && Object.prototype.propertyIsEnumerable.call(s, p[i]))
+                t[p[i]] = s[p[i]];
+        }
+    return t;
+};
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.InteractiveEllipseWithText = exports.InteractiveEllipse = exports.Ellipse = void 0;
+var jsx_runtime_1 = require("@carnelian-diagram/core/jsx-runtime");
+var interactivity_1 = require("@carnelian-diagram/interactivity");
+var hocs_1 = require("../hocs");
+var EllipseColliderFactory = function (props) { return (0, interactivity_1.EllipseCollider)({ center: { x: props.x + props.width / 2, y: props.y + props.height / 2 }, rx: props.width / 2, ry: props.height / 2 }); };
+var Ellipse = function (props) {
+    var onChange = props.onChange, x = props.x, y = props.y, width = props.width, height = props.height, rest = __rest(props, ["onChange", "x", "y", "width", "height"]);
+    var rx = width / 2;
+    var ry = height / 2;
+    var cx = x + rx;
+    var cy = y + ry;
+    return ((0, jsx_runtime_1.jsx)("ellipse", __assign({}, { cx: cx, cy: cy, rx: rx, ry: ry }, rest)));
+};
+exports.Ellipse = Ellipse;
+exports.InteractiveEllipse = (0, hocs_1.withInteractiveRotatableRect)(exports.Ellipse, EllipseColliderFactory);
+exports.InteractiveEllipseWithText = (0, hocs_1.withInteractiveRotatableTextRect)(exports.Ellipse, EllipseColliderFactory);
+
+},{"../hocs":80,"@carnelian-diagram/core/jsx-runtime":14,"@carnelian-diagram/interactivity":48}],67:[function(require,module,exports){
+"use strict";
+var __assign = (this && this.__assign) || function () {
+    __assign = Object.assign || function(t) {
+        for (var s, i = 1, n = arguments.length; i < n; i++) {
+            s = arguments[i];
+            for (var p in s) if (Object.prototype.hasOwnProperty.call(s, p))
+                t[p] = s[p];
+        }
+        return t;
+    };
+    return __assign.apply(this, arguments);
+};
+var __rest = (this && this.__rest) || function (s, e) {
+    var t = {};
+    for (var p in s) if (Object.prototype.hasOwnProperty.call(s, p) && e.indexOf(p) < 0)
+        t[p] = s[p];
+    if (s != null && typeof Object.getOwnPropertySymbols === "function")
+        for (var i = 0, p = Object.getOwnPropertySymbols(s); i < p.length; i++) {
+            if (e.indexOf(p[i]) < 0 && Object.prototype.propertyIsEnumerable.call(s, p[i]))
+                t[p[i]] = s[p[i]];
+        }
+    return t;
+};
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.InteractiveHexagonWithText = exports.InteractiveHexagon = exports.Hexagon = void 0;
+var jsx_runtime_1 = require("@carnelian-diagram/core/jsx-runtime");
+var interactivity_1 = require("@carnelian-diagram/interactivity");
+var geometry_1 = require("@carnelian-diagram/interactivity/geometry");
+var hocs_1 = require("../hocs");
+var utils_1 = require("../utils");
+var knobController = {
+    hitArea: {
+        type: "knob_handle",
+        cursor: "default",
+        action: "knob_move"
+    },
+    getPosition: function (props) {
+        var base = props.width;
+        var offset = (0, geometry_1.clamp)((0, utils_1.convertPercentage)(props.offset, base), 0, base / 2);
+        return {
+            x: props.x + offset,
+            y: props.y
+        };
+    },
+    setPosition: function (props, _a) {
+        var position = _a.position;
+        var base = props.width;
+        var offset = (0, geometry_1.clamp)(position.x - props.x, 0, base / 2);
+        offset = (0, utils_1.isPercentage)(props.offset)
+            ? base > 0 ? "".concat(offset / base * 100, "%") : props.offset
+            : offset;
+        return __assign(__assign({}, props), { offset: offset });
+    }
+};
+function toPolygon(props) {
+    var x = props.x, y = props.y, width = props.width, height = props.height, offset = props.offset;
+    offset = (0, geometry_1.clamp)((0, utils_1.convertPercentage)(offset, width), 0, width / 2);
+    return [
+        { x: x, y: y + height / 2 },
+        { x: x + offset, y: y },
+        { x: x + width - offset, y: y },
+        { x: x + width, y: y + height / 2 },
+        { x: x + width - offset, y: y + height },
+        { x: x + offset, y: y + height }
+    ];
+}
+;
+var HexagonColliderFactory = function (props) { return (0, interactivity_1.PolygonCollider)(toPolygon(props)); };
+var Hexagon = function (props) {
+    var onChange = props.onChange, x = props.x, y = props.y, width = props.width, height = props.height, offset = props.offset, rest = __rest(props, ["onChange", "x", "y", "width", "height", "offset"]);
+    var points = toPolygon(props);
+    return ((0, jsx_runtime_1.jsx)("polygon", __assign({ points: points.map(function (p) { return "".concat(p.x, ",").concat(p.y); }).join(" ") }, rest)));
+};
+exports.Hexagon = Hexagon;
+exports.InteractiveHexagon = (0, hocs_1.withInteractiveRotatableRect)((0, interactivity_1.withKnob)(exports.Hexagon, knobController), HexagonColliderFactory);
+exports.InteractiveHexagonWithText = (0, hocs_1.withInteractiveRotatableTextRect)((0, interactivity_1.withKnob)(exports.Hexagon, knobController), HexagonColliderFactory);
+
+},{"../hocs":80,"../utils":99,"@carnelian-diagram/core/jsx-runtime":14,"@carnelian-diagram/interactivity":48,"@carnelian-diagram/interactivity/geometry":28}],68:[function(require,module,exports){
+"use strict";
+var __createBinding = (this && this.__createBinding) || (Object.create ? (function(o, m, k, k2) {
+    if (k2 === undefined) k2 = k;
+    var desc = Object.getOwnPropertyDescriptor(m, k);
+    if (!desc || ("get" in desc ? !m.__esModule : desc.writable || desc.configurable)) {
+      desc = { enumerable: true, get: function() { return m[k]; } };
+    }
+    Object.defineProperty(o, k2, desc);
+}) : (function(o, m, k, k2) {
+    if (k2 === undefined) k2 = k;
+    o[k2] = m[k];
+}));
+var __exportStar = (this && this.__exportStar) || function(m, exports) {
+    for (var p in m) if (p !== "default" && !Object.prototype.hasOwnProperty.call(exports, p)) __createBinding(exports, m, p);
+};
+Object.defineProperty(exports, "__esModule", { value: true });
+__exportStar(require("./line"), exports);
+__exportStar(require("./polyline"), exports);
+__exportStar(require("./polygon"), exports);
+__exportStar(require("./rect"), exports);
+__exportStar(require("./ellipse"), exports);
+__exportStar(require("./diamond"), exports);
+__exportStar(require("./rounded-rect"), exports);
+__exportStar(require("./parallelogram"), exports);
+__exportStar(require("./trapezoid"), exports);
+__exportStar(require("./hexagon"), exports);
+__exportStar(require("./square"), exports);
+__exportStar(require("./circle"), exports);
+__exportStar(require("./donut"), exports);
+__exportStar(require("./cross"), exports);
+__exportStar(require("./pie"), exports);
+__exportStar(require("./text"), exports);
+__exportStar(require("./multiline-text"), exports);
+
+},{"./circle":62,"./cross":63,"./diamond":64,"./donut":65,"./ellipse":66,"./hexagon":67,"./line":69,"./multiline-text":70,"./parallelogram":71,"./pie":72,"./polygon":73,"./polyline":74,"./rect":75,"./rounded-rect":76,"./square":77,"./text":78,"./trapezoid":79}],69:[function(require,module,exports){
+"use strict";
+var __assign = (this && this.__assign) || function () {
+    __assign = Object.assign || function(t) {
+        for (var s, i = 1, n = arguments.length; i < n; i++) {
+            s = arguments[i];
+            for (var p in s) if (Object.prototype.hasOwnProperty.call(s, p))
+                t[p] = s[p];
+        }
+        return t;
+    };
+    return __assign.apply(this, arguments);
+};
+var __rest = (this && this.__rest) || function (s, e) {
+    var t = {};
+    for (var p in s) if (Object.prototype.hasOwnProperty.call(s, p) && e.indexOf(p) < 0)
+        t[p] = s[p];
+    if (s != null && typeof Object.getOwnPropertySymbols === "function")
+        for (var i = 0, p = Object.getOwnPropertySymbols(s); i < p.length; i++) {
+            if (e.indexOf(p[i]) < 0 && Object.prototype.propertyIsEnumerable.call(s, p[i]))
+                t[p[i]] = s[p[i]];
+        }
+    return t;
+};
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.InteractiveLine = exports.Line = void 0;
+var jsx_runtime_1 = require("@carnelian-diagram/core/jsx-runtime");
+var interactivity_1 = require("@carnelian-diagram/interactivity");
+var geometry_1 = require("@carnelian-diagram/interactivity/geometry");
+var line_caps_1 = require("../line-caps");
+var Line = function (props) {
+    var onChange = props.onChange, startLineCap = props.startLineCap, endLineCap = props.endLineCap, rest = __rest(props, ["onChange", "startLineCap", "endLineCap"]);
+    return ((0, jsx_runtime_1.jsxs)(jsx_runtime_1.Fragment, { children: [(0, jsx_runtime_1.jsx)("line", __assign({}, rest)), startLineCap &&
+                (0, jsx_runtime_1.jsx)(line_caps_1.LineCap, { kind: startLineCap.kind, size: startLineCap.size, x: props.x1, y: props.y1, rotation: (0, geometry_1.radToDeg)(Math.atan2(props.y1 - props.y2, props.x1 - props.x2)), style: props.style }), endLineCap &&
+                (0, jsx_runtime_1.jsx)(line_caps_1.LineCap, { kind: endLineCap.kind, size: endLineCap.size, x: props.x2, y: props.y2, rotation: (0, geometry_1.radToDeg)(Math.atan2(props.y2 - props.y1, props.x2 - props.x1)), style: props.style })] }));
+};
+exports.Line = Line;
+exports.InteractiveLine = (0, interactivity_1.withInteractiveLine)(exports.Line);
+
+},{"../line-caps":97,"@carnelian-diagram/core/jsx-runtime":14,"@carnelian-diagram/interactivity":48,"@carnelian-diagram/interactivity/geometry":28}],70:[function(require,module,exports){
+"use strict";
+var __assign = (this && this.__assign) || function () {
+    __assign = Object.assign || function(t) {
+        for (var s, i = 1, n = arguments.length; i < n; i++) {
+            s = arguments[i];
+            for (var p in s) if (Object.prototype.hasOwnProperty.call(s, p))
+                t[p] = s[p];
+        }
+        return t;
+    };
+    return __assign.apply(this, arguments);
+};
+var __rest = (this && this.__rest) || function (s, e) {
+    var t = {};
+    for (var p in s) if (Object.prototype.hasOwnProperty.call(s, p) && e.indexOf(p) < 0)
+        t[p] = s[p];
+    if (s != null && typeof Object.getOwnPropertySymbols === "function")
+        for (var i = 0, p = Object.getOwnPropertySymbols(s); i < p.length; i++) {
+            if (e.indexOf(p[i]) < 0 && Object.prototype.propertyIsEnumerable.call(s, p[i]))
+                t[p[i]] = s[p[i]];
+        }
+    return t;
+};
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.InteractiveMultilineTextComponent = exports.InteractiveMultilineText = exports.MultilineText = void 0;
+var jsx_runtime_1 = require("@carnelian-diagram/core/jsx-runtime");
+var interactivity_1 = require("@carnelian-diagram/interactivity");
+var __1 = require("..");
+var hocs_1 = require("../hocs");
+var utils_1 = require("../utils");
+var MultilineText = function (props) {
+    var x = props.x, y = props.y, width = props.width, height = props.height, textStyle = props.textStyle, text = props.text;
+    var textElementStyle;
+    var lineHeight = (textStyle === null || textStyle === void 0 ? void 0 : textStyle.lineHeight) || 1;
+    if (textStyle) {
+        var textAlign = textStyle.textAlign, verticalAlign = textStyle.verticalAlign, lineHeight_1 = textStyle.lineHeight, rest = __rest(textStyle, ["textAlign", "verticalAlign", "lineHeight"]);
+        textElementStyle = rest;
+    }
+    else {
+        textElementStyle = {};
+    }
+    textElementStyle = __assign(__assign({}, textElementStyle), { fontFamily: (textStyle === null || textStyle === void 0 ? void 0 : textStyle.fontFamily) || __1.DEFAULT_FONT_FAMILY, fontSize: (textStyle === null || textStyle === void 0 ? void 0 : textStyle.fontSize) || __1.DEFAULT_FONT_SIZE });
+    var _a = (0, utils_1.wrapText)(text, width, textStyle), lines = _a.lines, textMetrics = _a.textMetrics;
+    var fontHeight = textMetrics.fontBoundingBoxAscent + textMetrics.fontBoundingBoxDescent;
+    switch ((textStyle === null || textStyle === void 0 ? void 0 : textStyle.textAlign) || "center") {
+        case "center":
+            x = x + width / 2;
+            textElementStyle.textAnchor = "middle";
+            break;
+        case "right":
+            x = x + width;
+            textElementStyle.textAnchor = "end";
+            break;
+        default:
+            textElementStyle.textAnchor = "start";
+    }
+    var alignmentBaseline;
+    switch ((textStyle === null || textStyle === void 0 ? void 0 : textStyle.verticalAlign) || "middle") {
+        case "middle":
+            y = y + height / 2 - (fontHeight * lineHeight * (lines.length - 1)) / 2;
+            alignmentBaseline = "middle";
+            break;
+        case "bottom":
+            y = y + height;
+            alignmentBaseline = "text-after-edge";
+            break;
+        default:
+            alignmentBaseline = "text-before-edge";
+    }
+    return ((0, jsx_runtime_1.jsx)("text", __assign({ x: x, y: y, style: textElementStyle }, { children: lines.map(function (line, i) { return ((0, jsx_runtime_1.jsx)("tspan", __assign({ x: x, dy: i > 0 ? fontHeight * lineHeight : undefined, style: { alignmentBaseline: alignmentBaseline } }, { children: line }))); }) })));
+};
+exports.MultilineText = MultilineText;
+exports.InteractiveMultilineText = (0, hocs_1.withInteractiveRotatableText)(exports.MultilineText);
+exports.InteractiveMultilineTextComponent = (0, interactivity_1.withInteractiveText)(exports.MultilineText, function (props) { return props; }, function (props) { return (0, utils_1.textEditorStyles)(props.textStyle); });
+
+},{"..":91,"../hocs":80,"../utils":99,"@carnelian-diagram/core/jsx-runtime":14,"@carnelian-diagram/interactivity":48}],71:[function(require,module,exports){
+"use strict";
+var __assign = (this && this.__assign) || function () {
+    __assign = Object.assign || function(t) {
+        for (var s, i = 1, n = arguments.length; i < n; i++) {
+            s = arguments[i];
+            for (var p in s) if (Object.prototype.hasOwnProperty.call(s, p))
+                t[p] = s[p];
+        }
+        return t;
+    };
+    return __assign.apply(this, arguments);
+};
+var __rest = (this && this.__rest) || function (s, e) {
+    var t = {};
+    for (var p in s) if (Object.prototype.hasOwnProperty.call(s, p) && e.indexOf(p) < 0)
+        t[p] = s[p];
+    if (s != null && typeof Object.getOwnPropertySymbols === "function")
+        for (var i = 0, p = Object.getOwnPropertySymbols(s); i < p.length; i++) {
+            if (e.indexOf(p[i]) < 0 && Object.prototype.propertyIsEnumerable.call(s, p[i]))
+                t[p[i]] = s[p[i]];
+        }
+    return t;
+};
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.InteractiveParallelogramWithText = exports.InteractiveParallelogram = exports.Parallelogram = void 0;
+var jsx_runtime_1 = require("@carnelian-diagram/core/jsx-runtime");
+var interactivity_1 = require("@carnelian-diagram/interactivity");
+var geometry_1 = require("@carnelian-diagram/interactivity/geometry");
+var hocs_1 = require("../hocs");
+var utils_1 = require("../utils");
+var knobController = {
+    hitArea: function (props) { return ({
+        type: "knob_handle",
+        cursor: "default",
+        action: "knob_move",
+        data: (0, utils_1.convertPercentage)(props.offset, props.width) >= 0 ? 0 : 1
+    }); },
+    getPosition: function (props) {
+        var offset = (0, geometry_1.clamp)((0, utils_1.convertPercentage)(props.offset, props.width), -props.width, props.width);
+        return {
+            x: props.x + Math.abs(offset),
+            y: offset >= 0 ? props.y : props.y + props.height
+        };
+    },
+    setPosition: function (props, _a, hitArea) {
+        var position = _a.position;
+        var sign = hitArea.data === 0 ? 1 : -1;
+        var offset = (0, geometry_1.clamp)(position.x - props.x, -props.width, props.width) * sign;
+        offset = (0, utils_1.isPercentage)(props.offset)
+            ? props.width > 0 ? "".concat(offset / props.width * 100, "%") : props.offset
+            : offset;
+        return __assign(__assign({}, props), { offset: offset });
+    }
+};
+function toPolygon(props) {
+    var x = props.x, y = props.y, width = props.width, height = props.height, offset = props.offset;
+    offset = (0, geometry_1.clamp)((0, utils_1.convertPercentage)(offset, width), -width, width);
+    return offset >= 0 ? [
+        { x: x + offset, y: y },
+        { x: x + width, y: y },
+        { x: x + width - offset, y: y + height },
+        { x: x, y: y + height }
+    ] : [
+        { x: x, y: y },
+        { x: x + width + offset, y: y },
+        { x: x + width, y: y + height },
+        { x: x - offset, y: y + height }
+    ];
+}
+var ParallelogramColliderFactory = function (props) { return (0, interactivity_1.PolygonCollider)(toPolygon(props)); };
+var Parallelogram = function (props) {
+    var onChange = props.onChange, x = props.x, y = props.y, width = props.width, height = props.height, offset = props.offset, rest = __rest(props, ["onChange", "x", "y", "width", "height", "offset"]);
+    var points = toPolygon(props);
+    return ((0, jsx_runtime_1.jsx)("polygon", __assign({ points: points.map(function (p) { return "".concat(p.x, ",").concat(p.y); }).join(" ") }, rest)));
+};
+exports.Parallelogram = Parallelogram;
+exports.InteractiveParallelogram = (0, hocs_1.withInteractiveRotatableRect)((0, interactivity_1.withKnob)(exports.Parallelogram, knobController), ParallelogramColliderFactory);
+exports.InteractiveParallelogramWithText = (0, hocs_1.withInteractiveRotatableTextRect)((0, interactivity_1.withKnob)(exports.Parallelogram, knobController), ParallelogramColliderFactory);
+
+},{"../hocs":80,"../utils":99,"@carnelian-diagram/core/jsx-runtime":14,"@carnelian-diagram/interactivity":48,"@carnelian-diagram/interactivity/geometry":28}],72:[function(require,module,exports){
+"use strict";
+var __assign = (this && this.__assign) || function () {
+    __assign = Object.assign || function(t) {
+        for (var s, i = 1, n = arguments.length; i < n; i++) {
+            s = arguments[i];
+            for (var p in s) if (Object.prototype.hasOwnProperty.call(s, p))
+                t[p] = s[p];
+        }
+        return t;
+    };
+    return __assign.apply(this, arguments);
+};
+var __rest = (this && this.__rest) || function (s, e) {
+    var t = {};
+    for (var p in s) if (Object.prototype.hasOwnProperty.call(s, p) && e.indexOf(p) < 0)
+        t[p] = s[p];
+    if (s != null && typeof Object.getOwnPropertySymbols === "function")
+        for (var i = 0, p = Object.getOwnPropertySymbols(s); i < p.length; i++) {
+            if (e.indexOf(p[i]) < 0 && Object.prototype.propertyIsEnumerable.call(s, p[i]))
+                t[p[i]] = s[p[i]];
+        }
+    return t;
+};
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.InteractivePie = exports.Pie = void 0;
+var jsx_runtime_1 = require("@carnelian-diagram/core/jsx-runtime");
+var interactivity_1 = require("@carnelian-diagram/interactivity");
+var geometry_1 = require("@carnelian-diagram/interactivity/geometry");
+var hocs_1 = require("../hocs");
+function getCirclePoint(x, y, radius, angle) {
+    return {
+        x: x + radius * Math.cos((0, geometry_1.degToRad)(angle)),
+        y: y + radius * Math.sin((0, geometry_1.degToRad)(angle))
+    };
+}
+function knobController(index) {
+    return {
+        hitArea: {
+            type: "knob_handle",
+            index: index,
+            cursor: "default",
+            action: "knob_move",
+        },
+        getPosition: function (props) {
+            var angle = index === 0 ? props.startAngle : props.endAngle;
+            return getCirclePoint(props.x, props.y, props.radius, angle);
+        },
+        setPosition: function (props, _a) {
+            var position = _a.rawPosition, snapAngle = _a.snapAngle, snapToGrid = _a.snapToGrid;
+            var angle = (0, geometry_1.radToDeg)(Math.atan2(position.y - props.y, position.x - props.x));
+            angle = snapToGrid ? snapToGrid(angle, snapAngle) : angle;
+            return __assign(__assign({}, props), { startAngle: index === 0 ? angle : props.startAngle, endAngle: index === 1 ? angle : props.endAngle });
+        }
+    };
+}
+;
+var PieColliderFactory = function (props) {
+    var x = props.x, y = props.y, radius = props.radius, startAngle = props.startAngle, endAngle = props.endAngle;
+    var center = { x: x, y: y };
+    var start = getCirclePoint(x, y, radius, startAngle);
+    var end = getCirclePoint(x, y, radius, endAngle);
+    var AngleCollider = Math.sin((0, geometry_1.degToRad)(endAngle - startAngle)) < 0 ? interactivity_1.UnionCollider : interactivity_1.IntersectionCollider;
+    return (0, interactivity_1.IntersectionCollider)((0, interactivity_1.CircleCollider)({ center: center, radius: radius }), AngleCollider((0, interactivity_1.HalfPlaneCollider)({ a: center, b: start }), (0, interactivity_1.HalfPlaneCollider)({ a: end, b: center })));
+};
+var Pie = function (props) {
+    var onChange = props.onChange, x = props.x, y = props.y, radius = props.radius, startAngle = props.startAngle, endAngle = props.endAngle, rest = __rest(props, ["onChange", "x", "y", "radius", "startAngle", "endAngle"]);
+    var isCircle = endAngle - startAngle === 360;
+    endAngle = isCircle ? endAngle - 1 : endAngle;
+    var largeArcFlag = Math.sin((0, geometry_1.degToRad)(endAngle - startAngle)) >= 0 ? 0 : 1;
+    var start = getCirclePoint(x, y, radius, startAngle);
+    var end = getCirclePoint(x, y, radius, endAngle);
+    var path = "M".concat(start.x, " ").concat(start.y, " A").concat(radius, ",").concat(radius, " 0 ").concat(largeArcFlag, " 1 ").concat(end.x, " ").concat(end.y);
+    path += isCircle ? "Z" : "L".concat(x, " ").concat(y, "Z");
+    return ((0, jsx_runtime_1.jsx)("path", __assign({ d: path }, rest)));
+};
+exports.Pie = Pie;
+exports.InteractivePie = (0, hocs_1.withInteractiveRotatableCircle)((0, interactivity_1.withKnobs)(exports.Pie, knobController(0), knobController(1)), PieColliderFactory);
+
+},{"../hocs":80,"@carnelian-diagram/core/jsx-runtime":14,"@carnelian-diagram/interactivity":48,"@carnelian-diagram/interactivity/geometry":28}],73:[function(require,module,exports){
+"use strict";
+var __assign = (this && this.__assign) || function () {
+    __assign = Object.assign || function(t) {
+        for (var s, i = 1, n = arguments.length; i < n; i++) {
+            s = arguments[i];
+            for (var p in s) if (Object.prototype.hasOwnProperty.call(s, p))
+                t[p] = s[p];
+        }
+        return t;
+    };
+    return __assign.apply(this, arguments);
+};
+var __rest = (this && this.__rest) || function (s, e) {
+    var t = {};
+    for (var p in s) if (Object.prototype.hasOwnProperty.call(s, p) && e.indexOf(p) < 0)
+        t[p] = s[p];
+    if (s != null && typeof Object.getOwnPropertySymbols === "function")
+        for (var i = 0, p = Object.getOwnPropertySymbols(s); i < p.length; i++) {
+            if (e.indexOf(p[i]) < 0 && Object.prototype.propertyIsEnumerable.call(s, p[i]))
+                t[p[i]] = s[p[i]];
+        }
+    return t;
+};
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.InteractivePolygon = exports.Polygon = void 0;
+var jsx_runtime_1 = require("@carnelian-diagram/core/jsx-runtime");
+var hocs_1 = require("../hocs");
+var Polygon = function (props) {
+    var points = props.points, onChange = props.onChange, rest = __rest(props, ["points", "onChange"]);
+    var polygonProps = __assign(__assign({}, rest), { style: __assign(__assign({}, rest.style), { fillRule: "evenodd" }) });
+    return ((0, jsx_runtime_1.jsx)("polygon", __assign({ points: points.map(function (p) { return "".concat(p.x, ",").concat(p.y); }).join(" ") }, polygonProps)));
+};
+exports.Polygon = Polygon;
+exports.InteractivePolygon = (0, hocs_1.withInteractiveRotatablePolygon)(exports.Polygon);
+
+},{"../hocs":80,"@carnelian-diagram/core/jsx-runtime":14}],74:[function(require,module,exports){
+"use strict";
+var __assign = (this && this.__assign) || function () {
+    __assign = Object.assign || function(t) {
+        for (var s, i = 1, n = arguments.length; i < n; i++) {
+            s = arguments[i];
+            for (var p in s) if (Object.prototype.hasOwnProperty.call(s, p))
+                t[p] = s[p];
+        }
+        return t;
+    };
+    return __assign.apply(this, arguments);
+};
+var __rest = (this && this.__rest) || function (s, e) {
+    var t = {};
+    for (var p in s) if (Object.prototype.hasOwnProperty.call(s, p) && e.indexOf(p) < 0)
+        t[p] = s[p];
+    if (s != null && typeof Object.getOwnPropertySymbols === "function")
+        for (var i = 0, p = Object.getOwnPropertySymbols(s); i < p.length; i++) {
+            if (e.indexOf(p[i]) < 0 && Object.prototype.propertyIsEnumerable.call(s, p[i]))
+                t[p[i]] = s[p[i]];
+        }
+    return t;
+};
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.InteractivePolyline = exports.Polyline = void 0;
+var jsx_runtime_1 = require("@carnelian-diagram/core/jsx-runtime");
+var interactivity_1 = require("@carnelian-diagram/interactivity");
+var geometry_1 = require("@carnelian-diagram/interactivity/geometry");
+var line_caps_1 = require("../line-caps");
+var Polyline = function (props) {
+    var points = props.points, onChange = props.onChange, startLineCap = props.startLineCap, endLineCap = props.endLineCap, rest = __rest(props, ["points", "onChange", "startLineCap", "endLineCap"]);
+    var polylineProps = __assign(__assign({}, rest), { style: __assign(__assign({}, rest.style), { fill: "none" }) });
+    return ((0, jsx_runtime_1.jsxs)(jsx_runtime_1.Fragment, { children: [(0, jsx_runtime_1.jsx)("polyline", __assign({ points: points.map(function (p) { return "".concat(p.x, ",").concat(p.y); }).join(" ") }, polylineProps)), startLineCap && points.length >= 2 &&
+                (0, jsx_runtime_1.jsx)(line_caps_1.LineCap, { kind: startLineCap.kind, size: startLineCap.size, x: props.points[0].x, y: props.points[0].y, rotation: (0, geometry_1.radToDeg)(Math.atan2(props.points[0].y - props.points[1].y, props.points[0].x - props.points[1].x)), style: polylineProps.style }), endLineCap && points.length >= 2 &&
+                (0, jsx_runtime_1.jsx)(line_caps_1.LineCap, { kind: endLineCap.kind, size: endLineCap.size, x: props.points[props.points.length - 1].x, y: props.points[props.points.length - 1].y, rotation: (0, geometry_1.radToDeg)(Math.atan2(props.points[props.points.length - 1].y - props.points[props.points.length - 2].y, props.points[props.points.length - 1].x - props.points[props.points.length - 2].x)), style: polylineProps.style })] }));
+};
+exports.Polyline = Polyline;
+exports.InteractivePolyline = (0, interactivity_1.withInteractivePolyline)(exports.Polyline, false, 2);
+
+},{"../line-caps":97,"@carnelian-diagram/core/jsx-runtime":14,"@carnelian-diagram/interactivity":48,"@carnelian-diagram/interactivity/geometry":28}],75:[function(require,module,exports){
+"use strict";
+var __assign = (this && this.__assign) || function () {
+    __assign = Object.assign || function(t) {
+        for (var s, i = 1, n = arguments.length; i < n; i++) {
+            s = arguments[i];
+            for (var p in s) if (Object.prototype.hasOwnProperty.call(s, p))
+                t[p] = s[p];
+        }
+        return t;
+    };
+    return __assign.apply(this, arguments);
+};
+var __rest = (this && this.__rest) || function (s, e) {
+    var t = {};
+    for (var p in s) if (Object.prototype.hasOwnProperty.call(s, p) && e.indexOf(p) < 0)
+        t[p] = s[p];
+    if (s != null && typeof Object.getOwnPropertySymbols === "function")
+        for (var i = 0, p = Object.getOwnPropertySymbols(s); i < p.length; i++) {
+            if (e.indexOf(p[i]) < 0 && Object.prototype.propertyIsEnumerable.call(s, p[i]))
+                t[p[i]] = s[p[i]];
+        }
+    return t;
+};
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.InteractiveRectWithText = exports.InteractiveRect = exports.Rect = void 0;
+var jsx_runtime_1 = require("@carnelian-diagram/core/jsx-runtime");
+var hocs_1 = require("../hocs");
+var Rect = function (props) {
+    var onChange = props.onChange, rest = __rest(props, ["onChange"]);
+    return ((0, jsx_runtime_1.jsx)("rect", __assign({}, rest)));
+};
+exports.Rect = Rect;
+exports.InteractiveRect = (0, hocs_1.withInteractiveRotatableRect)(exports.Rect);
+exports.InteractiveRectWithText = (0, hocs_1.withInteractiveRotatableTextRect)(exports.Rect);
+
+},{"../hocs":80,"@carnelian-diagram/core/jsx-runtime":14}],76:[function(require,module,exports){
+"use strict";
+var __assign = (this && this.__assign) || function () {
+    __assign = Object.assign || function(t) {
+        for (var s, i = 1, n = arguments.length; i < n; i++) {
+            s = arguments[i];
+            for (var p in s) if (Object.prototype.hasOwnProperty.call(s, p))
+                t[p] = s[p];
+        }
+        return t;
+    };
+    return __assign.apply(this, arguments);
+};
+var __rest = (this && this.__rest) || function (s, e) {
+    var t = {};
+    for (var p in s) if (Object.prototype.hasOwnProperty.call(s, p) && e.indexOf(p) < 0)
+        t[p] = s[p];
+    if (s != null && typeof Object.getOwnPropertySymbols === "function")
+        for (var i = 0, p = Object.getOwnPropertySymbols(s); i < p.length; i++) {
+            if (e.indexOf(p[i]) < 0 && Object.prototype.propertyIsEnumerable.call(s, p[i]))
+                t[p[i]] = s[p[i]];
+        }
+    return t;
+};
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.InteractiveRoundedRectWithText = exports.InteractiveRoundedRect = exports.RoundedRect = void 0;
+var jsx_runtime_1 = require("@carnelian-diagram/core/jsx-runtime");
+var interactivity_1 = require("@carnelian-diagram/interactivity");
+var geometry_1 = require("@carnelian-diagram/interactivity/geometry");
+var hocs_1 = require("../hocs");
+var utils_1 = require("../utils");
+var knobController = {
+    hitArea: {
+        type: "knob_handle",
+        cursor: "default",
+        action: "knob_move"
+    },
+    getPosition: function (props) {
+        var base = Math.min(props.width, props.height) / 2;
+        var offset = (0, geometry_1.clamp)((0, utils_1.convertPercentage)(props.radius, base), 0, base);
+        return {
+            x: props.x + offset,
+            y: props.y
+        };
+    },
+    setPosition: function (props, _a) {
+        var position = _a.position;
+        var base = Math.min(props.width, props.height) / 2;
+        var radius = (0, geometry_1.clamp)(position.x - props.x, 0, base);
+        radius = (0, utils_1.isPercentage)(props.radius)
+            ? base > 0 ? "".concat(radius / base * 100, "%") : props.radius
+            : radius;
+        return __assign(__assign({}, props), { radius: radius });
+    }
+};
+var RoundedRect = function (props) {
+    var onChange = props.onChange, radius = props.radius, rest = __rest(props, ["onChange", "radius"]);
+    var base = Math.min(props.width, props.height) / 2;
+    radius = (0, geometry_1.clamp)((0, utils_1.convertPercentage)(radius, base), 0, base);
+    return ((0, jsx_runtime_1.jsx)("rect", __assign({ rx: radius }, rest)));
+};
+exports.RoundedRect = RoundedRect;
+exports.InteractiveRoundedRect = (0, hocs_1.withInteractiveRotatableRect)((0, interactivity_1.withKnob)(exports.RoundedRect, knobController));
+exports.InteractiveRoundedRectWithText = (0, hocs_1.withInteractiveRotatableTextRect)((0, interactivity_1.withKnob)(exports.RoundedRect, knobController));
+
+},{"../hocs":80,"../utils":99,"@carnelian-diagram/core/jsx-runtime":14,"@carnelian-diagram/interactivity":48,"@carnelian-diagram/interactivity/geometry":28}],77:[function(require,module,exports){
+"use strict";
+var __assign = (this && this.__assign) || function () {
+    __assign = Object.assign || function(t) {
+        for (var s, i = 1, n = arguments.length; i < n; i++) {
+            s = arguments[i];
+            for (var p in s) if (Object.prototype.hasOwnProperty.call(s, p))
+                t[p] = s[p];
+        }
+        return t;
+    };
+    return __assign.apply(this, arguments);
+};
+var __rest = (this && this.__rest) || function (s, e) {
+    var t = {};
+    for (var p in s) if (Object.prototype.hasOwnProperty.call(s, p) && e.indexOf(p) < 0)
+        t[p] = s[p];
+    if (s != null && typeof Object.getOwnPropertySymbols === "function")
+        for (var i = 0, p = Object.getOwnPropertySymbols(s); i < p.length; i++) {
+            if (e.indexOf(p[i]) < 0 && Object.prototype.propertyIsEnumerable.call(s, p[i]))
+                t[p[i]] = s[p[i]];
+        }
+    return t;
+};
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.InteractiveSquareWithText = exports.InteractiveSquare = exports.Square = void 0;
+var jsx_runtime_1 = require("@carnelian-diagram/core/jsx-runtime");
+var hocs_1 = require("../hocs");
+;
+var Square = function (props) {
+    var onChange = props.onChange, x = props.x, y = props.y, size = props.size, rest = __rest(props, ["onChange", "x", "y", "size"]);
+    return ((0, jsx_runtime_1.jsx)("rect", __assign({ x: x, y: y, width: size, height: size }, rest)));
+};
+exports.Square = Square;
+exports.InteractiveSquare = (0, hocs_1.withInteractiveRotatableSquare)(exports.Square);
+exports.InteractiveSquareWithText = (0, hocs_1.withInteractiveRotatableTextSquare)(exports.Square);
+
+},{"../hocs":80,"@carnelian-diagram/core/jsx-runtime":14}],78:[function(require,module,exports){
+"use strict";
+var __assign = (this && this.__assign) || function () {
+    __assign = Object.assign || function(t) {
+        for (var s, i = 1, n = arguments.length; i < n; i++) {
+            s = arguments[i];
+            for (var p in s) if (Object.prototype.hasOwnProperty.call(s, p))
+                t[p] = s[p];
+        }
+        return t;
+    };
+    return __assign.apply(this, arguments);
+};
+var __rest = (this && this.__rest) || function (s, e) {
+    var t = {};
+    for (var p in s) if (Object.prototype.hasOwnProperty.call(s, p) && e.indexOf(p) < 0)
+        t[p] = s[p];
+    if (s != null && typeof Object.getOwnPropertySymbols === "function")
+        for (var i = 0, p = Object.getOwnPropertySymbols(s); i < p.length; i++) {
+            if (e.indexOf(p[i]) < 0 && Object.prototype.propertyIsEnumerable.call(s, p[i]))
+                t[p[i]] = s[p[i]];
+        }
+    return t;
+};
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.InteractiveText = exports.Text = void 0;
+var jsx_runtime_1 = require("@carnelian-diagram/core/jsx-runtime");
+var __1 = require("..");
+var hocs_1 = require("../hocs");
+var Text = function (props) {
+    var x = props.x, y = props.y, width = props.width, height = props.height, textStyle = props.textStyle, text = props.text;
+    var textElementStyle;
+    if (textStyle) {
+        var textAlign = textStyle.textAlign, verticalAlign = textStyle.verticalAlign, rest = __rest(textStyle, ["textAlign", "verticalAlign"]);
+        textElementStyle = rest;
+    }
+    else {
+        textElementStyle = {};
+    }
+    textElementStyle = __assign(__assign({}, textElementStyle), { fontFamily: (textStyle === null || textStyle === void 0 ? void 0 : textStyle.fontFamily) || __1.DEFAULT_FONT_FAMILY, fontSize: (textStyle === null || textStyle === void 0 ? void 0 : textStyle.fontSize) || __1.DEFAULT_FONT_SIZE });
+    switch ((textStyle === null || textStyle === void 0 ? void 0 : textStyle.textAlign) || "center") {
+        case "center":
+            x = x + width / 2;
+            textElementStyle.textAnchor = "middle";
+            break;
+        case "right":
+            x = x + width;
+            textElementStyle.textAnchor = "end";
+            break;
+        default:
+            textElementStyle.textAnchor = "start";
+    }
+    switch ((textStyle === null || textStyle === void 0 ? void 0 : textStyle.verticalAlign) || "middle") {
+        case "middle":
+            y = y + height / 2;
+            textElementStyle.alignmentBaseline = "middle";
+            break;
+        case "bottom":
+            y = y + height;
+            textElementStyle.alignmentBaseline = "text-after-edge";
+            break;
+        default:
+            textElementStyle.alignmentBaseline = "text-before-edge";
+    }
+    return ((0, jsx_runtime_1.jsx)("text", __assign({ x: x, y: y, style: textElementStyle }, { children: text })));
+};
+exports.Text = Text;
+exports.InteractiveText = (0, hocs_1.withInteractiveRotatableText)(exports.Text);
+
+},{"..":91,"../hocs":80,"@carnelian-diagram/core/jsx-runtime":14}],79:[function(require,module,exports){
+"use strict";
+var __assign = (this && this.__assign) || function () {
+    __assign = Object.assign || function(t) {
+        for (var s, i = 1, n = arguments.length; i < n; i++) {
+            s = arguments[i];
+            for (var p in s) if (Object.prototype.hasOwnProperty.call(s, p))
+                t[p] = s[p];
+        }
+        return t;
+    };
+    return __assign.apply(this, arguments);
+};
+var __rest = (this && this.__rest) || function (s, e) {
+    var t = {};
+    for (var p in s) if (Object.prototype.hasOwnProperty.call(s, p) && e.indexOf(p) < 0)
+        t[p] = s[p];
+    if (s != null && typeof Object.getOwnPropertySymbols === "function")
+        for (var i = 0, p = Object.getOwnPropertySymbols(s); i < p.length; i++) {
+            if (e.indexOf(p[i]) < 0 && Object.prototype.propertyIsEnumerable.call(s, p[i]))
+                t[p[i]] = s[p[i]];
+        }
+    return t;
+};
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.InteractiveTrapezoidWithText = exports.InteractiveTrapezoid = exports.Trapezoid = void 0;
+var jsx_runtime_1 = require("@carnelian-diagram/core/jsx-runtime");
+var interactivity_1 = require("@carnelian-diagram/interactivity");
+var geometry_1 = require("@carnelian-diagram/interactivity/geometry");
+var hocs_1 = require("../hocs");
+var utils_1 = require("../utils");
+var knobController = {
+    hitArea: {
+        type: "knob_handle",
+        cursor: "default",
+        action: "knob_move"
+    },
+    getPosition: function (props) {
+        var base = props.width;
+        var offset = (0, geometry_1.clamp)((0, utils_1.convertPercentage)(props.offset, base), 0, base / 2);
+        return {
+            x: props.x + offset,
+            y: props.y
+        };
+    },
+    setPosition: function (props, _a) {
+        var position = _a.position;
+        var base = props.width;
+        var offset = (0, geometry_1.clamp)(position.x - props.x, 0, base / 2);
+        offset = (0, utils_1.isPercentage)(props.offset)
+            ? base > 0 ? "".concat(offset / base * 100, "%") : props.offset
+            : offset;
+        return __assign(__assign({}, props), { offset: offset });
+    }
+};
+function toPolygon(props) {
+    var x = props.x, y = props.y, width = props.width, height = props.height, offset = props.offset;
+    offset = (0, geometry_1.clamp)((0, utils_1.convertPercentage)(offset, width), 0, width / 2);
+    return [
+        { x: x + offset, y: y },
+        { x: x + width - offset, y: y },
+        { x: x + width, y: y + height },
+        { x: x, y: y + height }
+    ];
+}
+var TrapezoidColliderFactory = function (props) { return (0, interactivity_1.PolygonCollider)(toPolygon(props)); };
+var Trapezoid = function (props) {
+    var onChange = props.onChange, x = props.x, y = props.y, width = props.width, height = props.height, offset = props.offset, rest = __rest(props, ["onChange", "x", "y", "width", "height", "offset"]);
+    var points = toPolygon(props);
+    return ((0, jsx_runtime_1.jsx)("polygon", __assign({ points: points.map(function (p) { return "".concat(p.x, ",").concat(p.y); }).join(" ") }, rest)));
+};
+exports.Trapezoid = Trapezoid;
+exports.InteractiveTrapezoid = (0, hocs_1.withInteractiveRotatableRect)((0, interactivity_1.withKnob)(exports.Trapezoid, knobController), TrapezoidColliderFactory);
+exports.InteractiveTrapezoidWithText = (0, hocs_1.withInteractiveRotatableTextRect)((0, interactivity_1.withKnob)(exports.Trapezoid, knobController), TrapezoidColliderFactory);
+
+},{"../hocs":80,"../utils":99,"@carnelian-diagram/core/jsx-runtime":14,"@carnelian-diagram/interactivity":48,"@carnelian-diagram/interactivity/geometry":28}],80:[function(require,module,exports){
+"use strict";
+var __createBinding = (this && this.__createBinding) || (Object.create ? (function(o, m, k, k2) {
+    if (k2 === undefined) k2 = k;
+    var desc = Object.getOwnPropertyDescriptor(m, k);
+    if (!desc || ("get" in desc ? !m.__esModule : desc.writable || desc.configurable)) {
+      desc = { enumerable: true, get: function() { return m[k]; } };
+    }
+    Object.defineProperty(o, k2, desc);
+}) : (function(o, m, k, k2) {
+    if (k2 === undefined) k2 = k;
+    o[k2] = m[k];
+}));
+var __exportStar = (this && this.__exportStar) || function(m, exports) {
+    for (var p in m) if (p !== "default" && !Object.prototype.hasOwnProperty.call(exports, p)) __createBinding(exports, m, p);
+};
+Object.defineProperty(exports, "__esModule", { value: true });
+__exportStar(require("./with-text"), exports);
+__exportStar(require("./with-rotation"), exports);
+__exportStar(require("./with-interactive-rotatable-text"), exports);
+__exportStar(require("./with-interactive-rotatable-rect"), exports);
+__exportStar(require("./with-interactive-rotatable-text-rect"), exports);
+__exportStar(require("./with-interactive-rotatable-square"), exports);
+__exportStar(require("./with-interactive-rotatable-text-square"), exports);
+__exportStar(require("./with-interactive-rotatable-circle"), exports);
+__exportStar(require("./with-interactive-rotatable-text-circle"), exports);
+__exportStar(require("./with-interactive-rotatable-polygon"), exports);
+
+},{"./with-interactive-rotatable-circle":81,"./with-interactive-rotatable-polygon":82,"./with-interactive-rotatable-rect":83,"./with-interactive-rotatable-square":84,"./with-interactive-rotatable-text":88,"./with-interactive-rotatable-text-circle":85,"./with-interactive-rotatable-text-rect":86,"./with-interactive-rotatable-text-square":87,"./with-rotation":89,"./with-text":90}],81:[function(require,module,exports){
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.withInteractiveRotatableCircle = void 0;
+var interactivity_1 = require("@carnelian-diagram/interactivity");
+var utils_1 = require("../utils");
+var with_rotation_1 = require("./with-rotation");
+function withInteractiveRotatableCircle(WrappedElement, collider) {
+    return (0, with_rotation_1.withRotation)((0, interactivity_1.withInteractiveRotation)((0, interactivity_1.withInteractiveCircle)(WrappedElement, { collider: collider }), (0, utils_1.circleRotationController)()), (0, utils_1.circleRotation)());
+}
+exports.withInteractiveRotatableCircle = withInteractiveRotatableCircle;
+
+},{"../utils":99,"./with-rotation":89,"@carnelian-diagram/interactivity":48}],82:[function(require,module,exports){
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.withInteractiveRotatablePolygon = void 0;
+var interactivity_1 = require("@carnelian-diagram/interactivity");
+var utils_1 = require("../utils");
+var with_rotation_1 = require("./with-rotation");
+function withInteractiveRotatablePolygon(WrappedElement) {
+    return (0, with_rotation_1.withRotation)((0, interactivity_1.withInteractiveRotation)((0, interactivity_1.withInteractivePolyline)(WrappedElement, true, 3, { collider: function (props) { return (0, interactivity_1.PolygonCollider)(props.points); } }), (0, utils_1.polygonRotationController)()), (0, utils_1.polygonRotation)());
+}
+exports.withInteractiveRotatablePolygon = withInteractiveRotatablePolygon;
+
+},{"../utils":99,"./with-rotation":89,"@carnelian-diagram/interactivity":48}],83:[function(require,module,exports){
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.withInteractiveRotatableRect = void 0;
+var interactivity_1 = require("@carnelian-diagram/interactivity");
+var utils_1 = require("../utils");
+var with_rotation_1 = require("./with-rotation");
+function withInteractiveRotatableRect(WrappedElement, collider) {
+    return (0, with_rotation_1.withRotation)((0, interactivity_1.withInteractiveRotation)((0, interactivity_1.withInteractiveRect)(WrappedElement, { collider: collider }), (0, utils_1.rectRotationController)()), (0, utils_1.rectRotation)());
+}
+exports.withInteractiveRotatableRect = withInteractiveRotatableRect;
+
+},{"../utils":99,"./with-rotation":89,"@carnelian-diagram/interactivity":48}],84:[function(require,module,exports){
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.withInteractiveRotatableSquare = void 0;
+var interactivity_1 = require("@carnelian-diagram/interactivity");
+var utils_1 = require("../utils");
+var with_rotation_1 = require("./with-rotation");
+function withInteractiveRotatableSquare(WrappedElement, collider) {
+    return (0, with_rotation_1.withRotation)((0, interactivity_1.withInteractiveRotation)((0, interactivity_1.withInteractiveSquare)(WrappedElement, { collider: collider }), (0, utils_1.squareRotationController)()), (0, utils_1.squareRotation)());
+}
+exports.withInteractiveRotatableSquare = withInteractiveRotatableSquare;
+
+},{"../utils":99,"./with-rotation":89,"@carnelian-diagram/interactivity":48}],85:[function(require,module,exports){
+"use strict";
+var __assign = (this && this.__assign) || function () {
+    __assign = Object.assign || function(t) {
+        for (var s, i = 1, n = arguments.length; i < n; i++) {
+            s = arguments[i];
+            for (var p in s) if (Object.prototype.hasOwnProperty.call(s, p))
+                t[p] = s[p];
+        }
+        return t;
+    };
+    return __assign.apply(this, arguments);
+};
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.withInteractiveRotatableTextCircle = void 0;
+var interactivity_1 = require("@carnelian-diagram/interactivity");
+var multiline_text_1 = require("../basic/multiline-text");
+var utils_1 = require("../utils");
+var with_rotation_1 = require("./with-rotation");
+var with_text_1 = require("./with-text");
+function withInteractiveRotatableTextCircle(WrappedElement, collider) {
+    return (0, with_rotation_1.withRotation)((0, interactivity_1.withInteractiveRotation)((0, with_text_1.withText)((0, interactivity_1.withInteractiveCircle)(WrappedElement, {
+        innerHitArea: function (hitArea) { return (__assign(__assign({}, hitArea), { dblClickAction: interactivity_1.ACT_EDIT_TEXT })); },
+        collider: collider
+    }), multiline_text_1.InteractiveMultilineTextComponent, function (props) { return ({
+        x: props.x - props.radius,
+        y: props.y - props.radius,
+        width: props.radius * 2,
+        height: props.radius * 2,
+        text: props.text || "",
+        textStyle: props.textStyle
+    }); }), (0, utils_1.circleRotationController)()), (0, utils_1.circleRotation)());
+}
+exports.withInteractiveRotatableTextCircle = withInteractiveRotatableTextCircle;
+
+},{"../basic/multiline-text":70,"../utils":99,"./with-rotation":89,"./with-text":90,"@carnelian-diagram/interactivity":48}],86:[function(require,module,exports){
+"use strict";
+var __assign = (this && this.__assign) || function () {
+    __assign = Object.assign || function(t) {
+        for (var s, i = 1, n = arguments.length; i < n; i++) {
+            s = arguments[i];
+            for (var p in s) if (Object.prototype.hasOwnProperty.call(s, p))
+                t[p] = s[p];
+        }
+        return t;
+    };
+    return __assign.apply(this, arguments);
+};
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.withInteractiveRotatableTextRect = void 0;
+var interactivity_1 = require("@carnelian-diagram/interactivity");
+var multiline_text_1 = require("../basic/multiline-text");
+var utils_1 = require("../utils");
+var with_rotation_1 = require("./with-rotation");
+var with_text_1 = require("./with-text");
+function withInteractiveRotatableTextRect(WrappedElement, collider) {
+    return (0, with_rotation_1.withRotation)((0, interactivity_1.withInteractiveRotation)((0, with_text_1.withText)((0, interactivity_1.withInteractiveRect)(WrappedElement, {
+        innerHitArea: function (hitArea) { return (__assign(__assign({}, hitArea), { dblClickAction: interactivity_1.ACT_EDIT_TEXT })); },
+        collider: collider
+    }), multiline_text_1.InteractiveMultilineTextComponent, function (props) { return (__assign(__assign({}, props), { text: props.text || "" })); }), (0, utils_1.rectRotationController)()), (0, utils_1.rectRotation)());
+}
+exports.withInteractiveRotatableTextRect = withInteractiveRotatableTextRect;
+
+},{"../basic/multiline-text":70,"../utils":99,"./with-rotation":89,"./with-text":90,"@carnelian-diagram/interactivity":48}],87:[function(require,module,exports){
+"use strict";
+var __assign = (this && this.__assign) || function () {
+    __assign = Object.assign || function(t) {
+        for (var s, i = 1, n = arguments.length; i < n; i++) {
+            s = arguments[i];
+            for (var p in s) if (Object.prototype.hasOwnProperty.call(s, p))
+                t[p] = s[p];
+        }
+        return t;
+    };
+    return __assign.apply(this, arguments);
+};
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.withInteractiveRotatableTextSquare = void 0;
+var interactivity_1 = require("@carnelian-diagram/interactivity");
+var multiline_text_1 = require("../basic/multiline-text");
+var utils_1 = require("../utils");
+var with_rotation_1 = require("./with-rotation");
+var with_text_1 = require("./with-text");
+function withInteractiveRotatableTextSquare(WrappedElement, collider) {
+    return (0, with_rotation_1.withRotation)((0, interactivity_1.withInteractiveRotation)((0, with_text_1.withText)((0, interactivity_1.withInteractiveSquare)(WrappedElement, {
+        innerHitArea: function (hitArea) { return (__assign(__assign({}, hitArea), { dblClickAction: interactivity_1.ACT_EDIT_TEXT })); },
+        collider: collider
+    }), multiline_text_1.InteractiveMultilineTextComponent, function (props) { return ({
+        x: props.x,
+        y: props.y,
+        width: props.size,
+        height: props.size,
+        text: props.text || "",
+        textStyle: props.textStyle
+    }); }), (0, utils_1.squareRotationController)()), (0, utils_1.squareRotation)());
+}
+exports.withInteractiveRotatableTextSquare = withInteractiveRotatableTextSquare;
+
+},{"../basic/multiline-text":70,"../utils":99,"./with-rotation":89,"./with-text":90,"@carnelian-diagram/interactivity":48}],88:[function(require,module,exports){
+"use strict";
+var __assign = (this && this.__assign) || function () {
+    __assign = Object.assign || function(t) {
+        for (var s, i = 1, n = arguments.length; i < n; i++) {
+            s = arguments[i];
+            for (var p in s) if (Object.prototype.hasOwnProperty.call(s, p))
+                t[p] = s[p];
+        }
+        return t;
+    };
+    return __assign.apply(this, arguments);
+};
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.withInteractiveRotatableText = void 0;
+var interactivity_1 = require("@carnelian-diagram/interactivity");
+var utils_1 = require("../utils");
+var with_rotation_1 = require("./with-rotation");
+function withInteractiveRotatableText(WrappedElement) {
+    return (0, with_rotation_1.withRotation)((0, interactivity_1.withInteractiveRotation)((0, interactivity_1.withInteractiveText)((0, interactivity_1.withInteractiveRect)(WrappedElement, {
+        innerHitArea: function (hitArea) { return (__assign(__assign({}, hitArea), { dblClickAction: interactivity_1.ACT_EDIT_TEXT })); }
+    }), function (props) { return props; }, function (props) { return (0, utils_1.textEditorStyles)(props.textStyle); }, {
+        onPlaceText: function (props) { return (__assign(__assign({}, props), (0, utils_1.getTextBounds)(props.x, props.y, props.text, props.textStyle))); },
+        deleteOnEmpty: true
+    }), (0, utils_1.textRotationController)()), (0, utils_1.textRotation)());
+}
+exports.withInteractiveRotatableText = withInteractiveRotatableText;
+
+},{"../utils":99,"./with-rotation":89,"@carnelian-diagram/interactivity":48}],89:[function(require,module,exports){
+"use strict";
+var __assign = (this && this.__assign) || function () {
+    __assign = Object.assign || function(t) {
+        for (var s, i = 1, n = arguments.length; i < n; i++) {
+            s = arguments[i];
+            for (var p in s) if (Object.prototype.hasOwnProperty.call(s, p))
+                t[p] = s[p];
+        }
+        return t;
+    };
+    return __assign.apply(this, arguments);
+};
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.withRotation = void 0;
+var jsx_runtime_1 = require("@carnelian-diagram/core/jsx-runtime");
+var interactivity_1 = require("@carnelian-diagram/interactivity");
+var geometry_1 = require("@carnelian-diagram/interactivity/geometry");
+function withRotation(WrappedElement, rotation) {
+    return function (props) {
+        var onChange = props.onChange;
+        var angle = props.rotation || 0;
+        var transform = (0, interactivity_1.rotateTransform)(angle);
+        (0, interactivity_1.useTransform)(transform);
+        if (angle) {
+            var origin_1 = rotation.origin(props);
+            var p = (0, geometry_1.transformPoint)(origin_1, transform.inverse());
+            var innerOnChange = function (callback) {
+                function rotationCallback(props) {
+                    var newInnerProps = callback(innerProps_1);
+                    var newInnerOrigin = rotation.origin(newInnerProps);
+                    var newOuterOrigin = (0, geometry_1.transformPoint)(newInnerOrigin, transform);
+                    var dx = newOuterOrigin.x - newInnerOrigin.x;
+                    var dy = newOuterOrigin.y - newInnerOrigin.y;
+                    return rotation.offsetElement(newInnerProps, dx, dy);
+                }
+                return onChange(rotationCallback);
+            };
+            var innerProps_1 = __assign(__assign({}, rotation.offsetElement(props, p.x - origin_1.x, p.y - origin_1.y)), { onChange: innerOnChange });
+            return ((0, jsx_runtime_1.jsx)("g", __assign({ transform: "rotate(".concat(angle, ")") }, { children: (0, jsx_runtime_1.jsx)(WrappedElement, __assign({}, innerProps_1)) })));
+        }
+        else {
+            return (0, jsx_runtime_1.jsx)(WrappedElement, __assign({}, props));
+        }
+    };
+}
+exports.withRotation = withRotation;
+
+},{"@carnelian-diagram/core/jsx-runtime":14,"@carnelian-diagram/interactivity":48,"@carnelian-diagram/interactivity/geometry":28}],90:[function(require,module,exports){
+"use strict";
+var __assign = (this && this.__assign) || function () {
+    __assign = Object.assign || function(t) {
+        for (var s, i = 1, n = arguments.length; i < n; i++) {
+            s = arguments[i];
+            for (var p in s) if (Object.prototype.hasOwnProperty.call(s, p))
+                t[p] = s[p];
+        }
+        return t;
+    };
+    return __assign.apply(this, arguments);
+};
+var __rest = (this && this.__rest) || function (s, e) {
+    var t = {};
+    for (var p in s) if (Object.prototype.hasOwnProperty.call(s, p) && e.indexOf(p) < 0)
+        t[p] = s[p];
+    if (s != null && typeof Object.getOwnPropertySymbols === "function")
+        for (var i = 0, p = Object.getOwnPropertySymbols(s); i < p.length; i++) {
+            if (e.indexOf(p[i]) < 0 && Object.prototype.propertyIsEnumerable.call(s, p[i]))
+                t[p[i]] = s[p[i]];
+        }
+    return t;
+};
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.withText = void 0;
+var jsx_runtime_1 = require("@carnelian-diagram/core/jsx-runtime");
+function withText(WrappedElement, TextElement, textElementProps) {
+    return function (props) {
+        var text = props.text, textStyle = props.textStyle, rest = __rest(props, ["text", "textStyle"]);
+        var elementProps = rest;
+        var textProps = __assign(__assign({}, textElementProps(props)), { onChange: function (callback) {
+                props.onChange(function (props) {
+                    var _a = callback(textProps), text = _a.text, textStyle = _a.textStyle;
+                    return __assign(__assign({}, props), { text: text, textStyle: textStyle });
+                });
+            } });
+        textProps.text = textProps.text || "";
+        return ((0, jsx_runtime_1.jsxs)(jsx_runtime_1.Fragment, { children: [(0, jsx_runtime_1.jsx)(WrappedElement, __assign({}, elementProps)), (0, jsx_runtime_1.jsx)(TextElement, __assign({}, textProps))] }));
+    };
+}
+exports.withText = withText;
+
+},{"@carnelian-diagram/core/jsx-runtime":14}],91:[function(require,module,exports){
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.DEFAULT_FONT_FAMILY = exports.DEFAULT_FONT_SIZE = void 0;
+exports.DEFAULT_FONT_SIZE = "10px";
+exports.DEFAULT_FONT_FAMILY = "sans-serif";
+
+},{}],92:[function(require,module,exports){
+"use strict";
+var __assign = (this && this.__assign) || function () {
+    __assign = Object.assign || function(t) {
+        for (var s, i = 1, n = arguments.length; i < n; i++) {
+            s = arguments[i];
+            for (var p in s) if (Object.prototype.hasOwnProperty.call(s, p))
+                t[p] = s[p];
+        }
+        return t;
+    };
+    return __assign.apply(this, arguments);
+};
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.Arrow1 = void 0;
+var jsx_runtime_1 = require("@carnelian-diagram/core/jsx-runtime");
+var Arrow1 = function (props) {
+    var points = [
+        { x: props.x - props.size, y: props.y - props.size / 2 },
+        { x: props.x, y: props.y },
+        { x: props.x - props.size, y: props.y + props.size / 2 }
+    ];
+    var styleProps = __assign(__assign({}, props.style), { fill: "none" });
+    return ((0, jsx_runtime_1.jsx)("polyline", { points: points.map(function (p) { return "".concat(p.x, ",").concat(p.y); }).join(" "), style: __assign({}, styleProps) }));
+};
+exports.Arrow1 = Arrow1;
+
+},{"@carnelian-diagram/core/jsx-runtime":14}],93:[function(require,module,exports){
+"use strict";
+var __assign = (this && this.__assign) || function () {
+    __assign = Object.assign || function(t) {
+        for (var s, i = 1, n = arguments.length; i < n; i++) {
+            s = arguments[i];
+            for (var p in s) if (Object.prototype.hasOwnProperty.call(s, p))
+                t[p] = s[p];
+        }
+        return t;
+    };
+    return __assign.apply(this, arguments);
+};
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.Arrow2 = void 0;
+var jsx_runtime_1 = require("@carnelian-diagram/core/jsx-runtime");
+var Arrow2 = function (props) {
+    var _a;
+    var points = [
+        { x: props.x - props.size, y: props.y - props.size / 2 },
+        { x: props.x, y: props.y },
+        { x: props.x - props.size, y: props.y + props.size / 2 }
+    ];
+    var styleProps = __assign(__assign({}, props.style), { strokeDasharray: null, fill: ((_a = props.style) === null || _a === void 0 ? void 0 : _a.stroke) || "initial" });
+    return ((0, jsx_runtime_1.jsx)("polygon", { points: points.map(function (p) { return "".concat(p.x, ",").concat(p.y); }).join(" "), style: __assign({}, styleProps) }));
+};
+exports.Arrow2 = Arrow2;
+
+},{"@carnelian-diagram/core/jsx-runtime":14}],94:[function(require,module,exports){
+"use strict";
+var __assign = (this && this.__assign) || function () {
+    __assign = Object.assign || function(t) {
+        for (var s, i = 1, n = arguments.length; i < n; i++) {
+            s = arguments[i];
+            for (var p in s) if (Object.prototype.hasOwnProperty.call(s, p))
+                t[p] = s[p];
+        }
+        return t;
+    };
+    return __assign.apply(this, arguments);
+};
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.Arrow3 = void 0;
+var jsx_runtime_1 = require("@carnelian-diagram/core/jsx-runtime");
+var Arrow3 = function (props) {
+    var _a;
+    var points = [
+        { x: props.x - 2 * props.size / 3, y: props.y },
+        { x: props.x - props.size, y: props.y - props.size / 2 },
+        { x: props.x, y: props.y },
+        { x: props.x - props.size, y: props.y + props.size / 2 }
+    ];
+    var styleProps = __assign(__assign({}, props.style), { strokeDasharray: null, fill: ((_a = props.style) === null || _a === void 0 ? void 0 : _a.stroke) || "initial" });
+    return ((0, jsx_runtime_1.jsx)("polygon", { points: points.map(function (p) { return "".concat(p.x, ",").concat(p.y); }).join(" "), style: __assign({}, styleProps) }));
+};
+exports.Arrow3 = Arrow3;
+
+},{"@carnelian-diagram/core/jsx-runtime":14}],95:[function(require,module,exports){
+"use strict";
+var __assign = (this && this.__assign) || function () {
+    __assign = Object.assign || function(t) {
+        for (var s, i = 1, n = arguments.length; i < n; i++) {
+            s = arguments[i];
+            for (var p in s) if (Object.prototype.hasOwnProperty.call(s, p))
+                t[p] = s[p];
+        }
+        return t;
+    };
+    return __assign.apply(this, arguments);
+};
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.Circle = void 0;
+var jsx_runtime_1 = require("@carnelian-diagram/core/jsx-runtime");
+var Circle = function (props) {
+    var _a;
+    var styleProps = __assign(__assign({}, props.style), { strokeDasharray: null, fill: ((_a = props.style) === null || _a === void 0 ? void 0 : _a.stroke) || "initial" });
+    return ((0, jsx_runtime_1.jsx)("circle", { cx: props.x - props.size / 2, cy: props.y, r: props.size / 2, style: __assign({}, styleProps) }));
+};
+exports.Circle = Circle;
+
+},{"@carnelian-diagram/core/jsx-runtime":14}],96:[function(require,module,exports){
+"use strict";
+var __assign = (this && this.__assign) || function () {
+    __assign = Object.assign || function(t) {
+        for (var s, i = 1, n = arguments.length; i < n; i++) {
+            s = arguments[i];
+            for (var p in s) if (Object.prototype.hasOwnProperty.call(s, p))
+                t[p] = s[p];
+        }
+        return t;
+    };
+    return __assign.apply(this, arguments);
+};
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.Diamond = void 0;
+var jsx_runtime_1 = require("@carnelian-diagram/core/jsx-runtime");
+var Diamond = function (props) {
+    var _a;
+    var points = [
+        { x: props.x, y: props.y },
+        { x: props.x - props.size / 2, y: props.y + props.size / 2 },
+        { x: props.x - props.size, y: props.y },
+        { x: props.x - props.size / 2, y: props.y - props.size / 2 },
+    ];
+    var styleProps = __assign(__assign({}, props.style), { strokeDasharray: null, fill: ((_a = props.style) === null || _a === void 0 ? void 0 : _a.stroke) || "initial" });
+    return ((0, jsx_runtime_1.jsx)("polygon", { points: points.map(function (p) { return "".concat(p.x, ",").concat(p.y); }).join(" "), style: __assign({}, styleProps) }));
+};
+exports.Diamond = Diamond;
+
+},{"@carnelian-diagram/core/jsx-runtime":14}],97:[function(require,module,exports){
+"use strict";
+var __assign = (this && this.__assign) || function () {
+    __assign = Object.assign || function(t) {
+        for (var s, i = 1, n = arguments.length; i < n; i++) {
+            s = arguments[i];
+            for (var p in s) if (Object.prototype.hasOwnProperty.call(s, p))
+                t[p] = s[p];
+        }
+        return t;
+    };
+    return __assign.apply(this, arguments);
+};
+var __createBinding = (this && this.__createBinding) || (Object.create ? (function(o, m, k, k2) {
+    if (k2 === undefined) k2 = k;
+    var desc = Object.getOwnPropertyDescriptor(m, k);
+    if (!desc || ("get" in desc ? !m.__esModule : desc.writable || desc.configurable)) {
+      desc = { enumerable: true, get: function() { return m[k]; } };
+    }
+    Object.defineProperty(o, k2, desc);
+}) : (function(o, m, k, k2) {
+    if (k2 === undefined) k2 = k;
+    o[k2] = m[k];
+}));
+var __exportStar = (this && this.__exportStar) || function(m, exports) {
+    for (var p in m) if (p !== "default" && !Object.prototype.hasOwnProperty.call(exports, p)) __createBinding(exports, m, p);
+};
+var __read = (this && this.__read) || function (o, n) {
+    var m = typeof Symbol === "function" && o[Symbol.iterator];
+    if (!m) return o;
+    var i = m.call(o), r, ar = [], e;
+    try {
+        while ((n === void 0 || n-- > 0) && !(r = i.next()).done) ar.push(r.value);
+    }
+    catch (error) { e = { error: error }; }
+    finally {
+        try {
+            if (r && !r.done && (m = i["return"])) m.call(i);
+        }
+        finally { if (e) throw e.error; }
+    }
+    return ar;
+};
+var __spreadArray = (this && this.__spreadArray) || function (to, from, pack) {
+    if (pack || arguments.length === 2) for (var i = 0, l = from.length, ar; i < l; i++) {
+        if (ar || !(i in from)) {
+            if (!ar) ar = Array.prototype.slice.call(from, 0, i);
+            ar[i] = from[i];
+        }
+    }
+    return to.concat(ar || Array.prototype.slice.call(from));
+};
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.LineCap = exports.allLineCapNames = exports.unregisterLineCap = exports.registerLineCap = void 0;
+var jsx_runtime_1 = require("@carnelian-diagram/core/jsx-runtime");
+var lineCapRegistry = new Map();
+function registerLineCap(kind, renderer) {
+    lineCapRegistry.set(kind, renderer);
+}
+exports.registerLineCap = registerLineCap;
+function unregisterLineCap(kind) {
+    lineCapRegistry.delete(kind);
+}
+exports.unregisterLineCap = unregisterLineCap;
+function allLineCapNames() {
+    return __spreadArray([], __read(lineCapRegistry.keys()), false);
+}
+exports.allLineCapNames = allLineCapNames;
+var LineCap = function (props) {
+    var lineCap = lineCapRegistry.get(props.kind);
+    return lineCap && ((0, jsx_runtime_1.jsx)("g", __assign({ transform: "rotate(".concat(props.rotation, " ").concat(props.x, " ").concat(props.y, ")") }, { children: lineCap.call(this, props) })));
+};
+exports.LineCap = LineCap;
+var arrow1_1 = require("./arrow1");
+var arrow2_1 = require("./arrow2");
+var arrow3_1 = require("./arrow3");
+var diamond_1 = require("./diamond");
+var square_1 = require("./square");
+var circle_1 = require("./circle");
+registerLineCap("arrow1", arrow1_1.Arrow1);
+registerLineCap("arrow2", arrow2_1.Arrow2);
+registerLineCap("arrow3", arrow3_1.Arrow3);
+registerLineCap("diamond", diamond_1.Diamond);
+registerLineCap("square", square_1.Square);
+registerLineCap("circle", circle_1.Circle);
+__exportStar(require("./arrow1"), exports);
+__exportStar(require("./arrow2"), exports);
+__exportStar(require("./arrow3"), exports);
+__exportStar(require("./diamond"), exports);
+__exportStar(require("./square"), exports);
+__exportStar(require("./circle"), exports);
+
+},{"./arrow1":92,"./arrow2":93,"./arrow3":94,"./circle":95,"./diamond":96,"./square":98,"@carnelian-diagram/core/jsx-runtime":14}],98:[function(require,module,exports){
+"use strict";
+var __assign = (this && this.__assign) || function () {
+    __assign = Object.assign || function(t) {
+        for (var s, i = 1, n = arguments.length; i < n; i++) {
+            s = arguments[i];
+            for (var p in s) if (Object.prototype.hasOwnProperty.call(s, p))
+                t[p] = s[p];
+        }
+        return t;
+    };
+    return __assign.apply(this, arguments);
+};
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.Square = void 0;
+var jsx_runtime_1 = require("@carnelian-diagram/core/jsx-runtime");
+var Square = function (props) {
+    var _a;
+    var styleProps = __assign(__assign({}, props.style), { strokeDasharray: null, fill: ((_a = props.style) === null || _a === void 0 ? void 0 : _a.stroke) || "initial" });
+    return ((0, jsx_runtime_1.jsx)("rect", { x: props.x - props.size, y: props.y - props.size / 2, width: props.size, height: props.size, style: __assign({}, styleProps) }));
+};
+exports.Square = Square;
+
+},{"@carnelian-diagram/core/jsx-runtime":14}],99:[function(require,module,exports){
+"use strict";
+var __createBinding = (this && this.__createBinding) || (Object.create ? (function(o, m, k, k2) {
+    if (k2 === undefined) k2 = k;
+    var desc = Object.getOwnPropertyDescriptor(m, k);
+    if (!desc || ("get" in desc ? !m.__esModule : desc.writable || desc.configurable)) {
+      desc = { enumerable: true, get: function() { return m[k]; } };
+    }
+    Object.defineProperty(o, k2, desc);
+}) : (function(o, m, k, k2) {
+    if (k2 === undefined) k2 = k;
+    o[k2] = m[k];
+}));
+var __exportStar = (this && this.__exportStar) || function(m, exports) {
+    for (var p in m) if (p !== "default" && !Object.prototype.hasOwnProperty.call(exports, p)) __createBinding(exports, m, p);
+};
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.convertPercentage = exports.isPercentage = void 0;
+__exportStar(require("./text-utils"), exports);
+__exportStar(require("./interactivity-helpers"), exports);
+function isPercentage(value) {
+    return typeof value === "string" && value.charAt(value.length - 1) === "%";
+}
+exports.isPercentage = isPercentage;
+function convertPercentage(value, base) {
+    return isPercentage(value) ? parseFloat(value) * base / 100 : +value;
+}
+exports.convertPercentage = convertPercentage;
+
+},{"./interactivity-helpers":100,"./text-utils":101}],100:[function(require,module,exports){
+"use strict";
+var __assign = (this && this.__assign) || function () {
+    __assign = Object.assign || function(t) {
+        for (var s, i = 1, n = arguments.length; i < n; i++) {
+            s = arguments[i];
+            for (var p in s) if (Object.prototype.hasOwnProperty.call(s, p))
+                t[p] = s[p];
+        }
+        return t;
+    };
+    return __assign.apply(this, arguments);
+};
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.polygonRotationController = exports.polygonRotation = exports.circleRotationController = exports.circleRotation = exports.squareRotationController = exports.squareRotation = exports.rectRotationController = exports.rectRotation = exports.textRotationController = exports.textRotation = void 0;
+var geometry_1 = require("@carnelian-diagram/interactivity/geometry");
+var ROTATION_HANDLE_OFFSET = 20;
+function textRotation() {
+    return {
+        origin: function (props) { return ({ x: props.x + props.width / 2, y: props.y + props.height / 2 }); },
+        offsetElement: function (props, dx, dy) { return (__assign(__assign({}, props), { x: props.x + dx, y: props.y + dy })); }
+    };
+}
+exports.textRotation = textRotation;
+function textRotationController() {
+    return {
+        origin: function (props) { return ({ x: props.x + props.width / 2, y: props.y + props.height / 2 }); },
+        handleAnchor: function (props) { return ({ x: props.x + props.width, y: props.y }); },
+        handleOffset: ROTATION_HANDLE_OFFSET,
+        getRotation: function (props) { return props.rotation || 0; },
+        setRotation: function (props, rotation) { return (__assign(__assign({}, props), { rotation: rotation })); }
+    };
+}
+exports.textRotationController = textRotationController;
+function rectRotation() {
+    return {
+        origin: function (props) { return ({ x: props.x + props.width / 2, y: props.y + props.height / 2 }); },
+        offsetElement: function (props, dx, dy) { return (__assign(__assign({}, props), { x: props.x + dx, y: props.y + dy })); }
+    };
+}
+exports.rectRotation = rectRotation;
+function rectRotationController() {
+    return {
+        origin: function (props) { return ({ x: props.x + props.width / 2, y: props.y + props.height / 2 }); },
+        handleAnchor: function (props) { return ({ x: props.x + props.width, y: props.y }); },
+        handleOffset: ROTATION_HANDLE_OFFSET,
+        getRotation: function (props) { return props.rotation || 0; },
+        setRotation: function (props, rotation) { return (__assign(__assign({}, props), { rotation: rotation })); }
+    };
+}
+exports.rectRotationController = rectRotationController;
+function squareRotation() {
+    return {
+        origin: function (props) { return ({ x: props.x + props.size / 2, y: props.y + props.size / 2 }); },
+        offsetElement: function (props, dx, dy) { return (__assign(__assign({}, props), { x: props.x + dx, y: props.y + dy })); }
+    };
+}
+exports.squareRotation = squareRotation;
+function squareRotationController() {
+    return {
+        origin: function (props) { return ({ x: props.x + props.size / 2, y: props.y + props.size / 2 }); },
+        handleAnchor: function (props) { return ({ x: props.x + props.size, y: props.y }); },
+        handleOffset: ROTATION_HANDLE_OFFSET,
+        getRotation: function (props) { return props.rotation || 0; },
+        setRotation: function (props, rotation) { return (__assign(__assign({}, props), { rotation: rotation })); }
+    };
+}
+exports.squareRotationController = squareRotationController;
+function circleRotation() {
+    return {
+        origin: function (props) { return ({ x: props.x, y: props.y }); },
+        offsetElement: function (props, dx, dy) { return (__assign(__assign({}, props), { x: props.x + dx, y: props.y + dy })); }
+    };
+}
+exports.circleRotation = circleRotation;
+function circleRotationController() {
+    return {
+        origin: function (props) { return ({ x: props.x, y: props.y }); },
+        handleAnchor: function (props) { return ({ x: props.x + props.radius, y: props.y - props.radius }); },
+        handleOffset: ROTATION_HANDLE_OFFSET,
+        getRotation: function (props) { return props.rotation || 0; },
+        setRotation: function (props, rotation) { return (__assign(__assign({}, props), { rotation: rotation })); }
+    };
+}
+exports.circleRotationController = circleRotationController;
+function polygonRotation() {
+    return {
+        origin: function (props) {
+            var bounds = (0, geometry_1.polygonBounds)(props.points);
+            return bounds ? {
+                x: bounds.x + bounds.width / 2,
+                y: bounds.y + bounds.height / 2
+            } : { x: 0, y: 0 };
+        },
+        offsetElement: function (props, dx, dy) { return (__assign(__assign({}, props), { points: props.points.map(function (p) { return ({ x: p.x + dx, y: p.y + dy }); }) })); }
+    };
+}
+exports.polygonRotation = polygonRotation;
+function polygonRotationController() {
+    return {
+        origin: function (props) {
+            var bounds = (0, geometry_1.polygonBounds)(props.points);
+            return bounds ? {
+                x: bounds.x + bounds.width / 2,
+                y: bounds.y + bounds.height / 2
+            } : { x: 0, y: 0 };
+        },
+        handleAnchor: function (props) {
+            var bounds = (0, geometry_1.polygonBounds)(props.points);
+            return bounds ? { x: bounds.x + bounds.width, y: bounds.y } : { x: 0, y: 0 };
+        },
+        handleOffset: ROTATION_HANDLE_OFFSET,
+        getRotation: function (props) { return props.rotation || 0; },
+        setRotation: function (props, rotation) { return (__assign(__assign({}, props), { rotation: rotation })); }
+    };
+}
+exports.polygonRotationController = polygonRotationController;
+
+},{"@carnelian-diagram/interactivity/geometry":28}],101:[function(require,module,exports){
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.textEditorStyles = exports.getTextBounds = exports.wrapText = exports.measureText = void 0;
+var __1 = require("..");
+function with2dContext(action, style) {
+    var canvas = document.createElement('canvas');
+    try {
+        var ctx = canvas.getContext("2d");
+        if (ctx) {
+            var fontSize = (style === null || style === void 0 ? void 0 : style.fontSize) || __1.DEFAULT_FONT_SIZE;
+            var fontFamily = (style === null || style === void 0 ? void 0 : style.fontFamily) || __1.DEFAULT_FONT_FAMILY;
+            var font = [style === null || style === void 0 ? void 0 : style.fontStyle, style === null || style === void 0 ? void 0 : style.fontVariant, style === null || style === void 0 ? void 0 : style.fontWeight, style === null || style === void 0 ? void 0 : style.fontStretch, fontSize, fontFamily]
+                .filter(function (x) { return x !== undefined; })
+                .join(' ');
+            ctx.font = font;
+            return action(ctx);
+        }
+        else {
+            throw new Error("An error has occured while getting a canvas 2d context");
+        }
+    }
+    finally {
+        canvas.remove();
+    }
+}
+function measureText(text, style) {
+    return with2dContext(function (ctx) { return ctx.measureText(text); }, style);
+}
+exports.measureText = measureText;
+function wrapText(text, width, style) {
+    return with2dContext(function (ctx) {
+        var lines = [];
+        var words = text.split(' ');
+        var line = [];
+        while (words.length > 0) {
+            var word = words.shift();
+            line.push(word);
+            var size = ctx.measureText(line.join(' '));
+            if (size.width > width || words.length === 0) {
+                if (size.width > width && line.length > 1) {
+                    line.pop();
+                    words.unshift(word);
+                }
+                lines.push(line.join(' '));
+                line = [];
+            }
+        }
+        var textMetrics = ctx.measureText(text);
+        return { lines: lines, textMetrics: textMetrics };
+    }, style);
+}
+exports.wrapText = wrapText;
+function getTextBounds(x, y, text, style) {
+    var textMetrics = measureText(text, style);
+    var width = textMetrics.width;
+    var height = textMetrics.fontBoundingBoxAscent + textMetrics.fontBoundingBoxDescent;
+    switch ((style === null || style === void 0 ? void 0 : style.textAlign) || "center") {
+        case "center":
+            x = x - width / 2;
+            break;
+        case "right":
+            x = x - width;
+            break;
+    }
+    switch ((style === null || style === void 0 ? void 0 : style.verticalAlign) || "middle") {
+        case "middle":
+            y = y - height / 2;
+            break;
+        case "bottom":
+            y = y - height;
+            break;
+    }
+    return { x: x, y: y, width: width, height: height };
+}
+exports.getTextBounds = getTextBounds;
+function textEditorStyles(style) {
+    return {
+        fontSize: (style === null || style === void 0 ? void 0 : style.fontSize) || __1.DEFAULT_FONT_SIZE,
+        fontFamily: (style === null || style === void 0 ? void 0 : style.fontFamily) || __1.DEFAULT_FONT_FAMILY,
+        fontStyle: style === null || style === void 0 ? void 0 : style.fontStyle,
+        fontWeight: style === null || style === void 0 ? void 0 : style.fontWeight,
+        textAlign: (style === null || style === void 0 ? void 0 : style.textAlign) || "center",
+        verticalAlign: (style === null || style === void 0 ? void 0 : style.verticalAlign) || "middle"
+    };
+}
+exports.textEditorStyles = textEditorStyles;
+
+},{"..":91}],102:[function(require,module,exports){
+'use strict'
+
+exports.byteLength = byteLength
+exports.toByteArray = toByteArray
+exports.fromByteArray = fromByteArray
+
+var lookup = []
+var revLookup = []
+var Arr = typeof Uint8Array !== 'undefined' ? Uint8Array : Array
+
+var code = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/'
+for (var i = 0, len = code.length; i < len; ++i) {
+  lookup[i] = code[i]
+  revLookup[code.charCodeAt(i)] = i
+}
+
+// Support decoding URL-safe base64 strings, as Node.js does.
+// See: https://en.wikipedia.org/wiki/Base64#URL_applications
+revLookup['-'.charCodeAt(0)] = 62
+revLookup['_'.charCodeAt(0)] = 63
+
+function getLens (b64) {
+  var len = b64.length
+
+  if (len % 4 > 0) {
+    throw new Error('Invalid string. Length must be a multiple of 4')
+  }
+
+  // Trim off extra bytes after placeholder bytes are found
+  // See: https://github.com/beatgammit/base64-js/issues/42
+  var validLen = b64.indexOf('=')
+  if (validLen === -1) validLen = len
+
+  var placeHoldersLen = validLen === len
+    ? 0
+    : 4 - (validLen % 4)
+
+  return [validLen, placeHoldersLen]
+}
+
+// base64 is 4/3 + up to two characters of the original data
+function byteLength (b64) {
+  var lens = getLens(b64)
+  var validLen = lens[0]
+  var placeHoldersLen = lens[1]
+  return ((validLen + placeHoldersLen) * 3 / 4) - placeHoldersLen
+}
+
+function _byteLength (b64, validLen, placeHoldersLen) {
+  return ((validLen + placeHoldersLen) * 3 / 4) - placeHoldersLen
+}
+
+function toByteArray (b64) {
+  var tmp
+  var lens = getLens(b64)
+  var validLen = lens[0]
+  var placeHoldersLen = lens[1]
+
+  var arr = new Arr(_byteLength(b64, validLen, placeHoldersLen))
+
+  var curByte = 0
+
+  // if there are placeholders, only get up to the last complete 4 chars
+  var len = placeHoldersLen > 0
+    ? validLen - 4
+    : validLen
+
+  var i
+  for (i = 0; i < len; i += 4) {
+    tmp =
+      (revLookup[b64.charCodeAt(i)] << 18) |
+      (revLookup[b64.charCodeAt(i + 1)] << 12) |
+      (revLookup[b64.charCodeAt(i + 2)] << 6) |
+      revLookup[b64.charCodeAt(i + 3)]
+    arr[curByte++] = (tmp >> 16) & 0xFF
+    arr[curByte++] = (tmp >> 8) & 0xFF
+    arr[curByte++] = tmp & 0xFF
+  }
+
+  if (placeHoldersLen === 2) {
+    tmp =
+      (revLookup[b64.charCodeAt(i)] << 2) |
+      (revLookup[b64.charCodeAt(i + 1)] >> 4)
+    arr[curByte++] = tmp & 0xFF
+  }
+
+  if (placeHoldersLen === 1) {
+    tmp =
+      (revLookup[b64.charCodeAt(i)] << 10) |
+      (revLookup[b64.charCodeAt(i + 1)] << 4) |
+      (revLookup[b64.charCodeAt(i + 2)] >> 2)
+    arr[curByte++] = (tmp >> 8) & 0xFF
+    arr[curByte++] = tmp & 0xFF
+  }
+
+  return arr
+}
+
+function tripletToBase64 (num) {
+  return lookup[num >> 18 & 0x3F] +
+    lookup[num >> 12 & 0x3F] +
+    lookup[num >> 6 & 0x3F] +
+    lookup[num & 0x3F]
+}
+
+function encodeChunk (uint8, start, end) {
+  var tmp
+  var output = []
+  for (var i = start; i < end; i += 3) {
+    tmp =
+      ((uint8[i] << 16) & 0xFF0000) +
+      ((uint8[i + 1] << 8) & 0xFF00) +
+      (uint8[i + 2] & 0xFF)
+    output.push(tripletToBase64(tmp))
+  }
+  return output.join('')
+}
+
+function fromByteArray (uint8) {
+  var tmp
+  var len = uint8.length
+  var extraBytes = len % 3 // if we have 1 byte left, pad 2 bytes
+  var parts = []
+  var maxChunkLength = 16383 // must be multiple of 3
+
+  // go through the array every three bytes, we'll deal with trailing stuff later
+  for (var i = 0, len2 = len - extraBytes; i < len2; i += maxChunkLength) {
+    parts.push(encodeChunk(uint8, i, (i + maxChunkLength) > len2 ? len2 : (i + maxChunkLength)))
+  }
+
+  // pad the end with zeros, but make sure to not forget the extra bytes
+  if (extraBytes === 1) {
+    tmp = uint8[len - 1]
+    parts.push(
+      lookup[tmp >> 2] +
+      lookup[(tmp << 4) & 0x3F] +
+      '=='
+    )
+  } else if (extraBytes === 2) {
+    tmp = (uint8[len - 2] << 8) + uint8[len - 1]
+    parts.push(
+      lookup[tmp >> 10] +
+      lookup[(tmp >> 4) & 0x3F] +
+      lookup[(tmp << 2) & 0x3F] +
+      '='
+    )
+  }
+
+  return parts.join('')
+}
+
+},{}],103:[function(require,module,exports){
+
+},{}],104:[function(require,module,exports){
+/*!
+ * Cross-Browser Split 1.1.1
+ * Copyright 2007-2012 Steven Levithan <stevenlevithan.com>
+ * Available under the MIT License
+ * ECMAScript compliant, uniform cross-browser split method
+ */
+
+/**
+ * Splits a string into an array of strings using a regex or string separator. Matches of the
+ * separator are not included in the result array. However, if `separator` is a regex that contains
+ * capturing groups, backreferences are spliced into the result each time `separator` is matched.
+ * Fixes browser bugs compared to the native `String.prototype.split` and can be used reliably
+ * cross-browser.
+ * @param {String} str String to split.
+ * @param {RegExp|String} separator Regex or string to use for separating the string.
+ * @param {Number} [limit] Maximum number of items to include in the result array.
+ * @returns {Array} Array of substrings.
+ * @example
+ *
+ * // Basic use
+ * split('a b c d', ' ');
+ * // -> ['a', 'b', 'c', 'd']
+ *
+ * // With limit
+ * split('a b c d', ' ', 2);
+ * // -> ['a', 'b']
+ *
+ * // Backreferences in result array
+ * split('..word1 word2..', /([a-z]+)(\d+)/i);
+ * // -> ['..', 'word', '1', ' ', 'word', '2', '..']
+ */
+module.exports = (function split(undef) {
+
+  var nativeSplit = String.prototype.split,
+    compliantExecNpcg = /()??/.exec("")[1] === undef,
+    // NPCG: nonparticipating capturing group
+    self;
+
+  self = function(str, separator, limit) {
+    // If `separator` is not a regex, use `nativeSplit`
+    if (Object.prototype.toString.call(separator) !== "[object RegExp]") {
+      return nativeSplit.call(str, separator, limit);
+    }
+    var output = [],
+      flags = (separator.ignoreCase ? "i" : "") + (separator.multiline ? "m" : "") + (separator.extended ? "x" : "") + // Proposed for ES6
+      (separator.sticky ? "y" : ""),
+      // Firefox 3+
+      lastLastIndex = 0,
+      // Make `global` and avoid `lastIndex` issues by working with a copy
+      separator = new RegExp(separator.source, flags + "g"),
+      separator2, match, lastIndex, lastLength;
+    str += ""; // Type-convert
+    if (!compliantExecNpcg) {
+      // Doesn't need flags gy, but they don't hurt
+      separator2 = new RegExp("^" + separator.source + "$(?!\\s)", flags);
+    }
+    /* Values for `limit`, per the spec:
+     * If undefined: 4294967295 // Math.pow(2, 32) - 1
+     * If 0, Infinity, or NaN: 0
+     * If positive number: limit = Math.floor(limit); if (limit > 4294967295) limit -= 4294967296;
+     * If negative number: 4294967296 - Math.floor(Math.abs(limit))
+     * If other: Type-convert, then use the above rules
+     */
+    limit = limit === undef ? -1 >>> 0 : // Math.pow(2, 32) - 1
+    limit >>> 0; // ToUint32(limit)
+    while (match = separator.exec(str)) {
+      // `separator.lastIndex` is not reliable cross-browser
+      lastIndex = match.index + match[0].length;
+      if (lastIndex > lastLastIndex) {
+        output.push(str.slice(lastLastIndex, match.index));
+        // Fix browsers whose `exec` methods don't consistently return `undefined` for
+        // nonparticipating capturing groups
+        if (!compliantExecNpcg && match.length > 1) {
+          match[0].replace(separator2, function() {
+            for (var i = 1; i < arguments.length - 2; i++) {
+              if (arguments[i] === undef) {
+                match[i] = undef;
+              }
+            }
+          });
+        }
+        if (match.length > 1 && match.index < str.length) {
+          Array.prototype.push.apply(output, match.slice(1));
+        }
+        lastLength = match[0].length;
+        lastLastIndex = lastIndex;
+        if (output.length >= limit) {
+          break;
+        }
+      }
+      if (separator.lastIndex === match.index) {
+        separator.lastIndex++; // Avoid an infinite loop
+      }
+    }
+    if (lastLastIndex === str.length) {
+      if (lastLength || !separator.test("")) {
+        output.push("");
+      }
+    } else {
+      output.push(str.slice(lastLastIndex));
+    }
+    return output.length > limit ? output.slice(0, limit) : output;
+  };
+
+  return self;
+})();
+
+},{}],105:[function(require,module,exports){
+(function (Buffer){(function (){
+/*!
+ * The buffer module from node.js, for the browser.
+ *
+ * @author   Feross Aboukhadijeh <https://feross.org>
+ * @license  MIT
+ */
+/* eslint-disable no-proto */
+
+'use strict'
+
+var base64 = require('base64-js')
+var ieee754 = require('ieee754')
+
+exports.Buffer = Buffer
+exports.SlowBuffer = SlowBuffer
+exports.INSPECT_MAX_BYTES = 50
+
+var K_MAX_LENGTH = 0x7fffffff
+exports.kMaxLength = K_MAX_LENGTH
+
+/**
+ * If `Buffer.TYPED_ARRAY_SUPPORT`:
+ *   === true    Use Uint8Array implementation (fastest)
+ *   === false   Print warning and recommend using `buffer` v4.x which has an Object
+ *               implementation (most compatible, even IE6)
+ *
+ * Browsers that support typed arrays are IE 10+, Firefox 4+, Chrome 7+, Safari 5.1+,
+ * Opera 11.6+, iOS 4.2+.
+ *
+ * We report that the browser does not support typed arrays if the are not subclassable
+ * using __proto__. Firefox 4-29 lacks support for adding new properties to `Uint8Array`
+ * (See: https://bugzilla.mozilla.org/show_bug.cgi?id=695438). IE 10 lacks support
+ * for __proto__ and has a buggy typed array implementation.
+ */
+Buffer.TYPED_ARRAY_SUPPORT = typedArraySupport()
+
+if (!Buffer.TYPED_ARRAY_SUPPORT && typeof console !== 'undefined' &&
+    typeof console.error === 'function') {
+  console.error(
+    'This browser lacks typed array (Uint8Array) support which is required by ' +
+    '`buffer` v5.x. Use `buffer` v4.x if you require old browser support.'
+  )
+}
+
+function typedArraySupport () {
+  // Can typed array instances can be augmented?
+  try {
+    var arr = new Uint8Array(1)
+    arr.__proto__ = { __proto__: Uint8Array.prototype, foo: function () { return 42 } }
+    return arr.foo() === 42
+  } catch (e) {
+    return false
+  }
+}
+
+Object.defineProperty(Buffer.prototype, 'parent', {
+  enumerable: true,
+  get: function () {
+    if (!Buffer.isBuffer(this)) return undefined
+    return this.buffer
+  }
+})
+
+Object.defineProperty(Buffer.prototype, 'offset', {
+  enumerable: true,
+  get: function () {
+    if (!Buffer.isBuffer(this)) return undefined
+    return this.byteOffset
+  }
+})
+
+function createBuffer (length) {
+  if (length > K_MAX_LENGTH) {
+    throw new RangeError('The value "' + length + '" is invalid for option "size"')
+  }
+  // Return an augmented `Uint8Array` instance
+  var buf = new Uint8Array(length)
+  buf.__proto__ = Buffer.prototype
+  return buf
+}
+
+/**
+ * The Buffer constructor returns instances of `Uint8Array` that have their
+ * prototype changed to `Buffer.prototype`. Furthermore, `Buffer` is a subclass of
+ * `Uint8Array`, so the returned instances will have all the node `Buffer` methods
+ * and the `Uint8Array` methods. Square bracket notation works as expected -- it
+ * returns a single octet.
+ *
+ * The `Uint8Array` prototype remains unmodified.
+ */
+
+function Buffer (arg, encodingOrOffset, length) {
+  // Common case.
+  if (typeof arg === 'number') {
+    if (typeof encodingOrOffset === 'string') {
+      throw new TypeError(
+        'The "string" argument must be of type string. Received type number'
+      )
+    }
+    return allocUnsafe(arg)
+  }
+  return from(arg, encodingOrOffset, length)
+}
+
+// Fix subarray() in ES2016. See: https://github.com/feross/buffer/pull/97
+if (typeof Symbol !== 'undefined' && Symbol.species != null &&
+    Buffer[Symbol.species] === Buffer) {
+  Object.defineProperty(Buffer, Symbol.species, {
+    value: null,
+    configurable: true,
+    enumerable: false,
+    writable: false
+  })
+}
+
+Buffer.poolSize = 8192 // not used by this implementation
+
+function from (value, encodingOrOffset, length) {
+  if (typeof value === 'string') {
+    return fromString(value, encodingOrOffset)
+  }
+
+  if (ArrayBuffer.isView(value)) {
+    return fromArrayLike(value)
+  }
+
+  if (value == null) {
+    throw TypeError(
+      'The first argument must be one of type string, Buffer, ArrayBuffer, Array, ' +
+      'or Array-like Object. Received type ' + (typeof value)
+    )
+  }
+
+  if (isInstance(value, ArrayBuffer) ||
+      (value && isInstance(value.buffer, ArrayBuffer))) {
+    return fromArrayBuffer(value, encodingOrOffset, length)
+  }
+
+  if (typeof value === 'number') {
+    throw new TypeError(
+      'The "value" argument must not be of type number. Received type number'
+    )
+  }
+
+  var valueOf = value.valueOf && value.valueOf()
+  if (valueOf != null && valueOf !== value) {
+    return Buffer.from(valueOf, encodingOrOffset, length)
+  }
+
+  var b = fromObject(value)
+  if (b) return b
+
+  if (typeof Symbol !== 'undefined' && Symbol.toPrimitive != null &&
+      typeof value[Symbol.toPrimitive] === 'function') {
+    return Buffer.from(
+      value[Symbol.toPrimitive]('string'), encodingOrOffset, length
+    )
+  }
+
+  throw new TypeError(
+    'The first argument must be one of type string, Buffer, ArrayBuffer, Array, ' +
+    'or Array-like Object. Received type ' + (typeof value)
+  )
+}
+
+/**
+ * Functionally equivalent to Buffer(arg, encoding) but throws a TypeError
+ * if value is a number.
+ * Buffer.from(str[, encoding])
+ * Buffer.from(array)
+ * Buffer.from(buffer)
+ * Buffer.from(arrayBuffer[, byteOffset[, length]])
+ **/
+Buffer.from = function (value, encodingOrOffset, length) {
+  return from(value, encodingOrOffset, length)
+}
+
+// Note: Change prototype *after* Buffer.from is defined to workaround Chrome bug:
+// https://github.com/feross/buffer/pull/148
+Buffer.prototype.__proto__ = Uint8Array.prototype
+Buffer.__proto__ = Uint8Array
+
+function assertSize (size) {
+  if (typeof size !== 'number') {
+    throw new TypeError('"size" argument must be of type number')
+  } else if (size < 0) {
+    throw new RangeError('The value "' + size + '" is invalid for option "size"')
+  }
+}
+
+function alloc (size, fill, encoding) {
+  assertSize(size)
+  if (size <= 0) {
+    return createBuffer(size)
+  }
+  if (fill !== undefined) {
+    // Only pay attention to encoding if it's a string. This
+    // prevents accidentally sending in a number that would
+    // be interpretted as a start offset.
+    return typeof encoding === 'string'
+      ? createBuffer(size).fill(fill, encoding)
+      : createBuffer(size).fill(fill)
+  }
+  return createBuffer(size)
+}
+
+/**
+ * Creates a new filled Buffer instance.
+ * alloc(size[, fill[, encoding]])
+ **/
+Buffer.alloc = function (size, fill, encoding) {
+  return alloc(size, fill, encoding)
+}
+
+function allocUnsafe (size) {
+  assertSize(size)
+  return createBuffer(size < 0 ? 0 : checked(size) | 0)
+}
+
+/**
+ * Equivalent to Buffer(num), by default creates a non-zero-filled Buffer instance.
+ * */
+Buffer.allocUnsafe = function (size) {
+  return allocUnsafe(size)
+}
+/**
+ * Equivalent to SlowBuffer(num), by default creates a non-zero-filled Buffer instance.
+ */
+Buffer.allocUnsafeSlow = function (size) {
+  return allocUnsafe(size)
+}
+
+function fromString (string, encoding) {
+  if (typeof encoding !== 'string' || encoding === '') {
+    encoding = 'utf8'
+  }
+
+  if (!Buffer.isEncoding(encoding)) {
+    throw new TypeError('Unknown encoding: ' + encoding)
+  }
+
+  var length = byteLength(string, encoding) | 0
+  var buf = createBuffer(length)
+
+  var actual = buf.write(string, encoding)
+
+  if (actual !== length) {
+    // Writing a hex string, for example, that contains invalid characters will
+    // cause everything after the first invalid character to be ignored. (e.g.
+    // 'abxxcd' will be treated as 'ab')
+    buf = buf.slice(0, actual)
+  }
+
+  return buf
+}
+
+function fromArrayLike (array) {
+  var length = array.length < 0 ? 0 : checked(array.length) | 0
+  var buf = createBuffer(length)
+  for (var i = 0; i < length; i += 1) {
+    buf[i] = array[i] & 255
+  }
+  return buf
+}
+
+function fromArrayBuffer (array, byteOffset, length) {
+  if (byteOffset < 0 || array.byteLength < byteOffset) {
+    throw new RangeError('"offset" is outside of buffer bounds')
+  }
+
+  if (array.byteLength < byteOffset + (length || 0)) {
+    throw new RangeError('"length" is outside of buffer bounds')
+  }
+
+  var buf
+  if (byteOffset === undefined && length === undefined) {
+    buf = new Uint8Array(array)
+  } else if (length === undefined) {
+    buf = new Uint8Array(array, byteOffset)
+  } else {
+    buf = new Uint8Array(array, byteOffset, length)
+  }
+
+  // Return an augmented `Uint8Array` instance
+  buf.__proto__ = Buffer.prototype
+  return buf
+}
+
+function fromObject (obj) {
+  if (Buffer.isBuffer(obj)) {
+    var len = checked(obj.length) | 0
+    var buf = createBuffer(len)
+
+    if (buf.length === 0) {
+      return buf
+    }
+
+    obj.copy(buf, 0, 0, len)
+    return buf
+  }
+
+  if (obj.length !== undefined) {
+    if (typeof obj.length !== 'number' || numberIsNaN(obj.length)) {
+      return createBuffer(0)
+    }
+    return fromArrayLike(obj)
+  }
+
+  if (obj.type === 'Buffer' && Array.isArray(obj.data)) {
+    return fromArrayLike(obj.data)
+  }
+}
+
+function checked (length) {
+  // Note: cannot use `length < K_MAX_LENGTH` here because that fails when
+  // length is NaN (which is otherwise coerced to zero.)
+  if (length >= K_MAX_LENGTH) {
+    throw new RangeError('Attempt to allocate Buffer larger than maximum ' +
+                         'size: 0x' + K_MAX_LENGTH.toString(16) + ' bytes')
+  }
+  return length | 0
+}
+
+function SlowBuffer (length) {
+  if (+length != length) { // eslint-disable-line eqeqeq
+    length = 0
+  }
+  return Buffer.alloc(+length)
+}
+
+Buffer.isBuffer = function isBuffer (b) {
+  return b != null && b._isBuffer === true &&
+    b !== Buffer.prototype // so Buffer.isBuffer(Buffer.prototype) will be false
+}
+
+Buffer.compare = function compare (a, b) {
+  if (isInstance(a, Uint8Array)) a = Buffer.from(a, a.offset, a.byteLength)
+  if (isInstance(b, Uint8Array)) b = Buffer.from(b, b.offset, b.byteLength)
+  if (!Buffer.isBuffer(a) || !Buffer.isBuffer(b)) {
+    throw new TypeError(
+      'The "buf1", "buf2" arguments must be one of type Buffer or Uint8Array'
+    )
+  }
+
+  if (a === b) return 0
+
+  var x = a.length
+  var y = b.length
+
+  for (var i = 0, len = Math.min(x, y); i < len; ++i) {
+    if (a[i] !== b[i]) {
+      x = a[i]
+      y = b[i]
+      break
+    }
+  }
+
+  if (x < y) return -1
+  if (y < x) return 1
+  return 0
+}
+
+Buffer.isEncoding = function isEncoding (encoding) {
+  switch (String(encoding).toLowerCase()) {
+    case 'hex':
+    case 'utf8':
+    case 'utf-8':
+    case 'ascii':
+    case 'latin1':
+    case 'binary':
+    case 'base64':
+    case 'ucs2':
+    case 'ucs-2':
+    case 'utf16le':
+    case 'utf-16le':
+      return true
+    default:
+      return false
+  }
+}
+
+Buffer.concat = function concat (list, length) {
+  if (!Array.isArray(list)) {
+    throw new TypeError('"list" argument must be an Array of Buffers')
+  }
+
+  if (list.length === 0) {
+    return Buffer.alloc(0)
+  }
+
+  var i
+  if (length === undefined) {
+    length = 0
+    for (i = 0; i < list.length; ++i) {
+      length += list[i].length
+    }
+  }
+
+  var buffer = Buffer.allocUnsafe(length)
+  var pos = 0
+  for (i = 0; i < list.length; ++i) {
+    var buf = list[i]
+    if (isInstance(buf, Uint8Array)) {
+      buf = Buffer.from(buf)
+    }
+    if (!Buffer.isBuffer(buf)) {
+      throw new TypeError('"list" argument must be an Array of Buffers')
+    }
+    buf.copy(buffer, pos)
+    pos += buf.length
+  }
+  return buffer
+}
+
+function byteLength (string, encoding) {
+  if (Buffer.isBuffer(string)) {
+    return string.length
+  }
+  if (ArrayBuffer.isView(string) || isInstance(string, ArrayBuffer)) {
+    return string.byteLength
+  }
+  if (typeof string !== 'string') {
+    throw new TypeError(
+      'The "string" argument must be one of type string, Buffer, or ArrayBuffer. ' +
+      'Received type ' + typeof string
+    )
+  }
+
+  var len = string.length
+  var mustMatch = (arguments.length > 2 && arguments[2] === true)
+  if (!mustMatch && len === 0) return 0
+
+  // Use a for loop to avoid recursion
+  var loweredCase = false
+  for (;;) {
+    switch (encoding) {
+      case 'ascii':
+      case 'latin1':
+      case 'binary':
+        return len
+      case 'utf8':
+      case 'utf-8':
+        return utf8ToBytes(string).length
+      case 'ucs2':
+      case 'ucs-2':
+      case 'utf16le':
+      case 'utf-16le':
+        return len * 2
+      case 'hex':
+        return len >>> 1
+      case 'base64':
+        return base64ToBytes(string).length
+      default:
+        if (loweredCase) {
+          return mustMatch ? -1 : utf8ToBytes(string).length // assume utf8
+        }
+        encoding = ('' + encoding).toLowerCase()
+        loweredCase = true
+    }
+  }
+}
+Buffer.byteLength = byteLength
+
+function slowToString (encoding, start, end) {
+  var loweredCase = false
+
+  // No need to verify that "this.length <= MAX_UINT32" since it's a read-only
+  // property of a typed array.
+
+  // This behaves neither like String nor Uint8Array in that we set start/end
+  // to their upper/lower bounds if the value passed is out of range.
+  // undefined is handled specially as per ECMA-262 6th Edition,
+  // Section 13.3.3.7 Runtime Semantics: KeyedBindingInitialization.
+  if (start === undefined || start < 0) {
+    start = 0
+  }
+  // Return early if start > this.length. Done here to prevent potential uint32
+  // coercion fail below.
+  if (start > this.length) {
+    return ''
+  }
+
+  if (end === undefined || end > this.length) {
+    end = this.length
+  }
+
+  if (end <= 0) {
+    return ''
+  }
+
+  // Force coersion to uint32. This will also coerce falsey/NaN values to 0.
+  end >>>= 0
+  start >>>= 0
+
+  if (end <= start) {
+    return ''
+  }
+
+  if (!encoding) encoding = 'utf8'
+
+  while (true) {
+    switch (encoding) {
+      case 'hex':
+        return hexSlice(this, start, end)
+
+      case 'utf8':
+      case 'utf-8':
+        return utf8Slice(this, start, end)
+
+      case 'ascii':
+        return asciiSlice(this, start, end)
+
+      case 'latin1':
+      case 'binary':
+        return latin1Slice(this, start, end)
+
+      case 'base64':
+        return base64Slice(this, start, end)
+
+      case 'ucs2':
+      case 'ucs-2':
+      case 'utf16le':
+      case 'utf-16le':
+        return utf16leSlice(this, start, end)
+
+      default:
+        if (loweredCase) throw new TypeError('Unknown encoding: ' + encoding)
+        encoding = (encoding + '').toLowerCase()
+        loweredCase = true
+    }
+  }
+}
+
+// This property is used by `Buffer.isBuffer` (and the `is-buffer` npm package)
+// to detect a Buffer instance. It's not possible to use `instanceof Buffer`
+// reliably in a browserify context because there could be multiple different
+// copies of the 'buffer' package in use. This method works even for Buffer
+// instances that were created from another copy of the `buffer` package.
+// See: https://github.com/feross/buffer/issues/154
+Buffer.prototype._isBuffer = true
+
+function swap (b, n, m) {
+  var i = b[n]
+  b[n] = b[m]
+  b[m] = i
+}
+
+Buffer.prototype.swap16 = function swap16 () {
+  var len = this.length
+  if (len % 2 !== 0) {
+    throw new RangeError('Buffer size must be a multiple of 16-bits')
+  }
+  for (var i = 0; i < len; i += 2) {
+    swap(this, i, i + 1)
+  }
+  return this
+}
+
+Buffer.prototype.swap32 = function swap32 () {
+  var len = this.length
+  if (len % 4 !== 0) {
+    throw new RangeError('Buffer size must be a multiple of 32-bits')
+  }
+  for (var i = 0; i < len; i += 4) {
+    swap(this, i, i + 3)
+    swap(this, i + 1, i + 2)
+  }
+  return this
+}
+
+Buffer.prototype.swap64 = function swap64 () {
+  var len = this.length
+  if (len % 8 !== 0) {
+    throw new RangeError('Buffer size must be a multiple of 64-bits')
+  }
+  for (var i = 0; i < len; i += 8) {
+    swap(this, i, i + 7)
+    swap(this, i + 1, i + 6)
+    swap(this, i + 2, i + 5)
+    swap(this, i + 3, i + 4)
+  }
+  return this
+}
+
+Buffer.prototype.toString = function toString () {
+  var length = this.length
+  if (length === 0) return ''
+  if (arguments.length === 0) return utf8Slice(this, 0, length)
+  return slowToString.apply(this, arguments)
+}
+
+Buffer.prototype.toLocaleString = Buffer.prototype.toString
+
+Buffer.prototype.equals = function equals (b) {
+  if (!Buffer.isBuffer(b)) throw new TypeError('Argument must be a Buffer')
+  if (this === b) return true
+  return Buffer.compare(this, b) === 0
+}
+
+Buffer.prototype.inspect = function inspect () {
+  var str = ''
+  var max = exports.INSPECT_MAX_BYTES
+  str = this.toString('hex', 0, max).replace(/(.{2})/g, '$1 ').trim()
+  if (this.length > max) str += ' ... '
+  return '<Buffer ' + str + '>'
+}
+
+Buffer.prototype.compare = function compare (target, start, end, thisStart, thisEnd) {
+  if (isInstance(target, Uint8Array)) {
+    target = Buffer.from(target, target.offset, target.byteLength)
+  }
+  if (!Buffer.isBuffer(target)) {
+    throw new TypeError(
+      'The "target" argument must be one of type Buffer or Uint8Array. ' +
+      'Received type ' + (typeof target)
+    )
+  }
+
+  if (start === undefined) {
+    start = 0
+  }
+  if (end === undefined) {
+    end = target ? target.length : 0
+  }
+  if (thisStart === undefined) {
+    thisStart = 0
+  }
+  if (thisEnd === undefined) {
+    thisEnd = this.length
+  }
+
+  if (start < 0 || end > target.length || thisStart < 0 || thisEnd > this.length) {
+    throw new RangeError('out of range index')
+  }
+
+  if (thisStart >= thisEnd && start >= end) {
+    return 0
+  }
+  if (thisStart >= thisEnd) {
+    return -1
+  }
+  if (start >= end) {
+    return 1
+  }
+
+  start >>>= 0
+  end >>>= 0
+  thisStart >>>= 0
+  thisEnd >>>= 0
+
+  if (this === target) return 0
+
+  var x = thisEnd - thisStart
+  var y = end - start
+  var len = Math.min(x, y)
+
+  var thisCopy = this.slice(thisStart, thisEnd)
+  var targetCopy = target.slice(start, end)
+
+  for (var i = 0; i < len; ++i) {
+    if (thisCopy[i] !== targetCopy[i]) {
+      x = thisCopy[i]
+      y = targetCopy[i]
+      break
+    }
+  }
+
+  if (x < y) return -1
+  if (y < x) return 1
+  return 0
+}
+
+// Finds either the first index of `val` in `buffer` at offset >= `byteOffset`,
+// OR the last index of `val` in `buffer` at offset <= `byteOffset`.
+//
+// Arguments:
+// - buffer - a Buffer to search
+// - val - a string, Buffer, or number
+// - byteOffset - an index into `buffer`; will be clamped to an int32
+// - encoding - an optional encoding, relevant is val is a string
+// - dir - true for indexOf, false for lastIndexOf
+function bidirectionalIndexOf (buffer, val, byteOffset, encoding, dir) {
+  // Empty buffer means no match
+  if (buffer.length === 0) return -1
+
+  // Normalize byteOffset
+  if (typeof byteOffset === 'string') {
+    encoding = byteOffset
+    byteOffset = 0
+  } else if (byteOffset > 0x7fffffff) {
+    byteOffset = 0x7fffffff
+  } else if (byteOffset < -0x80000000) {
+    byteOffset = -0x80000000
+  }
+  byteOffset = +byteOffset // Coerce to Number.
+  if (numberIsNaN(byteOffset)) {
+    // byteOffset: it it's undefined, null, NaN, "foo", etc, search whole buffer
+    byteOffset = dir ? 0 : (buffer.length - 1)
+  }
+
+  // Normalize byteOffset: negative offsets start from the end of the buffer
+  if (byteOffset < 0) byteOffset = buffer.length + byteOffset
+  if (byteOffset >= buffer.length) {
+    if (dir) return -1
+    else byteOffset = buffer.length - 1
+  } else if (byteOffset < 0) {
+    if (dir) byteOffset = 0
+    else return -1
+  }
+
+  // Normalize val
+  if (typeof val === 'string') {
+    val = Buffer.from(val, encoding)
+  }
+
+  // Finally, search either indexOf (if dir is true) or lastIndexOf
+  if (Buffer.isBuffer(val)) {
+    // Special case: looking for empty string/buffer always fails
+    if (val.length === 0) {
+      return -1
+    }
+    return arrayIndexOf(buffer, val, byteOffset, encoding, dir)
+  } else if (typeof val === 'number') {
+    val = val & 0xFF // Search for a byte value [0-255]
+    if (typeof Uint8Array.prototype.indexOf === 'function') {
+      if (dir) {
+        return Uint8Array.prototype.indexOf.call(buffer, val, byteOffset)
+      } else {
+        return Uint8Array.prototype.lastIndexOf.call(buffer, val, byteOffset)
+      }
+    }
+    return arrayIndexOf(buffer, [ val ], byteOffset, encoding, dir)
+  }
+
+  throw new TypeError('val must be string, number or Buffer')
+}
+
+function arrayIndexOf (arr, val, byteOffset, encoding, dir) {
+  var indexSize = 1
+  var arrLength = arr.length
+  var valLength = val.length
+
+  if (encoding !== undefined) {
+    encoding = String(encoding).toLowerCase()
+    if (encoding === 'ucs2' || encoding === 'ucs-2' ||
+        encoding === 'utf16le' || encoding === 'utf-16le') {
+      if (arr.length < 2 || val.length < 2) {
+        return -1
+      }
+      indexSize = 2
+      arrLength /= 2
+      valLength /= 2
+      byteOffset /= 2
+    }
+  }
+
+  function read (buf, i) {
+    if (indexSize === 1) {
+      return buf[i]
+    } else {
+      return buf.readUInt16BE(i * indexSize)
+    }
+  }
+
+  var i
+  if (dir) {
+    var foundIndex = -1
+    for (i = byteOffset; i < arrLength; i++) {
+      if (read(arr, i) === read(val, foundIndex === -1 ? 0 : i - foundIndex)) {
+        if (foundIndex === -1) foundIndex = i
+        if (i - foundIndex + 1 === valLength) return foundIndex * indexSize
+      } else {
+        if (foundIndex !== -1) i -= i - foundIndex
+        foundIndex = -1
+      }
+    }
+  } else {
+    if (byteOffset + valLength > arrLength) byteOffset = arrLength - valLength
+    for (i = byteOffset; i >= 0; i--) {
+      var found = true
+      for (var j = 0; j < valLength; j++) {
+        if (read(arr, i + j) !== read(val, j)) {
+          found = false
+          break
+        }
+      }
+      if (found) return i
+    }
+  }
+
+  return -1
+}
+
+Buffer.prototype.includes = function includes (val, byteOffset, encoding) {
+  return this.indexOf(val, byteOffset, encoding) !== -1
+}
+
+Buffer.prototype.indexOf = function indexOf (val, byteOffset, encoding) {
+  return bidirectionalIndexOf(this, val, byteOffset, encoding, true)
+}
+
+Buffer.prototype.lastIndexOf = function lastIndexOf (val, byteOffset, encoding) {
+  return bidirectionalIndexOf(this, val, byteOffset, encoding, false)
+}
+
+function hexWrite (buf, string, offset, length) {
+  offset = Number(offset) || 0
+  var remaining = buf.length - offset
+  if (!length) {
+    length = remaining
+  } else {
+    length = Number(length)
+    if (length > remaining) {
+      length = remaining
+    }
+  }
+
+  var strLen = string.length
+
+  if (length > strLen / 2) {
+    length = strLen / 2
+  }
+  for (var i = 0; i < length; ++i) {
+    var parsed = parseInt(string.substr(i * 2, 2), 16)
+    if (numberIsNaN(parsed)) return i
+    buf[offset + i] = parsed
+  }
+  return i
+}
+
+function utf8Write (buf, string, offset, length) {
+  return blitBuffer(utf8ToBytes(string, buf.length - offset), buf, offset, length)
+}
+
+function asciiWrite (buf, string, offset, length) {
+  return blitBuffer(asciiToBytes(string), buf, offset, length)
+}
+
+function latin1Write (buf, string, offset, length) {
+  return asciiWrite(buf, string, offset, length)
+}
+
+function base64Write (buf, string, offset, length) {
+  return blitBuffer(base64ToBytes(string), buf, offset, length)
+}
+
+function ucs2Write (buf, string, offset, length) {
+  return blitBuffer(utf16leToBytes(string, buf.length - offset), buf, offset, length)
+}
+
+Buffer.prototype.write = function write (string, offset, length, encoding) {
+  // Buffer#write(string)
+  if (offset === undefined) {
+    encoding = 'utf8'
+    length = this.length
+    offset = 0
+  // Buffer#write(string, encoding)
+  } else if (length === undefined && typeof offset === 'string') {
+    encoding = offset
+    length = this.length
+    offset = 0
+  // Buffer#write(string, offset[, length][, encoding])
+  } else if (isFinite(offset)) {
+    offset = offset >>> 0
+    if (isFinite(length)) {
+      length = length >>> 0
+      if (encoding === undefined) encoding = 'utf8'
+    } else {
+      encoding = length
+      length = undefined
+    }
+  } else {
+    throw new Error(
+      'Buffer.write(string, encoding, offset[, length]) is no longer supported'
+    )
+  }
+
+  var remaining = this.length - offset
+  if (length === undefined || length > remaining) length = remaining
+
+  if ((string.length > 0 && (length < 0 || offset < 0)) || offset > this.length) {
+    throw new RangeError('Attempt to write outside buffer bounds')
+  }
+
+  if (!encoding) encoding = 'utf8'
+
+  var loweredCase = false
+  for (;;) {
+    switch (encoding) {
+      case 'hex':
+        return hexWrite(this, string, offset, length)
+
+      case 'utf8':
+      case 'utf-8':
+        return utf8Write(this, string, offset, length)
+
+      case 'ascii':
+        return asciiWrite(this, string, offset, length)
+
+      case 'latin1':
+      case 'binary':
+        return latin1Write(this, string, offset, length)
+
+      case 'base64':
+        // Warning: maxLength not taken into account in base64Write
+        return base64Write(this, string, offset, length)
+
+      case 'ucs2':
+      case 'ucs-2':
+      case 'utf16le':
+      case 'utf-16le':
+        return ucs2Write(this, string, offset, length)
+
+      default:
+        if (loweredCase) throw new TypeError('Unknown encoding: ' + encoding)
+        encoding = ('' + encoding).toLowerCase()
+        loweredCase = true
+    }
+  }
+}
+
+Buffer.prototype.toJSON = function toJSON () {
+  return {
+    type: 'Buffer',
+    data: Array.prototype.slice.call(this._arr || this, 0)
+  }
+}
+
+function base64Slice (buf, start, end) {
+  if (start === 0 && end === buf.length) {
+    return base64.fromByteArray(buf)
+  } else {
+    return base64.fromByteArray(buf.slice(start, end))
+  }
+}
+
+function utf8Slice (buf, start, end) {
+  end = Math.min(buf.length, end)
+  var res = []
+
+  var i = start
+  while (i < end) {
+    var firstByte = buf[i]
+    var codePoint = null
+    var bytesPerSequence = (firstByte > 0xEF) ? 4
+      : (firstByte > 0xDF) ? 3
+        : (firstByte > 0xBF) ? 2
+          : 1
+
+    if (i + bytesPerSequence <= end) {
+      var secondByte, thirdByte, fourthByte, tempCodePoint
+
+      switch (bytesPerSequence) {
+        case 1:
+          if (firstByte < 0x80) {
+            codePoint = firstByte
+          }
+          break
+        case 2:
+          secondByte = buf[i + 1]
+          if ((secondByte & 0xC0) === 0x80) {
+            tempCodePoint = (firstByte & 0x1F) << 0x6 | (secondByte & 0x3F)
+            if (tempCodePoint > 0x7F) {
+              codePoint = tempCodePoint
+            }
+          }
+          break
+        case 3:
+          secondByte = buf[i + 1]
+          thirdByte = buf[i + 2]
+          if ((secondByte & 0xC0) === 0x80 && (thirdByte & 0xC0) === 0x80) {
+            tempCodePoint = (firstByte & 0xF) << 0xC | (secondByte & 0x3F) << 0x6 | (thirdByte & 0x3F)
+            if (tempCodePoint > 0x7FF && (tempCodePoint < 0xD800 || tempCodePoint > 0xDFFF)) {
+              codePoint = tempCodePoint
+            }
+          }
+          break
+        case 4:
+          secondByte = buf[i + 1]
+          thirdByte = buf[i + 2]
+          fourthByte = buf[i + 3]
+          if ((secondByte & 0xC0) === 0x80 && (thirdByte & 0xC0) === 0x80 && (fourthByte & 0xC0) === 0x80) {
+            tempCodePoint = (firstByte & 0xF) << 0x12 | (secondByte & 0x3F) << 0xC | (thirdByte & 0x3F) << 0x6 | (fourthByte & 0x3F)
+            if (tempCodePoint > 0xFFFF && tempCodePoint < 0x110000) {
+              codePoint = tempCodePoint
+            }
+          }
+      }
+    }
+
+    if (codePoint === null) {
+      // we did not generate a valid codePoint so insert a
+      // replacement char (U+FFFD) and advance only 1 byte
+      codePoint = 0xFFFD
+      bytesPerSequence = 1
+    } else if (codePoint > 0xFFFF) {
+      // encode to utf16 (surrogate pair dance)
+      codePoint -= 0x10000
+      res.push(codePoint >>> 10 & 0x3FF | 0xD800)
+      codePoint = 0xDC00 | codePoint & 0x3FF
+    }
+
+    res.push(codePoint)
+    i += bytesPerSequence
+  }
+
+  return decodeCodePointsArray(res)
+}
+
+// Based on http://stackoverflow.com/a/22747272/680742, the browser with
+// the lowest limit is Chrome, with 0x10000 args.
+// We go 1 magnitude less, for safety
+var MAX_ARGUMENTS_LENGTH = 0x1000
+
+function decodeCodePointsArray (codePoints) {
+  var len = codePoints.length
+  if (len <= MAX_ARGUMENTS_LENGTH) {
+    return String.fromCharCode.apply(String, codePoints) // avoid extra slice()
+  }
+
+  // Decode in chunks to avoid "call stack size exceeded".
+  var res = ''
+  var i = 0
+  while (i < len) {
+    res += String.fromCharCode.apply(
+      String,
+      codePoints.slice(i, i += MAX_ARGUMENTS_LENGTH)
+    )
+  }
+  return res
+}
+
+function asciiSlice (buf, start, end) {
+  var ret = ''
+  end = Math.min(buf.length, end)
+
+  for (var i = start; i < end; ++i) {
+    ret += String.fromCharCode(buf[i] & 0x7F)
+  }
+  return ret
+}
+
+function latin1Slice (buf, start, end) {
+  var ret = ''
+  end = Math.min(buf.length, end)
+
+  for (var i = start; i < end; ++i) {
+    ret += String.fromCharCode(buf[i])
+  }
+  return ret
+}
+
+function hexSlice (buf, start, end) {
+  var len = buf.length
+
+  if (!start || start < 0) start = 0
+  if (!end || end < 0 || end > len) end = len
+
+  var out = ''
+  for (var i = start; i < end; ++i) {
+    out += toHex(buf[i])
+  }
+  return out
+}
+
+function utf16leSlice (buf, start, end) {
+  var bytes = buf.slice(start, end)
+  var res = ''
+  for (var i = 0; i < bytes.length; i += 2) {
+    res += String.fromCharCode(bytes[i] + (bytes[i + 1] * 256))
+  }
+  return res
+}
+
+Buffer.prototype.slice = function slice (start, end) {
+  var len = this.length
+  start = ~~start
+  end = end === undefined ? len : ~~end
+
+  if (start < 0) {
+    start += len
+    if (start < 0) start = 0
+  } else if (start > len) {
+    start = len
+  }
+
+  if (end < 0) {
+    end += len
+    if (end < 0) end = 0
+  } else if (end > len) {
+    end = len
+  }
+
+  if (end < start) end = start
+
+  var newBuf = this.subarray(start, end)
+  // Return an augmented `Uint8Array` instance
+  newBuf.__proto__ = Buffer.prototype
+  return newBuf
+}
+
+/*
+ * Need to make sure that buffer isn't trying to write out of bounds.
+ */
+function checkOffset (offset, ext, length) {
+  if ((offset % 1) !== 0 || offset < 0) throw new RangeError('offset is not uint')
+  if (offset + ext > length) throw new RangeError('Trying to access beyond buffer length')
+}
+
+Buffer.prototype.readUIntLE = function readUIntLE (offset, byteLength, noAssert) {
+  offset = offset >>> 0
+  byteLength = byteLength >>> 0
+  if (!noAssert) checkOffset(offset, byteLength, this.length)
+
+  var val = this[offset]
+  var mul = 1
+  var i = 0
+  while (++i < byteLength && (mul *= 0x100)) {
+    val += this[offset + i] * mul
+  }
+
+  return val
+}
+
+Buffer.prototype.readUIntBE = function readUIntBE (offset, byteLength, noAssert) {
+  offset = offset >>> 0
+  byteLength = byteLength >>> 0
+  if (!noAssert) {
+    checkOffset(offset, byteLength, this.length)
+  }
+
+  var val = this[offset + --byteLength]
+  var mul = 1
+  while (byteLength > 0 && (mul *= 0x100)) {
+    val += this[offset + --byteLength] * mul
+  }
+
+  return val
+}
+
+Buffer.prototype.readUInt8 = function readUInt8 (offset, noAssert) {
+  offset = offset >>> 0
+  if (!noAssert) checkOffset(offset, 1, this.length)
+  return this[offset]
+}
+
+Buffer.prototype.readUInt16LE = function readUInt16LE (offset, noAssert) {
+  offset = offset >>> 0
+  if (!noAssert) checkOffset(offset, 2, this.length)
+  return this[offset] | (this[offset + 1] << 8)
+}
+
+Buffer.prototype.readUInt16BE = function readUInt16BE (offset, noAssert) {
+  offset = offset >>> 0
+  if (!noAssert) checkOffset(offset, 2, this.length)
+  return (this[offset] << 8) | this[offset + 1]
+}
+
+Buffer.prototype.readUInt32LE = function readUInt32LE (offset, noAssert) {
+  offset = offset >>> 0
+  if (!noAssert) checkOffset(offset, 4, this.length)
+
+  return ((this[offset]) |
+      (this[offset + 1] << 8) |
+      (this[offset + 2] << 16)) +
+      (this[offset + 3] * 0x1000000)
+}
+
+Buffer.prototype.readUInt32BE = function readUInt32BE (offset, noAssert) {
+  offset = offset >>> 0
+  if (!noAssert) checkOffset(offset, 4, this.length)
+
+  return (this[offset] * 0x1000000) +
+    ((this[offset + 1] << 16) |
+    (this[offset + 2] << 8) |
+    this[offset + 3])
+}
+
+Buffer.prototype.readIntLE = function readIntLE (offset, byteLength, noAssert) {
+  offset = offset >>> 0
+  byteLength = byteLength >>> 0
+  if (!noAssert) checkOffset(offset, byteLength, this.length)
+
+  var val = this[offset]
+  var mul = 1
+  var i = 0
+  while (++i < byteLength && (mul *= 0x100)) {
+    val += this[offset + i] * mul
+  }
+  mul *= 0x80
+
+  if (val >= mul) val -= Math.pow(2, 8 * byteLength)
+
+  return val
+}
+
+Buffer.prototype.readIntBE = function readIntBE (offset, byteLength, noAssert) {
+  offset = offset >>> 0
+  byteLength = byteLength >>> 0
+  if (!noAssert) checkOffset(offset, byteLength, this.length)
+
+  var i = byteLength
+  var mul = 1
+  var val = this[offset + --i]
+  while (i > 0 && (mul *= 0x100)) {
+    val += this[offset + --i] * mul
+  }
+  mul *= 0x80
+
+  if (val >= mul) val -= Math.pow(2, 8 * byteLength)
+
+  return val
+}
+
+Buffer.prototype.readInt8 = function readInt8 (offset, noAssert) {
+  offset = offset >>> 0
+  if (!noAssert) checkOffset(offset, 1, this.length)
+  if (!(this[offset] & 0x80)) return (this[offset])
+  return ((0xff - this[offset] + 1) * -1)
+}
+
+Buffer.prototype.readInt16LE = function readInt16LE (offset, noAssert) {
+  offset = offset >>> 0
+  if (!noAssert) checkOffset(offset, 2, this.length)
+  var val = this[offset] | (this[offset + 1] << 8)
+  return (val & 0x8000) ? val | 0xFFFF0000 : val
+}
+
+Buffer.prototype.readInt16BE = function readInt16BE (offset, noAssert) {
+  offset = offset >>> 0
+  if (!noAssert) checkOffset(offset, 2, this.length)
+  var val = this[offset + 1] | (this[offset] << 8)
+  return (val & 0x8000) ? val | 0xFFFF0000 : val
+}
+
+Buffer.prototype.readInt32LE = function readInt32LE (offset, noAssert) {
+  offset = offset >>> 0
+  if (!noAssert) checkOffset(offset, 4, this.length)
+
+  return (this[offset]) |
+    (this[offset + 1] << 8) |
+    (this[offset + 2] << 16) |
+    (this[offset + 3] << 24)
+}
+
+Buffer.prototype.readInt32BE = function readInt32BE (offset, noAssert) {
+  offset = offset >>> 0
+  if (!noAssert) checkOffset(offset, 4, this.length)
+
+  return (this[offset] << 24) |
+    (this[offset + 1] << 16) |
+    (this[offset + 2] << 8) |
+    (this[offset + 3])
+}
+
+Buffer.prototype.readFloatLE = function readFloatLE (offset, noAssert) {
+  offset = offset >>> 0
+  if (!noAssert) checkOffset(offset, 4, this.length)
+  return ieee754.read(this, offset, true, 23, 4)
+}
+
+Buffer.prototype.readFloatBE = function readFloatBE (offset, noAssert) {
+  offset = offset >>> 0
+  if (!noAssert) checkOffset(offset, 4, this.length)
+  return ieee754.read(this, offset, false, 23, 4)
+}
+
+Buffer.prototype.readDoubleLE = function readDoubleLE (offset, noAssert) {
+  offset = offset >>> 0
+  if (!noAssert) checkOffset(offset, 8, this.length)
+  return ieee754.read(this, offset, true, 52, 8)
+}
+
+Buffer.prototype.readDoubleBE = function readDoubleBE (offset, noAssert) {
+  offset = offset >>> 0
+  if (!noAssert) checkOffset(offset, 8, this.length)
+  return ieee754.read(this, offset, false, 52, 8)
+}
+
+function checkInt (buf, value, offset, ext, max, min) {
+  if (!Buffer.isBuffer(buf)) throw new TypeError('"buffer" argument must be a Buffer instance')
+  if (value > max || value < min) throw new RangeError('"value" argument is out of bounds')
+  if (offset + ext > buf.length) throw new RangeError('Index out of range')
+}
+
+Buffer.prototype.writeUIntLE = function writeUIntLE (value, offset, byteLength, noAssert) {
+  value = +value
+  offset = offset >>> 0
+  byteLength = byteLength >>> 0
+  if (!noAssert) {
+    var maxBytes = Math.pow(2, 8 * byteLength) - 1
+    checkInt(this, value, offset, byteLength, maxBytes, 0)
+  }
+
+  var mul = 1
+  var i = 0
+  this[offset] = value & 0xFF
+  while (++i < byteLength && (mul *= 0x100)) {
+    this[offset + i] = (value / mul) & 0xFF
+  }
+
+  return offset + byteLength
+}
+
+Buffer.prototype.writeUIntBE = function writeUIntBE (value, offset, byteLength, noAssert) {
+  value = +value
+  offset = offset >>> 0
+  byteLength = byteLength >>> 0
+  if (!noAssert) {
+    var maxBytes = Math.pow(2, 8 * byteLength) - 1
+    checkInt(this, value, offset, byteLength, maxBytes, 0)
+  }
+
+  var i = byteLength - 1
+  var mul = 1
+  this[offset + i] = value & 0xFF
+  while (--i >= 0 && (mul *= 0x100)) {
+    this[offset + i] = (value / mul) & 0xFF
+  }
+
+  return offset + byteLength
+}
+
+Buffer.prototype.writeUInt8 = function writeUInt8 (value, offset, noAssert) {
+  value = +value
+  offset = offset >>> 0
+  if (!noAssert) checkInt(this, value, offset, 1, 0xff, 0)
+  this[offset] = (value & 0xff)
+  return offset + 1
+}
+
+Buffer.prototype.writeUInt16LE = function writeUInt16LE (value, offset, noAssert) {
+  value = +value
+  offset = offset >>> 0
+  if (!noAssert) checkInt(this, value, offset, 2, 0xffff, 0)
+  this[offset] = (value & 0xff)
+  this[offset + 1] = (value >>> 8)
+  return offset + 2
+}
+
+Buffer.prototype.writeUInt16BE = function writeUInt16BE (value, offset, noAssert) {
+  value = +value
+  offset = offset >>> 0
+  if (!noAssert) checkInt(this, value, offset, 2, 0xffff, 0)
+  this[offset] = (value >>> 8)
+  this[offset + 1] = (value & 0xff)
+  return offset + 2
+}
+
+Buffer.prototype.writeUInt32LE = function writeUInt32LE (value, offset, noAssert) {
+  value = +value
+  offset = offset >>> 0
+  if (!noAssert) checkInt(this, value, offset, 4, 0xffffffff, 0)
+  this[offset + 3] = (value >>> 24)
+  this[offset + 2] = (value >>> 16)
+  this[offset + 1] = (value >>> 8)
+  this[offset] = (value & 0xff)
+  return offset + 4
+}
+
+Buffer.prototype.writeUInt32BE = function writeUInt32BE (value, offset, noAssert) {
+  value = +value
+  offset = offset >>> 0
+  if (!noAssert) checkInt(this, value, offset, 4, 0xffffffff, 0)
+  this[offset] = (value >>> 24)
+  this[offset + 1] = (value >>> 16)
+  this[offset + 2] = (value >>> 8)
+  this[offset + 3] = (value & 0xff)
+  return offset + 4
+}
+
+Buffer.prototype.writeIntLE = function writeIntLE (value, offset, byteLength, noAssert) {
+  value = +value
+  offset = offset >>> 0
+  if (!noAssert) {
+    var limit = Math.pow(2, (8 * byteLength) - 1)
+
+    checkInt(this, value, offset, byteLength, limit - 1, -limit)
+  }
+
+  var i = 0
+  var mul = 1
+  var sub = 0
+  this[offset] = value & 0xFF
+  while (++i < byteLength && (mul *= 0x100)) {
+    if (value < 0 && sub === 0 && this[offset + i - 1] !== 0) {
+      sub = 1
+    }
+    this[offset + i] = ((value / mul) >> 0) - sub & 0xFF
+  }
+
+  return offset + byteLength
+}
+
+Buffer.prototype.writeIntBE = function writeIntBE (value, offset, byteLength, noAssert) {
+  value = +value
+  offset = offset >>> 0
+  if (!noAssert) {
+    var limit = Math.pow(2, (8 * byteLength) - 1)
+
+    checkInt(this, value, offset, byteLength, limit - 1, -limit)
+  }
+
+  var i = byteLength - 1
+  var mul = 1
+  var sub = 0
+  this[offset + i] = value & 0xFF
+  while (--i >= 0 && (mul *= 0x100)) {
+    if (value < 0 && sub === 0 && this[offset + i + 1] !== 0) {
+      sub = 1
+    }
+    this[offset + i] = ((value / mul) >> 0) - sub & 0xFF
+  }
+
+  return offset + byteLength
+}
+
+Buffer.prototype.writeInt8 = function writeInt8 (value, offset, noAssert) {
+  value = +value
+  offset = offset >>> 0
+  if (!noAssert) checkInt(this, value, offset, 1, 0x7f, -0x80)
+  if (value < 0) value = 0xff + value + 1
+  this[offset] = (value & 0xff)
+  return offset + 1
+}
+
+Buffer.prototype.writeInt16LE = function writeInt16LE (value, offset, noAssert) {
+  value = +value
+  offset = offset >>> 0
+  if (!noAssert) checkInt(this, value, offset, 2, 0x7fff, -0x8000)
+  this[offset] = (value & 0xff)
+  this[offset + 1] = (value >>> 8)
+  return offset + 2
+}
+
+Buffer.prototype.writeInt16BE = function writeInt16BE (value, offset, noAssert) {
+  value = +value
+  offset = offset >>> 0
+  if (!noAssert) checkInt(this, value, offset, 2, 0x7fff, -0x8000)
+  this[offset] = (value >>> 8)
+  this[offset + 1] = (value & 0xff)
+  return offset + 2
+}
+
+Buffer.prototype.writeInt32LE = function writeInt32LE (value, offset, noAssert) {
+  value = +value
+  offset = offset >>> 0
+  if (!noAssert) checkInt(this, value, offset, 4, 0x7fffffff, -0x80000000)
+  this[offset] = (value & 0xff)
+  this[offset + 1] = (value >>> 8)
+  this[offset + 2] = (value >>> 16)
+  this[offset + 3] = (value >>> 24)
+  return offset + 4
+}
+
+Buffer.prototype.writeInt32BE = function writeInt32BE (value, offset, noAssert) {
+  value = +value
+  offset = offset >>> 0
+  if (!noAssert) checkInt(this, value, offset, 4, 0x7fffffff, -0x80000000)
+  if (value < 0) value = 0xffffffff + value + 1
+  this[offset] = (value >>> 24)
+  this[offset + 1] = (value >>> 16)
+  this[offset + 2] = (value >>> 8)
+  this[offset + 3] = (value & 0xff)
+  return offset + 4
+}
+
+function checkIEEE754 (buf, value, offset, ext, max, min) {
+  if (offset + ext > buf.length) throw new RangeError('Index out of range')
+  if (offset < 0) throw new RangeError('Index out of range')
+}
+
+function writeFloat (buf, value, offset, littleEndian, noAssert) {
+  value = +value
+  offset = offset >>> 0
+  if (!noAssert) {
+    checkIEEE754(buf, value, offset, 4, 3.4028234663852886e+38, -3.4028234663852886e+38)
+  }
+  ieee754.write(buf, value, offset, littleEndian, 23, 4)
+  return offset + 4
+}
+
+Buffer.prototype.writeFloatLE = function writeFloatLE (value, offset, noAssert) {
+  return writeFloat(this, value, offset, true, noAssert)
+}
+
+Buffer.prototype.writeFloatBE = function writeFloatBE (value, offset, noAssert) {
+  return writeFloat(this, value, offset, false, noAssert)
+}
+
+function writeDouble (buf, value, offset, littleEndian, noAssert) {
+  value = +value
+  offset = offset >>> 0
+  if (!noAssert) {
+    checkIEEE754(buf, value, offset, 8, 1.7976931348623157E+308, -1.7976931348623157E+308)
+  }
+  ieee754.write(buf, value, offset, littleEndian, 52, 8)
+  return offset + 8
+}
+
+Buffer.prototype.writeDoubleLE = function writeDoubleLE (value, offset, noAssert) {
+  return writeDouble(this, value, offset, true, noAssert)
+}
+
+Buffer.prototype.writeDoubleBE = function writeDoubleBE (value, offset, noAssert) {
+  return writeDouble(this, value, offset, false, noAssert)
+}
+
+// copy(targetBuffer, targetStart=0, sourceStart=0, sourceEnd=buffer.length)
+Buffer.prototype.copy = function copy (target, targetStart, start, end) {
+  if (!Buffer.isBuffer(target)) throw new TypeError('argument should be a Buffer')
+  if (!start) start = 0
+  if (!end && end !== 0) end = this.length
+  if (targetStart >= target.length) targetStart = target.length
+  if (!targetStart) targetStart = 0
+  if (end > 0 && end < start) end = start
+
+  // Copy 0 bytes; we're done
+  if (end === start) return 0
+  if (target.length === 0 || this.length === 0) return 0
+
+  // Fatal error conditions
+  if (targetStart < 0) {
+    throw new RangeError('targetStart out of bounds')
+  }
+  if (start < 0 || start >= this.length) throw new RangeError('Index out of range')
+  if (end < 0) throw new RangeError('sourceEnd out of bounds')
+
+  // Are we oob?
+  if (end > this.length) end = this.length
+  if (target.length - targetStart < end - start) {
+    end = target.length - targetStart + start
+  }
+
+  var len = end - start
+
+  if (this === target && typeof Uint8Array.prototype.copyWithin === 'function') {
+    // Use built-in when available, missing from IE11
+    this.copyWithin(targetStart, start, end)
+  } else if (this === target && start < targetStart && targetStart < end) {
+    // descending copy from end
+    for (var i = len - 1; i >= 0; --i) {
+      target[i + targetStart] = this[i + start]
+    }
+  } else {
+    Uint8Array.prototype.set.call(
+      target,
+      this.subarray(start, end),
+      targetStart
+    )
+  }
+
+  return len
+}
+
+// Usage:
+//    buffer.fill(number[, offset[, end]])
+//    buffer.fill(buffer[, offset[, end]])
+//    buffer.fill(string[, offset[, end]][, encoding])
+Buffer.prototype.fill = function fill (val, start, end, encoding) {
+  // Handle string cases:
+  if (typeof val === 'string') {
+    if (typeof start === 'string') {
+      encoding = start
+      start = 0
+      end = this.length
+    } else if (typeof end === 'string') {
+      encoding = end
+      end = this.length
+    }
+    if (encoding !== undefined && typeof encoding !== 'string') {
+      throw new TypeError('encoding must be a string')
+    }
+    if (typeof encoding === 'string' && !Buffer.isEncoding(encoding)) {
+      throw new TypeError('Unknown encoding: ' + encoding)
+    }
+    if (val.length === 1) {
+      var code = val.charCodeAt(0)
+      if ((encoding === 'utf8' && code < 128) ||
+          encoding === 'latin1') {
+        // Fast path: If `val` fits into a single byte, use that numeric value.
+        val = code
+      }
+    }
+  } else if (typeof val === 'number') {
+    val = val & 255
+  }
+
+  // Invalid ranges are not set to a default, so can range check early.
+  if (start < 0 || this.length < start || this.length < end) {
+    throw new RangeError('Out of range index')
+  }
+
+  if (end <= start) {
+    return this
+  }
+
+  start = start >>> 0
+  end = end === undefined ? this.length : end >>> 0
+
+  if (!val) val = 0
+
+  var i
+  if (typeof val === 'number') {
+    for (i = start; i < end; ++i) {
+      this[i] = val
+    }
+  } else {
+    var bytes = Buffer.isBuffer(val)
+      ? val
+      : Buffer.from(val, encoding)
+    var len = bytes.length
+    if (len === 0) {
+      throw new TypeError('The value "' + val +
+        '" is invalid for argument "value"')
+    }
+    for (i = 0; i < end - start; ++i) {
+      this[i + start] = bytes[i % len]
+    }
+  }
+
+  return this
+}
+
+// HELPER FUNCTIONS
+// ================
+
+var INVALID_BASE64_RE = /[^+/0-9A-Za-z-_]/g
+
+function base64clean (str) {
+  // Node takes equal signs as end of the Base64 encoding
+  str = str.split('=')[0]
+  // Node strips out invalid characters like \n and \t from the string, base64-js does not
+  str = str.trim().replace(INVALID_BASE64_RE, '')
+  // Node converts strings with length < 2 to ''
+  if (str.length < 2) return ''
+  // Node allows for non-padded base64 strings (missing trailing ===), base64-js does not
+  while (str.length % 4 !== 0) {
+    str = str + '='
+  }
+  return str
+}
+
+function toHex (n) {
+  if (n < 16) return '0' + n.toString(16)
+  return n.toString(16)
+}
+
+function utf8ToBytes (string, units) {
+  units = units || Infinity
+  var codePoint
+  var length = string.length
+  var leadSurrogate = null
+  var bytes = []
+
+  for (var i = 0; i < length; ++i) {
+    codePoint = string.charCodeAt(i)
+
+    // is surrogate component
+    if (codePoint > 0xD7FF && codePoint < 0xE000) {
+      // last char was a lead
+      if (!leadSurrogate) {
+        // no lead yet
+        if (codePoint > 0xDBFF) {
+          // unexpected trail
+          if ((units -= 3) > -1) bytes.push(0xEF, 0xBF, 0xBD)
+          continue
+        } else if (i + 1 === length) {
+          // unpaired lead
+          if ((units -= 3) > -1) bytes.push(0xEF, 0xBF, 0xBD)
+          continue
+        }
+
+        // valid lead
+        leadSurrogate = codePoint
+
+        continue
+      }
+
+      // 2 leads in a row
+      if (codePoint < 0xDC00) {
+        if ((units -= 3) > -1) bytes.push(0xEF, 0xBF, 0xBD)
+        leadSurrogate = codePoint
+        continue
+      }
+
+      // valid surrogate pair
+      codePoint = (leadSurrogate - 0xD800 << 10 | codePoint - 0xDC00) + 0x10000
+    } else if (leadSurrogate) {
+      // valid bmp char, but last char was a lead
+      if ((units -= 3) > -1) bytes.push(0xEF, 0xBF, 0xBD)
+    }
+
+    leadSurrogate = null
+
+    // encode utf8
+    if (codePoint < 0x80) {
+      if ((units -= 1) < 0) break
+      bytes.push(codePoint)
+    } else if (codePoint < 0x800) {
+      if ((units -= 2) < 0) break
+      bytes.push(
+        codePoint >> 0x6 | 0xC0,
+        codePoint & 0x3F | 0x80
+      )
+    } else if (codePoint < 0x10000) {
+      if ((units -= 3) < 0) break
+      bytes.push(
+        codePoint >> 0xC | 0xE0,
+        codePoint >> 0x6 & 0x3F | 0x80,
+        codePoint & 0x3F | 0x80
+      )
+    } else if (codePoint < 0x110000) {
+      if ((units -= 4) < 0) break
+      bytes.push(
+        codePoint >> 0x12 | 0xF0,
+        codePoint >> 0xC & 0x3F | 0x80,
+        codePoint >> 0x6 & 0x3F | 0x80,
+        codePoint & 0x3F | 0x80
+      )
+    } else {
+      throw new Error('Invalid code point')
+    }
+  }
+
+  return bytes
+}
+
+function asciiToBytes (str) {
+  var byteArray = []
+  for (var i = 0; i < str.length; ++i) {
+    // Node's code seems to be doing this and not & 0x7F..
+    byteArray.push(str.charCodeAt(i) & 0xFF)
+  }
+  return byteArray
+}
+
+function utf16leToBytes (str, units) {
+  var c, hi, lo
+  var byteArray = []
+  for (var i = 0; i < str.length; ++i) {
+    if ((units -= 2) < 0) break
+
+    c = str.charCodeAt(i)
+    hi = c >> 8
+    lo = c % 256
+    byteArray.push(lo)
+    byteArray.push(hi)
+  }
+
+  return byteArray
+}
+
+function base64ToBytes (str) {
+  return base64.toByteArray(base64clean(str))
+}
+
+function blitBuffer (src, dst, offset, length) {
+  for (var i = 0; i < length; ++i) {
+    if ((i + offset >= dst.length) || (i >= src.length)) break
+    dst[i + offset] = src[i]
+  }
+  return i
+}
+
+// ArrayBuffer or Uint8Array objects from other contexts (i.e. iframes) do not pass
+// the `instanceof` check but they should be treated as of that type.
+// See: https://github.com/feross/buffer/issues/166
+function isInstance (obj, type) {
+  return obj instanceof type ||
+    (obj != null && obj.constructor != null && obj.constructor.name != null &&
+      obj.constructor.name === type.name)
+}
+function numberIsNaN (obj) {
+  // For IE11 support
+  return obj !== obj // eslint-disable-line no-self-compare
+}
+
+}).call(this)}).call(this,require("buffer").Buffer)
+},{"base64-js":102,"buffer":105,"ieee754":109}],106:[function(require,module,exports){
+(function (global,Buffer){(function (){
+/*!
+ * @license deepcopy.js Copyright(c) 2013 sasa+1
+ * https://github.com/sasaplus1/deepcopy.js
+ * Released under the MIT license.
+ *
+ * type-detect
+ * Copyright(c) 2013 jake luer <jake@alogicalparadox.com>
+ * MIT Licensed
+ */
+(function (global, factory) {
+	typeof exports === 'object' && typeof module !== 'undefined' ? module.exports = factory() :
+	typeof define === 'function' && define.amd ? define(factory) :
+	(global = typeof globalThis !== 'undefined' ? globalThis : global || self, global.deepcopy = factory());
+}(this, (function () { 'use strict';
+
+	var commonjsGlobal = typeof globalThis !== 'undefined' ? globalThis : typeof window !== 'undefined' ? window : typeof global !== 'undefined' ? global : typeof self !== 'undefined' ? self : {};
+
+	function createCommonjsModule(fn, module) {
+		return module = { exports: {} }, fn(module, module.exports), module.exports;
+	}
+
+	var typeDetect = createCommonjsModule(function (module, exports) {
+	(function (global, factory) {
+		 module.exports = factory() ;
+	}(commonjsGlobal, (function () {
+	/* !
+	 * type-detect
+	 * Copyright(c) 2013 jake luer <jake@alogicalparadox.com>
+	 * MIT Licensed
+	 */
+	var promiseExists = typeof Promise === 'function';
+
+	/* eslint-disable no-undef */
+	var globalObject = typeof self === 'object' ? self : commonjsGlobal; // eslint-disable-line id-blacklist
+
+	var symbolExists = typeof Symbol !== 'undefined';
+	var mapExists = typeof Map !== 'undefined';
+	var setExists = typeof Set !== 'undefined';
+	var weakMapExists = typeof WeakMap !== 'undefined';
+	var weakSetExists = typeof WeakSet !== 'undefined';
+	var dataViewExists = typeof DataView !== 'undefined';
+	var symbolIteratorExists = symbolExists && typeof Symbol.iterator !== 'undefined';
+	var symbolToStringTagExists = symbolExists && typeof Symbol.toStringTag !== 'undefined';
+	var setEntriesExists = setExists && typeof Set.prototype.entries === 'function';
+	var mapEntriesExists = mapExists && typeof Map.prototype.entries === 'function';
+	var setIteratorPrototype = setEntriesExists && Object.getPrototypeOf(new Set().entries());
+	var mapIteratorPrototype = mapEntriesExists && Object.getPrototypeOf(new Map().entries());
+	var arrayIteratorExists = symbolIteratorExists && typeof Array.prototype[Symbol.iterator] === 'function';
+	var arrayIteratorPrototype = arrayIteratorExists && Object.getPrototypeOf([][Symbol.iterator]());
+	var stringIteratorExists = symbolIteratorExists && typeof String.prototype[Symbol.iterator] === 'function';
+	var stringIteratorPrototype = stringIteratorExists && Object.getPrototypeOf(''[Symbol.iterator]());
+	var toStringLeftSliceLength = 8;
+	var toStringRightSliceLength = -1;
+	/**
+	 * ### typeOf (obj)
+	 *
+	 * Uses `Object.prototype.toString` to determine the type of an object,
+	 * normalising behaviour across engine versions & well optimised.
+	 *
+	 * @param {Mixed} object
+	 * @return {String} object type
+	 * @api public
+	 */
+	function typeDetect(obj) {
+	  /* ! Speed optimisation
+	   * Pre:
+	   *   string literal     x 3,039,035 ops/sec ±1.62% (78 runs sampled)
+	   *   boolean literal    x 1,424,138 ops/sec ±4.54% (75 runs sampled)
+	   *   number literal     x 1,653,153 ops/sec ±1.91% (82 runs sampled)
+	   *   undefined          x 9,978,660 ops/sec ±1.92% (75 runs sampled)
+	   *   function           x 2,556,769 ops/sec ±1.73% (77 runs sampled)
+	   * Post:
+	   *   string literal     x 38,564,796 ops/sec ±1.15% (79 runs sampled)
+	   *   boolean literal    x 31,148,940 ops/sec ±1.10% (79 runs sampled)
+	   *   number literal     x 32,679,330 ops/sec ±1.90% (78 runs sampled)
+	   *   undefined          x 32,363,368 ops/sec ±1.07% (82 runs sampled)
+	   *   function           x 31,296,870 ops/sec ±0.96% (83 runs sampled)
+	   */
+	  var typeofObj = typeof obj;
+	  if (typeofObj !== 'object') {
+	    return typeofObj;
+	  }
+
+	  /* ! Speed optimisation
+	   * Pre:
+	   *   null               x 28,645,765 ops/sec ±1.17% (82 runs sampled)
+	   * Post:
+	   *   null               x 36,428,962 ops/sec ±1.37% (84 runs sampled)
+	   */
+	  if (obj === null) {
+	    return 'null';
+	  }
+
+	  /* ! Spec Conformance
+	   * Test: `Object.prototype.toString.call(window)``
+	   *  - Node === "[object global]"
+	   *  - Chrome === "[object global]"
+	   *  - Firefox === "[object Window]"
+	   *  - PhantomJS === "[object Window]"
+	   *  - Safari === "[object Window]"
+	   *  - IE 11 === "[object Window]"
+	   *  - IE Edge === "[object Window]"
+	   * Test: `Object.prototype.toString.call(this)``
+	   *  - Chrome Worker === "[object global]"
+	   *  - Firefox Worker === "[object DedicatedWorkerGlobalScope]"
+	   *  - Safari Worker === "[object DedicatedWorkerGlobalScope]"
+	   *  - IE 11 Worker === "[object WorkerGlobalScope]"
+	   *  - IE Edge Worker === "[object WorkerGlobalScope]"
+	   */
+	  if (obj === globalObject) {
+	    return 'global';
+	  }
+
+	  /* ! Speed optimisation
+	   * Pre:
+	   *   array literal      x 2,888,352 ops/sec ±0.67% (82 runs sampled)
+	   * Post:
+	   *   array literal      x 22,479,650 ops/sec ±0.96% (81 runs sampled)
+	   */
+	  if (
+	    Array.isArray(obj) &&
+	    (symbolToStringTagExists === false || !(Symbol.toStringTag in obj))
+	  ) {
+	    return 'Array';
+	  }
+
+	  // Not caching existence of `window` and related properties due to potential
+	  // for `window` to be unset before tests in quasi-browser environments.
+	  if (typeof window === 'object' && window !== null) {
+	    /* ! Spec Conformance
+	     * (https://html.spec.whatwg.org/multipage/browsers.html#location)
+	     * WhatWG HTML$7.7.3 - The `Location` interface
+	     * Test: `Object.prototype.toString.call(window.location)``
+	     *  - IE <=11 === "[object Object]"
+	     *  - IE Edge <=13 === "[object Object]"
+	     */
+	    if (typeof window.location === 'object' && obj === window.location) {
+	      return 'Location';
+	    }
+
+	    /* ! Spec Conformance
+	     * (https://html.spec.whatwg.org/#document)
+	     * WhatWG HTML$3.1.1 - The `Document` object
+	     * Note: Most browsers currently adher to the W3C DOM Level 2 spec
+	     *       (https://www.w3.org/TR/DOM-Level-2-HTML/html.html#ID-26809268)
+	     *       which suggests that browsers should use HTMLTableCellElement for
+	     *       both TD and TH elements. WhatWG separates these.
+	     *       WhatWG HTML states:
+	     *         > For historical reasons, Window objects must also have a
+	     *         > writable, configurable, non-enumerable property named
+	     *         > HTMLDocument whose value is the Document interface object.
+	     * Test: `Object.prototype.toString.call(document)``
+	     *  - Chrome === "[object HTMLDocument]"
+	     *  - Firefox === "[object HTMLDocument]"
+	     *  - Safari === "[object HTMLDocument]"
+	     *  - IE <=10 === "[object Document]"
+	     *  - IE 11 === "[object HTMLDocument]"
+	     *  - IE Edge <=13 === "[object HTMLDocument]"
+	     */
+	    if (typeof window.document === 'object' && obj === window.document) {
+	      return 'Document';
+	    }
+
+	    if (typeof window.navigator === 'object') {
+	      /* ! Spec Conformance
+	       * (https://html.spec.whatwg.org/multipage/webappapis.html#mimetypearray)
+	       * WhatWG HTML$8.6.1.5 - Plugins - Interface MimeTypeArray
+	       * Test: `Object.prototype.toString.call(navigator.mimeTypes)``
+	       *  - IE <=10 === "[object MSMimeTypesCollection]"
+	       */
+	      if (typeof window.navigator.mimeTypes === 'object' &&
+	          obj === window.navigator.mimeTypes) {
+	        return 'MimeTypeArray';
+	      }
+
+	      /* ! Spec Conformance
+	       * (https://html.spec.whatwg.org/multipage/webappapis.html#pluginarray)
+	       * WhatWG HTML$8.6.1.5 - Plugins - Interface PluginArray
+	       * Test: `Object.prototype.toString.call(navigator.plugins)``
+	       *  - IE <=10 === "[object MSPluginsCollection]"
+	       */
+	      if (typeof window.navigator.plugins === 'object' &&
+	          obj === window.navigator.plugins) {
+	        return 'PluginArray';
+	      }
+	    }
+
+	    if ((typeof window.HTMLElement === 'function' ||
+	        typeof window.HTMLElement === 'object') &&
+	        obj instanceof window.HTMLElement) {
+	      /* ! Spec Conformance
+	      * (https://html.spec.whatwg.org/multipage/webappapis.html#pluginarray)
+	      * WhatWG HTML$4.4.4 - The `blockquote` element - Interface `HTMLQuoteElement`
+	      * Test: `Object.prototype.toString.call(document.createElement('blockquote'))``
+	      *  - IE <=10 === "[object HTMLBlockElement]"
+	      */
+	      if (obj.tagName === 'BLOCKQUOTE') {
+	        return 'HTMLQuoteElement';
+	      }
+
+	      /* ! Spec Conformance
+	       * (https://html.spec.whatwg.org/#htmltabledatacellelement)
+	       * WhatWG HTML$4.9.9 - The `td` element - Interface `HTMLTableDataCellElement`
+	       * Note: Most browsers currently adher to the W3C DOM Level 2 spec
+	       *       (https://www.w3.org/TR/DOM-Level-2-HTML/html.html#ID-82915075)
+	       *       which suggests that browsers should use HTMLTableCellElement for
+	       *       both TD and TH elements. WhatWG separates these.
+	       * Test: Object.prototype.toString.call(document.createElement('td'))
+	       *  - Chrome === "[object HTMLTableCellElement]"
+	       *  - Firefox === "[object HTMLTableCellElement]"
+	       *  - Safari === "[object HTMLTableCellElement]"
+	       */
+	      if (obj.tagName === 'TD') {
+	        return 'HTMLTableDataCellElement';
+	      }
+
+	      /* ! Spec Conformance
+	       * (https://html.spec.whatwg.org/#htmltableheadercellelement)
+	       * WhatWG HTML$4.9.9 - The `td` element - Interface `HTMLTableHeaderCellElement`
+	       * Note: Most browsers currently adher to the W3C DOM Level 2 spec
+	       *       (https://www.w3.org/TR/DOM-Level-2-HTML/html.html#ID-82915075)
+	       *       which suggests that browsers should use HTMLTableCellElement for
+	       *       both TD and TH elements. WhatWG separates these.
+	       * Test: Object.prototype.toString.call(document.createElement('th'))
+	       *  - Chrome === "[object HTMLTableCellElement]"
+	       *  - Firefox === "[object HTMLTableCellElement]"
+	       *  - Safari === "[object HTMLTableCellElement]"
+	       */
+	      if (obj.tagName === 'TH') {
+	        return 'HTMLTableHeaderCellElement';
+	      }
+	    }
+	  }
+
+	  /* ! Speed optimisation
+	  * Pre:
+	  *   Float64Array       x 625,644 ops/sec ±1.58% (80 runs sampled)
+	  *   Float32Array       x 1,279,852 ops/sec ±2.91% (77 runs sampled)
+	  *   Uint32Array        x 1,178,185 ops/sec ±1.95% (83 runs sampled)
+	  *   Uint16Array        x 1,008,380 ops/sec ±2.25% (80 runs sampled)
+	  *   Uint8Array         x 1,128,040 ops/sec ±2.11% (81 runs sampled)
+	  *   Int32Array         x 1,170,119 ops/sec ±2.88% (80 runs sampled)
+	  *   Int16Array         x 1,176,348 ops/sec ±5.79% (86 runs sampled)
+	  *   Int8Array          x 1,058,707 ops/sec ±4.94% (77 runs sampled)
+	  *   Uint8ClampedArray  x 1,110,633 ops/sec ±4.20% (80 runs sampled)
+	  * Post:
+	  *   Float64Array       x 7,105,671 ops/sec ±13.47% (64 runs sampled)
+	  *   Float32Array       x 5,887,912 ops/sec ±1.46% (82 runs sampled)
+	  *   Uint32Array        x 6,491,661 ops/sec ±1.76% (79 runs sampled)
+	  *   Uint16Array        x 6,559,795 ops/sec ±1.67% (82 runs sampled)
+	  *   Uint8Array         x 6,463,966 ops/sec ±1.43% (85 runs sampled)
+	  *   Int32Array         x 5,641,841 ops/sec ±3.49% (81 runs sampled)
+	  *   Int16Array         x 6,583,511 ops/sec ±1.98% (80 runs sampled)
+	  *   Int8Array          x 6,606,078 ops/sec ±1.74% (81 runs sampled)
+	  *   Uint8ClampedArray  x 6,602,224 ops/sec ±1.77% (83 runs sampled)
+	  */
+	  var stringTag = (symbolToStringTagExists && obj[Symbol.toStringTag]);
+	  if (typeof stringTag === 'string') {
+	    return stringTag;
+	  }
+
+	  var objPrototype = Object.getPrototypeOf(obj);
+	  /* ! Speed optimisation
+	  * Pre:
+	  *   regex literal      x 1,772,385 ops/sec ±1.85% (77 runs sampled)
+	  *   regex constructor  x 2,143,634 ops/sec ±2.46% (78 runs sampled)
+	  * Post:
+	  *   regex literal      x 3,928,009 ops/sec ±0.65% (78 runs sampled)
+	  *   regex constructor  x 3,931,108 ops/sec ±0.58% (84 runs sampled)
+	  */
+	  if (objPrototype === RegExp.prototype) {
+	    return 'RegExp';
+	  }
+
+	  /* ! Speed optimisation
+	  * Pre:
+	  *   date               x 2,130,074 ops/sec ±4.42% (68 runs sampled)
+	  * Post:
+	  *   date               x 3,953,779 ops/sec ±1.35% (77 runs sampled)
+	  */
+	  if (objPrototype === Date.prototype) {
+	    return 'Date';
+	  }
+
+	  /* ! Spec Conformance
+	   * (http://www.ecma-international.org/ecma-262/6.0/index.html#sec-promise.prototype-@@tostringtag)
+	   * ES6$25.4.5.4 - Promise.prototype[@@toStringTag] should be "Promise":
+	   * Test: `Object.prototype.toString.call(Promise.resolve())``
+	   *  - Chrome <=47 === "[object Object]"
+	   *  - Edge <=20 === "[object Object]"
+	   *  - Firefox 29-Latest === "[object Promise]"
+	   *  - Safari 7.1-Latest === "[object Promise]"
+	   */
+	  if (promiseExists && objPrototype === Promise.prototype) {
+	    return 'Promise';
+	  }
+
+	  /* ! Speed optimisation
+	  * Pre:
+	  *   set                x 2,222,186 ops/sec ±1.31% (82 runs sampled)
+	  * Post:
+	  *   set                x 4,545,879 ops/sec ±1.13% (83 runs sampled)
+	  */
+	  if (setExists && objPrototype === Set.prototype) {
+	    return 'Set';
+	  }
+
+	  /* ! Speed optimisation
+	  * Pre:
+	  *   map                x 2,396,842 ops/sec ±1.59% (81 runs sampled)
+	  * Post:
+	  *   map                x 4,183,945 ops/sec ±6.59% (82 runs sampled)
+	  */
+	  if (mapExists && objPrototype === Map.prototype) {
+	    return 'Map';
+	  }
+
+	  /* ! Speed optimisation
+	  * Pre:
+	  *   weakset            x 1,323,220 ops/sec ±2.17% (76 runs sampled)
+	  * Post:
+	  *   weakset            x 4,237,510 ops/sec ±2.01% (77 runs sampled)
+	  */
+	  if (weakSetExists && objPrototype === WeakSet.prototype) {
+	    return 'WeakSet';
+	  }
+
+	  /* ! Speed optimisation
+	  * Pre:
+	  *   weakmap            x 1,500,260 ops/sec ±2.02% (78 runs sampled)
+	  * Post:
+	  *   weakmap            x 3,881,384 ops/sec ±1.45% (82 runs sampled)
+	  */
+	  if (weakMapExists && objPrototype === WeakMap.prototype) {
+	    return 'WeakMap';
+	  }
+
+	  /* ! Spec Conformance
+	   * (http://www.ecma-international.org/ecma-262/6.0/index.html#sec-dataview.prototype-@@tostringtag)
+	   * ES6$24.2.4.21 - DataView.prototype[@@toStringTag] should be "DataView":
+	   * Test: `Object.prototype.toString.call(new DataView(new ArrayBuffer(1)))``
+	   *  - Edge <=13 === "[object Object]"
+	   */
+	  if (dataViewExists && objPrototype === DataView.prototype) {
+	    return 'DataView';
+	  }
+
+	  /* ! Spec Conformance
+	   * (http://www.ecma-international.org/ecma-262/6.0/index.html#sec-%mapiteratorprototype%-@@tostringtag)
+	   * ES6$23.1.5.2.2 - %MapIteratorPrototype%[@@toStringTag] should be "Map Iterator":
+	   * Test: `Object.prototype.toString.call(new Map().entries())``
+	   *  - Edge <=13 === "[object Object]"
+	   */
+	  if (mapExists && objPrototype === mapIteratorPrototype) {
+	    return 'Map Iterator';
+	  }
+
+	  /* ! Spec Conformance
+	   * (http://www.ecma-international.org/ecma-262/6.0/index.html#sec-%setiteratorprototype%-@@tostringtag)
+	   * ES6$23.2.5.2.2 - %SetIteratorPrototype%[@@toStringTag] should be "Set Iterator":
+	   * Test: `Object.prototype.toString.call(new Set().entries())``
+	   *  - Edge <=13 === "[object Object]"
+	   */
+	  if (setExists && objPrototype === setIteratorPrototype) {
+	    return 'Set Iterator';
+	  }
+
+	  /* ! Spec Conformance
+	   * (http://www.ecma-international.org/ecma-262/6.0/index.html#sec-%arrayiteratorprototype%-@@tostringtag)
+	   * ES6$22.1.5.2.2 - %ArrayIteratorPrototype%[@@toStringTag] should be "Array Iterator":
+	   * Test: `Object.prototype.toString.call([][Symbol.iterator]())``
+	   *  - Edge <=13 === "[object Object]"
+	   */
+	  if (arrayIteratorExists && objPrototype === arrayIteratorPrototype) {
+	    return 'Array Iterator';
+	  }
+
+	  /* ! Spec Conformance
+	   * (http://www.ecma-international.org/ecma-262/6.0/index.html#sec-%stringiteratorprototype%-@@tostringtag)
+	   * ES6$21.1.5.2.2 - %StringIteratorPrototype%[@@toStringTag] should be "String Iterator":
+	   * Test: `Object.prototype.toString.call(''[Symbol.iterator]())``
+	   *  - Edge <=13 === "[object Object]"
+	   */
+	  if (stringIteratorExists && objPrototype === stringIteratorPrototype) {
+	    return 'String Iterator';
+	  }
+
+	  /* ! Speed optimisation
+	  * Pre:
+	  *   object from null   x 2,424,320 ops/sec ±1.67% (76 runs sampled)
+	  * Post:
+	  *   object from null   x 5,838,000 ops/sec ±0.99% (84 runs sampled)
+	  */
+	  if (objPrototype === null) {
+	    return 'Object';
+	  }
+
+	  return Object
+	    .prototype
+	    .toString
+	    .call(obj)
+	    .slice(toStringLeftSliceLength, toStringRightSliceLength);
+	}
+
+	return typeDetect;
+
+	})));
+	});
+
+	const isBufferExists = typeof Buffer !== 'undefined';
+	const isBufferFromExists = isBufferExists && typeof Buffer.from !== 'undefined';
+
+	const isBuffer = isBufferExists
+	  ? /**
+	     * is value is Buffer?
+	     *
+	     * @param {*} value
+	     * @return {boolean}
+	     */
+	    function isBuffer(value) {
+	      return Buffer.isBuffer(value);
+	    }
+	  : /**
+	     * return false
+	     *
+	     * NOTE: for Buffer unsupported
+	     *
+	     * @return {boolean}
+	     */
+	    function isBuffer() {
+	      return false;
+	    };
+
+	const copy = isBufferFromExists
+	  ? /**
+	     * copy Buffer
+	     *
+	     * @param {Buffer} value
+	     * @return {Buffer}
+	     */
+	    function copy(value) {
+	      return Buffer.from(value);
+	    }
+	  : isBufferExists
+	  ? /**
+	     * copy Buffer
+	     *
+	     * NOTE: for old node.js
+	     *
+	     * @param {Buffer} value
+	     * @return {Buffer}
+	     */
+	    function copy(value) {
+	      return new Buffer(value);
+	    }
+	  : /**
+	     * shallow copy
+	     *
+	     * NOTE: for Buffer unsupported
+	     *
+	     * @param {*}
+	     * @return {*}
+	     */
+	    function copy(value) {
+	      return value;
+	    };
+
+	/**
+	 * detect type of value
+	 *
+	 * @param {*} value
+	 * @return {string}
+	 */
+	function detectType(value) {
+	  // NOTE: isBuffer must execute before type-detect,
+	  // because type-detect returns 'Uint8Array'.
+	  if (isBuffer(value)) {
+	    return 'Buffer';
+	  }
+
+	  return typeDetect(value);
+	}
+
+	/**
+	 * collection types
+	 */
+	const collectionTypeSet = new Set([
+	  'Arguments',
+	  'Array',
+	  'Map',
+	  'Object',
+	  'Set'
+	]);
+
+	/**
+	 * get value from collection
+	 *
+	 * @param {Array|Object|Map|Set} collection
+	 * @param {string|number|symbol} key
+	 * @param {string} [type=null]
+	 * @return {*}
+	 */
+	function get(collection, key, type = null) {
+	  const valueType = type || detectType(collection);
+
+	  switch (valueType) {
+	    case 'Arguments':
+	    case 'Array':
+	    case 'Object':
+	      return collection[key];
+	    case 'Map':
+	      return collection.get(key);
+	    case 'Set':
+	      // NOTE: Set.prototype.keys is alias of Set.prototype.values
+	      // it means key is equals value
+	      return key;
+	  }
+	}
+
+	/**
+	 * check to type string is collection
+	 *
+	 * @param {string} type
+	 */
+	function isCollection(type) {
+	  return collectionTypeSet.has(type);
+	}
+
+	/**
+	 * set value to collection
+	 *
+	 * @param {Array|Object|Map|Set} collection
+	 * @param {string|number|symbol} key
+	 * @param {*} value
+	 * @param {string} [type=null]
+	 * @return {Array|Object|Map|Set}
+	 */
+	function set(collection, key, value, type = null) {
+	  const valueType = type || detectType(collection);
+
+	  switch (valueType) {
+	    case 'Arguments':
+	    case 'Array':
+	    case 'Object':
+	      collection[key] = value;
+	      break;
+	    case 'Map':
+	      collection.set(key, value);
+	      break;
+	    case 'Set':
+	      collection.add(value);
+	      break;
+	  }
+
+	  return collection;
+	}
+
+	const freeGlobalThis =
+	  typeof globalThis !== 'undefined' &&
+	  globalThis !== null &&
+	  globalThis.Object === Object &&
+	  globalThis;
+
+	const freeGlobal =
+	  typeof global !== 'undefined' &&
+	  global !== null &&
+	  global.Object === Object &&
+	  global;
+
+	const freeSelf =
+	  typeof self !== 'undefined' &&
+	  self !== null &&
+	  self.Object === Object &&
+	  self;
+
+	const globalObject =
+	  freeGlobalThis || freeGlobal || freeSelf || Function('return this')();
+
+	/**
+	 * copy ArrayBuffer
+	 *
+	 * @param {ArrayBuffer} value
+	 * @return {ArrayBuffer}
+	 */
+	function copyArrayBuffer(value) {
+	  return value.slice(0);
+	}
+
+	/**
+	 * copy Boolean
+	 *
+	 * @param {Boolean} value
+	 * @return {Boolean}
+	 */
+	function copyBoolean(value) {
+	  return new Boolean(value.valueOf());
+	}
+
+	/**
+	 * copy DataView
+	 *
+	 * @param {DataView} value
+	 * @return {DataView}
+	 */
+	function copyDataView(value) {
+	  // TODO: copy ArrayBuffer?
+	  return new DataView(value.buffer);
+	}
+
+	/**
+	 * copy Buffer
+	 *
+	 * @param {Buffer} value
+	 * @return {Buffer}
+	 */
+	function copyBuffer(value) {
+	  return copy(value);
+	}
+
+	/**
+	 * copy Date
+	 *
+	 * @param {Date} value
+	 * @return {Date}
+	 */
+	function copyDate(value) {
+	  return new Date(value.getTime());
+	}
+
+	/**
+	 * copy Number
+	 *
+	 * @param {Number} value
+	 * @return {Number}
+	 */
+	function copyNumber(value) {
+	  return new Number(value);
+	}
+
+	/**
+	 * copy RegExp
+	 *
+	 * @param {RegExp} value
+	 * @return {RegExp}
+	 */
+	function copyRegExp(value) {
+	  return new RegExp(value.source, value.flags);
+	}
+
+	/**
+	 * copy String
+	 *
+	 * @param {String} value
+	 * @return {String}
+	 */
+	function copyString(value) {
+	  return new String(value);
+	}
+
+	/**
+	 * copy TypedArray
+	 *
+	 * @param {*} value
+	 * @return {*}
+	 */
+	function copyTypedArray(value, type) {
+	  const typedArray = globalObject[type];
+
+	  if (typedArray.from) {
+	    return globalObject[type].from(value);
+	  }
+
+	  return new globalObject[type](value);
+	}
+
+	/**
+	 * shallow copy
+	 *
+	 * @param {*} value
+	 * @return {*}
+	 */
+	function shallowCopy(value) {
+	  return value;
+	}
+
+	/**
+	 * get empty Array
+	 *
+	 * @return {Array}
+	 */
+	function getEmptyArray() {
+	  return [];
+	}
+
+	/**
+	 * get empty Map
+	 *
+	 * @return {Map}
+	 */
+	function getEmptyMap() {
+	  return new Map();
+	}
+
+	/**
+	 * get empty Object
+	 *
+	 * @return {Object}
+	 */
+	function getEmptyObject() {
+	  return {};
+	}
+
+	/**
+	 * get empty Set
+	 *
+	 * @return {Set}
+	 */
+	function getEmptySet() {
+	  return new Set();
+	}
+
+	var copyMap = new Map([
+	  // deep copy
+	  ['ArrayBuffer', copyArrayBuffer],
+	  ['Boolean', copyBoolean],
+	  ['Buffer', copyBuffer],
+	  ['DataView', copyDataView],
+	  ['Date', copyDate],
+	  ['Number', copyNumber],
+	  ['RegExp', copyRegExp],
+	  ['String', copyString],
+
+	  // typed arrays
+	  // TODO: pass bound function
+	  ['Float32Array', copyTypedArray],
+	  ['Float64Array', copyTypedArray],
+	  ['Int16Array', copyTypedArray],
+	  ['Int32Array', copyTypedArray],
+	  ['Int8Array', copyTypedArray],
+	  ['Uint16Array', copyTypedArray],
+	  ['Uint32Array', copyTypedArray],
+	  ['Uint8Array', copyTypedArray],
+	  ['Uint8ClampedArray', copyTypedArray],
+
+	  // shallow copy
+	  ['Array Iterator', shallowCopy],
+	  ['Map Iterator', shallowCopy],
+	  ['Promise', shallowCopy],
+	  ['Set Iterator', shallowCopy],
+	  ['String Iterator', shallowCopy],
+	  ['function', shallowCopy],
+	  ['global', shallowCopy],
+	  // NOTE: WeakMap and WeakSet cannot get entries
+	  ['WeakMap', shallowCopy],
+	  ['WeakSet', shallowCopy],
+
+	  // primitives
+	  ['boolean', shallowCopy],
+	  ['null', shallowCopy],
+	  ['number', shallowCopy],
+	  ['string', shallowCopy],
+	  ['symbol', shallowCopy],
+	  ['undefined', shallowCopy],
+
+	  // collections
+	  // NOTE: return empty value, because recursively copy later.
+	  ['Arguments', getEmptyArray],
+	  ['Array', getEmptyArray],
+	  ['Map', getEmptyMap],
+	  ['Object', getEmptyObject],
+	  ['Set', getEmptySet]
+
+	  // NOTE: type-detect returns following types
+	  // 'Location'
+	  // 'Document'
+	  // 'MimeTypeArray'
+	  // 'PluginArray'
+	  // 'HTMLQuoteElement'
+	  // 'HTMLTableDataCellElement'
+	  // 'HTMLTableHeaderCellElement'
+
+	  // TODO: is type-detect never return 'object'?
+	  // 'object'
+	]);
+
+	/**
+	 * no operation
+	 */
+	function noop() {}
+
+	/**
+	 * copy value
+	 *
+	 * @param {*} value
+	 * @param {string} [type=null]
+	 * @param {Function} [customizer=noop]
+	 * @return {*}
+	 */
+	function copy$1(value, type = null, customizer = noop) {
+	  if (arguments.length === 2 && typeof type === 'function') {
+	    customizer = type;
+	    type = null;
+	  }
+
+	  const valueType = type || detectType(value);
+	  const copyFunction = copyMap.get(valueType);
+
+	  if (valueType === 'Object') {
+	    const result = customizer(value, valueType);
+
+	    if (result !== undefined) {
+	      return result;
+	    }
+	  }
+
+	  // NOTE: TypedArray needs pass type to argument
+	  return copyFunction ? copyFunction(value, valueType) : value;
+	}
+
+	/**
+	 * deepcopy function
+	 *
+	 * @param {*} value
+	 * @param {Object|Function} [options]
+	 * @return {*}
+	 */
+	function deepcopy(value, options = {}) {
+	  if (typeof options === 'function') {
+	    options = {
+	      customizer: options
+	    };
+	  }
+
+	  const {
+	    // TODO: before/after customizer
+	    customizer
+	    // TODO: max depth
+	    // depth = Infinity,
+	  } = options;
+
+	  const valueType = detectType(value);
+
+	  if (!isCollection(valueType)) {
+	    return recursiveCopy(value, null, null, null);
+	  }
+
+	  const copiedValue = copy$1(value, valueType, customizer);
+
+	  const references = new WeakMap([[value, copiedValue]]);
+	  const visited = new WeakSet([value]);
+
+	  return recursiveCopy(value, copiedValue, references, visited);
+	}
+
+	/**
+	 * recursively copy
+	 *
+	 * @param {*} value target value
+	 * @param {*} clone clone of value
+	 * @param {WeakMap} references visited references of clone
+	 * @param {WeakSet} visited visited references of value
+	 * @param {Function} customizer user customize function
+	 * @return {*}
+	 */
+	function recursiveCopy(value, clone, references, visited, customizer) {
+	  const type = detectType(value);
+	  const copiedValue = copy$1(value, type);
+
+	  // return if not a collection value
+	  if (!isCollection(type)) {
+	    return copiedValue;
+	  }
+
+	  let keys;
+
+	  switch (type) {
+	    case 'Arguments':
+	    case 'Array':
+	      keys = Object.keys(value);
+	      break;
+	    case 'Object':
+	      keys = Object.keys(value);
+	      keys.push(...Object.getOwnPropertySymbols(value));
+	      break;
+	    case 'Map':
+	    case 'Set':
+	      keys = value.keys();
+	      break;
+	  }
+
+	  // walk within collection with iterator
+	  for (let collectionKey of keys) {
+	    const collectionValue = get(value, collectionKey, type);
+
+	    if (visited.has(collectionValue)) {
+	      // for [Circular]
+	      set(clone, collectionKey, references.get(collectionValue), type);
+	    } else {
+	      const collectionValueType = detectType(collectionValue);
+	      const copiedCollectionValue = copy$1(collectionValue, collectionValueType);
+
+	      // save reference if value is collection
+	      if (isCollection(collectionValueType)) {
+	        references.set(collectionValue, copiedCollectionValue);
+	        visited.add(collectionValue);
+	      }
+
+	      set(
+	        clone,
+	        collectionKey,
+	        recursiveCopy(
+	          collectionValue,
+	          copiedCollectionValue,
+	          references,
+	          visited),
+	        type
+	      );
+	    }
+	  }
+
+	  // TODO: isSealed/isFrozen/isExtensible
+
+	  return clone;
+	}
+
+	return deepcopy;
+
+})));
+
+
+}).call(this)}).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {},require("buffer").Buffer)
+},{"buffer":105}],107:[function(require,module,exports){
+'use strict';
+
+var OneVersionConstraint = require('individual/one-version');
+
+var MY_VERSION = '7';
+OneVersionConstraint('ev-store', MY_VERSION);
+
+var hashKey = '__EV_STORE_KEY@' + MY_VERSION;
+
+module.exports = EvStore;
+
+function EvStore(elem) {
+    var hash = elem[hashKey];
+
+    if (!hash) {
+        hash = elem[hashKey] = {};
+    }
+
+    return hash;
+}
+
+},{"individual/one-version":111}],108:[function(require,module,exports){
+(function (global){(function (){
+var topLevel = typeof global !== 'undefined' ? global :
+    typeof window !== 'undefined' ? window : {}
+var minDoc = require('min-document');
+
+var doccy;
+
+if (typeof document !== 'undefined') {
+    doccy = document;
+} else {
+    doccy = topLevel['__GLOBAL_DOCUMENT_CACHE@4'];
+
+    if (!doccy) {
+        doccy = topLevel['__GLOBAL_DOCUMENT_CACHE@4'] = minDoc;
+    }
+}
+
+module.exports = doccy;
+
+}).call(this)}).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
+},{"min-document":103}],109:[function(require,module,exports){
+/*! ieee754. BSD-3-Clause License. Feross Aboukhadijeh <https://feross.org/opensource> */
+exports.read = function (buffer, offset, isLE, mLen, nBytes) {
+  var e, m
+  var eLen = (nBytes * 8) - mLen - 1
+  var eMax = (1 << eLen) - 1
+  var eBias = eMax >> 1
+  var nBits = -7
+  var i = isLE ? (nBytes - 1) : 0
+  var d = isLE ? -1 : 1
+  var s = buffer[offset + i]
+
+  i += d
+
+  e = s & ((1 << (-nBits)) - 1)
+  s >>= (-nBits)
+  nBits += eLen
+  for (; nBits > 0; e = (e * 256) + buffer[offset + i], i += d, nBits -= 8) {}
+
+  m = e & ((1 << (-nBits)) - 1)
+  e >>= (-nBits)
+  nBits += mLen
+  for (; nBits > 0; m = (m * 256) + buffer[offset + i], i += d, nBits -= 8) {}
+
+  if (e === 0) {
+    e = 1 - eBias
+  } else if (e === eMax) {
+    return m ? NaN : ((s ? -1 : 1) * Infinity)
+  } else {
+    m = m + Math.pow(2, mLen)
+    e = e - eBias
+  }
+  return (s ? -1 : 1) * m * Math.pow(2, e - mLen)
+}
+
+exports.write = function (buffer, value, offset, isLE, mLen, nBytes) {
+  var e, m, c
+  var eLen = (nBytes * 8) - mLen - 1
+  var eMax = (1 << eLen) - 1
+  var eBias = eMax >> 1
+  var rt = (mLen === 23 ? Math.pow(2, -24) - Math.pow(2, -77) : 0)
+  var i = isLE ? 0 : (nBytes - 1)
+  var d = isLE ? 1 : -1
+  var s = value < 0 || (value === 0 && 1 / value < 0) ? 1 : 0
+
+  value = Math.abs(value)
+
+  if (isNaN(value) || value === Infinity) {
+    m = isNaN(value) ? 1 : 0
+    e = eMax
+  } else {
+    e = Math.floor(Math.log(value) / Math.LN2)
+    if (value * (c = Math.pow(2, -e)) < 1) {
+      e--
+      c *= 2
+    }
+    if (e + eBias >= 1) {
+      value += rt / c
+    } else {
+      value += rt * Math.pow(2, 1 - eBias)
+    }
+    if (value * c >= 2) {
+      e++
+      c /= 2
+    }
+
+    if (e + eBias >= eMax) {
+      m = 0
+      e = eMax
+    } else if (e + eBias >= 1) {
+      m = ((value * c) - 1) * Math.pow(2, mLen)
+      e = e + eBias
+    } else {
+      m = value * Math.pow(2, eBias - 1) * Math.pow(2, mLen)
+      e = 0
+    }
+  }
+
+  for (; mLen >= 8; buffer[offset + i] = m & 0xff, i += d, m /= 256, mLen -= 8) {}
+
+  e = (e << mLen) | m
+  eLen += mLen
+  for (; eLen > 0; buffer[offset + i] = e & 0xff, i += d, e /= 256, eLen -= 8) {}
+
+  buffer[offset + i - d] |= s * 128
+}
+
+},{}],110:[function(require,module,exports){
+(function (global){(function (){
+'use strict';
+
+/*global window, global*/
+
+var root = typeof window !== 'undefined' ?
+    window : typeof global !== 'undefined' ?
+    global : {};
+
+module.exports = Individual;
+
+function Individual(key, value) {
+    if (key in root) {
+        return root[key];
+    }
+
+    root[key] = value;
+
+    return value;
+}
+
+}).call(this)}).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
+},{}],111:[function(require,module,exports){
+'use strict';
+
+var Individual = require('./index.js');
+
+module.exports = OneVersion;
+
+function OneVersion(moduleName, version, defaultValue) {
+    var key = '__INDIVIDUAL_ONE_VERSION_' + moduleName;
+    var enforceKey = key + '_ENFORCE_SINGLETON';
+
+    var versionValue = Individual(enforceKey, version);
+
+    if (versionValue !== version) {
+        throw new Error('Can only have one copy of ' +
+            moduleName + '.\n' +
+            'You already have version ' + versionValue +
+            ' installed.\n' +
+            'This means you cannot install version ' + version);
+    }
+
+    return Individual(key, defaultValue);
+}
+
+},{"./index.js":110}],112:[function(require,module,exports){
+'use strict';
+
+module.exports = function isObject(x) {
+	return typeof x === 'object' && x !== null;
+};
+
+},{}],113:[function(require,module,exports){
 (function (global, factory) {
   typeof exports === 'object' && typeof module !== 'undefined' ? factory(exports) :
   typeof define === 'function' && define.amd ? define(['exports'], factory) :
@@ -13140,7 +15990,193 @@ exports.DefaultTextEditingService = DefaultTextEditingService;
 
 })));
 
-},{}],100:[function(require,module,exports){
+},{}],114:[function(require,module,exports){
+// shim for using process in browser
+var process = module.exports = {};
+
+// cached from whatever global is present so that test runners that stub it
+// don't break things.  But we need to wrap it in a try catch in case it is
+// wrapped in strict mode code which doesn't define any globals.  It's inside a
+// function because try/catches deoptimize in certain engines.
+
+var cachedSetTimeout;
+var cachedClearTimeout;
+
+function defaultSetTimout() {
+    throw new Error('setTimeout has not been defined');
+}
+function defaultClearTimeout () {
+    throw new Error('clearTimeout has not been defined');
+}
+(function () {
+    try {
+        if (typeof setTimeout === 'function') {
+            cachedSetTimeout = setTimeout;
+        } else {
+            cachedSetTimeout = defaultSetTimout;
+        }
+    } catch (e) {
+        cachedSetTimeout = defaultSetTimout;
+    }
+    try {
+        if (typeof clearTimeout === 'function') {
+            cachedClearTimeout = clearTimeout;
+        } else {
+            cachedClearTimeout = defaultClearTimeout;
+        }
+    } catch (e) {
+        cachedClearTimeout = defaultClearTimeout;
+    }
+} ())
+function runTimeout(fun) {
+    if (cachedSetTimeout === setTimeout) {
+        //normal enviroments in sane situations
+        return setTimeout(fun, 0);
+    }
+    // if setTimeout wasn't available but was latter defined
+    if ((cachedSetTimeout === defaultSetTimout || !cachedSetTimeout) && setTimeout) {
+        cachedSetTimeout = setTimeout;
+        return setTimeout(fun, 0);
+    }
+    try {
+        // when when somebody has screwed with setTimeout but no I.E. maddness
+        return cachedSetTimeout(fun, 0);
+    } catch(e){
+        try {
+            // When we are in I.E. but the script has been evaled so I.E. doesn't trust the global object when called normally
+            return cachedSetTimeout.call(null, fun, 0);
+        } catch(e){
+            // same as above but when it's a version of I.E. that must have the global object for 'this', hopfully our context correct otherwise it will throw a global error
+            return cachedSetTimeout.call(this, fun, 0);
+        }
+    }
+
+
+}
+function runClearTimeout(marker) {
+    if (cachedClearTimeout === clearTimeout) {
+        //normal enviroments in sane situations
+        return clearTimeout(marker);
+    }
+    // if clearTimeout wasn't available but was latter defined
+    if ((cachedClearTimeout === defaultClearTimeout || !cachedClearTimeout) && clearTimeout) {
+        cachedClearTimeout = clearTimeout;
+        return clearTimeout(marker);
+    }
+    try {
+        // when when somebody has screwed with setTimeout but no I.E. maddness
+        return cachedClearTimeout(marker);
+    } catch (e){
+        try {
+            // When we are in I.E. but the script has been evaled so I.E. doesn't  trust the global object when called normally
+            return cachedClearTimeout.call(null, marker);
+        } catch (e){
+            // same as above but when it's a version of I.E. that must have the global object for 'this', hopfully our context correct otherwise it will throw a global error.
+            // Some versions of I.E. have different rules for clearTimeout vs setTimeout
+            return cachedClearTimeout.call(this, marker);
+        }
+    }
+
+
+
+}
+var queue = [];
+var draining = false;
+var currentQueue;
+var queueIndex = -1;
+
+function cleanUpNextTick() {
+    if (!draining || !currentQueue) {
+        return;
+    }
+    draining = false;
+    if (currentQueue.length) {
+        queue = currentQueue.concat(queue);
+    } else {
+        queueIndex = -1;
+    }
+    if (queue.length) {
+        drainQueue();
+    }
+}
+
+function drainQueue() {
+    if (draining) {
+        return;
+    }
+    var timeout = runTimeout(cleanUpNextTick);
+    draining = true;
+
+    var len = queue.length;
+    while(len) {
+        currentQueue = queue;
+        queue = [];
+        while (++queueIndex < len) {
+            if (currentQueue) {
+                currentQueue[queueIndex].run();
+            }
+        }
+        queueIndex = -1;
+        len = queue.length;
+    }
+    currentQueue = null;
+    draining = false;
+    runClearTimeout(timeout);
+}
+
+process.nextTick = function (fun) {
+    var args = new Array(arguments.length - 1);
+    if (arguments.length > 1) {
+        for (var i = 1; i < arguments.length; i++) {
+            args[i - 1] = arguments[i];
+        }
+    }
+    queue.push(new Item(fun, args));
+    if (queue.length === 1 && !draining) {
+        runTimeout(drainQueue);
+    }
+};
+
+// v8 likes predictible objects
+function Item(fun, array) {
+    this.fun = fun;
+    this.array = array;
+}
+Item.prototype.run = function () {
+    this.fun.apply(null, this.array);
+};
+process.title = 'browser';
+process.browser = true;
+process.env = {};
+process.argv = [];
+process.version = ''; // empty string to avoid regexp issues
+process.versions = {};
+
+function noop() {}
+
+process.on = noop;
+process.addListener = noop;
+process.once = noop;
+process.off = noop;
+process.removeListener = noop;
+process.removeAllListeners = noop;
+process.emit = noop;
+process.prependListener = noop;
+process.prependOnceListener = noop;
+
+process.listeners = function (name) { return [] }
+
+process.binding = function (name) {
+    throw new Error('process.binding is not supported');
+};
+
+process.cwd = function () { return '/' };
+process.chdir = function (dir) {
+    throw new Error('process.chdir is not supported');
+};
+process.umask = function() { return 0; };
+
+},{}],115:[function(require,module,exports){
 (function (process,global){(function (){
 /*! *****************************************************************************
 Copyright (C) Microsoft. All rights reserved.
@@ -14275,7 +17311,276 @@ var Reflect;
 })(Reflect || (Reflect = {}));
 
 }).call(this)}).call(this,require('_process'),typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
-},{"_process":3}],101:[function(require,module,exports){
+},{"_process":114}],116:[function(require,module,exports){
+(function (process,global){(function (){
+(function (global, undefined) {
+    "use strict";
+
+    if (global.setImmediate) {
+        return;
+    }
+
+    var nextHandle = 1; // Spec says greater than zero
+    var tasksByHandle = {};
+    var currentlyRunningATask = false;
+    var doc = global.document;
+    var registerImmediate;
+
+    function setImmediate(callback) {
+      // Callback can either be a function or a string
+      if (typeof callback !== "function") {
+        callback = new Function("" + callback);
+      }
+      // Copy function arguments
+      var args = new Array(arguments.length - 1);
+      for (var i = 0; i < args.length; i++) {
+          args[i] = arguments[i + 1];
+      }
+      // Store and register the task
+      var task = { callback: callback, args: args };
+      tasksByHandle[nextHandle] = task;
+      registerImmediate(nextHandle);
+      return nextHandle++;
+    }
+
+    function clearImmediate(handle) {
+        delete tasksByHandle[handle];
+    }
+
+    function run(task) {
+        var callback = task.callback;
+        var args = task.args;
+        switch (args.length) {
+        case 0:
+            callback();
+            break;
+        case 1:
+            callback(args[0]);
+            break;
+        case 2:
+            callback(args[0], args[1]);
+            break;
+        case 3:
+            callback(args[0], args[1], args[2]);
+            break;
+        default:
+            callback.apply(undefined, args);
+            break;
+        }
+    }
+
+    function runIfPresent(handle) {
+        // From the spec: "Wait until any invocations of this algorithm started before this one have completed."
+        // So if we're currently running a task, we'll need to delay this invocation.
+        if (currentlyRunningATask) {
+            // Delay by doing a setTimeout. setImmediate was tried instead, but in Firefox 7 it generated a
+            // "too much recursion" error.
+            setTimeout(runIfPresent, 0, handle);
+        } else {
+            var task = tasksByHandle[handle];
+            if (task) {
+                currentlyRunningATask = true;
+                try {
+                    run(task);
+                } finally {
+                    clearImmediate(handle);
+                    currentlyRunningATask = false;
+                }
+            }
+        }
+    }
+
+    function installNextTickImplementation() {
+        registerImmediate = function(handle) {
+            process.nextTick(function () { runIfPresent(handle); });
+        };
+    }
+
+    function canUsePostMessage() {
+        // The test against `importScripts` prevents this implementation from being installed inside a web worker,
+        // where `global.postMessage` means something completely different and can't be used for this purpose.
+        if (global.postMessage && !global.importScripts) {
+            var postMessageIsAsynchronous = true;
+            var oldOnMessage = global.onmessage;
+            global.onmessage = function() {
+                postMessageIsAsynchronous = false;
+            };
+            global.postMessage("", "*");
+            global.onmessage = oldOnMessage;
+            return postMessageIsAsynchronous;
+        }
+    }
+
+    function installPostMessageImplementation() {
+        // Installs an event handler on `global` for the `message` event: see
+        // * https://developer.mozilla.org/en/DOM/window.postMessage
+        // * http://www.whatwg.org/specs/web-apps/current-work/multipage/comms.html#crossDocumentMessages
+
+        var messagePrefix = "setImmediate$" + Math.random() + "$";
+        var onGlobalMessage = function(event) {
+            if (event.source === global &&
+                typeof event.data === "string" &&
+                event.data.indexOf(messagePrefix) === 0) {
+                runIfPresent(+event.data.slice(messagePrefix.length));
+            }
+        };
+
+        if (global.addEventListener) {
+            global.addEventListener("message", onGlobalMessage, false);
+        } else {
+            global.attachEvent("onmessage", onGlobalMessage);
+        }
+
+        registerImmediate = function(handle) {
+            global.postMessage(messagePrefix + handle, "*");
+        };
+    }
+
+    function installMessageChannelImplementation() {
+        var channel = new MessageChannel();
+        channel.port1.onmessage = function(event) {
+            var handle = event.data;
+            runIfPresent(handle);
+        };
+
+        registerImmediate = function(handle) {
+            channel.port2.postMessage(handle);
+        };
+    }
+
+    function installReadyStateChangeImplementation() {
+        var html = doc.documentElement;
+        registerImmediate = function(handle) {
+            // Create a <script> element; its readystatechange event will be fired asynchronously once it is inserted
+            // into the document. Do so, thus queuing up the task. Remember to clean up once it's been called.
+            var script = doc.createElement("script");
+            script.onreadystatechange = function () {
+                runIfPresent(handle);
+                script.onreadystatechange = null;
+                html.removeChild(script);
+                script = null;
+            };
+            html.appendChild(script);
+        };
+    }
+
+    function installSetTimeoutImplementation() {
+        registerImmediate = function(handle) {
+            setTimeout(runIfPresent, 0, handle);
+        };
+    }
+
+    // If supported, we should attach to the prototype of global, since that is where setTimeout et al. live.
+    var attachTo = Object.getPrototypeOf && Object.getPrototypeOf(global);
+    attachTo = attachTo && attachTo.setTimeout ? attachTo : global;
+
+    // Don't get fooled by e.g. browserify environments.
+    if ({}.toString.call(global.process) === "[object process]") {
+        // For Node.js before 0.9
+        installNextTickImplementation();
+
+    } else if (canUsePostMessage()) {
+        // For non-IE10 modern browsers
+        installPostMessageImplementation();
+
+    } else if (global.MessageChannel) {
+        // For web workers, where supported
+        installMessageChannelImplementation();
+
+    } else if (doc && "onreadystatechange" in doc.createElement("script")) {
+        // For IE 6–8
+        installReadyStateChangeImplementation();
+
+    } else {
+        // For older browsers
+        installSetTimeoutImplementation();
+    }
+
+    attachTo.setImmediate = setImmediate;
+    attachTo.clearImmediate = clearImmediate;
+}(typeof self === "undefined" ? typeof global === "undefined" ? this : global : self));
+
+}).call(this)}).call(this,require('_process'),typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
+},{"_process":114}],117:[function(require,module,exports){
+(function (setImmediate,clearImmediate){(function (){
+var nextTick = require('process/browser.js').nextTick;
+var apply = Function.prototype.apply;
+var slice = Array.prototype.slice;
+var immediateIds = {};
+var nextImmediateId = 0;
+
+// DOM APIs, for completeness
+
+exports.setTimeout = function() {
+  return new Timeout(apply.call(setTimeout, window, arguments), clearTimeout);
+};
+exports.setInterval = function() {
+  return new Timeout(apply.call(setInterval, window, arguments), clearInterval);
+};
+exports.clearTimeout =
+exports.clearInterval = function(timeout) { timeout.close(); };
+
+function Timeout(id, clearFn) {
+  this._id = id;
+  this._clearFn = clearFn;
+}
+Timeout.prototype.unref = Timeout.prototype.ref = function() {};
+Timeout.prototype.close = function() {
+  this._clearFn.call(window, this._id);
+};
+
+// Does not start the time, just sets up the members needed.
+exports.enroll = function(item, msecs) {
+  clearTimeout(item._idleTimeoutId);
+  item._idleTimeout = msecs;
+};
+
+exports.unenroll = function(item) {
+  clearTimeout(item._idleTimeoutId);
+  item._idleTimeout = -1;
+};
+
+exports._unrefActive = exports.active = function(item) {
+  clearTimeout(item._idleTimeoutId);
+
+  var msecs = item._idleTimeout;
+  if (msecs >= 0) {
+    item._idleTimeoutId = setTimeout(function onTimeout() {
+      if (item._onTimeout)
+        item._onTimeout();
+    }, msecs);
+  }
+};
+
+// That's not how node.js implements it but the exposed api is the same.
+exports.setImmediate = typeof setImmediate === "function" ? setImmediate : function(fn) {
+  var id = nextImmediateId++;
+  var args = arguments.length < 2 ? false : slice.call(arguments, 1);
+
+  immediateIds[id] = true;
+
+  nextTick(function onNextTick() {
+    if (immediateIds[id]) {
+      // fn.call() is faster so we optimize for the common use-case
+      // @see http://jsperf.com/call-apply-segu
+      if (args) {
+        fn.apply(null, args);
+      } else {
+        fn.call(null);
+      }
+      // Prevent ids from leaking
+      exports.clearImmediate(id);
+    }
+  });
+
+  return id;
+};
+
+exports.clearImmediate = typeof clearImmediate === "function" ? clearImmediate : function(id) {
+  delete immediateIds[id];
+};
+}).call(this)}).call(this,require("timers").setImmediate,require("timers").clearImmediate)
+},{"process/browser.js":114,"timers":117}],118:[function(require,module,exports){
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.Channel = void 0;
@@ -14322,21 +17627,21 @@ var Channel = /** @class */ (function () {
 }());
 exports.Channel = Channel;
 
-},{}],102:[function(require,module,exports){
+},{}],119:[function(require,module,exports){
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.SUBSCRIPTIONS_METADATA_KEY = exports.CHANNEL_METADATA_KEY = void 0;
 exports.CHANNEL_METADATA_KEY = Symbol('pubsub:channel');
 exports.SUBSCRIPTIONS_METADATA_KEY = Symbol('pubsub:subscriptions');
 
-},{}],103:[function(require,module,exports){
+},{}],120:[function(require,module,exports){
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.PubSub = void 0;
 var channel_class_1 = require("../channel.class");
 exports.PubSub = new channel_class_1.Channel();
 
-},{"../channel.class":101}],104:[function(require,module,exports){
+},{"../channel.class":118}],121:[function(require,module,exports){
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.Subscribe = void 0;
@@ -14358,7 +17663,7 @@ function Subscribe(message) {
 }
 exports.Subscribe = Subscribe;
 
-},{"../consts/metadata-keys.consts":102}],105:[function(require,module,exports){
+},{"../consts/metadata-keys.consts":119}],122:[function(require,module,exports){
 "use strict";
 var __spreadArray = (this && this.__spreadArray) || function (to, from) {
     for (var i = 0, il = from.length, j = to.length; i < il; i++, j++)
@@ -14405,7 +17710,7 @@ function Subscriber(config) {
 }
 exports.Subscriber = Subscriber;
 
-},{"../consts/metadata-keys.consts":102,"../consts/pubsub.const":103}],106:[function(require,module,exports){
+},{"../consts/metadata-keys.consts":119,"../consts/pubsub.const":120}],123:[function(require,module,exports){
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.Unsubscribe = void 0;
@@ -14435,7 +17740,7 @@ function Unsubscribe() {
 }
 exports.Unsubscribe = Unsubscribe;
 
-},{"../consts/metadata-keys.consts":102}],107:[function(require,module,exports){
+},{"../consts/metadata-keys.consts":119}],124:[function(require,module,exports){
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.Unsubscribe = exports.Subscriber = exports.Subscribe = exports.PubSub = exports.Channel = void 0;
@@ -14451,1272 +17756,1881 @@ Object.defineProperty(exports, "Subscriber", { enumerable: true, get: function (
 var unsubscribe_decorator_1 = require("./decorators/unsubscribe.decorator");
 Object.defineProperty(exports, "Unsubscribe", { enumerable: true, get: function () { return unsubscribe_decorator_1.Unsubscribe; } });
 
-},{"./channel.class":101,"./consts/pubsub.const":103,"./decorators/subscribe.decorator":104,"./decorators/subscriber.decorator":105,"./decorators/unsubscribe.decorator":106,"reflect-metadata":100}],108:[function(require,module,exports){
-"use strict";
-var __assign = (this && this.__assign) || function () {
-    __assign = Object.assign || function(t) {
-        for (var s, i = 1, n = arguments.length; i < n; i++) {
-            s = arguments[i];
-            for (var p in s) if (Object.prototype.hasOwnProperty.call(s, p))
-                t[p] = s[p];
-        }
-        return t;
-    };
-    return __assign.apply(this, arguments);
-};
-var __rest = (this && this.__rest) || function (s, e) {
-    var t = {};
-    for (var p in s) if (Object.prototype.hasOwnProperty.call(s, p) && e.indexOf(p) < 0)
-        t[p] = s[p];
-    if (s != null && typeof Object.getOwnPropertySymbols === "function")
-        for (var i = 0, p = Object.getOwnPropertySymbols(s); i < p.length; i++) {
-            if (e.indexOf(p[i]) < 0 && Object.prototype.propertyIsEnumerable.call(s, p[i]))
-                t[p[i]] = s[p[i]];
-        }
-    return t;
-};
-Object.defineProperty(exports, "__esModule", { value: true });
-exports.InteractiveCircleWithText = exports.InteractiveCircle = exports.Circle = void 0;
-var jsx_runtime_1 = require("@carnelian-diagram/core/jsx-runtime");
-var interaction_1 = require("@carnelian-diagram/interaction");
-var hocs_1 = require("../hocs");
-var utils_1 = require("../utils");
-var multiline_text_1 = require("./multiline-text");
-var Circle = function (props) {
-    var onChange = props.onChange, x = props.x, y = props.y, radius = props.radius, rest = __rest(props, ["onChange", "x", "y", "radius"]);
-    return ((0, jsx_runtime_1.jsx)("circle", __assign({ cx: x, cy: y, r: radius }, rest)));
-};
-exports.Circle = Circle;
-exports.InteractiveCircle = (0, interaction_1.withInteractiveCircle)(exports.Circle, {
-    collider: function (props) { return (0, interaction_1.CircleCollider)({ center: { x: props.x, y: props.y }, radius: props.radius }); },
-    innerHitArea: function (hitArea) { return (__assign(__assign({}, hitArea), { dblClickAction: interaction_1.ACT_EDIT_TEXT })); }
-});
-exports.InteractiveCircleWithText = (0, hocs_1.withText)(exports.InteractiveCircle, (0, interaction_1.withInteractiveText)(multiline_text_1.MultilineText, function (props) { return props; }, function (props) { return (0, utils_1.textEditorStyles)(props.textStyle); }), function (props) { return ({
-    x: props.x - props.radius,
-    y: props.y - props.radius,
-    width: props.radius * 2,
-    height: props.radius * 2,
-    text: props.text,
-    textStyle: props.textStyle
-}); });
+},{"./channel.class":118,"./consts/pubsub.const":120,"./decorators/subscribe.decorator":121,"./decorators/subscriber.decorator":122,"./decorators/unsubscribe.decorator":123,"reflect-metadata":115}],125:[function(require,module,exports){
+var createElement = require("./vdom/create-element.js")
 
-},{"../hocs":126,"../utils":129,"./multiline-text":116,"@carnelian-diagram/core/jsx-runtime":17,"@carnelian-diagram/interaction":87}],109:[function(require,module,exports){
-"use strict";
-var __assign = (this && this.__assign) || function () {
-    __assign = Object.assign || function(t) {
-        for (var s, i = 1, n = arguments.length; i < n; i++) {
-            s = arguments[i];
-            for (var p in s) if (Object.prototype.hasOwnProperty.call(s, p))
-                t[p] = s[p];
-        }
-        return t;
-    };
-    return __assign.apply(this, arguments);
-};
-var __rest = (this && this.__rest) || function (s, e) {
-    var t = {};
-    for (var p in s) if (Object.prototype.hasOwnProperty.call(s, p) && e.indexOf(p) < 0)
-        t[p] = s[p];
-    if (s != null && typeof Object.getOwnPropertySymbols === "function")
-        for (var i = 0, p = Object.getOwnPropertySymbols(s); i < p.length; i++) {
-            if (e.indexOf(p[i]) < 0 && Object.prototype.propertyIsEnumerable.call(s, p[i]))
-                t[p[i]] = s[p[i]];
-        }
-    return t;
-};
-Object.defineProperty(exports, "__esModule", { value: true });
-exports.InteractiveCrossWithText = exports.InteractiveCross = exports.Cross = void 0;
-var jsx_runtime_1 = require("@carnelian-diagram/core/jsx-runtime");
-var interaction_1 = require("@carnelian-diagram/interaction");
-var geometry_1 = require("@carnelian-diagram/interaction/geometry");
-var hocs_1 = require("../hocs");
-var utils_1 = require("../utils");
-var multiline_text_1 = require("./multiline-text");
-var knobController = {
-    hitArea: {
-        type: "knob_handle",
-        cursor: "default",
-        action: "offset_x_knob_move"
-    },
-    getPosition: function (props) {
-        var baseX = props.width;
-        var baseY = props.height;
-        var offsetX = (0, geometry_1.clamp)((0, utils_1.convertPercentage)(props.offsetX, baseX), 0, baseX / 2);
-        var offsetY = (0, geometry_1.clamp)((0, utils_1.convertPercentage)(props.offsetY, baseY), 0, baseY / 2);
-        return {
-            x: props.x + offsetX,
-            y: props.y + offsetY
-        };
-    },
-    setPosition: function (props, _a) {
-        var position = _a.position;
-        var baseX = props.width;
-        var baseY = props.height;
-        var offsetX = (0, geometry_1.clamp)(position.x - props.x, 0, baseX / 2);
-        var offsetY = (0, geometry_1.clamp)(position.y - props.y, 0, baseY / 2);
-        offsetX = (0, utils_1.isPercentage)(props.offsetX)
-            ? baseX > 0 ? "".concat(offsetX / baseX * 100, "%") : props.offsetX
-            : offsetX;
-        offsetY = (0, utils_1.isPercentage)(props.offsetY)
-            ? baseY > 0 ? "".concat(offsetY / baseY * 100, "%") : props.offsetY
-            : offsetY;
-        return __assign(__assign({}, props), { offsetX: offsetX, offsetY: offsetY });
-    }
-};
-function toPolygon(props) {
-    var x = props.x, y = props.y, width = props.width, height = props.height, offsetX = props.offsetX, offsetY = props.offsetY;
-    offsetX = (0, geometry_1.clamp)((0, utils_1.convertPercentage)(offsetX, width), 0, width / 2);
-    offsetY = (0, geometry_1.clamp)((0, utils_1.convertPercentage)(offsetY, height), 0, height / 2);
-    return [
-        { x: x + offsetX, y: y },
-        { x: x + width - offsetX, y: y },
-        { x: x + width - offsetX, y: y + offsetY },
-        { x: x + width, y: y + offsetY },
-        { x: x + width, y: y + height - offsetY },
-        { x: x + width - offsetX, y: y + height - offsetY },
-        { x: x + width - offsetX, y: y + height },
-        { x: x + offsetX, y: y + height },
-        { x: x + offsetX, y: y + height - offsetY },
-        { x: x, y: y + height - offsetY },
-        { x: x, y: y + offsetY },
-        { x: x + offsetX, y: y + offsetY }
-    ];
+module.exports = createElement
+
+},{"./vdom/create-element.js":131}],126:[function(require,module,exports){
+var diff = require("./vtree/diff.js")
+
+module.exports = diff
+
+},{"./vtree/diff.js":154}],127:[function(require,module,exports){
+var h = require("./virtual-hyperscript/index.js")
+
+module.exports = h
+
+},{"./virtual-hyperscript/index.js":139}],128:[function(require,module,exports){
+var diff = require("./diff.js")
+var patch = require("./patch.js")
+var h = require("./h.js")
+var create = require("./create-element.js")
+var VNode = require('./vnode/vnode.js')
+var VText = require('./vnode/vtext.js')
+
+module.exports = {
+    diff: diff,
+    patch: patch,
+    h: h,
+    create: create,
+    VNode: VNode,
+    VText: VText
 }
-;
-var Cross = function (props) {
-    var onChange = props.onChange, x = props.x, y = props.y, width = props.width, height = props.height, offsetX = props.offsetX, offsetY = props.offsetY, rest = __rest(props, ["onChange", "x", "y", "width", "height", "offsetX", "offsetY"]);
-    var points = toPolygon(props);
-    return ((0, jsx_runtime_1.jsx)("polygon", __assign({ points: points.map(function (p) { return "".concat(p.x, ",").concat(p.y); }).join(" ") }, rest)));
-};
-exports.Cross = Cross;
-exports.InteractiveCross = (0, interaction_1.withInteractiveRect)((0, interaction_1.withKnob)(exports.Cross, knobController), {
-    collider: function (props) { return (0, interaction_1.PolygonCollider)(toPolygon(props)); },
-    innerHitArea: function (hitArea) { return (__assign(__assign({}, hitArea), { dblClickAction: interaction_1.ACT_EDIT_TEXT })); }
-});
-exports.InteractiveCrossWithText = (0, hocs_1.withText)(exports.InteractiveCross, (0, interaction_1.withInteractiveText)(multiline_text_1.MultilineText, function (props) { return props; }, function (props) { return (0, utils_1.textEditorStyles)(props.textStyle); }), function (props) { return props; });
 
-},{"../hocs":126,"../utils":129,"./multiline-text":116,"@carnelian-diagram/core/jsx-runtime":17,"@carnelian-diagram/interaction":87,"@carnelian-diagram/interaction/geometry":69}],110:[function(require,module,exports){
-"use strict";
-var __assign = (this && this.__assign) || function () {
-    __assign = Object.assign || function(t) {
-        for (var s, i = 1, n = arguments.length; i < n; i++) {
-            s = arguments[i];
-            for (var p in s) if (Object.prototype.hasOwnProperty.call(s, p))
-                t[p] = s[p];
-        }
-        return t;
-    };
-    return __assign.apply(this, arguments);
-};
-var __rest = (this && this.__rest) || function (s, e) {
-    var t = {};
-    for (var p in s) if (Object.prototype.hasOwnProperty.call(s, p) && e.indexOf(p) < 0)
-        t[p] = s[p];
-    if (s != null && typeof Object.getOwnPropertySymbols === "function")
-        for (var i = 0, p = Object.getOwnPropertySymbols(s); i < p.length; i++) {
-            if (e.indexOf(p[i]) < 0 && Object.prototype.propertyIsEnumerable.call(s, p[i]))
-                t[p[i]] = s[p[i]];
-        }
-    return t;
-};
-Object.defineProperty(exports, "__esModule", { value: true });
-exports.InteractiveDiamondWithText = exports.InteractiveDiamond = exports.Diamond = void 0;
-var jsx_runtime_1 = require("@carnelian-diagram/core/jsx-runtime");
-var interaction_1 = require("@carnelian-diagram/interaction");
-var hocs_1 = require("../hocs");
-var utils_1 = require("../utils");
-var multiline_text_1 = require("./multiline-text");
-function toPolygon(props) {
-    var x = props.x, y = props.y, width = props.width, height = props.height;
-    var rx = width / 2;
-    var ry = height / 2;
-    return [
-        { x: x, y: y + ry },
-        { x: x + rx, y: y },
-        { x: x + width, y: y + ry },
-        { x: x + rx, y: y + height }
-    ];
-}
-var Diamond = function (props) {
-    var onChange = props.onChange, x = props.x, y = props.y, width = props.width, height = props.height, rest = __rest(props, ["onChange", "x", "y", "width", "height"]);
-    var points = toPolygon(props);
-    return ((0, jsx_runtime_1.jsx)("polygon", __assign({ points: points.map(function (p) { return "".concat(p.x, ",").concat(p.y); }).join(" ") }, rest)));
-};
-exports.Diamond = Diamond;
-exports.InteractiveDiamond = (0, interaction_1.withInteractiveRect)(exports.Diamond, {
-    collider: function (props) { return (0, interaction_1.PolygonCollider)(toPolygon(props)); },
-    innerHitArea: function (hitArea) { return (__assign(__assign({}, hitArea), { dblClickAction: interaction_1.ACT_EDIT_TEXT })); }
-});
-exports.InteractiveDiamondWithText = (0, hocs_1.withText)(exports.InteractiveDiamond, (0, interaction_1.withInteractiveText)(multiline_text_1.MultilineText, function (props) { return props; }, function (props) { return (0, utils_1.textEditorStyles)(props.textStyle); }), function (props) { return props; });
+},{"./create-element.js":125,"./diff.js":126,"./h.js":127,"./patch.js":129,"./vnode/vnode.js":150,"./vnode/vtext.js":152}],129:[function(require,module,exports){
+var patch = require("./vdom/patch.js")
 
-},{"../hocs":126,"../utils":129,"./multiline-text":116,"@carnelian-diagram/core/jsx-runtime":17,"@carnelian-diagram/interaction":87}],111:[function(require,module,exports){
-"use strict";
-var __assign = (this && this.__assign) || function () {
-    __assign = Object.assign || function(t) {
-        for (var s, i = 1, n = arguments.length; i < n; i++) {
-            s = arguments[i];
-            for (var p in s) if (Object.prototype.hasOwnProperty.call(s, p))
-                t[p] = s[p];
-        }
-        return t;
-    };
-    return __assign.apply(this, arguments);
-};
-var __rest = (this && this.__rest) || function (s, e) {
-    var t = {};
-    for (var p in s) if (Object.prototype.hasOwnProperty.call(s, p) && e.indexOf(p) < 0)
-        t[p] = s[p];
-    if (s != null && typeof Object.getOwnPropertySymbols === "function")
-        for (var i = 0, p = Object.getOwnPropertySymbols(s); i < p.length; i++) {
-            if (e.indexOf(p[i]) < 0 && Object.prototype.propertyIsEnumerable.call(s, p[i]))
-                t[p[i]] = s[p[i]];
-        }
-    return t;
-};
-Object.defineProperty(exports, "__esModule", { value: true });
-exports.InteractiveDonut = exports.Donut = void 0;
-var jsx_runtime_1 = require("@carnelian-diagram/core/jsx-runtime");
-var interaction_1 = require("@carnelian-diagram/interaction");
-var geometry_1 = require("@carnelian-diagram/interaction/geometry");
-var utils_1 = require("../utils");
-function calcInnerRadius(props) {
-    return Math.min((0, utils_1.convertPercentage)(props.innerRadius, props.radius), props.radius);
-}
-var knobController = {
-    hitArea: {
-        type: "knob_handle",
-        cursor: "default",
-        action: "knob_move"
-    },
-    getPosition: function (props) {
-        var ir = calcInnerRadius(props);
-        return {
-            x: props.x,
-            y: props.y - ir
-        };
-    },
-    setPosition: function (props, _a) {
-        var position = _a.position;
-        var ir = (0, geometry_1.clamp)(props.y - position.y, 0, props.radius);
-        ir = (0, utils_1.isPercentage)(props.innerRadius)
-            ? props.radius > 0 ? "".concat(ir / props.radius * 100, "%") : props.innerRadius
-            : ir;
-        return __assign(__assign({}, props), { innerRadius: ir });
-    }
-};
-var Donut = function (props) {
-    var onChange = props.onChange, x = props.x, y = props.y, or = props.radius, ir = props.innerRadius, rest = __rest(props, ["onChange", "x", "y", "radius", "innerRadius"]);
-    ir = calcInnerRadius(props);
-    var path = "\n        M".concat(x - or, " ").concat(y, " a").concat(or, " ").concat(or, " 0 1 0 ").concat(or * 2, " 0 a").concat(or, " ").concat(or, " 0 1 0 -").concat(or * 2, " 0\n        M").concat(x - ir, " ").concat(y, " a").concat(ir, " ").concat(ir, " 0 0 1 ").concat(ir * 2, " 0 a").concat(ir, " ").concat(ir, " 0 0 1 -").concat(ir * 2, " 0");
-    return ((0, jsx_runtime_1.jsx)("path", __assign({ d: path }, rest)));
-};
-exports.Donut = Donut;
-exports.InteractiveDonut = (0, interaction_1.withInteractiveCircle)((0, interaction_1.withKnob)(exports.Donut, knobController), {
-    collider: function (props) { return (0, interaction_1.DiffCollider)((0, interaction_1.CircleCollider)({ center: { x: props.x, y: props.y }, radius: props.radius }), (0, interaction_1.CircleCollider)({ center: { x: props.x, y: props.y }, radius: calcInnerRadius(props) })); }
-});
+module.exports = patch
 
-},{"../utils":129,"@carnelian-diagram/core/jsx-runtime":17,"@carnelian-diagram/interaction":87,"@carnelian-diagram/interaction/geometry":69}],112:[function(require,module,exports){
-"use strict";
-var __assign = (this && this.__assign) || function () {
-    __assign = Object.assign || function(t) {
-        for (var s, i = 1, n = arguments.length; i < n; i++) {
-            s = arguments[i];
-            for (var p in s) if (Object.prototype.hasOwnProperty.call(s, p))
-                t[p] = s[p];
-        }
-        return t;
-    };
-    return __assign.apply(this, arguments);
-};
-var __rest = (this && this.__rest) || function (s, e) {
-    var t = {};
-    for (var p in s) if (Object.prototype.hasOwnProperty.call(s, p) && e.indexOf(p) < 0)
-        t[p] = s[p];
-    if (s != null && typeof Object.getOwnPropertySymbols === "function")
-        for (var i = 0, p = Object.getOwnPropertySymbols(s); i < p.length; i++) {
-            if (e.indexOf(p[i]) < 0 && Object.prototype.propertyIsEnumerable.call(s, p[i]))
-                t[p[i]] = s[p[i]];
-        }
-    return t;
-};
-Object.defineProperty(exports, "__esModule", { value: true });
-exports.InteractiveEllipseWithText = exports.InteractiveEllipse = exports.Ellipse = void 0;
-var jsx_runtime_1 = require("@carnelian-diagram/core/jsx-runtime");
-var interaction_1 = require("@carnelian-diagram/interaction");
-var hocs_1 = require("../hocs");
-var utils_1 = require("../utils");
-var multiline_text_1 = require("./multiline-text");
-var Ellipse = function (props) {
-    var onChange = props.onChange, x = props.x, y = props.y, width = props.width, height = props.height, rest = __rest(props, ["onChange", "x", "y", "width", "height"]);
-    var rx = width / 2;
-    var ry = height / 2;
-    var cx = x + rx;
-    var cy = y + ry;
-    return ((0, jsx_runtime_1.jsx)("ellipse", __assign({}, { cx: cx, cy: cy, rx: rx, ry: ry }, rest)));
-};
-exports.Ellipse = Ellipse;
-exports.InteractiveEllipse = (0, interaction_1.withInteractiveRect)(exports.Ellipse, {
-    collider: function (props) { return (0, interaction_1.EllipseCollider)({ center: { x: props.x + props.width / 2, y: props.y + props.height / 2 }, rx: props.width / 2, ry: props.height / 2 }); },
-    innerHitArea: function (hitArea) { return (__assign(__assign({}, hitArea), { dblClickAction: interaction_1.ACT_EDIT_TEXT })); }
-});
-exports.InteractiveEllipseWithText = (0, hocs_1.withText)(exports.InteractiveEllipse, (0, interaction_1.withInteractiveText)(multiline_text_1.MultilineText, function (props) { return props; }, function (props) { return (0, utils_1.textEditorStyles)(props.textStyle); }), function (props) { return props; });
+},{"./vdom/patch.js":134}],130:[function(require,module,exports){
+var isObject = require("is-object")
+var isHook = require("../vnode/is-vhook.js")
 
-},{"../hocs":126,"../utils":129,"./multiline-text":116,"@carnelian-diagram/core/jsx-runtime":17,"@carnelian-diagram/interaction":87}],113:[function(require,module,exports){
-"use strict";
-var __assign = (this && this.__assign) || function () {
-    __assign = Object.assign || function(t) {
-        for (var s, i = 1, n = arguments.length; i < n; i++) {
-            s = arguments[i];
-            for (var p in s) if (Object.prototype.hasOwnProperty.call(s, p))
-                t[p] = s[p];
-        }
-        return t;
-    };
-    return __assign.apply(this, arguments);
-};
-var __rest = (this && this.__rest) || function (s, e) {
-    var t = {};
-    for (var p in s) if (Object.prototype.hasOwnProperty.call(s, p) && e.indexOf(p) < 0)
-        t[p] = s[p];
-    if (s != null && typeof Object.getOwnPropertySymbols === "function")
-        for (var i = 0, p = Object.getOwnPropertySymbols(s); i < p.length; i++) {
-            if (e.indexOf(p[i]) < 0 && Object.prototype.propertyIsEnumerable.call(s, p[i]))
-                t[p[i]] = s[p[i]];
-        }
-    return t;
-};
-Object.defineProperty(exports, "__esModule", { value: true });
-exports.InteractiveHexagonWithText = exports.InteractiveHexagon = exports.Hexagon = void 0;
-var jsx_runtime_1 = require("@carnelian-diagram/core/jsx-runtime");
-var interaction_1 = require("@carnelian-diagram/interaction");
-var geometry_1 = require("@carnelian-diagram/interaction/geometry");
-var hocs_1 = require("../hocs");
-var utils_1 = require("../utils");
-var multiline_text_1 = require("./multiline-text");
-var knobController = {
-    hitArea: {
-        type: "knob_handle",
-        cursor: "default",
-        action: "knob_move"
-    },
-    getPosition: function (props) {
-        var base = props.width;
-        var offset = (0, geometry_1.clamp)((0, utils_1.convertPercentage)(props.offset, base), 0, base / 2);
-        return {
-            x: props.x + offset,
-            y: props.y
-        };
-    },
-    setPosition: function (props, _a) {
-        var position = _a.position;
-        var base = props.width;
-        var offset = (0, geometry_1.clamp)(position.x - props.x, 0, base / 2);
-        offset = (0, utils_1.isPercentage)(props.offset)
-            ? base > 0 ? "".concat(offset / base * 100, "%") : props.offset
-            : offset;
-        return __assign(__assign({}, props), { offset: offset });
-    }
-};
-function toPolygon(props) {
-    var x = props.x, y = props.y, width = props.width, height = props.height, offset = props.offset;
-    offset = (0, geometry_1.clamp)((0, utils_1.convertPercentage)(offset, width), 0, width / 2);
-    return [
-        { x: x, y: y + height / 2 },
-        { x: x + offset, y: y },
-        { x: x + width - offset, y: y },
-        { x: x + width, y: y + height / 2 },
-        { x: x + width - offset, y: y + height },
-        { x: x + offset, y: y + height }
-    ];
-}
-;
-var Hexagon = function (props) {
-    var onChange = props.onChange, x = props.x, y = props.y, width = props.width, height = props.height, offset = props.offset, rest = __rest(props, ["onChange", "x", "y", "width", "height", "offset"]);
-    var points = toPolygon(props);
-    return ((0, jsx_runtime_1.jsx)("polygon", __assign({ points: points.map(function (p) { return "".concat(p.x, ",").concat(p.y); }).join(" ") }, rest)));
-};
-exports.Hexagon = Hexagon;
-exports.InteractiveHexagon = (0, interaction_1.withInteractiveRect)((0, interaction_1.withKnob)(exports.Hexagon, knobController), {
-    collider: function (props) { return (0, interaction_1.PolygonCollider)(toPolygon(props)); },
-    innerHitArea: function (hitArea) { return (__assign(__assign({}, hitArea), { dblClickAction: interaction_1.ACT_EDIT_TEXT })); }
-});
-exports.InteractiveHexagonWithText = (0, hocs_1.withText)(exports.InteractiveHexagon, (0, interaction_1.withInteractiveText)(multiline_text_1.MultilineText, function (props) { return props; }, function (props) { return (0, utils_1.textEditorStyles)(props.textStyle); }), function (props) { return props; });
+module.exports = applyProperties
 
-},{"../hocs":126,"../utils":129,"./multiline-text":116,"@carnelian-diagram/core/jsx-runtime":17,"@carnelian-diagram/interaction":87,"@carnelian-diagram/interaction/geometry":69}],114:[function(require,module,exports){
-"use strict";
-var __createBinding = (this && this.__createBinding) || (Object.create ? (function(o, m, k, k2) {
-    if (k2 === undefined) k2 = k;
-    var desc = Object.getOwnPropertyDescriptor(m, k);
-    if (!desc || ("get" in desc ? !m.__esModule : desc.writable || desc.configurable)) {
-      desc = { enumerable: true, get: function() { return m[k]; } };
-    }
-    Object.defineProperty(o, k2, desc);
-}) : (function(o, m, k, k2) {
-    if (k2 === undefined) k2 = k;
-    o[k2] = m[k];
-}));
-var __exportStar = (this && this.__exportStar) || function(m, exports) {
-    for (var p in m) if (p !== "default" && !Object.prototype.hasOwnProperty.call(exports, p)) __createBinding(exports, m, p);
-};
-Object.defineProperty(exports, "__esModule", { value: true });
-__exportStar(require("./line"), exports);
-__exportStar(require("./polyline"), exports);
-__exportStar(require("./polygon"), exports);
-__exportStar(require("./rect"), exports);
-__exportStar(require("./ellipse"), exports);
-__exportStar(require("./diamond"), exports);
-__exportStar(require("./rounded-rect"), exports);
-__exportStar(require("./parallelogram"), exports);
-__exportStar(require("./trapezoid"), exports);
-__exportStar(require("./hexagon"), exports);
-__exportStar(require("./square"), exports);
-__exportStar(require("./circle"), exports);
-__exportStar(require("./donut"), exports);
-__exportStar(require("./cross"), exports);
-__exportStar(require("./pie"), exports);
-__exportStar(require("./text"), exports);
-__exportStar(require("./multiline-text"), exports);
+function applyProperties(node, props, previous) {
+    for (var propName in props) {
+        var propValue = props[propName]
 
-},{"./circle":108,"./cross":109,"./diamond":110,"./donut":111,"./ellipse":112,"./hexagon":113,"./line":115,"./multiline-text":116,"./parallelogram":117,"./pie":118,"./polygon":119,"./polyline":120,"./rect":121,"./rounded-rect":122,"./square":123,"./text":124,"./trapezoid":125}],115:[function(require,module,exports){
-"use strict";
-var __assign = (this && this.__assign) || function () {
-    __assign = Object.assign || function(t) {
-        for (var s, i = 1, n = arguments.length; i < n; i++) {
-            s = arguments[i];
-            for (var p in s) if (Object.prototype.hasOwnProperty.call(s, p))
-                t[p] = s[p];
-        }
-        return t;
-    };
-    return __assign.apply(this, arguments);
-};
-var __rest = (this && this.__rest) || function (s, e) {
-    var t = {};
-    for (var p in s) if (Object.prototype.hasOwnProperty.call(s, p) && e.indexOf(p) < 0)
-        t[p] = s[p];
-    if (s != null && typeof Object.getOwnPropertySymbols === "function")
-        for (var i = 0, p = Object.getOwnPropertySymbols(s); i < p.length; i++) {
-            if (e.indexOf(p[i]) < 0 && Object.prototype.propertyIsEnumerable.call(s, p[i]))
-                t[p[i]] = s[p[i]];
-        }
-    return t;
-};
-Object.defineProperty(exports, "__esModule", { value: true });
-exports.InteractiveLine = exports.Line = void 0;
-var jsx_runtime_1 = require("@carnelian-diagram/core/jsx-runtime");
-var interaction_1 = require("@carnelian-diagram/interaction");
-var Line = function (props) {
-    var onChange = props.onChange, rest = __rest(props, ["onChange"]);
-    return ((0, jsx_runtime_1.jsx)("line", __assign({}, rest)));
-};
-exports.Line = Line;
-exports.InteractiveLine = (0, interaction_1.withInteractiveLine)(exports.Line);
-
-},{"@carnelian-diagram/core/jsx-runtime":17,"@carnelian-diagram/interaction":87}],116:[function(require,module,exports){
-"use strict";
-var __assign = (this && this.__assign) || function () {
-    __assign = Object.assign || function(t) {
-        for (var s, i = 1, n = arguments.length; i < n; i++) {
-            s = arguments[i];
-            for (var p in s) if (Object.prototype.hasOwnProperty.call(s, p))
-                t[p] = s[p];
-        }
-        return t;
-    };
-    return __assign.apply(this, arguments);
-};
-var __rest = (this && this.__rest) || function (s, e) {
-    var t = {};
-    for (var p in s) if (Object.prototype.hasOwnProperty.call(s, p) && e.indexOf(p) < 0)
-        t[p] = s[p];
-    if (s != null && typeof Object.getOwnPropertySymbols === "function")
-        for (var i = 0, p = Object.getOwnPropertySymbols(s); i < p.length; i++) {
-            if (e.indexOf(p[i]) < 0 && Object.prototype.propertyIsEnumerable.call(s, p[i]))
-                t[p[i]] = s[p[i]];
-        }
-    return t;
-};
-Object.defineProperty(exports, "__esModule", { value: true });
-exports.InteractiveMultilineText = exports.MultilineText = void 0;
-var jsx_runtime_1 = require("@carnelian-diagram/core/jsx-runtime");
-var interaction_1 = require("@carnelian-diagram/interaction");
-var __1 = require("..");
-var utils_1 = require("../utils");
-var MultilineText = function (props) {
-    var x = props.x, y = props.y, width = props.width, height = props.height, textStyle = props.textStyle, text = props.text;
-    var textElementStyle;
-    var lineHeight = (textStyle === null || textStyle === void 0 ? void 0 : textStyle.lineHeight) || 1;
-    if (textStyle) {
-        var textAlign = textStyle.textAlign, verticalAlign = textStyle.verticalAlign, lineHeight_1 = textStyle.lineHeight, rest = __rest(textStyle, ["textAlign", "verticalAlign", "lineHeight"]);
-        textElementStyle = rest;
-    }
-    else {
-        textElementStyle = {};
-    }
-    textElementStyle = __assign(__assign({}, textElementStyle), { fontFamily: (textStyle === null || textStyle === void 0 ? void 0 : textStyle.fontFamily) || __1.DEFAULT_FONT_FAMILY, fontSize: (textStyle === null || textStyle === void 0 ? void 0 : textStyle.fontSize) || __1.DEFAULT_FONT_SIZE });
-    var _a = (0, utils_1.wrapText)(text, width, textStyle), lines = _a.lines, textMetrics = _a.textMetrics;
-    var fontHeight = textMetrics.fontBoundingBoxAscent + textMetrics.fontBoundingBoxDescent;
-    switch ((textStyle === null || textStyle === void 0 ? void 0 : textStyle.textAlign) || "center") {
-        case "center":
-            x = x + width / 2;
-            textElementStyle.textAnchor = "middle";
-            break;
-        case "right":
-            x = x + width;
-            textElementStyle.textAnchor = "end";
-            break;
-        default:
-            textElementStyle.textAnchor = "start";
-    }
-    var alignmentBaseline;
-    switch ((textStyle === null || textStyle === void 0 ? void 0 : textStyle.verticalAlign) || "middle") {
-        case "middle":
-            y = y + height / 2 - (fontHeight * lineHeight * (lines.length - 1)) / 2;
-            alignmentBaseline = "middle";
-            break;
-        case "bottom":
-            y = y + height;
-            alignmentBaseline = "text-after-edge";
-            break;
-        default:
-            alignmentBaseline = "text-before-edge";
-    }
-    return ((0, jsx_runtime_1.jsx)("text", __assign({ x: x, y: y, style: textElementStyle }, { children: lines.map(function (line, i) { return ((0, jsx_runtime_1.jsx)("tspan", __assign({ x: x, dy: i > 0 ? fontHeight * lineHeight : undefined, style: { alignmentBaseline: alignmentBaseline } }, { children: line }))); }) })));
-};
-exports.MultilineText = MultilineText;
-exports.InteractiveMultilineText = (0, interaction_1.withInteractiveText)((0, interaction_1.withInteractiveRect)(exports.MultilineText, {
-    innerHitArea: function (hitArea) { return (__assign(__assign({}, hitArea), { dblClickAction: interaction_1.ACT_EDIT_TEXT })); }
-}), function (props) { return props; }, function (props) { return (0, utils_1.textEditorStyles)(props.textStyle); }, {
-    onPlaceText: function (props) { return (__assign(__assign({}, props), (0, utils_1.getTextBounds)(props.x, props.y, props.text, props.textStyle))); },
-    deleteOnEmpty: true
-});
-
-},{"..":128,"../utils":129,"@carnelian-diagram/core/jsx-runtime":17,"@carnelian-diagram/interaction":87}],117:[function(require,module,exports){
-"use strict";
-var __assign = (this && this.__assign) || function () {
-    __assign = Object.assign || function(t) {
-        for (var s, i = 1, n = arguments.length; i < n; i++) {
-            s = arguments[i];
-            for (var p in s) if (Object.prototype.hasOwnProperty.call(s, p))
-                t[p] = s[p];
-        }
-        return t;
-    };
-    return __assign.apply(this, arguments);
-};
-var __rest = (this && this.__rest) || function (s, e) {
-    var t = {};
-    for (var p in s) if (Object.prototype.hasOwnProperty.call(s, p) && e.indexOf(p) < 0)
-        t[p] = s[p];
-    if (s != null && typeof Object.getOwnPropertySymbols === "function")
-        for (var i = 0, p = Object.getOwnPropertySymbols(s); i < p.length; i++) {
-            if (e.indexOf(p[i]) < 0 && Object.prototype.propertyIsEnumerable.call(s, p[i]))
-                t[p[i]] = s[p[i]];
-        }
-    return t;
-};
-Object.defineProperty(exports, "__esModule", { value: true });
-exports.InteractiveParallelogramWithText = exports.InteractiveParallelogram = exports.Parallelogram = void 0;
-var jsx_runtime_1 = require("@carnelian-diagram/core/jsx-runtime");
-var interaction_1 = require("@carnelian-diagram/interaction");
-var geometry_1 = require("@carnelian-diagram/interaction/geometry");
-var hocs_1 = require("../hocs");
-var utils_1 = require("../utils");
-var multiline_text_1 = require("./multiline-text");
-var knobController = {
-    hitArea: function (props) { return ({
-        type: "knob_handle",
-        cursor: "default",
-        action: "knob_move",
-        data: (0, utils_1.convertPercentage)(props.offset, props.width) >= 0 ? 0 : 1
-    }); },
-    getPosition: function (props) {
-        var offset = (0, geometry_1.clamp)((0, utils_1.convertPercentage)(props.offset, props.width), -props.width, props.width);
-        return {
-            x: props.x + Math.abs(offset),
-            y: offset >= 0 ? props.y : props.y + props.height
-        };
-    },
-    setPosition: function (props, _a, hitArea) {
-        var position = _a.position;
-        var sign = hitArea.data === 0 ? 1 : -1;
-        var offset = (0, geometry_1.clamp)(position.x - props.x, -props.width, props.width) * sign;
-        offset = (0, utils_1.isPercentage)(props.offset)
-            ? props.width > 0 ? "".concat(offset / props.width * 100, "%") : props.offset
-            : offset;
-        return __assign(__assign({}, props), { offset: offset });
-    }
-};
-function toPolygon(props) {
-    var x = props.x, y = props.y, width = props.width, height = props.height, offset = props.offset;
-    offset = (0, geometry_1.clamp)((0, utils_1.convertPercentage)(offset, width), -width, width);
-    return offset >= 0 ? [
-        { x: x + offset, y: y },
-        { x: x + width, y: y },
-        { x: x + width - offset, y: y + height },
-        { x: x, y: y + height }
-    ] : [
-        { x: x, y: y },
-        { x: x + width + offset, y: y },
-        { x: x + width, y: y + height },
-        { x: x - offset, y: y + height }
-    ];
-}
-var Parallelogram = function (props) {
-    var onChange = props.onChange, x = props.x, y = props.y, width = props.width, height = props.height, offset = props.offset, rest = __rest(props, ["onChange", "x", "y", "width", "height", "offset"]);
-    var points = toPolygon(props);
-    return ((0, jsx_runtime_1.jsx)("polygon", __assign({ points: points.map(function (p) { return "".concat(p.x, ",").concat(p.y); }).join(" ") }, rest)));
-};
-exports.Parallelogram = Parallelogram;
-exports.InteractiveParallelogram = (0, interaction_1.withInteractiveRect)((0, interaction_1.withKnob)(exports.Parallelogram, knobController), {
-    collider: function (props) { return (0, interaction_1.PolygonCollider)(toPolygon(props)); },
-    innerHitArea: function (hitArea) { return (__assign(__assign({}, hitArea), { dblClickAction: interaction_1.ACT_EDIT_TEXT })); }
-});
-exports.InteractiveParallelogramWithText = (0, hocs_1.withText)(exports.InteractiveParallelogram, (0, interaction_1.withInteractiveText)(multiline_text_1.MultilineText, function (props) { return props; }, function (props) { return (0, utils_1.textEditorStyles)(props.textStyle); }), function (props) { return props; });
-
-},{"../hocs":126,"../utils":129,"./multiline-text":116,"@carnelian-diagram/core/jsx-runtime":17,"@carnelian-diagram/interaction":87,"@carnelian-diagram/interaction/geometry":69}],118:[function(require,module,exports){
-"use strict";
-var __assign = (this && this.__assign) || function () {
-    __assign = Object.assign || function(t) {
-        for (var s, i = 1, n = arguments.length; i < n; i++) {
-            s = arguments[i];
-            for (var p in s) if (Object.prototype.hasOwnProperty.call(s, p))
-                t[p] = s[p];
-        }
-        return t;
-    };
-    return __assign.apply(this, arguments);
-};
-var __rest = (this && this.__rest) || function (s, e) {
-    var t = {};
-    for (var p in s) if (Object.prototype.hasOwnProperty.call(s, p) && e.indexOf(p) < 0)
-        t[p] = s[p];
-    if (s != null && typeof Object.getOwnPropertySymbols === "function")
-        for (var i = 0, p = Object.getOwnPropertySymbols(s); i < p.length; i++) {
-            if (e.indexOf(p[i]) < 0 && Object.prototype.propertyIsEnumerable.call(s, p[i]))
-                t[p[i]] = s[p[i]];
-        }
-    return t;
-};
-Object.defineProperty(exports, "__esModule", { value: true });
-exports.InteractivePie = exports.Pie = void 0;
-var jsx_runtime_1 = require("@carnelian-diagram/core/jsx-runtime");
-var interaction_1 = require("@carnelian-diagram/interaction");
-var geometry_1 = require("@carnelian-diagram/interaction/geometry");
-function getCirclePoint(x, y, radius, angle) {
-    return {
-        x: x + radius * Math.cos((0, geometry_1.degToRad)(angle)),
-        y: y + radius * Math.sin((0, geometry_1.degToRad)(angle))
-    };
-}
-function knobController(index) {
-    return {
-        hitArea: {
-            type: "knob_handle",
-            index: index,
-            cursor: "default",
-            action: "knob_move",
-        },
-        getPosition: function (props) {
-            var angle = index === 0 ? props.startAngle : props.endAngle;
-            return getCirclePoint(props.x, props.y, props.radius, angle);
-        },
-        setPosition: function (props, _a) {
-            var position = _a.rawPosition, snapAngle = _a.snapAngle, snapToGrid = _a.snapToGrid;
-            var angle = (0, geometry_1.radToDeg)(Math.atan2(position.y - props.y, position.x - props.x));
-            angle = snapToGrid ? snapToGrid(angle, snapAngle) : angle;
-            return __assign(__assign({}, props), { startAngle: index === 0 ? angle : props.startAngle, endAngle: index === 1 ? angle : props.endAngle });
-        }
-    };
-}
-;
-function PieCollider(props) {
-    var x = props.x, y = props.y, radius = props.radius, startAngle = props.startAngle, endAngle = props.endAngle;
-    var center = { x: x, y: y };
-    var start = getCirclePoint(x, y, radius, startAngle);
-    var end = getCirclePoint(x, y, radius, endAngle);
-    var AngleCollider = Math.sin((0, geometry_1.degToRad)(endAngle - startAngle)) < 0 ? interaction_1.UnionCollider : interaction_1.IntersectionCollider;
-    return (0, interaction_1.IntersectionCollider)((0, interaction_1.CircleCollider)({ center: center, radius: radius }), AngleCollider((0, interaction_1.HalfPlaneCollider)({ a: center, b: start }), (0, interaction_1.HalfPlaneCollider)({ a: end, b: center })));
-}
-var Pie = function (props) {
-    var onChange = props.onChange, x = props.x, y = props.y, radius = props.radius, startAngle = props.startAngle, endAngle = props.endAngle, rest = __rest(props, ["onChange", "x", "y", "radius", "startAngle", "endAngle"]);
-    var isCircle = endAngle - startAngle === 360;
-    endAngle = isCircle ? endAngle - 1 : endAngle;
-    var largeArcFlag = Math.sin((0, geometry_1.degToRad)(endAngle - startAngle)) >= 0 ? 0 : 1;
-    var start = getCirclePoint(x, y, radius, startAngle);
-    var end = getCirclePoint(x, y, radius, endAngle);
-    var path = "M".concat(start.x, " ").concat(start.y, " A").concat(radius, ",").concat(radius, " 0 ").concat(largeArcFlag, " 1 ").concat(end.x, " ").concat(end.y);
-    path += isCircle ? "Z" : "L".concat(x, " ").concat(y, "Z");
-    return ((0, jsx_runtime_1.jsx)("path", __assign({ d: path }, rest)));
-};
-exports.Pie = Pie;
-exports.InteractivePie = (0, interaction_1.withInteractiveCircle)((0, interaction_1.withKnobs)(exports.Pie, knobController(0), knobController(1)), { collider: PieCollider });
-
-},{"@carnelian-diagram/core/jsx-runtime":17,"@carnelian-diagram/interaction":87,"@carnelian-diagram/interaction/geometry":69}],119:[function(require,module,exports){
-"use strict";
-var __assign = (this && this.__assign) || function () {
-    __assign = Object.assign || function(t) {
-        for (var s, i = 1, n = arguments.length; i < n; i++) {
-            s = arguments[i];
-            for (var p in s) if (Object.prototype.hasOwnProperty.call(s, p))
-                t[p] = s[p];
-        }
-        return t;
-    };
-    return __assign.apply(this, arguments);
-};
-var __rest = (this && this.__rest) || function (s, e) {
-    var t = {};
-    for (var p in s) if (Object.prototype.hasOwnProperty.call(s, p) && e.indexOf(p) < 0)
-        t[p] = s[p];
-    if (s != null && typeof Object.getOwnPropertySymbols === "function")
-        for (var i = 0, p = Object.getOwnPropertySymbols(s); i < p.length; i++) {
-            if (e.indexOf(p[i]) < 0 && Object.prototype.propertyIsEnumerable.call(s, p[i]))
-                t[p[i]] = s[p[i]];
-        }
-    return t;
-};
-Object.defineProperty(exports, "__esModule", { value: true });
-exports.InteractivePolygon = exports.Polygon = void 0;
-var jsx_runtime_1 = require("@carnelian-diagram/core/jsx-runtime");
-var interaction_1 = require("@carnelian-diagram/interaction");
-var Polygon = function (props) {
-    var points = props.points, onChange = props.onChange, rest = __rest(props, ["points", "onChange"]);
-    var polygonProps = __assign(__assign({}, rest), { style: __assign(__assign({}, rest.style), { fillRule: "evenodd" }) });
-    return ((0, jsx_runtime_1.jsx)("polygon", __assign({ points: points.map(function (p) { return "".concat(p.x, ",").concat(p.y); }).join(" ") }, polygonProps)));
-};
-exports.Polygon = Polygon;
-exports.InteractivePolygon = (0, interaction_1.withInteractivePolyline)(exports.Polygon, true, 3, { collider: function (props) { return (0, interaction_1.PolygonCollider)(props.points); } });
-
-},{"@carnelian-diagram/core/jsx-runtime":17,"@carnelian-diagram/interaction":87}],120:[function(require,module,exports){
-"use strict";
-var __assign = (this && this.__assign) || function () {
-    __assign = Object.assign || function(t) {
-        for (var s, i = 1, n = arguments.length; i < n; i++) {
-            s = arguments[i];
-            for (var p in s) if (Object.prototype.hasOwnProperty.call(s, p))
-                t[p] = s[p];
-        }
-        return t;
-    };
-    return __assign.apply(this, arguments);
-};
-var __rest = (this && this.__rest) || function (s, e) {
-    var t = {};
-    for (var p in s) if (Object.prototype.hasOwnProperty.call(s, p) && e.indexOf(p) < 0)
-        t[p] = s[p];
-    if (s != null && typeof Object.getOwnPropertySymbols === "function")
-        for (var i = 0, p = Object.getOwnPropertySymbols(s); i < p.length; i++) {
-            if (e.indexOf(p[i]) < 0 && Object.prototype.propertyIsEnumerable.call(s, p[i]))
-                t[p[i]] = s[p[i]];
-        }
-    return t;
-};
-Object.defineProperty(exports, "__esModule", { value: true });
-exports.InteractivePolyline = exports.Polyline = void 0;
-var jsx_runtime_1 = require("@carnelian-diagram/core/jsx-runtime");
-var interaction_1 = require("@carnelian-diagram/interaction");
-var Polyline = function (props) {
-    var points = props.points, onChange = props.onChange, rest = __rest(props, ["points", "onChange"]);
-    var polylineProps = __assign(__assign({}, rest), { style: __assign(__assign({}, rest.style), { fill: "none" }) });
-    return ((0, jsx_runtime_1.jsx)("polyline", __assign({ points: points.map(function (p) { return "".concat(p.x, ",").concat(p.y); }).join(" ") }, polylineProps)));
-};
-exports.Polyline = Polyline;
-exports.InteractivePolyline = (0, interaction_1.withInteractivePolyline)(exports.Polyline, false, 2);
-
-},{"@carnelian-diagram/core/jsx-runtime":17,"@carnelian-diagram/interaction":87}],121:[function(require,module,exports){
-"use strict";
-var __assign = (this && this.__assign) || function () {
-    __assign = Object.assign || function(t) {
-        for (var s, i = 1, n = arguments.length; i < n; i++) {
-            s = arguments[i];
-            for (var p in s) if (Object.prototype.hasOwnProperty.call(s, p))
-                t[p] = s[p];
-        }
-        return t;
-    };
-    return __assign.apply(this, arguments);
-};
-var __rest = (this && this.__rest) || function (s, e) {
-    var t = {};
-    for (var p in s) if (Object.prototype.hasOwnProperty.call(s, p) && e.indexOf(p) < 0)
-        t[p] = s[p];
-    if (s != null && typeof Object.getOwnPropertySymbols === "function")
-        for (var i = 0, p = Object.getOwnPropertySymbols(s); i < p.length; i++) {
-            if (e.indexOf(p[i]) < 0 && Object.prototype.propertyIsEnumerable.call(s, p[i]))
-                t[p[i]] = s[p[i]];
-        }
-    return t;
-};
-Object.defineProperty(exports, "__esModule", { value: true });
-exports.InteractiveRectWithText = exports.InteractiveRect = exports.Rect = void 0;
-var jsx_runtime_1 = require("@carnelian-diagram/core/jsx-runtime");
-var interaction_1 = require("@carnelian-diagram/interaction");
-var hocs_1 = require("../hocs");
-var utils_1 = require("../utils");
-var multiline_text_1 = require("./multiline-text");
-var Rect = function (props) {
-    var onChange = props.onChange, rest = __rest(props, ["onChange"]);
-    return ((0, jsx_runtime_1.jsx)("rect", __assign({}, rest)));
-};
-exports.Rect = Rect;
-exports.InteractiveRect = (0, interaction_1.withInteractiveRect)(exports.Rect, {
-    innerHitArea: function (hitArea) { return (__assign(__assign({}, hitArea), { dblClickAction: interaction_1.ACT_EDIT_TEXT })); }
-});
-exports.InteractiveRectWithText = (0, hocs_1.withText)(exports.InteractiveRect, (0, interaction_1.withInteractiveText)(multiline_text_1.MultilineText, function (props) { return props; }, function (props) { return (0, utils_1.textEditorStyles)(props.textStyle); }), function (props) { return props; });
-
-},{"../hocs":126,"../utils":129,"./multiline-text":116,"@carnelian-diagram/core/jsx-runtime":17,"@carnelian-diagram/interaction":87}],122:[function(require,module,exports){
-"use strict";
-var __assign = (this && this.__assign) || function () {
-    __assign = Object.assign || function(t) {
-        for (var s, i = 1, n = arguments.length; i < n; i++) {
-            s = arguments[i];
-            for (var p in s) if (Object.prototype.hasOwnProperty.call(s, p))
-                t[p] = s[p];
-        }
-        return t;
-    };
-    return __assign.apply(this, arguments);
-};
-var __rest = (this && this.__rest) || function (s, e) {
-    var t = {};
-    for (var p in s) if (Object.prototype.hasOwnProperty.call(s, p) && e.indexOf(p) < 0)
-        t[p] = s[p];
-    if (s != null && typeof Object.getOwnPropertySymbols === "function")
-        for (var i = 0, p = Object.getOwnPropertySymbols(s); i < p.length; i++) {
-            if (e.indexOf(p[i]) < 0 && Object.prototype.propertyIsEnumerable.call(s, p[i]))
-                t[p[i]] = s[p[i]];
-        }
-    return t;
-};
-Object.defineProperty(exports, "__esModule", { value: true });
-exports.InteractiveRoundedRectWithText = exports.InteractiveRoundedRect = exports.RoundedRect = void 0;
-var jsx_runtime_1 = require("@carnelian-diagram/core/jsx-runtime");
-var interaction_1 = require("@carnelian-diagram/interaction");
-var geometry_1 = require("@carnelian-diagram/interaction/geometry");
-var hocs_1 = require("../hocs");
-var utils_1 = require("../utils");
-var multiline_text_1 = require("./multiline-text");
-var knobController = {
-    hitArea: {
-        type: "knob_handle",
-        cursor: "default",
-        action: "knob_move"
-    },
-    getPosition: function (props) {
-        var base = Math.min(props.width, props.height) / 2;
-        var offset = (0, geometry_1.clamp)((0, utils_1.convertPercentage)(props.radius, base), 0, base);
-        return {
-            x: props.x + offset,
-            y: props.y
-        };
-    },
-    setPosition: function (props, _a) {
-        var position = _a.position;
-        var base = Math.min(props.width, props.height) / 2;
-        var radius = (0, geometry_1.clamp)(position.x - props.x, 0, base);
-        radius = (0, utils_1.isPercentage)(props.radius)
-            ? base > 0 ? "".concat(radius / base * 100, "%") : props.radius
-            : radius;
-        return __assign(__assign({}, props), { radius: radius });
-    }
-};
-var RoundedRect = function (props) {
-    var onChange = props.onChange, radius = props.radius, rest = __rest(props, ["onChange", "radius"]);
-    var base = Math.min(props.width, props.height) / 2;
-    radius = (0, geometry_1.clamp)((0, utils_1.convertPercentage)(radius, base), 0, base);
-    return ((0, jsx_runtime_1.jsx)("rect", __assign({ rx: radius }, rest)));
-};
-exports.RoundedRect = RoundedRect;
-exports.InteractiveRoundedRect = (0, interaction_1.withInteractiveRect)((0, interaction_1.withKnob)(exports.RoundedRect, knobController), {
-    innerHitArea: function (hitArea) { return (__assign(__assign({}, hitArea), { dblClickAction: interaction_1.ACT_EDIT_TEXT })); }
-});
-exports.InteractiveRoundedRectWithText = (0, hocs_1.withText)(exports.InteractiveRoundedRect, (0, interaction_1.withInteractiveText)(multiline_text_1.MultilineText, function (props) { return props; }, function (props) { return (0, utils_1.textEditorStyles)(props.textStyle); }), function (props) { return props; });
-
-},{"../hocs":126,"../utils":129,"./multiline-text":116,"@carnelian-diagram/core/jsx-runtime":17,"@carnelian-diagram/interaction":87,"@carnelian-diagram/interaction/geometry":69}],123:[function(require,module,exports){
-"use strict";
-var __assign = (this && this.__assign) || function () {
-    __assign = Object.assign || function(t) {
-        for (var s, i = 1, n = arguments.length; i < n; i++) {
-            s = arguments[i];
-            for (var p in s) if (Object.prototype.hasOwnProperty.call(s, p))
-                t[p] = s[p];
-        }
-        return t;
-    };
-    return __assign.apply(this, arguments);
-};
-var __rest = (this && this.__rest) || function (s, e) {
-    var t = {};
-    for (var p in s) if (Object.prototype.hasOwnProperty.call(s, p) && e.indexOf(p) < 0)
-        t[p] = s[p];
-    if (s != null && typeof Object.getOwnPropertySymbols === "function")
-        for (var i = 0, p = Object.getOwnPropertySymbols(s); i < p.length; i++) {
-            if (e.indexOf(p[i]) < 0 && Object.prototype.propertyIsEnumerable.call(s, p[i]))
-                t[p[i]] = s[p[i]];
-        }
-    return t;
-};
-Object.defineProperty(exports, "__esModule", { value: true });
-exports.InteractiveSquareWithText = exports.InteractiveSquare = exports.Square = void 0;
-var jsx_runtime_1 = require("@carnelian-diagram/core/jsx-runtime");
-;
-var interaction_1 = require("@carnelian-diagram/interaction");
-var hocs_1 = require("../hocs");
-var utils_1 = require("../utils");
-var multiline_text_1 = require("./multiline-text");
-var Square = function (props) {
-    var onChange = props.onChange, x = props.x, y = props.y, size = props.size, rest = __rest(props, ["onChange", "x", "y", "size"]);
-    return ((0, jsx_runtime_1.jsx)("rect", __assign({ x: x, y: y, width: size, height: size }, rest)));
-};
-exports.Square = Square;
-exports.InteractiveSquare = (0, interaction_1.withInteractiveSquare)(exports.Square, {
-    innerHitArea: function (hitArea) { return (__assign(__assign({}, hitArea), { dblClickAction: interaction_1.ACT_EDIT_TEXT })); }
-});
-exports.InteractiveSquareWithText = (0, hocs_1.withText)(exports.InteractiveSquare, (0, interaction_1.withInteractiveText)(multiline_text_1.MultilineText, function (props) { return props; }, function (props) { return (0, utils_1.textEditorStyles)(props.textStyle); }), function (props) { return ({
-    x: props.x,
-    y: props.y,
-    width: props.size,
-    height: props.size,
-    text: props.text,
-    textStyle: props.textStyle
-}); });
-
-},{"../hocs":126,"../utils":129,"./multiline-text":116,"@carnelian-diagram/core/jsx-runtime":17,"@carnelian-diagram/interaction":87}],124:[function(require,module,exports){
-"use strict";
-var __assign = (this && this.__assign) || function () {
-    __assign = Object.assign || function(t) {
-        for (var s, i = 1, n = arguments.length; i < n; i++) {
-            s = arguments[i];
-            for (var p in s) if (Object.prototype.hasOwnProperty.call(s, p))
-                t[p] = s[p];
-        }
-        return t;
-    };
-    return __assign.apply(this, arguments);
-};
-var __rest = (this && this.__rest) || function (s, e) {
-    var t = {};
-    for (var p in s) if (Object.prototype.hasOwnProperty.call(s, p) && e.indexOf(p) < 0)
-        t[p] = s[p];
-    if (s != null && typeof Object.getOwnPropertySymbols === "function")
-        for (var i = 0, p = Object.getOwnPropertySymbols(s); i < p.length; i++) {
-            if (e.indexOf(p[i]) < 0 && Object.prototype.propertyIsEnumerable.call(s, p[i]))
-                t[p[i]] = s[p[i]];
-        }
-    return t;
-};
-Object.defineProperty(exports, "__esModule", { value: true });
-exports.InteractiveText = exports.Text = void 0;
-var jsx_runtime_1 = require("@carnelian-diagram/core/jsx-runtime");
-var interaction_1 = require("@carnelian-diagram/interaction");
-var __1 = require("..");
-var utils_1 = require("../utils");
-var Text = function (props) {
-    var x = props.x, y = props.y, width = props.width, height = props.height, textStyle = props.textStyle, text = props.text;
-    var textElementStyle;
-    if (textStyle) {
-        var textAlign = textStyle.textAlign, verticalAlign = textStyle.verticalAlign, rest = __rest(textStyle, ["textAlign", "verticalAlign"]);
-        textElementStyle = rest;
-    }
-    else {
-        textElementStyle = {};
-    }
-    textElementStyle = __assign(__assign({}, textElementStyle), { fontFamily: (textStyle === null || textStyle === void 0 ? void 0 : textStyle.fontFamily) || __1.DEFAULT_FONT_FAMILY, fontSize: (textStyle === null || textStyle === void 0 ? void 0 : textStyle.fontSize) || __1.DEFAULT_FONT_SIZE });
-    switch ((textStyle === null || textStyle === void 0 ? void 0 : textStyle.textAlign) || "center") {
-        case "center":
-            x = x + width / 2;
-            textElementStyle.textAnchor = "middle";
-            break;
-        case "right":
-            x = x + width;
-            textElementStyle.textAnchor = "end";
-            break;
-        default:
-            textElementStyle.textAnchor = "start";
-    }
-    switch ((textStyle === null || textStyle === void 0 ? void 0 : textStyle.verticalAlign) || "middle") {
-        case "middle":
-            y = y + height / 2;
-            textElementStyle.alignmentBaseline = "middle";
-            break;
-        case "bottom":
-            y = y + height;
-            textElementStyle.alignmentBaseline = "text-after-edge";
-            break;
-        default:
-            textElementStyle.alignmentBaseline = "text-before-edge";
-    }
-    return ((0, jsx_runtime_1.jsx)("text", __assign({ x: x, y: y, style: textElementStyle }, { children: text })));
-};
-exports.Text = Text;
-exports.InteractiveText = (0, interaction_1.withInteractiveText)((0, interaction_1.withInteractiveRect)(exports.Text, {
-    innerHitArea: function (hitArea) { return (__assign(__assign({}, hitArea), { dblClickAction: interaction_1.ACT_EDIT_TEXT })); }
-}), function (props) { return props; }, function (props) { return (0, utils_1.textEditorStyles)(props.textStyle); }, {
-    onPlaceText: function (props) { return (__assign(__assign({}, props), (0, utils_1.getTextBounds)(props.x, props.y, props.text, props.textStyle))); },
-    deleteOnEmpty: true
-});
-
-},{"..":128,"../utils":129,"@carnelian-diagram/core/jsx-runtime":17,"@carnelian-diagram/interaction":87}],125:[function(require,module,exports){
-"use strict";
-var __assign = (this && this.__assign) || function () {
-    __assign = Object.assign || function(t) {
-        for (var s, i = 1, n = arguments.length; i < n; i++) {
-            s = arguments[i];
-            for (var p in s) if (Object.prototype.hasOwnProperty.call(s, p))
-                t[p] = s[p];
-        }
-        return t;
-    };
-    return __assign.apply(this, arguments);
-};
-var __rest = (this && this.__rest) || function (s, e) {
-    var t = {};
-    for (var p in s) if (Object.prototype.hasOwnProperty.call(s, p) && e.indexOf(p) < 0)
-        t[p] = s[p];
-    if (s != null && typeof Object.getOwnPropertySymbols === "function")
-        for (var i = 0, p = Object.getOwnPropertySymbols(s); i < p.length; i++) {
-            if (e.indexOf(p[i]) < 0 && Object.prototype.propertyIsEnumerable.call(s, p[i]))
-                t[p[i]] = s[p[i]];
-        }
-    return t;
-};
-Object.defineProperty(exports, "__esModule", { value: true });
-exports.InteractiveTrapezoidWithText = exports.InteractiveTrapezoid = exports.Trapezoid = void 0;
-var jsx_runtime_1 = require("@carnelian-diagram/core/jsx-runtime");
-var interaction_1 = require("@carnelian-diagram/interaction");
-var geometry_1 = require("@carnelian-diagram/interaction/geometry");
-var hocs_1 = require("../hocs");
-var utils_1 = require("../utils");
-var multiline_text_1 = require("./multiline-text");
-var knobController = {
-    hitArea: {
-        type: "knob_handle",
-        cursor: "default",
-        action: "knob_move"
-    },
-    getPosition: function (props) {
-        var base = props.width;
-        var offset = (0, geometry_1.clamp)((0, utils_1.convertPercentage)(props.offset, base), 0, base / 2);
-        return {
-            x: props.x + offset,
-            y: props.y
-        };
-    },
-    setPosition: function (props, _a) {
-        var position = _a.position;
-        var base = props.width;
-        var offset = (0, geometry_1.clamp)(position.x - props.x, 0, base / 2);
-        offset = (0, utils_1.isPercentage)(props.offset)
-            ? base > 0 ? "".concat(offset / base * 100, "%") : props.offset
-            : offset;
-        return __assign(__assign({}, props), { offset: offset });
-    }
-};
-function toPolygon(props) {
-    var x = props.x, y = props.y, width = props.width, height = props.height, offset = props.offset;
-    offset = (0, geometry_1.clamp)((0, utils_1.convertPercentage)(offset, width), 0, width / 2);
-    return [
-        { x: x + offset, y: y },
-        { x: x + width - offset, y: y },
-        { x: x + width, y: y + height },
-        { x: x, y: y + height }
-    ];
-}
-var Trapezoid = function (props) {
-    var onChange = props.onChange, x = props.x, y = props.y, width = props.width, height = props.height, offset = props.offset, rest = __rest(props, ["onChange", "x", "y", "width", "height", "offset"]);
-    var points = toPolygon(props);
-    return ((0, jsx_runtime_1.jsx)("polygon", __assign({ points: points.map(function (p) { return "".concat(p.x, ",").concat(p.y); }).join(" ") }, rest)));
-};
-exports.Trapezoid = Trapezoid;
-exports.InteractiveTrapezoid = (0, interaction_1.withInteractiveRect)((0, interaction_1.withKnob)(exports.Trapezoid, knobController), {
-    collider: function (props) { return (0, interaction_1.PolygonCollider)(toPolygon(props)); },
-    innerHitArea: function (hitArea) { return (__assign(__assign({}, hitArea), { dblClickAction: interaction_1.ACT_EDIT_TEXT })); }
-});
-exports.InteractiveTrapezoidWithText = (0, hocs_1.withText)(exports.InteractiveTrapezoid, (0, interaction_1.withInteractiveText)(multiline_text_1.MultilineText, function (props) { return props; }, function (props) { return (0, utils_1.textEditorStyles)(props.textStyle); }), function (props) { return props; });
-
-},{"../hocs":126,"../utils":129,"./multiline-text":116,"@carnelian-diagram/core/jsx-runtime":17,"@carnelian-diagram/interaction":87,"@carnelian-diagram/interaction/geometry":69}],126:[function(require,module,exports){
-"use strict";
-var __createBinding = (this && this.__createBinding) || (Object.create ? (function(o, m, k, k2) {
-    if (k2 === undefined) k2 = k;
-    var desc = Object.getOwnPropertyDescriptor(m, k);
-    if (!desc || ("get" in desc ? !m.__esModule : desc.writable || desc.configurable)) {
-      desc = { enumerable: true, get: function() { return m[k]; } };
-    }
-    Object.defineProperty(o, k2, desc);
-}) : (function(o, m, k, k2) {
-    if (k2 === undefined) k2 = k;
-    o[k2] = m[k];
-}));
-var __exportStar = (this && this.__exportStar) || function(m, exports) {
-    for (var p in m) if (p !== "default" && !Object.prototype.hasOwnProperty.call(exports, p)) __createBinding(exports, m, p);
-};
-Object.defineProperty(exports, "__esModule", { value: true });
-__exportStar(require("./with-text"), exports);
-
-},{"./with-text":127}],127:[function(require,module,exports){
-"use strict";
-var __assign = (this && this.__assign) || function () {
-    __assign = Object.assign || function(t) {
-        for (var s, i = 1, n = arguments.length; i < n; i++) {
-            s = arguments[i];
-            for (var p in s) if (Object.prototype.hasOwnProperty.call(s, p))
-                t[p] = s[p];
-        }
-        return t;
-    };
-    return __assign.apply(this, arguments);
-};
-var __rest = (this && this.__rest) || function (s, e) {
-    var t = {};
-    for (var p in s) if (Object.prototype.hasOwnProperty.call(s, p) && e.indexOf(p) < 0)
-        t[p] = s[p];
-    if (s != null && typeof Object.getOwnPropertySymbols === "function")
-        for (var i = 0, p = Object.getOwnPropertySymbols(s); i < p.length; i++) {
-            if (e.indexOf(p[i]) < 0 && Object.prototype.propertyIsEnumerable.call(s, p[i]))
-                t[p[i]] = s[p[i]];
-        }
-    return t;
-};
-Object.defineProperty(exports, "__esModule", { value: true });
-exports.withText = void 0;
-var jsx_runtime_1 = require("@carnelian-diagram/core/jsx-runtime");
-function withText(WrappedElement, TextElement, textElementProps) {
-    return function (props) {
-        var text = props.text, textStyle = props.textStyle, rest = __rest(props, ["text", "textStyle"]);
-        var elementProps = rest;
-        var textProps = __assign(__assign({}, textElementProps(props)), { onChange: function (callback) {
-                props.onChange(function (props) {
-                    var _a = callback(textProps), text = _a.text, textStyle = _a.textStyle;
-                    return __assign(__assign({}, props), { text: text, textStyle: textStyle });
-                });
-            } });
-        return ((0, jsx_runtime_1.jsxs)(jsx_runtime_1.Fragment, { children: [(0, jsx_runtime_1.jsx)(WrappedElement, __assign({}, elementProps)), (0, jsx_runtime_1.jsx)(TextElement, __assign({}, textProps))] }));
-    };
-}
-exports.withText = withText;
-
-},{"@carnelian-diagram/core/jsx-runtime":17}],128:[function(require,module,exports){
-"use strict";
-Object.defineProperty(exports, "__esModule", { value: true });
-exports.DEFAULT_FONT_FAMILY = exports.DEFAULT_FONT_SIZE = void 0;
-exports.DEFAULT_FONT_SIZE = "10px";
-exports.DEFAULT_FONT_FAMILY = "sans-serif";
-
-},{}],129:[function(require,module,exports){
-"use strict";
-var __createBinding = (this && this.__createBinding) || (Object.create ? (function(o, m, k, k2) {
-    if (k2 === undefined) k2 = k;
-    var desc = Object.getOwnPropertyDescriptor(m, k);
-    if (!desc || ("get" in desc ? !m.__esModule : desc.writable || desc.configurable)) {
-      desc = { enumerable: true, get: function() { return m[k]; } };
-    }
-    Object.defineProperty(o, k2, desc);
-}) : (function(o, m, k, k2) {
-    if (k2 === undefined) k2 = k;
-    o[k2] = m[k];
-}));
-var __exportStar = (this && this.__exportStar) || function(m, exports) {
-    for (var p in m) if (p !== "default" && !Object.prototype.hasOwnProperty.call(exports, p)) __createBinding(exports, m, p);
-};
-Object.defineProperty(exports, "__esModule", { value: true });
-exports.convertPercentage = exports.isPercentage = void 0;
-__exportStar(require("./text-utils"), exports);
-function isPercentage(value) {
-    return typeof value === "string" && value.charAt(value.length - 1) === "%";
-}
-exports.isPercentage = isPercentage;
-function convertPercentage(value, base) {
-    return isPercentage(value) ? parseFloat(value) * base / 100 : +value;
-}
-exports.convertPercentage = convertPercentage;
-
-},{"./text-utils":130}],130:[function(require,module,exports){
-"use strict";
-Object.defineProperty(exports, "__esModule", { value: true });
-exports.textEditorStyles = exports.getTextBounds = exports.wrapText = exports.measureText = void 0;
-var __1 = require("..");
-function with2dContext(action, style) {
-    var canvas = document.createElement('canvas');
-    try {
-        var ctx = canvas.getContext("2d");
-        if (ctx) {
-            var fontSize = (style === null || style === void 0 ? void 0 : style.fontSize) || __1.DEFAULT_FONT_SIZE;
-            var fontFamily = (style === null || style === void 0 ? void 0 : style.fontFamily) || __1.DEFAULT_FONT_FAMILY;
-            var font = [style === null || style === void 0 ? void 0 : style.fontStyle, style === null || style === void 0 ? void 0 : style.fontVariant, style === null || style === void 0 ? void 0 : style.fontWeight, style === null || style === void 0 ? void 0 : style.fontStretch, fontSize, fontFamily]
-                .filter(function (x) { return x !== undefined; })
-                .join(' ');
-            ctx.font = font;
-            return action(ctx);
-        }
-        else {
-            throw new Error("An error has occured while getting a canvas 2d context");
-        }
-    }
-    finally {
-        canvas.remove();
-    }
-}
-function measureText(text, style) {
-    return with2dContext(function (ctx) { return ctx.measureText(text); }, style);
-}
-exports.measureText = measureText;
-function wrapText(text, width, style) {
-    return with2dContext(function (ctx) {
-        var lines = [];
-        var words = text.split(' ');
-        var line = [];
-        while (words.length > 0) {
-            var word = words.shift();
-            line.push(word);
-            var size = ctx.measureText(line.join(' '));
-            if (size.width > width || words.length === 0) {
-                if (size.width > width && line.length > 1) {
-                    line.pop();
-                    words.unshift(word);
-                }
-                lines.push(line.join(' '));
-                line = [];
+        if (propValue === undefined) {
+            removeProperty(node, propName, propValue, previous);
+        } else if (isHook(propValue)) {
+            removeProperty(node, propName, propValue, previous)
+            if (propValue.hook) {
+                propValue.hook(node,
+                    propName,
+                    previous ? previous[propName] : undefined)
+            }
+        } else {
+            if (isObject(propValue)) {
+                patchObject(node, props, previous, propName, propValue);
+            } else {
+                node[propName] = propValue
             }
         }
-        var textMetrics = ctx.measureText(text);
-        return { lines: lines, textMetrics: textMetrics };
-    }, style);
-}
-exports.wrapText = wrapText;
-function getTextBounds(x, y, text, style) {
-    var textMetrics = measureText(text, style);
-    var width = textMetrics.width;
-    var height = textMetrics.fontBoundingBoxAscent + textMetrics.fontBoundingBoxDescent;
-    switch ((style === null || style === void 0 ? void 0 : style.textAlign) || "center") {
-        case "center":
-            x = x - width / 2;
-            break;
-        case "right":
-            x = x - width;
-            break;
     }
-    switch ((style === null || style === void 0 ? void 0 : style.verticalAlign) || "middle") {
-        case "middle":
-            y = y - height / 2;
-            break;
-        case "bottom":
-            y = y - height;
-            break;
-    }
-    return { x: x, y: y, width: width, height: height };
 }
-exports.getTextBounds = getTextBounds;
-function textEditorStyles(style) {
-    return {
-        fontSize: (style === null || style === void 0 ? void 0 : style.fontSize) || __1.DEFAULT_FONT_SIZE,
-        fontFamily: (style === null || style === void 0 ? void 0 : style.fontFamily) || __1.DEFAULT_FONT_FAMILY,
-        fontStyle: style === null || style === void 0 ? void 0 : style.fontStyle,
-        fontWeight: style === null || style === void 0 ? void 0 : style.fontWeight,
-        textAlign: (style === null || style === void 0 ? void 0 : style.textAlign) || "center",
-        verticalAlign: (style === null || style === void 0 ? void 0 : style.verticalAlign) || "middle"
-    };
-}
-exports.textEditorStyles = textEditorStyles;
 
-},{"..":128}]},{},[1]);
+function removeProperty(node, propName, propValue, previous) {
+    if (previous) {
+        var previousValue = previous[propName]
+
+        if (!isHook(previousValue)) {
+            if (propName === "attributes") {
+                for (var attrName in previousValue) {
+                    node.removeAttribute(attrName)
+                }
+            } else if (propName === "style") {
+                for (var i in previousValue) {
+                    node.style[i] = ""
+                }
+            } else if (typeof previousValue === "string") {
+                node[propName] = ""
+            } else {
+                node[propName] = null
+            }
+        } else if (previousValue.unhook) {
+            previousValue.unhook(node, propName, propValue)
+        }
+    }
+}
+
+function patchObject(node, props, previous, propName, propValue) {
+    var previousValue = previous ? previous[propName] : undefined
+
+    // Set attributes
+    if (propName === "attributes") {
+        for (var attrName in propValue) {
+            var attrValue = propValue[attrName]
+
+            if (attrValue === undefined) {
+                node.removeAttribute(attrName)
+            } else {
+                node.setAttribute(attrName, attrValue)
+            }
+        }
+
+        return
+    }
+
+    if(previousValue && isObject(previousValue) &&
+        getPrototype(previousValue) !== getPrototype(propValue)) {
+        node[propName] = propValue
+        return
+    }
+
+    if (!isObject(node[propName])) {
+        node[propName] = {}
+    }
+
+    var replacer = propName === "style" ? "" : undefined
+
+    for (var k in propValue) {
+        var value = propValue[k]
+        node[propName][k] = (value === undefined) ? replacer : value
+    }
+}
+
+function getPrototype(value) {
+    if (Object.getPrototypeOf) {
+        return Object.getPrototypeOf(value)
+    } else if (value.__proto__) {
+        return value.__proto__
+    } else if (value.constructor) {
+        return value.constructor.prototype
+    }
+}
+
+},{"../vnode/is-vhook.js":145,"is-object":112}],131:[function(require,module,exports){
+var document = require("global/document")
+
+var applyProperties = require("./apply-properties")
+
+var isVNode = require("../vnode/is-vnode.js")
+var isVText = require("../vnode/is-vtext.js")
+var isWidget = require("../vnode/is-widget.js")
+var handleThunk = require("../vnode/handle-thunk.js")
+
+module.exports = createElement
+
+function createElement(vnode, opts) {
+    var doc = opts ? opts.document || document : document
+    var warn = opts ? opts.warn : null
+
+    vnode = handleThunk(vnode).a
+
+    if (isWidget(vnode)) {
+        return vnode.init()
+    } else if (isVText(vnode)) {
+        return doc.createTextNode(vnode.text)
+    } else if (!isVNode(vnode)) {
+        if (warn) {
+            warn("Item is not a valid virtual dom node", vnode)
+        }
+        return null
+    }
+
+    var node = (vnode.namespace === null) ?
+        doc.createElement(vnode.tagName) :
+        doc.createElementNS(vnode.namespace, vnode.tagName)
+
+    var props = vnode.properties
+    applyProperties(node, props)
+
+    var children = vnode.children
+
+    for (var i = 0; i < children.length; i++) {
+        var childNode = createElement(children[i], opts)
+        if (childNode) {
+            node.appendChild(childNode)
+        }
+    }
+
+    return node
+}
+
+},{"../vnode/handle-thunk.js":143,"../vnode/is-vnode.js":146,"../vnode/is-vtext.js":147,"../vnode/is-widget.js":148,"./apply-properties":130,"global/document":108}],132:[function(require,module,exports){
+// Maps a virtual DOM tree onto a real DOM tree in an efficient manner.
+// We don't want to read all of the DOM nodes in the tree so we use
+// the in-order tree indexing to eliminate recursion down certain branches.
+// We only recurse into a DOM node if we know that it contains a child of
+// interest.
+
+var noChild = {}
+
+module.exports = domIndex
+
+function domIndex(rootNode, tree, indices, nodes) {
+    if (!indices || indices.length === 0) {
+        return {}
+    } else {
+        indices.sort(ascending)
+        return recurse(rootNode, tree, indices, nodes, 0)
+    }
+}
+
+function recurse(rootNode, tree, indices, nodes, rootIndex) {
+    nodes = nodes || {}
+
+
+    if (rootNode) {
+        if (indexInRange(indices, rootIndex, rootIndex)) {
+            nodes[rootIndex] = rootNode
+        }
+
+        var vChildren = tree.children
+
+        if (vChildren) {
+
+            var childNodes = rootNode.childNodes
+
+            for (var i = 0; i < tree.children.length; i++) {
+                rootIndex += 1
+
+                var vChild = vChildren[i] || noChild
+                var nextIndex = rootIndex + (vChild.count || 0)
+
+                // skip recursion down the tree if there are no nodes down here
+                if (indexInRange(indices, rootIndex, nextIndex)) {
+                    recurse(childNodes[i], vChild, indices, nodes, rootIndex)
+                }
+
+                rootIndex = nextIndex
+            }
+        }
+    }
+
+    return nodes
+}
+
+// Binary search for an index in the interval [left, right]
+function indexInRange(indices, left, right) {
+    if (indices.length === 0) {
+        return false
+    }
+
+    var minIndex = 0
+    var maxIndex = indices.length - 1
+    var currentIndex
+    var currentItem
+
+    while (minIndex <= maxIndex) {
+        currentIndex = ((maxIndex + minIndex) / 2) >> 0
+        currentItem = indices[currentIndex]
+
+        if (minIndex === maxIndex) {
+            return currentItem >= left && currentItem <= right
+        } else if (currentItem < left) {
+            minIndex = currentIndex + 1
+        } else  if (currentItem > right) {
+            maxIndex = currentIndex - 1
+        } else {
+            return true
+        }
+    }
+
+    return false;
+}
+
+function ascending(a, b) {
+    return a > b ? 1 : -1
+}
+
+},{}],133:[function(require,module,exports){
+var applyProperties = require("./apply-properties")
+
+var isWidget = require("../vnode/is-widget.js")
+var VPatch = require("../vnode/vpatch.js")
+
+var updateWidget = require("./update-widget")
+
+module.exports = applyPatch
+
+function applyPatch(vpatch, domNode, renderOptions) {
+    var type = vpatch.type
+    var vNode = vpatch.vNode
+    var patch = vpatch.patch
+
+    switch (type) {
+        case VPatch.REMOVE:
+            return removeNode(domNode, vNode)
+        case VPatch.INSERT:
+            return insertNode(domNode, patch, renderOptions)
+        case VPatch.VTEXT:
+            return stringPatch(domNode, vNode, patch, renderOptions)
+        case VPatch.WIDGET:
+            return widgetPatch(domNode, vNode, patch, renderOptions)
+        case VPatch.VNODE:
+            return vNodePatch(domNode, vNode, patch, renderOptions)
+        case VPatch.ORDER:
+            reorderChildren(domNode, patch)
+            return domNode
+        case VPatch.PROPS:
+            applyProperties(domNode, patch, vNode.properties)
+            return domNode
+        case VPatch.THUNK:
+            return replaceRoot(domNode,
+                renderOptions.patch(domNode, patch, renderOptions))
+        default:
+            return domNode
+    }
+}
+
+function removeNode(domNode, vNode) {
+    var parentNode = domNode.parentNode
+
+    if (parentNode) {
+        parentNode.removeChild(domNode)
+    }
+
+    destroyWidget(domNode, vNode);
+
+    return null
+}
+
+function insertNode(parentNode, vNode, renderOptions) {
+    var newNode = renderOptions.render(vNode, renderOptions)
+
+    if (parentNode) {
+        parentNode.appendChild(newNode)
+    }
+
+    return parentNode
+}
+
+function stringPatch(domNode, leftVNode, vText, renderOptions) {
+    var newNode
+
+    if (domNode.nodeType === 3) {
+        domNode.replaceData(0, domNode.length, vText.text)
+        newNode = domNode
+    } else {
+        var parentNode = domNode.parentNode
+        newNode = renderOptions.render(vText, renderOptions)
+
+        if (parentNode && newNode !== domNode) {
+            parentNode.replaceChild(newNode, domNode)
+        }
+    }
+
+    return newNode
+}
+
+function widgetPatch(domNode, leftVNode, widget, renderOptions) {
+    var updating = updateWidget(leftVNode, widget)
+    var newNode
+
+    if (updating) {
+        newNode = widget.update(leftVNode, domNode) || domNode
+    } else {
+        newNode = renderOptions.render(widget, renderOptions)
+    }
+
+    var parentNode = domNode.parentNode
+
+    if (parentNode && newNode !== domNode) {
+        parentNode.replaceChild(newNode, domNode)
+    }
+
+    if (!updating) {
+        destroyWidget(domNode, leftVNode)
+    }
+
+    return newNode
+}
+
+function vNodePatch(domNode, leftVNode, vNode, renderOptions) {
+    var parentNode = domNode.parentNode
+    var newNode = renderOptions.render(vNode, renderOptions)
+
+    if (parentNode && newNode !== domNode) {
+        parentNode.replaceChild(newNode, domNode)
+    }
+
+    return newNode
+}
+
+function destroyWidget(domNode, w) {
+    if (typeof w.destroy === "function" && isWidget(w)) {
+        w.destroy(domNode)
+    }
+}
+
+function reorderChildren(domNode, moves) {
+    var childNodes = domNode.childNodes
+    var keyMap = {}
+    var node
+    var remove
+    var insert
+
+    for (var i = 0; i < moves.removes.length; i++) {
+        remove = moves.removes[i]
+        node = childNodes[remove.from]
+        if (remove.key) {
+            keyMap[remove.key] = node
+        }
+        domNode.removeChild(node)
+    }
+
+    var length = childNodes.length
+    for (var j = 0; j < moves.inserts.length; j++) {
+        insert = moves.inserts[j]
+        node = keyMap[insert.key]
+        // this is the weirdest bug i've ever seen in webkit
+        domNode.insertBefore(node, insert.to >= length++ ? null : childNodes[insert.to])
+    }
+}
+
+function replaceRoot(oldRoot, newRoot) {
+    if (oldRoot && newRoot && oldRoot !== newRoot && oldRoot.parentNode) {
+        oldRoot.parentNode.replaceChild(newRoot, oldRoot)
+    }
+
+    return newRoot;
+}
+
+},{"../vnode/is-widget.js":148,"../vnode/vpatch.js":151,"./apply-properties":130,"./update-widget":135}],134:[function(require,module,exports){
+var document = require("global/document")
+var isArray = require("x-is-array")
+
+var render = require("./create-element")
+var domIndex = require("./dom-index")
+var patchOp = require("./patch-op")
+module.exports = patch
+
+function patch(rootNode, patches, renderOptions) {
+    renderOptions = renderOptions || {}
+    renderOptions.patch = renderOptions.patch && renderOptions.patch !== patch
+        ? renderOptions.patch
+        : patchRecursive
+    renderOptions.render = renderOptions.render || render
+
+    return renderOptions.patch(rootNode, patches, renderOptions)
+}
+
+function patchRecursive(rootNode, patches, renderOptions) {
+    var indices = patchIndices(patches)
+
+    if (indices.length === 0) {
+        return rootNode
+    }
+
+    var index = domIndex(rootNode, patches.a, indices)
+    var ownerDocument = rootNode.ownerDocument
+
+    if (!renderOptions.document && ownerDocument !== document) {
+        renderOptions.document = ownerDocument
+    }
+
+    for (var i = 0; i < indices.length; i++) {
+        var nodeIndex = indices[i]
+        rootNode = applyPatch(rootNode,
+            index[nodeIndex],
+            patches[nodeIndex],
+            renderOptions)
+    }
+
+    return rootNode
+}
+
+function applyPatch(rootNode, domNode, patchList, renderOptions) {
+    if (!domNode) {
+        return rootNode
+    }
+
+    var newNode
+
+    if (isArray(patchList)) {
+        for (var i = 0; i < patchList.length; i++) {
+            newNode = patchOp(patchList[i], domNode, renderOptions)
+
+            if (domNode === rootNode) {
+                rootNode = newNode
+            }
+        }
+    } else {
+        newNode = patchOp(patchList, domNode, renderOptions)
+
+        if (domNode === rootNode) {
+            rootNode = newNode
+        }
+    }
+
+    return rootNode
+}
+
+function patchIndices(patches) {
+    var indices = []
+
+    for (var key in patches) {
+        if (key !== "a") {
+            indices.push(Number(key))
+        }
+    }
+
+    return indices
+}
+
+},{"./create-element":131,"./dom-index":132,"./patch-op":133,"global/document":108,"x-is-array":155}],135:[function(require,module,exports){
+var isWidget = require("../vnode/is-widget.js")
+
+module.exports = updateWidget
+
+function updateWidget(a, b) {
+    if (isWidget(a) && isWidget(b)) {
+        if ("name" in a && "name" in b) {
+            return a.id === b.id
+        } else {
+            return a.init === b.init
+        }
+    }
+
+    return false
+}
+
+},{"../vnode/is-widget.js":148}],136:[function(require,module,exports){
+'use strict';
+
+module.exports = AttributeHook;
+
+function AttributeHook(namespace, value) {
+    if (!(this instanceof AttributeHook)) {
+        return new AttributeHook(namespace, value);
+    }
+
+    this.namespace = namespace;
+    this.value = value;
+}
+
+AttributeHook.prototype.hook = function (node, prop, prev) {
+    if (prev && prev.type === 'AttributeHook' &&
+        prev.value === this.value &&
+        prev.namespace === this.namespace) {
+        return;
+    }
+
+    node.setAttributeNS(this.namespace, prop, this.value);
+};
+
+AttributeHook.prototype.unhook = function (node, prop, next) {
+    if (next && next.type === 'AttributeHook' &&
+        next.namespace === this.namespace) {
+        return;
+    }
+
+    var colonPosition = prop.indexOf(':');
+    var localName = colonPosition > -1 ? prop.substr(colonPosition + 1) : prop;
+    node.removeAttributeNS(this.namespace, localName);
+};
+
+AttributeHook.prototype.type = 'AttributeHook';
+
+},{}],137:[function(require,module,exports){
+'use strict';
+
+var EvStore = require('ev-store');
+
+module.exports = EvHook;
+
+function EvHook(value) {
+    if (!(this instanceof EvHook)) {
+        return new EvHook(value);
+    }
+
+    this.value = value;
+}
+
+EvHook.prototype.hook = function (node, propertyName) {
+    var es = EvStore(node);
+    var propName = propertyName.substr(3);
+
+    es[propName] = this.value;
+};
+
+EvHook.prototype.unhook = function(node, propertyName) {
+    var es = EvStore(node);
+    var propName = propertyName.substr(3);
+
+    es[propName] = undefined;
+};
+
+},{"ev-store":107}],138:[function(require,module,exports){
+'use strict';
+
+module.exports = SoftSetHook;
+
+function SoftSetHook(value) {
+    if (!(this instanceof SoftSetHook)) {
+        return new SoftSetHook(value);
+    }
+
+    this.value = value;
+}
+
+SoftSetHook.prototype.hook = function (node, propertyName) {
+    if (node[propertyName] !== this.value) {
+        node[propertyName] = this.value;
+    }
+};
+
+},{}],139:[function(require,module,exports){
+'use strict';
+
+var isArray = require('x-is-array');
+
+var VNode = require('../vnode/vnode.js');
+var VText = require('../vnode/vtext.js');
+var isVNode = require('../vnode/is-vnode');
+var isVText = require('../vnode/is-vtext');
+var isWidget = require('../vnode/is-widget');
+var isHook = require('../vnode/is-vhook');
+var isVThunk = require('../vnode/is-thunk');
+
+var parseTag = require('./parse-tag.js');
+var softSetHook = require('./hooks/soft-set-hook.js');
+var evHook = require('./hooks/ev-hook.js');
+
+module.exports = h;
+
+function h(tagName, properties, children) {
+    var childNodes = [];
+    var tag, props, key, namespace;
+
+    if (!children && isChildren(properties)) {
+        children = properties;
+        props = {};
+    }
+
+    props = props || properties || {};
+    tag = parseTag(tagName, props);
+
+    // support keys
+    if (props.hasOwnProperty('key')) {
+        key = props.key;
+        props.key = undefined;
+    }
+
+    // support namespace
+    if (props.hasOwnProperty('namespace')) {
+        namespace = props.namespace;
+        props.namespace = undefined;
+    }
+
+    // fix cursor bug
+    if (tag === 'INPUT' &&
+        !namespace &&
+        props.hasOwnProperty('value') &&
+        props.value !== undefined &&
+        !isHook(props.value)
+    ) {
+        props.value = softSetHook(props.value);
+    }
+
+    transformProperties(props);
+
+    if (children !== undefined && children !== null) {
+        addChild(children, childNodes, tag, props);
+    }
+
+
+    return new VNode(tag, props, childNodes, key, namespace);
+}
+
+function addChild(c, childNodes, tag, props) {
+    if (typeof c === 'string') {
+        childNodes.push(new VText(c));
+    } else if (typeof c === 'number') {
+        childNodes.push(new VText(String(c)));
+    } else if (isChild(c)) {
+        childNodes.push(c);
+    } else if (isArray(c)) {
+        for (var i = 0; i < c.length; i++) {
+            addChild(c[i], childNodes, tag, props);
+        }
+    } else if (c === null || c === undefined) {
+        return;
+    } else {
+        throw UnexpectedVirtualElement({
+            foreignObject: c,
+            parentVnode: {
+                tagName: tag,
+                properties: props
+            }
+        });
+    }
+}
+
+function transformProperties(props) {
+    for (var propName in props) {
+        if (props.hasOwnProperty(propName)) {
+            var value = props[propName];
+
+            if (isHook(value)) {
+                continue;
+            }
+
+            if (propName.substr(0, 3) === 'ev-') {
+                // add ev-foo support
+                props[propName] = evHook(value);
+            }
+        }
+    }
+}
+
+function isChild(x) {
+    return isVNode(x) || isVText(x) || isWidget(x) || isVThunk(x);
+}
+
+function isChildren(x) {
+    return typeof x === 'string' || isArray(x) || isChild(x);
+}
+
+function UnexpectedVirtualElement(data) {
+    var err = new Error();
+
+    err.type = 'virtual-hyperscript.unexpected.virtual-element';
+    err.message = 'Unexpected virtual child passed to h().\n' +
+        'Expected a VNode / Vthunk / VWidget / string but:\n' +
+        'got:\n' +
+        errorString(data.foreignObject) +
+        '.\n' +
+        'The parent vnode is:\n' +
+        errorString(data.parentVnode)
+        '\n' +
+        'Suggested fix: change your `h(..., [ ... ])` callsite.';
+    err.foreignObject = data.foreignObject;
+    err.parentVnode = data.parentVnode;
+
+    return err;
+}
+
+function errorString(obj) {
+    try {
+        return JSON.stringify(obj, null, '    ');
+    } catch (e) {
+        return String(obj);
+    }
+}
+
+},{"../vnode/is-thunk":144,"../vnode/is-vhook":145,"../vnode/is-vnode":146,"../vnode/is-vtext":147,"../vnode/is-widget":148,"../vnode/vnode.js":150,"../vnode/vtext.js":152,"./hooks/ev-hook.js":137,"./hooks/soft-set-hook.js":138,"./parse-tag.js":140,"x-is-array":155}],140:[function(require,module,exports){
+'use strict';
+
+var split = require('browser-split');
+
+var classIdSplit = /([\.#]?[a-zA-Z0-9\u007F-\uFFFF_:-]+)/;
+var notClassId = /^\.|#/;
+
+module.exports = parseTag;
+
+function parseTag(tag, props) {
+    if (!tag) {
+        return 'DIV';
+    }
+
+    var noId = !(props.hasOwnProperty('id'));
+
+    var tagParts = split(tag, classIdSplit);
+    var tagName = null;
+
+    if (notClassId.test(tagParts[1])) {
+        tagName = 'DIV';
+    }
+
+    var classes, part, type, i;
+
+    for (i = 0; i < tagParts.length; i++) {
+        part = tagParts[i];
+
+        if (!part) {
+            continue;
+        }
+
+        type = part.charAt(0);
+
+        if (!tagName) {
+            tagName = part;
+        } else if (type === '.') {
+            classes = classes || [];
+            classes.push(part.substring(1, part.length));
+        } else if (type === '#' && noId) {
+            props.id = part.substring(1, part.length);
+        }
+    }
+
+    if (classes) {
+        if (props.className) {
+            classes.push(props.className);
+        }
+
+        props.className = classes.join(' ');
+    }
+
+    return props.namespace ? tagName : tagName.toUpperCase();
+}
+
+},{"browser-split":104}],141:[function(require,module,exports){
+'use strict';
+
+var DEFAULT_NAMESPACE = null;
+var EV_NAMESPACE = 'http://www.w3.org/2001/xml-events';
+var XLINK_NAMESPACE = 'http://www.w3.org/1999/xlink';
+var XML_NAMESPACE = 'http://www.w3.org/XML/1998/namespace';
+
+// http://www.w3.org/TR/SVGTiny12/attributeTable.html
+// http://www.w3.org/TR/SVG/attindex.html
+var SVG_PROPERTIES = {
+    'about': DEFAULT_NAMESPACE,
+    'accent-height': DEFAULT_NAMESPACE,
+    'accumulate': DEFAULT_NAMESPACE,
+    'additive': DEFAULT_NAMESPACE,
+    'alignment-baseline': DEFAULT_NAMESPACE,
+    'alphabetic': DEFAULT_NAMESPACE,
+    'amplitude': DEFAULT_NAMESPACE,
+    'arabic-form': DEFAULT_NAMESPACE,
+    'ascent': DEFAULT_NAMESPACE,
+    'attributeName': DEFAULT_NAMESPACE,
+    'attributeType': DEFAULT_NAMESPACE,
+    'azimuth': DEFAULT_NAMESPACE,
+    'bandwidth': DEFAULT_NAMESPACE,
+    'baseFrequency': DEFAULT_NAMESPACE,
+    'baseProfile': DEFAULT_NAMESPACE,
+    'baseline-shift': DEFAULT_NAMESPACE,
+    'bbox': DEFAULT_NAMESPACE,
+    'begin': DEFAULT_NAMESPACE,
+    'bias': DEFAULT_NAMESPACE,
+    'by': DEFAULT_NAMESPACE,
+    'calcMode': DEFAULT_NAMESPACE,
+    'cap-height': DEFAULT_NAMESPACE,
+    'class': DEFAULT_NAMESPACE,
+    'clip': DEFAULT_NAMESPACE,
+    'clip-path': DEFAULT_NAMESPACE,
+    'clip-rule': DEFAULT_NAMESPACE,
+    'clipPathUnits': DEFAULT_NAMESPACE,
+    'color': DEFAULT_NAMESPACE,
+    'color-interpolation': DEFAULT_NAMESPACE,
+    'color-interpolation-filters': DEFAULT_NAMESPACE,
+    'color-profile': DEFAULT_NAMESPACE,
+    'color-rendering': DEFAULT_NAMESPACE,
+    'content': DEFAULT_NAMESPACE,
+    'contentScriptType': DEFAULT_NAMESPACE,
+    'contentStyleType': DEFAULT_NAMESPACE,
+    'cursor': DEFAULT_NAMESPACE,
+    'cx': DEFAULT_NAMESPACE,
+    'cy': DEFAULT_NAMESPACE,
+    'd': DEFAULT_NAMESPACE,
+    'datatype': DEFAULT_NAMESPACE,
+    'defaultAction': DEFAULT_NAMESPACE,
+    'descent': DEFAULT_NAMESPACE,
+    'diffuseConstant': DEFAULT_NAMESPACE,
+    'direction': DEFAULT_NAMESPACE,
+    'display': DEFAULT_NAMESPACE,
+    'divisor': DEFAULT_NAMESPACE,
+    'dominant-baseline': DEFAULT_NAMESPACE,
+    'dur': DEFAULT_NAMESPACE,
+    'dx': DEFAULT_NAMESPACE,
+    'dy': DEFAULT_NAMESPACE,
+    'edgeMode': DEFAULT_NAMESPACE,
+    'editable': DEFAULT_NAMESPACE,
+    'elevation': DEFAULT_NAMESPACE,
+    'enable-background': DEFAULT_NAMESPACE,
+    'end': DEFAULT_NAMESPACE,
+    'ev:event': EV_NAMESPACE,
+    'event': DEFAULT_NAMESPACE,
+    'exponent': DEFAULT_NAMESPACE,
+    'externalResourcesRequired': DEFAULT_NAMESPACE,
+    'fill': DEFAULT_NAMESPACE,
+    'fill-opacity': DEFAULT_NAMESPACE,
+    'fill-rule': DEFAULT_NAMESPACE,
+    'filter': DEFAULT_NAMESPACE,
+    'filterRes': DEFAULT_NAMESPACE,
+    'filterUnits': DEFAULT_NAMESPACE,
+    'flood-color': DEFAULT_NAMESPACE,
+    'flood-opacity': DEFAULT_NAMESPACE,
+    'focusHighlight': DEFAULT_NAMESPACE,
+    'focusable': DEFAULT_NAMESPACE,
+    'font-family': DEFAULT_NAMESPACE,
+    'font-size': DEFAULT_NAMESPACE,
+    'font-size-adjust': DEFAULT_NAMESPACE,
+    'font-stretch': DEFAULT_NAMESPACE,
+    'font-style': DEFAULT_NAMESPACE,
+    'font-variant': DEFAULT_NAMESPACE,
+    'font-weight': DEFAULT_NAMESPACE,
+    'format': DEFAULT_NAMESPACE,
+    'from': DEFAULT_NAMESPACE,
+    'fx': DEFAULT_NAMESPACE,
+    'fy': DEFAULT_NAMESPACE,
+    'g1': DEFAULT_NAMESPACE,
+    'g2': DEFAULT_NAMESPACE,
+    'glyph-name': DEFAULT_NAMESPACE,
+    'glyph-orientation-horizontal': DEFAULT_NAMESPACE,
+    'glyph-orientation-vertical': DEFAULT_NAMESPACE,
+    'glyphRef': DEFAULT_NAMESPACE,
+    'gradientTransform': DEFAULT_NAMESPACE,
+    'gradientUnits': DEFAULT_NAMESPACE,
+    'handler': DEFAULT_NAMESPACE,
+    'hanging': DEFAULT_NAMESPACE,
+    'height': DEFAULT_NAMESPACE,
+    'horiz-adv-x': DEFAULT_NAMESPACE,
+    'horiz-origin-x': DEFAULT_NAMESPACE,
+    'horiz-origin-y': DEFAULT_NAMESPACE,
+    'id': DEFAULT_NAMESPACE,
+    'ideographic': DEFAULT_NAMESPACE,
+    'image-rendering': DEFAULT_NAMESPACE,
+    'in': DEFAULT_NAMESPACE,
+    'in2': DEFAULT_NAMESPACE,
+    'initialVisibility': DEFAULT_NAMESPACE,
+    'intercept': DEFAULT_NAMESPACE,
+    'k': DEFAULT_NAMESPACE,
+    'k1': DEFAULT_NAMESPACE,
+    'k2': DEFAULT_NAMESPACE,
+    'k3': DEFAULT_NAMESPACE,
+    'k4': DEFAULT_NAMESPACE,
+    'kernelMatrix': DEFAULT_NAMESPACE,
+    'kernelUnitLength': DEFAULT_NAMESPACE,
+    'kerning': DEFAULT_NAMESPACE,
+    'keyPoints': DEFAULT_NAMESPACE,
+    'keySplines': DEFAULT_NAMESPACE,
+    'keyTimes': DEFAULT_NAMESPACE,
+    'lang': DEFAULT_NAMESPACE,
+    'lengthAdjust': DEFAULT_NAMESPACE,
+    'letter-spacing': DEFAULT_NAMESPACE,
+    'lighting-color': DEFAULT_NAMESPACE,
+    'limitingConeAngle': DEFAULT_NAMESPACE,
+    'local': DEFAULT_NAMESPACE,
+    'marker-end': DEFAULT_NAMESPACE,
+    'marker-mid': DEFAULT_NAMESPACE,
+    'marker-start': DEFAULT_NAMESPACE,
+    'markerHeight': DEFAULT_NAMESPACE,
+    'markerUnits': DEFAULT_NAMESPACE,
+    'markerWidth': DEFAULT_NAMESPACE,
+    'mask': DEFAULT_NAMESPACE,
+    'maskContentUnits': DEFAULT_NAMESPACE,
+    'maskUnits': DEFAULT_NAMESPACE,
+    'mathematical': DEFAULT_NAMESPACE,
+    'max': DEFAULT_NAMESPACE,
+    'media': DEFAULT_NAMESPACE,
+    'mediaCharacterEncoding': DEFAULT_NAMESPACE,
+    'mediaContentEncodings': DEFAULT_NAMESPACE,
+    'mediaSize': DEFAULT_NAMESPACE,
+    'mediaTime': DEFAULT_NAMESPACE,
+    'method': DEFAULT_NAMESPACE,
+    'min': DEFAULT_NAMESPACE,
+    'mode': DEFAULT_NAMESPACE,
+    'name': DEFAULT_NAMESPACE,
+    'nav-down': DEFAULT_NAMESPACE,
+    'nav-down-left': DEFAULT_NAMESPACE,
+    'nav-down-right': DEFAULT_NAMESPACE,
+    'nav-left': DEFAULT_NAMESPACE,
+    'nav-next': DEFAULT_NAMESPACE,
+    'nav-prev': DEFAULT_NAMESPACE,
+    'nav-right': DEFAULT_NAMESPACE,
+    'nav-up': DEFAULT_NAMESPACE,
+    'nav-up-left': DEFAULT_NAMESPACE,
+    'nav-up-right': DEFAULT_NAMESPACE,
+    'numOctaves': DEFAULT_NAMESPACE,
+    'observer': DEFAULT_NAMESPACE,
+    'offset': DEFAULT_NAMESPACE,
+    'opacity': DEFAULT_NAMESPACE,
+    'operator': DEFAULT_NAMESPACE,
+    'order': DEFAULT_NAMESPACE,
+    'orient': DEFAULT_NAMESPACE,
+    'orientation': DEFAULT_NAMESPACE,
+    'origin': DEFAULT_NAMESPACE,
+    'overflow': DEFAULT_NAMESPACE,
+    'overlay': DEFAULT_NAMESPACE,
+    'overline-position': DEFAULT_NAMESPACE,
+    'overline-thickness': DEFAULT_NAMESPACE,
+    'panose-1': DEFAULT_NAMESPACE,
+    'path': DEFAULT_NAMESPACE,
+    'pathLength': DEFAULT_NAMESPACE,
+    'patternContentUnits': DEFAULT_NAMESPACE,
+    'patternTransform': DEFAULT_NAMESPACE,
+    'patternUnits': DEFAULT_NAMESPACE,
+    'phase': DEFAULT_NAMESPACE,
+    'playbackOrder': DEFAULT_NAMESPACE,
+    'pointer-events': DEFAULT_NAMESPACE,
+    'points': DEFAULT_NAMESPACE,
+    'pointsAtX': DEFAULT_NAMESPACE,
+    'pointsAtY': DEFAULT_NAMESPACE,
+    'pointsAtZ': DEFAULT_NAMESPACE,
+    'preserveAlpha': DEFAULT_NAMESPACE,
+    'preserveAspectRatio': DEFAULT_NAMESPACE,
+    'primitiveUnits': DEFAULT_NAMESPACE,
+    'propagate': DEFAULT_NAMESPACE,
+    'property': DEFAULT_NAMESPACE,
+    'r': DEFAULT_NAMESPACE,
+    'radius': DEFAULT_NAMESPACE,
+    'refX': DEFAULT_NAMESPACE,
+    'refY': DEFAULT_NAMESPACE,
+    'rel': DEFAULT_NAMESPACE,
+    'rendering-intent': DEFAULT_NAMESPACE,
+    'repeatCount': DEFAULT_NAMESPACE,
+    'repeatDur': DEFAULT_NAMESPACE,
+    'requiredExtensions': DEFAULT_NAMESPACE,
+    'requiredFeatures': DEFAULT_NAMESPACE,
+    'requiredFonts': DEFAULT_NAMESPACE,
+    'requiredFormats': DEFAULT_NAMESPACE,
+    'resource': DEFAULT_NAMESPACE,
+    'restart': DEFAULT_NAMESPACE,
+    'result': DEFAULT_NAMESPACE,
+    'rev': DEFAULT_NAMESPACE,
+    'role': DEFAULT_NAMESPACE,
+    'rotate': DEFAULT_NAMESPACE,
+    'rx': DEFAULT_NAMESPACE,
+    'ry': DEFAULT_NAMESPACE,
+    'scale': DEFAULT_NAMESPACE,
+    'seed': DEFAULT_NAMESPACE,
+    'shape-rendering': DEFAULT_NAMESPACE,
+    'slope': DEFAULT_NAMESPACE,
+    'snapshotTime': DEFAULT_NAMESPACE,
+    'spacing': DEFAULT_NAMESPACE,
+    'specularConstant': DEFAULT_NAMESPACE,
+    'specularExponent': DEFAULT_NAMESPACE,
+    'spreadMethod': DEFAULT_NAMESPACE,
+    'startOffset': DEFAULT_NAMESPACE,
+    'stdDeviation': DEFAULT_NAMESPACE,
+    'stemh': DEFAULT_NAMESPACE,
+    'stemv': DEFAULT_NAMESPACE,
+    'stitchTiles': DEFAULT_NAMESPACE,
+    'stop-color': DEFAULT_NAMESPACE,
+    'stop-opacity': DEFAULT_NAMESPACE,
+    'strikethrough-position': DEFAULT_NAMESPACE,
+    'strikethrough-thickness': DEFAULT_NAMESPACE,
+    'string': DEFAULT_NAMESPACE,
+    'stroke': DEFAULT_NAMESPACE,
+    'stroke-dasharray': DEFAULT_NAMESPACE,
+    'stroke-dashoffset': DEFAULT_NAMESPACE,
+    'stroke-linecap': DEFAULT_NAMESPACE,
+    'stroke-linejoin': DEFAULT_NAMESPACE,
+    'stroke-miterlimit': DEFAULT_NAMESPACE,
+    'stroke-opacity': DEFAULT_NAMESPACE,
+    'stroke-width': DEFAULT_NAMESPACE,
+    'surfaceScale': DEFAULT_NAMESPACE,
+    'syncBehavior': DEFAULT_NAMESPACE,
+    'syncBehaviorDefault': DEFAULT_NAMESPACE,
+    'syncMaster': DEFAULT_NAMESPACE,
+    'syncTolerance': DEFAULT_NAMESPACE,
+    'syncToleranceDefault': DEFAULT_NAMESPACE,
+    'systemLanguage': DEFAULT_NAMESPACE,
+    'tableValues': DEFAULT_NAMESPACE,
+    'target': DEFAULT_NAMESPACE,
+    'targetX': DEFAULT_NAMESPACE,
+    'targetY': DEFAULT_NAMESPACE,
+    'text-anchor': DEFAULT_NAMESPACE,
+    'text-decoration': DEFAULT_NAMESPACE,
+    'text-rendering': DEFAULT_NAMESPACE,
+    'textLength': DEFAULT_NAMESPACE,
+    'timelineBegin': DEFAULT_NAMESPACE,
+    'title': DEFAULT_NAMESPACE,
+    'to': DEFAULT_NAMESPACE,
+    'transform': DEFAULT_NAMESPACE,
+    'transformBehavior': DEFAULT_NAMESPACE,
+    'type': DEFAULT_NAMESPACE,
+    'typeof': DEFAULT_NAMESPACE,
+    'u1': DEFAULT_NAMESPACE,
+    'u2': DEFAULT_NAMESPACE,
+    'underline-position': DEFAULT_NAMESPACE,
+    'underline-thickness': DEFAULT_NAMESPACE,
+    'unicode': DEFAULT_NAMESPACE,
+    'unicode-bidi': DEFAULT_NAMESPACE,
+    'unicode-range': DEFAULT_NAMESPACE,
+    'units-per-em': DEFAULT_NAMESPACE,
+    'v-alphabetic': DEFAULT_NAMESPACE,
+    'v-hanging': DEFAULT_NAMESPACE,
+    'v-ideographic': DEFAULT_NAMESPACE,
+    'v-mathematical': DEFAULT_NAMESPACE,
+    'values': DEFAULT_NAMESPACE,
+    'version': DEFAULT_NAMESPACE,
+    'vert-adv-y': DEFAULT_NAMESPACE,
+    'vert-origin-x': DEFAULT_NAMESPACE,
+    'vert-origin-y': DEFAULT_NAMESPACE,
+    'viewBox': DEFAULT_NAMESPACE,
+    'viewTarget': DEFAULT_NAMESPACE,
+    'visibility': DEFAULT_NAMESPACE,
+    'width': DEFAULT_NAMESPACE,
+    'widths': DEFAULT_NAMESPACE,
+    'word-spacing': DEFAULT_NAMESPACE,
+    'writing-mode': DEFAULT_NAMESPACE,
+    'x': DEFAULT_NAMESPACE,
+    'x-height': DEFAULT_NAMESPACE,
+    'x1': DEFAULT_NAMESPACE,
+    'x2': DEFAULT_NAMESPACE,
+    'xChannelSelector': DEFAULT_NAMESPACE,
+    'xlink:actuate': XLINK_NAMESPACE,
+    'xlink:arcrole': XLINK_NAMESPACE,
+    'xlink:href': XLINK_NAMESPACE,
+    'xlink:role': XLINK_NAMESPACE,
+    'xlink:show': XLINK_NAMESPACE,
+    'xlink:title': XLINK_NAMESPACE,
+    'xlink:type': XLINK_NAMESPACE,
+    'xml:base': XML_NAMESPACE,
+    'xml:id': XML_NAMESPACE,
+    'xml:lang': XML_NAMESPACE,
+    'xml:space': XML_NAMESPACE,
+    'y': DEFAULT_NAMESPACE,
+    'y1': DEFAULT_NAMESPACE,
+    'y2': DEFAULT_NAMESPACE,
+    'yChannelSelector': DEFAULT_NAMESPACE,
+    'z': DEFAULT_NAMESPACE,
+    'zoomAndPan': DEFAULT_NAMESPACE
+};
+
+module.exports = SVGAttributeNamespace;
+
+function SVGAttributeNamespace(value) {
+  if (SVG_PROPERTIES.hasOwnProperty(value)) {
+    return SVG_PROPERTIES[value];
+  }
+}
+
+},{}],142:[function(require,module,exports){
+'use strict';
+
+var isArray = require('x-is-array');
+
+var h = require('./index.js');
+
+
+var SVGAttributeNamespace = require('./svg-attribute-namespace');
+var attributeHook = require('./hooks/attribute-hook');
+
+var SVG_NAMESPACE = 'http://www.w3.org/2000/svg';
+
+module.exports = svg;
+
+function svg(tagName, properties, children) {
+    if (!children && isChildren(properties)) {
+        children = properties;
+        properties = {};
+    }
+
+    properties = properties || {};
+
+    // set namespace for svg
+    properties.namespace = SVG_NAMESPACE;
+
+    var attributes = properties.attributes || (properties.attributes = {});
+
+    for (var key in properties) {
+        if (!properties.hasOwnProperty(key)) {
+            continue;
+        }
+
+        var namespace = SVGAttributeNamespace(key);
+
+        if (namespace === undefined) { // not a svg attribute
+            continue;
+        }
+
+        var value = properties[key];
+
+        if (typeof value !== 'string' &&
+            typeof value !== 'number' &&
+            typeof value !== 'boolean'
+        ) {
+            continue;
+        }
+
+        if (namespace !== null) { // namespaced attribute
+            properties[key] = attributeHook(namespace, value);
+            continue;
+        }
+
+        attributes[key] = value
+        properties[key] = undefined
+    }
+
+    return h(tagName, properties, children);
+}
+
+function isChildren(x) {
+    return typeof x === 'string' || isArray(x);
+}
+
+},{"./hooks/attribute-hook":136,"./index.js":139,"./svg-attribute-namespace":141,"x-is-array":155}],143:[function(require,module,exports){
+var isVNode = require("./is-vnode")
+var isVText = require("./is-vtext")
+var isWidget = require("./is-widget")
+var isThunk = require("./is-thunk")
+
+module.exports = handleThunk
+
+function handleThunk(a, b) {
+    var renderedA = a
+    var renderedB = b
+
+    if (isThunk(b)) {
+        renderedB = renderThunk(b, a)
+    }
+
+    if (isThunk(a)) {
+        renderedA = renderThunk(a, null)
+    }
+
+    return {
+        a: renderedA,
+        b: renderedB
+    }
+}
+
+function renderThunk(thunk, previous) {
+    var renderedThunk = thunk.vnode
+
+    if (!renderedThunk) {
+        renderedThunk = thunk.vnode = thunk.render(previous)
+    }
+
+    if (!(isVNode(renderedThunk) ||
+            isVText(renderedThunk) ||
+            isWidget(renderedThunk))) {
+        throw new Error("thunk did not return a valid node");
+    }
+
+    return renderedThunk
+}
+
+},{"./is-thunk":144,"./is-vnode":146,"./is-vtext":147,"./is-widget":148}],144:[function(require,module,exports){
+module.exports = isThunk
+
+function isThunk(t) {
+    return t && t.type === "Thunk"
+}
+
+},{}],145:[function(require,module,exports){
+module.exports = isHook
+
+function isHook(hook) {
+    return hook &&
+      (typeof hook.hook === "function" && !hook.hasOwnProperty("hook") ||
+       typeof hook.unhook === "function" && !hook.hasOwnProperty("unhook"))
+}
+
+},{}],146:[function(require,module,exports){
+var version = require("./version")
+
+module.exports = isVirtualNode
+
+function isVirtualNode(x) {
+    return x && x.type === "VirtualNode" && x.version === version
+}
+
+},{"./version":149}],147:[function(require,module,exports){
+var version = require("./version")
+
+module.exports = isVirtualText
+
+function isVirtualText(x) {
+    return x && x.type === "VirtualText" && x.version === version
+}
+
+},{"./version":149}],148:[function(require,module,exports){
+module.exports = isWidget
+
+function isWidget(w) {
+    return w && w.type === "Widget"
+}
+
+},{}],149:[function(require,module,exports){
+module.exports = "2"
+
+},{}],150:[function(require,module,exports){
+var version = require("./version")
+var isVNode = require("./is-vnode")
+var isWidget = require("./is-widget")
+var isThunk = require("./is-thunk")
+var isVHook = require("./is-vhook")
+
+module.exports = VirtualNode
+
+var noProperties = {}
+var noChildren = []
+
+function VirtualNode(tagName, properties, children, key, namespace) {
+    this.tagName = tagName
+    this.properties = properties || noProperties
+    this.children = children || noChildren
+    this.key = key != null ? String(key) : undefined
+    this.namespace = (typeof namespace === "string") ? namespace : null
+
+    var count = (children && children.length) || 0
+    var descendants = 0
+    var hasWidgets = false
+    var hasThunks = false
+    var descendantHooks = false
+    var hooks
+
+    for (var propName in properties) {
+        if (properties.hasOwnProperty(propName)) {
+            var property = properties[propName]
+            if (isVHook(property) && property.unhook) {
+                if (!hooks) {
+                    hooks = {}
+                }
+
+                hooks[propName] = property
+            }
+        }
+    }
+
+    for (var i = 0; i < count; i++) {
+        var child = children[i]
+        if (isVNode(child)) {
+            descendants += child.count || 0
+
+            if (!hasWidgets && child.hasWidgets) {
+                hasWidgets = true
+            }
+
+            if (!hasThunks && child.hasThunks) {
+                hasThunks = true
+            }
+
+            if (!descendantHooks && (child.hooks || child.descendantHooks)) {
+                descendantHooks = true
+            }
+        } else if (!hasWidgets && isWidget(child)) {
+            if (typeof child.destroy === "function") {
+                hasWidgets = true
+            }
+        } else if (!hasThunks && isThunk(child)) {
+            hasThunks = true;
+        }
+    }
+
+    this.count = count + descendants
+    this.hasWidgets = hasWidgets
+    this.hasThunks = hasThunks
+    this.hooks = hooks
+    this.descendantHooks = descendantHooks
+}
+
+VirtualNode.prototype.version = version
+VirtualNode.prototype.type = "VirtualNode"
+
+},{"./is-thunk":144,"./is-vhook":145,"./is-vnode":146,"./is-widget":148,"./version":149}],151:[function(require,module,exports){
+var version = require("./version")
+
+VirtualPatch.NONE = 0
+VirtualPatch.VTEXT = 1
+VirtualPatch.VNODE = 2
+VirtualPatch.WIDGET = 3
+VirtualPatch.PROPS = 4
+VirtualPatch.ORDER = 5
+VirtualPatch.INSERT = 6
+VirtualPatch.REMOVE = 7
+VirtualPatch.THUNK = 8
+
+module.exports = VirtualPatch
+
+function VirtualPatch(type, vNode, patch) {
+    this.type = Number(type)
+    this.vNode = vNode
+    this.patch = patch
+}
+
+VirtualPatch.prototype.version = version
+VirtualPatch.prototype.type = "VirtualPatch"
+
+},{"./version":149}],152:[function(require,module,exports){
+var version = require("./version")
+
+module.exports = VirtualText
+
+function VirtualText(text) {
+    this.text = String(text)
+}
+
+VirtualText.prototype.version = version
+VirtualText.prototype.type = "VirtualText"
+
+},{"./version":149}],153:[function(require,module,exports){
+var isObject = require("is-object")
+var isHook = require("../vnode/is-vhook")
+
+module.exports = diffProps
+
+function diffProps(a, b) {
+    var diff
+
+    for (var aKey in a) {
+        if (!(aKey in b)) {
+            diff = diff || {}
+            diff[aKey] = undefined
+        }
+
+        var aValue = a[aKey]
+        var bValue = b[aKey]
+
+        if (aValue === bValue) {
+            continue
+        } else if (isObject(aValue) && isObject(bValue)) {
+            if (getPrototype(bValue) !== getPrototype(aValue)) {
+                diff = diff || {}
+                diff[aKey] = bValue
+            } else if (isHook(bValue)) {
+                 diff = diff || {}
+                 diff[aKey] = bValue
+            } else {
+                var objectDiff = diffProps(aValue, bValue)
+                if (objectDiff) {
+                    diff = diff || {}
+                    diff[aKey] = objectDiff
+                }
+            }
+        } else {
+            diff = diff || {}
+            diff[aKey] = bValue
+        }
+    }
+
+    for (var bKey in b) {
+        if (!(bKey in a)) {
+            diff = diff || {}
+            diff[bKey] = b[bKey]
+        }
+    }
+
+    return diff
+}
+
+function getPrototype(value) {
+  if (Object.getPrototypeOf) {
+    return Object.getPrototypeOf(value)
+  } else if (value.__proto__) {
+    return value.__proto__
+  } else if (value.constructor) {
+    return value.constructor.prototype
+  }
+}
+
+},{"../vnode/is-vhook":145,"is-object":112}],154:[function(require,module,exports){
+var isArray = require("x-is-array")
+
+var VPatch = require("../vnode/vpatch")
+var isVNode = require("../vnode/is-vnode")
+var isVText = require("../vnode/is-vtext")
+var isWidget = require("../vnode/is-widget")
+var isThunk = require("../vnode/is-thunk")
+var handleThunk = require("../vnode/handle-thunk")
+
+var diffProps = require("./diff-props")
+
+module.exports = diff
+
+function diff(a, b) {
+    var patch = { a: a }
+    walk(a, b, patch, 0)
+    return patch
+}
+
+function walk(a, b, patch, index) {
+    if (a === b) {
+        return
+    }
+
+    var apply = patch[index]
+    var applyClear = false
+
+    if (isThunk(a) || isThunk(b)) {
+        thunks(a, b, patch, index)
+    } else if (b == null) {
+
+        // If a is a widget we will add a remove patch for it
+        // Otherwise any child widgets/hooks must be destroyed.
+        // This prevents adding two remove patches for a widget.
+        if (!isWidget(a)) {
+            clearState(a, patch, index)
+            apply = patch[index]
+        }
+
+        apply = appendPatch(apply, new VPatch(VPatch.REMOVE, a, b))
+    } else if (isVNode(b)) {
+        if (isVNode(a)) {
+            if (a.tagName === b.tagName &&
+                a.namespace === b.namespace &&
+                a.key === b.key) {
+                var propsPatch = diffProps(a.properties, b.properties)
+                if (propsPatch) {
+                    apply = appendPatch(apply,
+                        new VPatch(VPatch.PROPS, a, propsPatch))
+                }
+                apply = diffChildren(a, b, patch, apply, index)
+            } else {
+                apply = appendPatch(apply, new VPatch(VPatch.VNODE, a, b))
+                applyClear = true
+            }
+        } else {
+            apply = appendPatch(apply, new VPatch(VPatch.VNODE, a, b))
+            applyClear = true
+        }
+    } else if (isVText(b)) {
+        if (!isVText(a)) {
+            apply = appendPatch(apply, new VPatch(VPatch.VTEXT, a, b))
+            applyClear = true
+        } else if (a.text !== b.text) {
+            apply = appendPatch(apply, new VPatch(VPatch.VTEXT, a, b))
+        }
+    } else if (isWidget(b)) {
+        if (!isWidget(a)) {
+            applyClear = true
+        }
+
+        apply = appendPatch(apply, new VPatch(VPatch.WIDGET, a, b))
+    }
+
+    if (apply) {
+        patch[index] = apply
+    }
+
+    if (applyClear) {
+        clearState(a, patch, index)
+    }
+}
+
+function diffChildren(a, b, patch, apply, index) {
+    var aChildren = a.children
+    var orderedSet = reorder(aChildren, b.children)
+    var bChildren = orderedSet.children
+
+    var aLen = aChildren.length
+    var bLen = bChildren.length
+    var len = aLen > bLen ? aLen : bLen
+
+    for (var i = 0; i < len; i++) {
+        var leftNode = aChildren[i]
+        var rightNode = bChildren[i]
+        index += 1
+
+        if (!leftNode) {
+            if (rightNode) {
+                // Excess nodes in b need to be added
+                apply = appendPatch(apply,
+                    new VPatch(VPatch.INSERT, null, rightNode))
+            }
+        } else {
+            walk(leftNode, rightNode, patch, index)
+        }
+
+        if (isVNode(leftNode) && leftNode.count) {
+            index += leftNode.count
+        }
+    }
+
+    if (orderedSet.moves) {
+        // Reorder nodes last
+        apply = appendPatch(apply, new VPatch(
+            VPatch.ORDER,
+            a,
+            orderedSet.moves
+        ))
+    }
+
+    return apply
+}
+
+function clearState(vNode, patch, index) {
+    // TODO: Make this a single walk, not two
+    unhook(vNode, patch, index)
+    destroyWidgets(vNode, patch, index)
+}
+
+// Patch records for all destroyed widgets must be added because we need
+// a DOM node reference for the destroy function
+function destroyWidgets(vNode, patch, index) {
+    if (isWidget(vNode)) {
+        if (typeof vNode.destroy === "function") {
+            patch[index] = appendPatch(
+                patch[index],
+                new VPatch(VPatch.REMOVE, vNode, null)
+            )
+        }
+    } else if (isVNode(vNode) && (vNode.hasWidgets || vNode.hasThunks)) {
+        var children = vNode.children
+        var len = children.length
+        for (var i = 0; i < len; i++) {
+            var child = children[i]
+            index += 1
+
+            destroyWidgets(child, patch, index)
+
+            if (isVNode(child) && child.count) {
+                index += child.count
+            }
+        }
+    } else if (isThunk(vNode)) {
+        thunks(vNode, null, patch, index)
+    }
+}
+
+// Create a sub-patch for thunks
+function thunks(a, b, patch, index) {
+    var nodes = handleThunk(a, b)
+    var thunkPatch = diff(nodes.a, nodes.b)
+    if (hasPatches(thunkPatch)) {
+        patch[index] = new VPatch(VPatch.THUNK, null, thunkPatch)
+    }
+}
+
+function hasPatches(patch) {
+    for (var index in patch) {
+        if (index !== "a") {
+            return true
+        }
+    }
+
+    return false
+}
+
+// Execute hooks when two nodes are identical
+function unhook(vNode, patch, index) {
+    if (isVNode(vNode)) {
+        if (vNode.hooks) {
+            patch[index] = appendPatch(
+                patch[index],
+                new VPatch(
+                    VPatch.PROPS,
+                    vNode,
+                    undefinedKeys(vNode.hooks)
+                )
+            )
+        }
+
+        if (vNode.descendantHooks || vNode.hasThunks) {
+            var children = vNode.children
+            var len = children.length
+            for (var i = 0; i < len; i++) {
+                var child = children[i]
+                index += 1
+
+                unhook(child, patch, index)
+
+                if (isVNode(child) && child.count) {
+                    index += child.count
+                }
+            }
+        }
+    } else if (isThunk(vNode)) {
+        thunks(vNode, null, patch, index)
+    }
+}
+
+function undefinedKeys(obj) {
+    var result = {}
+
+    for (var key in obj) {
+        result[key] = undefined
+    }
+
+    return result
+}
+
+// List diff, naive left to right reordering
+function reorder(aChildren, bChildren) {
+    // O(M) time, O(M) memory
+    var bChildIndex = keyIndex(bChildren)
+    var bKeys = bChildIndex.keys
+    var bFree = bChildIndex.free
+
+    if (bFree.length === bChildren.length) {
+        return {
+            children: bChildren,
+            moves: null
+        }
+    }
+
+    // O(N) time, O(N) memory
+    var aChildIndex = keyIndex(aChildren)
+    var aKeys = aChildIndex.keys
+    var aFree = aChildIndex.free
+
+    if (aFree.length === aChildren.length) {
+        return {
+            children: bChildren,
+            moves: null
+        }
+    }
+
+    // O(MAX(N, M)) memory
+    var newChildren = []
+
+    var freeIndex = 0
+    var freeCount = bFree.length
+    var deletedItems = 0
+
+    // Iterate through a and match a node in b
+    // O(N) time,
+    for (var i = 0 ; i < aChildren.length; i++) {
+        var aItem = aChildren[i]
+        var itemIndex
+
+        if (aItem.key) {
+            if (bKeys.hasOwnProperty(aItem.key)) {
+                // Match up the old keys
+                itemIndex = bKeys[aItem.key]
+                newChildren.push(bChildren[itemIndex])
+
+            } else {
+                // Remove old keyed items
+                itemIndex = i - deletedItems++
+                newChildren.push(null)
+            }
+        } else {
+            // Match the item in a with the next free item in b
+            if (freeIndex < freeCount) {
+                itemIndex = bFree[freeIndex++]
+                newChildren.push(bChildren[itemIndex])
+            } else {
+                // There are no free items in b to match with
+                // the free items in a, so the extra free nodes
+                // are deleted.
+                itemIndex = i - deletedItems++
+                newChildren.push(null)
+            }
+        }
+    }
+
+    var lastFreeIndex = freeIndex >= bFree.length ?
+        bChildren.length :
+        bFree[freeIndex]
+
+    // Iterate through b and append any new keys
+    // O(M) time
+    for (var j = 0; j < bChildren.length; j++) {
+        var newItem = bChildren[j]
+
+        if (newItem.key) {
+            if (!aKeys.hasOwnProperty(newItem.key)) {
+                // Add any new keyed items
+                // We are adding new items to the end and then sorting them
+                // in place. In future we should insert new items in place.
+                newChildren.push(newItem)
+            }
+        } else if (j >= lastFreeIndex) {
+            // Add any leftover non-keyed items
+            newChildren.push(newItem)
+        }
+    }
+
+    var simulate = newChildren.slice()
+    var simulateIndex = 0
+    var removes = []
+    var inserts = []
+    var simulateItem
+
+    for (var k = 0; k < bChildren.length;) {
+        var wantedItem = bChildren[k]
+        simulateItem = simulate[simulateIndex]
+
+        // remove items
+        while (simulateItem === null && simulate.length) {
+            removes.push(remove(simulate, simulateIndex, null))
+            simulateItem = simulate[simulateIndex]
+        }
+
+        if (!simulateItem || simulateItem.key !== wantedItem.key) {
+            // if we need a key in this position...
+            if (wantedItem.key) {
+                if (simulateItem && simulateItem.key) {
+                    // if an insert doesn't put this key in place, it needs to move
+                    if (bKeys[simulateItem.key] !== k + 1) {
+                        removes.push(remove(simulate, simulateIndex, simulateItem.key))
+                        simulateItem = simulate[simulateIndex]
+                        // if the remove didn't put the wanted item in place, we need to insert it
+                        if (!simulateItem || simulateItem.key !== wantedItem.key) {
+                            inserts.push({key: wantedItem.key, to: k})
+                        }
+                        // items are matching, so skip ahead
+                        else {
+                            simulateIndex++
+                        }
+                    }
+                    else {
+                        inserts.push({key: wantedItem.key, to: k})
+                    }
+                }
+                else {
+                    inserts.push({key: wantedItem.key, to: k})
+                }
+                k++
+            }
+            // a key in simulate has no matching wanted key, remove it
+            else if (simulateItem && simulateItem.key) {
+                removes.push(remove(simulate, simulateIndex, simulateItem.key))
+            }
+        }
+        else {
+            simulateIndex++
+            k++
+        }
+    }
+
+    // remove all the remaining nodes from simulate
+    while(simulateIndex < simulate.length) {
+        simulateItem = simulate[simulateIndex]
+        removes.push(remove(simulate, simulateIndex, simulateItem && simulateItem.key))
+    }
+
+    // If the only moves we have are deletes then we can just
+    // let the delete patch remove these items.
+    if (removes.length === deletedItems && !inserts.length) {
+        return {
+            children: newChildren,
+            moves: null
+        }
+    }
+
+    return {
+        children: newChildren,
+        moves: {
+            removes: removes,
+            inserts: inserts
+        }
+    }
+}
+
+function remove(arr, index, key) {
+    arr.splice(index, 1)
+
+    return {
+        from: index,
+        key: key
+    }
+}
+
+function keyIndex(children) {
+    var keys = {}
+    var free = []
+    var length = children.length
+
+    for (var i = 0; i < length; i++) {
+        var child = children[i]
+
+        if (child.key) {
+            keys[child.key] = i
+        } else {
+            free.push(i)
+        }
+    }
+
+    return {
+        keys: keys,     // A hash of key name to index
+        free: free      // An array of unkeyed item indices
+    }
+}
+
+function appendPatch(apply, patch) {
+    if (apply) {
+        if (isArray(apply)) {
+            apply.push(patch)
+        } else {
+            apply = [apply, patch]
+        }
+
+        return apply
+    } else {
+        return patch
+    }
+}
+
+},{"../vnode/handle-thunk":143,"../vnode/is-thunk":144,"../vnode/is-vnode":146,"../vnode/is-vtext":147,"../vnode/is-widget":148,"../vnode/vpatch":151,"./diff-props":153,"x-is-array":155}],155:[function(require,module,exports){
+var nativeIsArray = Array.isArray
+var toString = Object.prototype.toString
+
+module.exports = nativeIsArray || isArray
+
+function isArray(obj) {
+    return toString.call(obj) === "[object Array]"
+}
+
+},{}]},{},[1]);

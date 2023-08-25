@@ -6,7 +6,7 @@ const appDirectory = fs.realpathSync(process.cwd());
 const resolveApp = (relativePath) => path.resolve(appDirectory, relativePath);
 
 const carnelianCorePath = "../../packages/core/src";
-const carnelianInteractionPath = "../../packages/interaction/src";
+const carnelianInteractivityPath = "../../packages/interactivity/src";
 const carnelianShapesPath = "../../packages/shapes/src";
 
 module.exports = {
@@ -22,7 +22,7 @@ module.exports = {
                 ...matches[0].loader,
                 include: [
                     resolveApp(carnelianCorePath),
-                    resolveApp(carnelianInteractionPath),
+                    resolveApp(carnelianInteractivityPath),
                     resolveApp(carnelianShapesPath)
                 ],
             });
@@ -30,7 +30,7 @@ module.exports = {
         },
         alias: {
             '@carnelian-diagram/core': path.resolve(__dirname, carnelianCorePath),
-            '@carnelian-diagram/interaction': path.resolve(__dirname, carnelianInteractionPath),
+            '@carnelian-diagram/interactivity': path.resolve(__dirname, carnelianInteractivityPath),
             '@carnelian-diagram/shapes': path.resolve(__dirname, carnelianShapesPath),
         },
     },

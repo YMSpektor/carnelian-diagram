@@ -1,7 +1,7 @@
 /** @jsxImportSource @carnelian-diagram/core */
 
 import { DiagramElement } from "@carnelian-diagram/core";
-import { withInteractiveText } from "@carnelian-diagram/interaction";
+import { withInteractiveText } from "@carnelian-diagram/interactivity";
 import { DEFAULT_FONT_FAMILY, DEFAULT_FONT_SIZE, MultilineTextStyle, TextBaseProps } from "..";
 import { withInteractiveRotatableText } from "../hocs";
 import { textEditorStyles, textRotation, wrapText } from "../utils";

@@ -107,7 +107,9 @@ export type DiagramElementProps<P> = P & {
 }
 export type DiagramComponent<P = any> = WithThis<DiagramNode<P>, FunctionComponent<P>>;
 export type DiagramElement<P extends object = any> = DiagramComponent<DiagramElementProps<P>>;
-export type DiagramElementNode<P = any> = DiagramNode<DiagramElementProps<P>>;
+export interface DiagramElementNode<P extends object = any> extends DiagramNode<DiagramElementProps<P>> {
+    type: DiagramElement<P>;
+};
 
 export interface DiagramRootProps {
     svg: SVGGraphicsElement;
@@ -141,7 +143,7 @@ export class Diagram {
         const onChange = (callback: (oldProps: P) => P) => {
             this.update(element, callback(element.props));
         }
-        const element = createElement(type, {...props, onChange}, key);
+        const element = createElement(type, {...props, onChange}, key) as DiagramElementNode<P>;
         return element;
     }
 
@@ -184,7 +186,7 @@ export class Diagram {
         return element;
     }
 
-    update<P>(element: DiagramElementNode<P>, props: P) {
+    update<P extends object>(element: DiagramElementNode<P>, props: P) {
         const onChange = (callback: (oldProps: P) => P) => {
             this.update(element, callback(element.props));
         }
@@ -446,7 +448,7 @@ export class RenderContextType {
         this.currentNode = undefined;
     }
 
-    currentElement(): DiagramElementNode<unknown> | undefined {
+    currentElement(): DiagramElementNode | undefined {
         return this.currentNode?.element;
     }
 

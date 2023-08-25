@@ -1,13 +1,13 @@
 import React from "react";
 import { useCallback, useEffect, useState } from "react";
-import { Button, Divider, IconButton, Menu, MenuItem, SvgIcon, ToggleButton, ToggleButtonGroup, Tooltip } from "@mui/material";
+import { Button, Divider, IconButton, Menu, MenuItem, SvgIcon, ToggleButton, ToggleButtonGroup, Tooltip, TooltipProps } from "@mui/material";
 import KeyboardArrowDownIcon from '@mui/icons-material/KeyboardArrowDown';
 import ZoomInIcon from '@mui/icons-material/ZoomIn';
 import ZoomOutIcon from '@mui/icons-material/ZoomOut';
 import CircleOutlinedIcon from '@mui/icons-material/CircleOutlined';
 import DeleteForeverIcon from '@mui/icons-material/DeleteForever';
-import { DrawingModeElementFactory, DRAW_ELEMENT_EVENT, InteractionController, isDeletionService, isElementDrawingService } from "@carnelian-diagram/interaction";
-import { Diagram } from "@carnelian-diagram/core";
+import { DrawingModeElementFactory, DRAW_ELEMENT_EVENT, InteractionController, isDeletionService, isElementDrawingService, SelectEventArgs, SELECT_EVENT } from "@carnelian-diagram/interactivity";
+import { Diagram, DiagramElementNode } from "@carnelian-diagram/core";
 import {
     InteractiveLine as Line,
     InteractivePolyline as Polyline,
@@ -97,11 +97,22 @@ function ToolbarDivider() {
     )
 }
 
+function ButtonTooltip(props: TooltipProps) {
+    return (
+        <Tooltip {...props}>
+            <div> {/* Adding div to avoid an error with disabled buttons*/}
+                {props.children}
+            </div>
+        </Tooltip>
+    )
+}
+
 function DiagramToolbar(props: DiagramToolbarProps) {
     const scaleOptions = [25, 50, 100, 200, 500];
 
     const [scaleMenuAnchorEl, setScaleMenuAnchorEl] = useState<null | HTMLElement>(null);
     const [drawingMode, setDrawingMode] = useState("");
+    const [selectedElements, setSelectedElements] = useState<DiagramElementNode[]>([]);
 
     const changeDrawinMode = useCallback((value: string) => {
         const service = props.controller.getService(isElementDrawingService);
@@ -209,13 +220,25 @@ function DiagramToolbar(props: DiagramToolbarProps) {
         return diagram.add(Text, { x, y, width: 0, height: 0, text: "", textStyle: defaultTextStyles });
     }
 
+    const selectionChangeHandler = useCallback((e: SelectEventArgs) => {
+        setSelectedElements(e.selectedElements);
+    }, []);
+
+    useEffect(() => {
+        props.controller.addEventListener(SELECT_EVENT, selectionChangeHandler);
+
+        return () => {
+            props.controller.removeEventListener(SELECT_EVENT, selectionChangeHandler);
+        }
+    }, [props.controller, selectionChangeHandler]);
+
     return (
         <>
-            <Tooltip title="Scale">
+            <ButtonTooltip title="Scale">
                 <Button sx={{ color: 'inherit' }} endIcon={<KeyboardArrowDownIcon />} onClick={(e) => setScaleMenuAnchorEl(e.currentTarget)}>
                     {props.scale}%
                 </Button>
-            </Tooltip>
+            </ButtonTooltip>
             <Menu
                 anchorEl={scaleMenuAnchorEl}
                 open={!!scaleMenuAnchorEl}
@@ -226,33 +249,33 @@ function DiagramToolbar(props: DiagramToolbarProps) {
                 ))}
             </Menu>
             <ToolbarDivider />
-            <Tooltip title="Zoom in">
+            <ButtonTooltip title="Zoom in">
                 <IconButton color="inherit" onClick={(e) => zoom(1)}>
                     <ZoomInIcon />
                 </IconButton>
-            </Tooltip>
-            <Tooltip title="Zoom out">
+            </ButtonTooltip>
+            <ButtonTooltip title="Zoom out">
                 <IconButton color="inherit" onClick={(e) => zoom(-1)}>
                     <ZoomOutIcon />
                 </IconButton>
-            </Tooltip>
+            </ButtonTooltip>
             <ToolbarDivider />
-            <Tooltip title="Bring to front">
-                <IconButton color="inherit" onClick={(e) => bringToFront()}>
+            <ButtonTooltip title="Bring to front">
+                <IconButton color="inherit" onClick={(e) => bringToFront()} disabled={selectedElements.length < 1}>
                     <BringToFrontIcon />
                 </IconButton>
-            </Tooltip>
-            <Tooltip title="Send to back">
-                <IconButton color="inherit" onClick={(e) => sendToBack()}>
+            </ButtonTooltip>
+            <ButtonTooltip title="Send to back">
+                <IconButton color="inherit" onClick={(e) => sendToBack()} disabled={selectedElements.length < 1}>
                     <SendToBackIcon />
                 </IconButton>
-            </Tooltip>
+            </ButtonTooltip>
             <ToolbarDivider />
-            <Tooltip title="Delete">
-                <IconButton color="inherit" onClick={(e) => deleteElements()}>
+            <ButtonTooltip title="Delete">
+                <IconButton color="inherit" onClick={(e) => deleteElements()} disabled={selectedElements.length < 1}>
                     <DeleteForeverIcon />
                 </IconButton>
-            </Tooltip>
+            </ButtonTooltip>
             <ToggleButtonGroup exclusive size="small" value={drawingMode} onChange={(e, value) => changeDrawinMode(value)} sx={{ml: 1}}>
                 <ToggleButton value="" sx={{ color: "inherit !important" }}>
                     <Tooltip title="Selection mode">

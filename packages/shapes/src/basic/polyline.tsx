@@ -1,8 +1,8 @@
 /** @jsxImportSource @carnelian-diagram/core */
 
 import { DiagramElement } from "@carnelian-diagram/core";
-import { withInteractivePolyline } from "@carnelian-diagram/interaction";
-import { radToDeg } from "@carnelian-diagram/interaction/geometry";
+import { withInteractivePolyline } from "@carnelian-diagram/interactivity";
+import { radToDeg } from "@carnelian-diagram/interactivity/geometry";
 import { PolylineBaseProps } from "..";
 import { LineCap } from "../line-caps";
 

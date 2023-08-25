@@ -1,6 +1,6 @@
 {
-  "name": "@carnelian-diagram/interaction",
-  "version": "0.3.0",
+  "name": "@carnelian-diagram/interactivity",
+  "version": "0.4.0",
   "main": "index.js",
   "description": "Carnelian Diagram package for interactive elements",
   "author": "Yuri Spektor",
@@ -13,7 +13,7 @@
   "repository": {
     "type": "git",
     "url": "https://github.com/YMSpektor/carnelian-diagram.git",
-    "directory": "packages/interaction"
+    "directory": "packages/interactivity"
   },
   "license": "MIT",
   "homepage": "https://github.com/YMSpektor/carnelian-diagram",
@@ -38,10 +38,11 @@
     "typescript": "^4.9.4"
   },
   "dependencies": {
+    "deepcopy": "^2.1.0",
     "kld-intersections": "^0.7.0",
     "type-pubsub": "^0.1.4"
   },
   "peerDependencies": {
-    "@carnelian-diagram/core": "~0.3.0"
+    "@carnelian-diagram/core": "~0.4.0"
   }
 }

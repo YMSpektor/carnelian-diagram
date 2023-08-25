@@ -1,5 +1,5 @@
 import { DiagramElement } from "@carnelian-diagram/core";
-import { withInteractiveRotation, withInteractiveText, withInteractiveRect, ACT_EDIT_TEXT } from "@carnelian-diagram/interaction";
+import { withInteractiveRotation, withInteractiveText, withInteractiveRect, ACT_EDIT_TEXT } from "@carnelian-diagram/interactivity";
 import { TextStyle, TextBaseProps } from "..";
 import { textEditorStyles, getTextBounds, textRotationController, textRotation } from "../utils";
 import { withRotation } from "./with-rotation";

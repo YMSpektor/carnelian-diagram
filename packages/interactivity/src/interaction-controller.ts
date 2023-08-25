@@ -4,7 +4,7 @@ import { InteractionContextType } from "./context";
 import { DiagramElementHitTest, hasHitTestProps, HitTestCollection, HitInfo, addHitTestProps } from "./hit-tests";
 import { DiagramElementIntersectionTest } from "./intersection-tests";
 import { inflateRect, intersectRect, pointInRect, polygonBounds, Rect, rectPoints, transformPoint } from "./geometry";
-import { DefaultControlRenderingService, DefaultDeletionService, DefaultElementDrawingService, DefaultElementInteractionService, DefaultGridSnappingService, DefaultPaperService, DefaultSelectionService, DefaultTextEditingService, InteractionServive, InteractiveServiceCollection } from "./services";
+import { DefaultControlRenderingService, DefaultDeletionService, DefaultElementDrawingService, DefaultElementInteractionService, DefaultGridSnappingService, DefaultPaperService, DefaultSelectionService, DefaultTextEditingService, DefaultClipboardService, InteractionServive, InteractiveServiceCollection } from "./services";
 import { Channel } from "type-pubsub";
 import { computeTransformResult, DiagramElementTransform, DiagramElementTransforms } from "./transforms";
 import { PolygonCollider, RectCollider } from "./collisions";
@@ -65,6 +65,7 @@ export class InteractionController {
             new DefaultElementDrawingService(this),
             new DefaultTextEditingService(this),
             new DefaultControlRenderingService(),
+            new DefaultClipboardService(this)
         ];
         configureServices?.(new InteractiveServiceCollection(this.services));
     }

@@ -1,8 +1,8 @@
 /** @jsxImportSource @carnelian-diagram/core */
 
 import { DiagramElement } from "@carnelian-diagram/core";
-import { CircleCollider, HalfPlaneCollider, IntersectionCollider, KnobController, UnionCollider, withKnobs } from "@carnelian-diagram/interaction";
-import { degToRad, Point, radToDeg } from "@carnelian-diagram/interaction/geometry";
+import { CircleCollider, HalfPlaneCollider, IntersectionCollider, KnobController, UnionCollider, withKnobs } from "@carnelian-diagram/interactivity";
+import { degToRad, Point, radToDeg } from "@carnelian-diagram/interactivity/geometry";
 import { CircleBaseProps } from "..";
 import { withInteractiveRotatableCircle } from "../hocs";
 

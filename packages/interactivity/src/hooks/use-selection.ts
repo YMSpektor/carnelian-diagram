@@ -1,7 +1,7 @@
-import { DiagramNode, RenderContext, useContext } from "@carnelian-diagram/core";
+import { DiagramElementNode, RenderContext, useContext } from "@carnelian-diagram/core";
 import { SelectionContext } from "..";
 
-export function useSelection(element?: DiagramNode) {
+export function useSelection(element?: DiagramElementNode) {
     const renderContext = useContext(RenderContext);
     const curElement = element || renderContext?.currentElement();
     if (!curElement) {

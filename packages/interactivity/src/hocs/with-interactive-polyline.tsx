@@ -1,7 +1,7 @@
 /** @jsxImportSource @carnelian-diagram/core */
 
 import { DiagramElement, DiagramElementProps } from "@carnelian-diagram/core";
-import { ACT_DRAW_POINT_CANCEL, ACT_DRAW_POINT_CANCEL_Payload, ACT_DRAW_POINT_MOVE, ACT_DRAW_POINT_MOVE_Payload, ACT_DRAW_POINT_PLACE, ACT_DRAW_POINT_PLACE_Payload, ACT_MOVE, ClickActionPayload, Collider, DragActionPayload, EdgeControl, HandleControl, HitArea, LineCollider, PointCollider, UnionCollider, useAction, useCollider, useControls } from "..";
+import { ACT_DRAW_POINT_CANCEL, ACT_DRAW_POINT_CANCEL_Payload, ACT_DRAW_POINT_MOVE, ACT_DRAW_POINT_MOVE_Payload, ACT_DRAW_POINT_PLACE, ACT_DRAW_POINT_PLACE_Payload, ACT_MOVE, ACT_PASTE, ACT_PASTE_Payload, ClickActionPayload, Collider, DragActionPayload, EdgeControl, HandleControl, HitArea, LineCollider, PointCollider, UnionCollider, useAction, useCollider, useControls } from "..";
 import { Line, Point } from "../geometry";
 
 export interface InteractivePolylineProps {
@@ -102,6 +102,14 @@ export function useInteractivePolyline<T extends InteractivePolylineProps>(
                 points: newPoints
             }));
         }
+    });
+
+    useAction<ACT_PASTE_Payload>(ACT_PASTE, (payload) => {
+        onChange(props => ({
+            ...props,
+            ...props,
+            points: points.map(p => ({ x: p.x + payload.offsetX, y: p.y + payload.offsetY }))
+        }));
     });
 
     function createHandleControl(

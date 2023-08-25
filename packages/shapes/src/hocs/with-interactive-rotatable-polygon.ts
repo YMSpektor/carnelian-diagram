@@ -1,5 +1,5 @@
 import { DiagramElement } from "@carnelian-diagram/core";
-import { withInteractiveRotation, withInteractivePolyline, PolygonCollider } from "@carnelian-diagram/interaction";
+import { withInteractiveRotation, withInteractivePolyline, PolygonCollider } from "@carnelian-diagram/interactivity";
 import { PolygonBaseProps } from "..";
 import { polygonRotation, polygonRotationController } from "../utils";
 import { withRotation } from "./with-rotation";

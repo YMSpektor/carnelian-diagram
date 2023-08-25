@@ -1,6 +1,6 @@
 {
   "name": "@carnelian-diagram/shapes",
-  "version": "0.3.0",
+  "version": "0.4.0",
   "main": "index.js",
   "description": "Shape collection for Carnelian Diagram library",
   "author": "Yuri Spektor",
@@ -32,7 +32,7 @@
     "typescript": "^4.9.4"
   },
   "peerDependencies": {
-    "@carnelian-diagram/core": "~0.3.0",
-    "@carnelian-diagram/interaction": "~0.3.0"
+    "@carnelian-diagram/core": "~0.4.0",
+    "@carnelian-diagram/interactivity": "~0.4.0"
   }
 }

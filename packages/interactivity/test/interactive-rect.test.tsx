@@ -2,7 +2,7 @@
 
 import "./polyfills";
 import { Diagram, DiagramRootRenderer, DiagramDOM, DiagramRoot, DiagramElementNode } from "@carnelian-diagram/core";
-import { InteractionController, withInteraction, withInteractiveRect } from "../src";
+import { InteractionController, withInteractivity, withInteractiveRect } from "../src";
 
 interface TestElementProps {
     x: number;
@@ -28,7 +28,7 @@ describe("Inteactive rect tests", () => {
         document.body.replaceChildren(svg);
         diagram = new Diagram();
         controller = new InteractionController(diagram);
-        root = DiagramDOM.createRoot(diagram, svg, withInteraction(DiagramRoot, controller));
+        root = DiagramDOM.createRoot(diagram, svg, withInteractivity(DiagramRoot, controller));
 
         controller.attach(svg);
     });

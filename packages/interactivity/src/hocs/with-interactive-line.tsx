@@ -1,7 +1,7 @@
 /** @jsxImportSource @carnelian-diagram/core */
 
 import { DiagramElement, DiagramElementProps } from "@carnelian-diagram/core";
-import { ACT_DRAW_POINT_CANCEL, ACT_DRAW_POINT_CANCEL_Payload, ACT_DRAW_POINT_MOVE, ACT_DRAW_POINT_MOVE_Payload, ACT_DRAW_POINT_PLACE, ACT_DRAW_POINT_PLACE_Payload, ACT_MOVE, Collider, DragActionPayload, HandleControl, LineCollider, useAction, useCollider, useControls } from "..";
+import { ACT_DRAW_POINT_CANCEL, ACT_DRAW_POINT_CANCEL_Payload, ACT_DRAW_POINT_MOVE, ACT_DRAW_POINT_MOVE_Payload, ACT_DRAW_POINT_PLACE, ACT_DRAW_POINT_PLACE_Payload, ACT_MOVE, ACT_PASTE, ACT_PASTE_Payload, Collider, DragActionPayload, HandleControl, LineCollider, useAction, useCollider, useControls } from "..";
 
 export interface InteractiveLineProps {
     x1: number;
@@ -73,6 +73,16 @@ export function useInteractiveLine<T extends InteractiveLineProps>(
 
     useAction<ACT_DRAW_POINT_CANCEL_Payload>(ACT_DRAW_POINT_CANCEL, (payload) => {
         payload.result.current = false;
+    });
+
+    useAction<ACT_PASTE_Payload>(ACT_PASTE, (payload) => {
+        onChange(props => ({
+            ...props,
+            x1: props.x1 + payload.offsetX,
+            y1: props.y1 + payload.offsetY,
+            x2: props.x2 + payload.offsetX,
+            y2: props.y2 + payload.offsetY
+        }));
     });
 
     function createHandleControl(

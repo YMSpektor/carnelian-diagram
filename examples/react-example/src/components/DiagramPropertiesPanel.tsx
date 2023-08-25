@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { InteractionController, isGridSnappingService, isPaperService, Paper } from "@carnelian-diagram/interaction";
+import { InteractionController, isGridSnappingService, isPaperService, Paper } from "@carnelian-diagram/interactivity";
 import { allLineCapNames } from "@carnelian-diagram/shapes/line-caps";
 import { Accordion, AccordionDetails, AccordionSummary, Box, Divider, FormControl, FormControlLabel, FormLabel, InputAdornment, InputLabel, MenuItem, Radio, RadioGroup, Select, Tab, Tabs, TextField, Typography } from "@mui/material";
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
@@ -579,7 +579,7 @@ const ElementsPropertiesTab = (props: DiagramPropertiesPanelProps) => {
                 </Accordion>}
             </>
             : <Box sx={{ p: 3, textAlign: "center" }}>
-                <Typography variant="subtitle2">Please select elements to edit their properties</Typography>
+                <Typography variant="subtitle1">No elements selected</Typography>
             </Box>}
         </>
     );

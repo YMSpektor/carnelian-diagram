@@ -1,10 +1,10 @@
 /** @jsxImportSource @emotion/react */
 import React, { useCallback, useEffect, useState } from 'react';
-import { Diagram, DiagramElement, DiagramElementNode } from '@carnelian-diagram/core';
+import { Diagram, DiagramElementNode } from '@carnelian-diagram/core';
 import DiagramPalette from './components/DiagramPalette';
 import DiagramToolbar from './components/DiagramToolbar';
 import DiagramViewer from './components/DiagramViewer';
-import { InteractionController, isPaperService, SelectEventArgs, SELECT_EVENT } from '@carnelian-diagram/interaction';
+import { InteractionController, isPaperService, SelectEventArgs, SELECT_EVENT } from '@carnelian-diagram/interactivity';
 import { Accordion, AccordionDetails, AccordionSummary, createTheme, ThemeProvider, Typography } from '@mui/material';
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
 import LayoutSidebar from './components/LayoutSidebar';
@@ -13,6 +13,7 @@ import DiagramPropertiesPanel, { ElementStyle } from './components/DiagramProper
 import { ClosedFigureStyleProps, DEFAULT_FONT_FAMILY, LineFigureStyleProps, TextStyleProps } from '@carnelian-diagram/shapes';
 import { DiagramPaletteElement } from './diagram/palette';
 import { getShapeMetadata, ShapeMetadata } from './diagram/shape-metadata';
+import DiagramContextMenu from './components/DiagramContexMenu';
 
 const theme = createTheme({
     palette: {
@@ -36,19 +37,19 @@ interface AppProps {
 }
 
 function hasFillProps(element: DiagramElementNode): boolean {
-    return !!getShapeMetadata(element.type as DiagramElement)?.hasFill;
+    return !!getShapeMetadata(element.type)?.hasFill;
 }
 
 function hasStrokeProps(element: DiagramElementNode): boolean {
-    return !!getShapeMetadata(element.type as DiagramElement)?.hasStroke;
+    return !!getShapeMetadata(element.type)?.hasStroke;
 }
 
 function hasTextProps(element: DiagramElementNode): boolean {
-    return !!getShapeMetadata(element.type as DiagramElement)?.hasText;
+    return !!getShapeMetadata(element.type)?.hasText;
 }
 
 function hasLineCapProps(element: DiagramElementNode): boolean {
-    return !!getShapeMetadata(element.type as DiagramElement)?.hasLineCaps;
+    return !!getShapeMetadata(element.type)?.hasLineCaps;
 }
 
 function getHasFill(selectedElements: DiagramElementNode[]) {
@@ -153,9 +154,26 @@ function App(props: AppProps) {
     const [sidebarOpen, setSidebarOpen] = useState(false);
     const [elementStyle, setElementStyle] = useState<ElementStyle | null>(null);
     const [elementMetadata, setElementMetadata] = useState<ShapeMetadata | null>(null);
+    const [contextMenu, setContextMenu] = React.useState<DOMPoint | null>(null);
 
     const unitMultiplier = 0.1;
     const sidebarWidth = 270;
+
+    function handleContextMenu(event: React.MouseEvent) {
+        event.preventDefault();
+
+        setContextMenu(!contextMenu
+            ? new DOMPoint(
+                event.clientX + 2,
+                event.clientY - 6,
+            )
+            : null,  
+        );
+    }
+
+    function closeContextMenu() {
+        setContextMenu(null);
+    };
 
     const selectionChangeHandler = useCallback((e: SelectEventArgs) => {
         if (e.selectedElements.length) {
@@ -179,10 +197,10 @@ function App(props: AppProps) {
                 textVAlign: getTextVAlign(e.selectedElements)
             });
             setElementMetadata({
-                hasFill: e.selectedElements.some(x => getShapeMetadata(x.type as DiagramElement<any>).hasFill),
-                hasStroke: e.selectedElements.some(x => getShapeMetadata(x.type as DiagramElement<any>).hasStroke),
-                hasText: e.selectedElements.some(x => getShapeMetadata(x.type as DiagramElement<any>).hasText),
-                hasLineCaps: e.selectedElements.some(x => getShapeMetadata(x.type as DiagramElement<any>).hasLineCaps)
+                hasFill: e.selectedElements.some(x => getShapeMetadata(x.type).hasFill),
+                hasStroke: e.selectedElements.some(x => getShapeMetadata(x.type).hasStroke),
+                hasText: e.selectedElements.some(x => getShapeMetadata(x.type).hasText),
+                hasLineCaps: e.selectedElements.some(x => getShapeMetadata(x.type).hasLineCaps)
             });
         }
         else {
@@ -291,6 +309,20 @@ function App(props: AppProps) {
                         diagram={diagram} controller={controller}
                         diagramSize={{width: paper?.width || 0, height: paper?.height || 0}} 
                         scale={scale} unit="mm" unitMultiplier={unitMultiplier} 
+                        onContextMenu={handleContextMenu}
+                    />
+                    <DiagramContextMenu
+                        open={!!contextMenu} 
+                        onClose={closeContextMenu}
+                        onSelect={closeContextMenu}
+                        anchorReference="anchorPosition"
+                        anchorPosition={
+                            contextMenu
+                              ? { left: contextMenu.x, top: contextMenu.y }
+                              : undefined
+                          }
+                        diagram={diagram}
+                        controller={controller}
                     />
                     <LayoutSidebar width={sidebarWidth}>
                         <DiagramPropertiesPanel

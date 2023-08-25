@@ -1,8 +1,8 @@
 /** @jsxImportSource @carnelian-diagram/core */
 
 import { DiagramElement } from "@carnelian-diagram/core";
-import { CircleCollider, DiffCollider, KnobController, withKnob } from "@carnelian-diagram/interaction";
-import { clamp } from "@carnelian-diagram/interaction/geometry";
+import { CircleCollider, DiffCollider, KnobController, withKnob } from "@carnelian-diagram/interactivity";
+import { clamp } from "@carnelian-diagram/interactivity/geometry";
 import { CircleBaseProps } from "..";
 import { withInteractiveRotatableCircle, withInteractiveRotatableTextCircle } from "../hocs";
 import { convertPercentage, isPercentage, NumberOrPercentage } from "../utils";

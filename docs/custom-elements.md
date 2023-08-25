@@ -50,7 +50,7 @@ Please note that we are using the NumberOrPercentage type from the *@carnelian-d
 Now we can draw the element using the SVG *path* tag. We will also define some helper functions to calculate parameters needed for drawing:
 
 ```typescript
-import { clamp, degToRad, Point } from "@carnelian-diagram/interaction/geometry";
+import { clamp, degToRad, Point } from "@carnelian-diagram/interactivity/geometry";
 import { convertPercentage, NumberOrPercentage } from "@carnelian-diagram/shapes/utils";
 
 const MAX_MOUTH_ANGLE = 120;
@@ -107,7 +107,7 @@ Now we can add interactivity to our element
 The easiest way to implement moving and resizing is just using the standard *withInteractiveCircle* higher-order component (HOC) function:
 
 ```typescript
-import { withInteractiveCircle } from "@carnelian-diagram/interaction";
+import { withInteractiveCircle } from "@carnelian-diagram/interactivity";
 
 export const InteractivePacman = withInteractiveCircle(Pacman);
 ```
@@ -130,7 +130,7 @@ export const InteractivePacman = withInteractiveCircle(
 The library provides set of functions allowing to create colliders of different shapes and combine them using set operations like intersection, union and difference. Firstly, lets define a shape that includes the outer circle excluding the eye:
 
 ```typescript
-import { CircleCollider, DiffCollider, withInteractiveCircle } from "@carnelian-diagram/interaction";
+import { CircleCollider, DiffCollider, withInteractiveCircle } from "@carnelian-diagram/interactivity";
 
 function PacmanCollider(props: PacmanProps) {
     let { x, y, radius, mouthAngle } = props;
@@ -145,7 +145,7 @@ function PacmanCollider(props: PacmanProps) {
 To exclude the mouth we can leverage the *HalfPlaneCollider*. As its name suggests, it contains half of the plane defined by two points. Firstly, we need to combine two half-plane colliders using the *union* operation so that the result will contain the whole space excluding the mouth angle, and then we *intersect* it with the collider implemented in the previous step:
 
 ```typescript
-import { CircleCollider, DiffCollider, HalfPlaneCollider, IntersectionCollider, UnionCollider, withInteractiveCircle } from "@carnelian-diagram/interaction";
+import { CircleCollider, DiffCollider, HalfPlaneCollider, IntersectionCollider, UnionCollider, withInteractiveCircle } from "@carnelian-diagram/interactivity";
 
 function PacmanCollider(props: PacmanProps) {
     let { x, y, radius, mouthAngle } = props;
@@ -177,7 +177,7 @@ To manipulate eye radius we need to add a specific handle called *knob*. Once it
 
 ```typescript
 import { convertPercentage, isPercentage, NumberOrPercentage } from "@carnelian-diagram/shapes/utils";
-import { CircleCollider, DiffCollider, HalfPlaneCollider, IntersectionCollider, KnobController, UnionCollider, withInteractiveCircle, withKnob } from "@carnelian-diagram/interaction";
+import { CircleCollider, DiffCollider, HalfPlaneCollider, IntersectionCollider, KnobController, UnionCollider, withInteractiveCircle, withKnob } from "@carnelian-diagram/interactivity";
 
 const eyeKnobController: KnobController<PacmanProps> = {
     hitArea: {
@@ -216,8 +216,8 @@ export const InteractivePacman = withInteractiveCircle(
 Let's add mouth behaviour also using a knob handle. We also change *withKnob* HOC to *withKnobs* that allows passing multiple knob controllers. Also we leverage grid snapping feature to snap the mouth angle to a value defined for the InteractionController.
 
 ```typescript
-import { CircleCollider, DiffCollider, HalfPlaneCollider, IntersectionCollider, KnobController, UnionCollider, withInteractiveCircle, withKnobs } from "@carnelian-diagram/interaction";
-import { clamp, degToRad, Point, radToDeg } from "@carnelian-diagram/interaction/geometry";
+import { CircleCollider, DiffCollider, HalfPlaneCollider, IntersectionCollider, KnobController, UnionCollider, withInteractiveCircle, withKnobs } from "@carnelian-diagram/interactivity";
+import { clamp, degToRad, Point, radToDeg } from "@carnelian-diagram/interactivity/geometry";
 
 const mouthKnobController: KnobController<PacmanProps> = {
     hitArea: {

@@ -1,4 +1,4 @@
-import { Point } from "@carnelian-diagram/interaction/geometry";
+import { Point } from "@carnelian-diagram/interactivity/geometry";
 import { LineCapSyle } from "./line-caps";
 
 export let DEFAULT_FONT_SIZE = "10px";

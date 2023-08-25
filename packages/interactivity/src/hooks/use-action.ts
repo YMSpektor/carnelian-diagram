@@ -20,7 +20,10 @@ export function useAction<T>(actionType: string | undefined, callback?: ActionCa
         callback,
         action: actionType
     } : undefined;
-    interactions.updateActions(key, action);
+
+    renderContext?.queue(() => {
+        interactions.updateActions(key, action);
+    });
 
     useEffect(() => {
         return () => {

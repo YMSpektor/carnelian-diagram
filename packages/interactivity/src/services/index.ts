@@ -79,3 +79,4 @@ export * from "./element-drawing-service";
 export * from "./control-rendering-service";
 export * from "./paper-service";
 export * from "./text-editing-service";
+export * from "./clipboard-service";

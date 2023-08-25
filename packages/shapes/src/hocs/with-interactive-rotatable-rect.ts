@@ -1,5 +1,5 @@
 import { DiagramElement } from "@carnelian-diagram/core";
-import { RectColliderFactory, withInteractiveRotation, withInteractiveRect } from "@carnelian-diagram/interaction";
+import { RectColliderFactory, withInteractiveRotation, withInteractiveRect } from "@carnelian-diagram/interactivity";
 import { RectBaseProps } from "..";
 import { rectRotationController, rectRotation } from "../utils";
 import { withRotation } from "./with-rotation";
