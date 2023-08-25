@@ -1,7 +1,7 @@
 /** @jsxImportSource @emotion/react */
 import { HTMLAttributes, useContext, useEffect, useLayoutEffect, useRef, useState } from "react";
 import { Diagram, DiagramDOM, DiagramRoot, DiagramRootRenderer } from "@carnelian-diagram/core";
-import { InteractionController, isGridSnappingService, isPaperService, withInteraction } from "@carnelian-diagram/interactivity";
+import { InteractionController, isGridSnappingService, isPaperService, withInteractivity } from "@carnelian-diagram/interactivity";
 import { DragDropContext } from "../context/DragDropContext";
 import DiagramSvg from "./DiagramSvg";
 
@@ -28,7 +28,7 @@ function DiagramViewer(props: DiagramViewerProps & HTMLAttributes<HTMLDivElement
 
     useLayoutEffect(() => {
         const rootComponent = controller 
-            ? withInteraction(DiagramRoot, controller, { elementsRootProps: { "stroke-width": 2.5 } })
+            ? withInteractivity(DiagramRoot, controller, { elementsRootProps: { "stroke-width": 2.5 } })
             : DiagramRoot;
             
         if (root.current && container.current) {

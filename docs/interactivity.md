@@ -4,15 +4,15 @@ The `@carnelian-diagram/interactivity` package provides several tools to make yo
 
 ## Interactive root and InteractionController
 
-The first thing you need to make your diagram interactive is to pass a specific root component to the `DiagramDOM.createRoot` using the `withInteraction` function and pass an instance of `InteractionController` there. The `withInteraction` function wraps all diagram elements to a container that makes interactivity work by providing several context objects (similar to React context) to child elements and the elements can consume them using useContext and higher-level hooks described below in this document.
+The first thing you need to make your diagram interactive is to pass a specific root component to the `DiagramDOM.createRoot` using the `withInteractivity` function and pass an instance of `InteractionController` there. The `withInteractivity` function wraps all diagram elements to a container that makes interactivity work by providing several context objects (similar to React context) to child elements and the elements can consume them using useContext and higher-level hooks described below in this document.
 
 ```typescript
 import { Diagram, DiagramDOM, DiagramRoot } from "@carnelian-diagram/core";
-import { InteractionController, withInteraction } from "@carnelian-diagram/interactivity";
+import { InteractionController, withInteractivity } from "@carnelian-diagram/interactivity";
 
 const diagram = new Diargam();
 const controller = new InteractionController();
-const root = DiagramDOM.createRoot(diagram, rootElement, withInteraction(DiagramRoot, controller));
+const root = DiagramDOM.createRoot(diagram, rootElement, withInteractivity(DiagramRoot, controller));
 ```
 
 The InteractionController is a central element of the interaction system. It's responsible to handle the user input and perform corresponding actions to diagram elements. Once created the interaction controller must be attached to a DOM element (usually the `<svg>` element or its container) that will receive the input events and treat them as interaction with diagram.

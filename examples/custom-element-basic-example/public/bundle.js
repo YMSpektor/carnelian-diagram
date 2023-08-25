@@ -28,7 +28,7 @@ if (root && root instanceof SVGGraphicsElement) {
     var diagram = new diagram_1.Diagram();
     diagram.add(custom_element_1.InteractiveCustomElement, { x: 100, y: 100, width: 200, height: 150 });
     var controller = new interaction_1.InteractionController(diagram);
-    var diagramDOM = diagram_1.DiagramDOM.createRoot(diagram, root, (0, interaction_1.withInteraction)(diagram_1.DiagramRoot, controller));
+    var diagramDOM = diagram_1.DiagramDOM.createRoot(diagram, root, (0, interaction_1.withInteractivity)(diagram_1.DiagramRoot, controller));
     controller.attach(root);
     diagramDOM.attach();
 }
@@ -4946,7 +4946,7 @@ var __read = (this && this.__read) || function (o, n) {
     return ar;
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.withInteraction = void 0;
+exports.withInteractivity = void 0;
 var jsx_runtime_1 = require("@carnelian-diagram/core/jsx-runtime");
 /** @jsxImportSource @carnelian-diagram/core */
 var diagram_1 = require("@carnelian-diagram/core");
@@ -5013,7 +5013,7 @@ function DiagramControls(props) {
     var renderControlsContext = ((_a = controller.getService(__1.isControlRenderingService)) === null || _a === void 0 ? void 0 : _a.controlsContext) || __1.ControlsContext.defaultValue;
     return ((0, jsx_runtime_1.jsx)(__1.ControlsContext.Provider, __assign({ value: renderControlsContext }, { children: (0, jsx_runtime_1.jsxs)("g", __assign({ transform: getTransformAttribute(matrix === null || matrix === void 0 ? void 0 : matrix.inverse()) }, { children: [controller.renderControls(matrix || new DOMMatrix()), rect && (0, jsx_runtime_1.jsx)("rect", __assign({ className: "selection-rect" }, rect, { fill: "none", stroke: "black", "stroke-dasharray": "4" }))] })) })));
 }
-function withInteraction(WrappedComponent, controller, options) {
+function withInteractivity(WrappedComponent, controller, options) {
     return function (props) {
         var _a;
         var _b = __read((0, diagram_1.useState)(undefined), 2), matrix = _b[0], setMatrix = _b[1];
@@ -5054,7 +5054,7 @@ function withInteraction(WrappedComponent, controller, options) {
         return ((0, jsx_runtime_1.jsx)(__1.InteractionContext.Provider, __assign({ value: controller.interactionContext }, { children: (0, jsx_runtime_1.jsxs)(__1.SelectionContext.Provider, __assign({ value: selectedElements }, { children: [paper && (0, jsx_runtime_1.jsx)(DiagramPaper, __assign({}, paper, { matrix: ctm })), (0, jsx_runtime_1.jsx)(DiagramElements, __assign({ rootProps: options === null || options === void 0 ? void 0 : options.elementsRootProps }, { children: (0, jsx_runtime_1.jsx)(WrappedComponent, __assign({}, props)) })), (0, jsx_runtime_1.jsx)(DiagramControls, { matrix: ctm, controller: controller })] })) })));
     };
 }
-exports.withInteraction = withInteraction;
+exports.withInteractivity = withInteractivity;
 
 },{"..":88,"@carnelian-diagram/core":17,"@carnelian-diagram/core/jsx-runtime":18,"@carnelian-diagram/core/utils/schedule":20}],74:[function(require,module,exports){
 "use strict";

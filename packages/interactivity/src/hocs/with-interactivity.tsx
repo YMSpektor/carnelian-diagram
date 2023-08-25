@@ -133,7 +133,7 @@ export interface InteractiveRootOptions<P> {
     elementsRootProps?: P;
 }
 
-export function withInteraction<P>( 
+export function withInteractivity<P>( 
     WrappedComponent: DiagramRootComponent,
     controller: InteractionController,
     options?: InteractiveRootOptions<P>
