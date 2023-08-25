@@ -33,6 +33,6 @@
   },
   "peerDependencies": {
     "@carnelian-diagram/core": "~0.4.0",
-    "@carnelian-diagram/interaction": "~0.4.0"
+    "@carnelian-diagram/interactivity": "~0.4.0"
   }
 }

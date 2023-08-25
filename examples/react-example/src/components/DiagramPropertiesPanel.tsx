@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { InteractionController, isGridSnappingService, isPaperService, Paper } from "@carnelian-diagram/interaction";
+import { InteractionController, isGridSnappingService, isPaperService, Paper } from "@carnelian-diagram/interactivity";
 import { allLineCapNames } from "@carnelian-diagram/shapes/line-caps";
 import { Accordion, AccordionDetails, AccordionSummary, Box, Divider, FormControl, FormControlLabel, FormLabel, InputAdornment, InputLabel, MenuItem, Radio, RadioGroup, Select, Tab, Tabs, TextField, Typography } from "@mui/material";
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore';

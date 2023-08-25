@@ -1,5 +1,5 @@
 import { Diagram, DiagramDOM, DiagramRoot } from "@carnelian-diagram/core";
-import { InteractionController, withInteraction } from "@carnelian-diagram/interaction";
+import { InteractionController, withInteraction } from "@carnelian-diagram/interactivity";
 import { InteractiveCustomElement as CustomElement } from "./custom-element";
 
 const root = document.getElementById("root");

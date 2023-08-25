@@ -5,7 +5,7 @@ exports.InteractiveCustomElement = exports.CustomElement = void 0;
 var jsx_runtime_1 = require("@carnelian-diagram/core/jsx-runtime");
 /** @jsxImportSource @carnelian-diagram/core */
 var diagram_1 = require("@carnelian-diagram/core");
-var interaction_1 = require("@carnelian-diagram/interaction");
+var interaction_1 = require("@carnelian-diagram/interactivity");
 var CustomElement = function (props) {
     var x = props.x, y = props.y, width = props.width, height = props.height;
     var _a = (0, diagram_1.useState)("red"), color = _a[0], setColor = _a[1];
@@ -17,11 +17,11 @@ var CustomElement = function (props) {
 exports.CustomElement = CustomElement;
 exports.InteractiveCustomElement = (0, interaction_1.withInteractiveRect)(exports.CustomElement);
 
-},{"@carnelian-diagram/core":17,"@carnelian-diagram/core/jsx-runtime":18,"@carnelian-diagram/interaction":88}],2:[function(require,module,exports){
+},{"@carnelian-diagram/core":17,"@carnelian-diagram/core/jsx-runtime":18,"@carnelian-diagram/interactivity":88}],2:[function(require,module,exports){
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 var diagram_1 = require("@carnelian-diagram/core");
-var interaction_1 = require("@carnelian-diagram/interaction");
+var interaction_1 = require("@carnelian-diagram/interactivity");
 var custom_element_1 = require("./custom-element");
 var root = document.getElementById("root");
 if (root && root instanceof SVGGraphicsElement) {
@@ -33,7 +33,7 @@ if (root && root instanceof SVGGraphicsElement) {
     diagramDOM.attach();
 }
 
-},{"./custom-element":1,"@carnelian-diagram/core":17,"@carnelian-diagram/interaction":88}],3:[function(require,module,exports){
+},{"./custom-element":1,"@carnelian-diagram/core":17,"@carnelian-diagram/interactivity":88}],3:[function(require,module,exports){
 
 },{}],4:[function(require,module,exports){
 // shim for using process in browser

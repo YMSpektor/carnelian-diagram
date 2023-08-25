@@ -1,8 +1,8 @@
 /** @jsxImportSource @carnelian-diagram/core */
 
 import { DiagramElement } from "@carnelian-diagram/core";
-import { CircleCollider, DiffCollider, HalfPlaneCollider, IntersectionCollider, KnobController, UnionCollider, withInteractiveCircle, withKnobs } from "@carnelian-diagram/interaction";
-import { clamp, degToRad, Point, radToDeg } from "@carnelian-diagram/interaction/geometry";
+import { CircleCollider, DiffCollider, HalfPlaneCollider, IntersectionCollider, KnobController, UnionCollider, withInteractiveCircle, withKnobs } from "@carnelian-diagram/interactivity";
+import { clamp, degToRad, Point, radToDeg } from "@carnelian-diagram/interactivity/geometry";
 import { CircleBaseProps } from "@carnelian-diagram/shapes";
 import { convertPercentage, isPercentage, NumberOrPercentage } from "@carnelian-diagram/shapes/utils";
 

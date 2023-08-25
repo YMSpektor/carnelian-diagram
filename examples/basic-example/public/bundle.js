@@ -2,7 +2,7 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 var diagram_1 = require("@carnelian-diagram/core");
-var interaction_1 = require("@carnelian-diagram/interaction");
+var interaction_1 = require("@carnelian-diagram/interactivity");
 var basic_1 = require("@carnelian-diagram/shapes/basic");
 var root = document.getElementById("root");
 if (root && root instanceof SVGGraphicsElement) {
@@ -15,7 +15,7 @@ if (root && root instanceof SVGGraphicsElement) {
     diagramDOM.attach();
 }
 
-},{"@carnelian-diagram/core":16,"@carnelian-diagram/interaction":87,"@carnelian-diagram/shapes/basic":114}],2:[function(require,module,exports){
+},{"@carnelian-diagram/core":16,"@carnelian-diagram/interactivity":87,"@carnelian-diagram/shapes/basic":114}],2:[function(require,module,exports){
 
 },{}],3:[function(require,module,exports){
 // shim for using process in browser
@@ -14478,7 +14478,7 @@ var __rest = (this && this.__rest) || function (s, e) {
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.InteractiveCircleWithText = exports.InteractiveCircle = exports.Circle = void 0;
 var jsx_runtime_1 = require("@carnelian-diagram/core/jsx-runtime");
-var interaction_1 = require("@carnelian-diagram/interaction");
+var interaction_1 = require("@carnelian-diagram/interactivity");
 var hocs_1 = require("../hocs");
 var utils_1 = require("../utils");
 var multiline_text_1 = require("./multiline-text");
@@ -14500,7 +14500,7 @@ exports.InteractiveCircleWithText = (0, hocs_1.withText)(exports.InteractiveCirc
     textStyle: props.textStyle
 }); });
 
-},{"../hocs":126,"../utils":129,"./multiline-text":116,"@carnelian-diagram/core/jsx-runtime":17,"@carnelian-diagram/interaction":87}],109:[function(require,module,exports){
+},{"../hocs":126,"../utils":129,"./multiline-text":116,"@carnelian-diagram/core/jsx-runtime":17,"@carnelian-diagram/interactivity":87}],109:[function(require,module,exports){
 "use strict";
 var __assign = (this && this.__assign) || function () {
     __assign = Object.assign || function(t) {
@@ -14527,8 +14527,8 @@ var __rest = (this && this.__rest) || function (s, e) {
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.InteractiveCrossWithText = exports.InteractiveCross = exports.Cross = void 0;
 var jsx_runtime_1 = require("@carnelian-diagram/core/jsx-runtime");
-var interaction_1 = require("@carnelian-diagram/interaction");
-var geometry_1 = require("@carnelian-diagram/interaction/geometry");
+var interaction_1 = require("@carnelian-diagram/interactivity");
+var geometry_1 = require("@carnelian-diagram/interactivity/geometry");
 var hocs_1 = require("../hocs");
 var utils_1 = require("../utils");
 var multiline_text_1 = require("./multiline-text");
@@ -14595,7 +14595,7 @@ exports.InteractiveCross = (0, interaction_1.withInteractiveRect)((0, interactio
 });
 exports.InteractiveCrossWithText = (0, hocs_1.withText)(exports.InteractiveCross, (0, interaction_1.withInteractiveText)(multiline_text_1.MultilineText, function (props) { return props; }, function (props) { return (0, utils_1.textEditorStyles)(props.textStyle); }), function (props) { return props; });
 
-},{"../hocs":126,"../utils":129,"./multiline-text":116,"@carnelian-diagram/core/jsx-runtime":17,"@carnelian-diagram/interaction":87,"@carnelian-diagram/interaction/geometry":69}],110:[function(require,module,exports){
+},{"../hocs":126,"../utils":129,"./multiline-text":116,"@carnelian-diagram/core/jsx-runtime":17,"@carnelian-diagram/interactivity":87,"@carnelian-diagram/interactivity/geometry":69}],110:[function(require,module,exports){
 "use strict";
 var __assign = (this && this.__assign) || function () {
     __assign = Object.assign || function(t) {
@@ -14622,7 +14622,7 @@ var __rest = (this && this.__rest) || function (s, e) {
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.InteractiveDiamondWithText = exports.InteractiveDiamond = exports.Diamond = void 0;
 var jsx_runtime_1 = require("@carnelian-diagram/core/jsx-runtime");
-var interaction_1 = require("@carnelian-diagram/interaction");
+var interaction_1 = require("@carnelian-diagram/interactivity");
 var hocs_1 = require("../hocs");
 var utils_1 = require("../utils");
 var multiline_text_1 = require("./multiline-text");
@@ -14649,7 +14649,7 @@ exports.InteractiveDiamond = (0, interaction_1.withInteractiveRect)(exports.Diam
 });
 exports.InteractiveDiamondWithText = (0, hocs_1.withText)(exports.InteractiveDiamond, (0, interaction_1.withInteractiveText)(multiline_text_1.MultilineText, function (props) { return props; }, function (props) { return (0, utils_1.textEditorStyles)(props.textStyle); }), function (props) { return props; });
 
-},{"../hocs":126,"../utils":129,"./multiline-text":116,"@carnelian-diagram/core/jsx-runtime":17,"@carnelian-diagram/interaction":87}],111:[function(require,module,exports){
+},{"../hocs":126,"../utils":129,"./multiline-text":116,"@carnelian-diagram/core/jsx-runtime":17,"@carnelian-diagram/interactivity":87}],111:[function(require,module,exports){
 "use strict";
 var __assign = (this && this.__assign) || function () {
     __assign = Object.assign || function(t) {
@@ -14676,8 +14676,8 @@ var __rest = (this && this.__rest) || function (s, e) {
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.InteractiveDonut = exports.Donut = void 0;
 var jsx_runtime_1 = require("@carnelian-diagram/core/jsx-runtime");
-var interaction_1 = require("@carnelian-diagram/interaction");
-var geometry_1 = require("@carnelian-diagram/interaction/geometry");
+var interaction_1 = require("@carnelian-diagram/interactivity");
+var geometry_1 = require("@carnelian-diagram/interactivity/geometry");
 var utils_1 = require("../utils");
 function calcInnerRadius(props) {
     return Math.min((0, utils_1.convertPercentage)(props.innerRadius, props.radius), props.radius);
@@ -14715,7 +14715,7 @@ exports.InteractiveDonut = (0, interaction_1.withInteractiveCircle)((0, interact
     collider: function (props) { return (0, interaction_1.DiffCollider)((0, interaction_1.CircleCollider)({ center: { x: props.x, y: props.y }, radius: props.radius }), (0, interaction_1.CircleCollider)({ center: { x: props.x, y: props.y }, radius: calcInnerRadius(props) })); }
 });
 
-},{"../utils":129,"@carnelian-diagram/core/jsx-runtime":17,"@carnelian-diagram/interaction":87,"@carnelian-diagram/interaction/geometry":69}],112:[function(require,module,exports){
+},{"../utils":129,"@carnelian-diagram/core/jsx-runtime":17,"@carnelian-diagram/interactivity":87,"@carnelian-diagram/interactivity/geometry":69}],112:[function(require,module,exports){
 "use strict";
 var __assign = (this && this.__assign) || function () {
     __assign = Object.assign || function(t) {
@@ -14742,7 +14742,7 @@ var __rest = (this && this.__rest) || function (s, e) {
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.InteractiveEllipseWithText = exports.InteractiveEllipse = exports.Ellipse = void 0;
 var jsx_runtime_1 = require("@carnelian-diagram/core/jsx-runtime");
-var interaction_1 = require("@carnelian-diagram/interaction");
+var interaction_1 = require("@carnelian-diagram/interactivity");
 var hocs_1 = require("../hocs");
 var utils_1 = require("../utils");
 var multiline_text_1 = require("./multiline-text");
@@ -14761,7 +14761,7 @@ exports.InteractiveEllipse = (0, interaction_1.withInteractiveRect)(exports.Elli
 });
 exports.InteractiveEllipseWithText = (0, hocs_1.withText)(exports.InteractiveEllipse, (0, interaction_1.withInteractiveText)(multiline_text_1.MultilineText, function (props) { return props; }, function (props) { return (0, utils_1.textEditorStyles)(props.textStyle); }), function (props) { return props; });
 
-},{"../hocs":126,"../utils":129,"./multiline-text":116,"@carnelian-diagram/core/jsx-runtime":17,"@carnelian-diagram/interaction":87}],113:[function(require,module,exports){
+},{"../hocs":126,"../utils":129,"./multiline-text":116,"@carnelian-diagram/core/jsx-runtime":17,"@carnelian-diagram/interactivity":87}],113:[function(require,module,exports){
 "use strict";
 var __assign = (this && this.__assign) || function () {
     __assign = Object.assign || function(t) {
@@ -14788,8 +14788,8 @@ var __rest = (this && this.__rest) || function (s, e) {
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.InteractiveHexagonWithText = exports.InteractiveHexagon = exports.Hexagon = void 0;
 var jsx_runtime_1 = require("@carnelian-diagram/core/jsx-runtime");
-var interaction_1 = require("@carnelian-diagram/interaction");
-var geometry_1 = require("@carnelian-diagram/interaction/geometry");
+var interaction_1 = require("@carnelian-diagram/interactivity");
+var geometry_1 = require("@carnelian-diagram/interactivity/geometry");
 var hocs_1 = require("../hocs");
 var utils_1 = require("../utils");
 var multiline_text_1 = require("./multiline-text");
@@ -14842,7 +14842,7 @@ exports.InteractiveHexagon = (0, interaction_1.withInteractiveRect)((0, interact
 });
 exports.InteractiveHexagonWithText = (0, hocs_1.withText)(exports.InteractiveHexagon, (0, interaction_1.withInteractiveText)(multiline_text_1.MultilineText, function (props) { return props; }, function (props) { return (0, utils_1.textEditorStyles)(props.textStyle); }), function (props) { return props; });
 
-},{"../hocs":126,"../utils":129,"./multiline-text":116,"@carnelian-diagram/core/jsx-runtime":17,"@carnelian-diagram/interaction":87,"@carnelian-diagram/interaction/geometry":69}],114:[function(require,module,exports){
+},{"../hocs":126,"../utils":129,"./multiline-text":116,"@carnelian-diagram/core/jsx-runtime":17,"@carnelian-diagram/interactivity":87,"@carnelian-diagram/interactivity/geometry":69}],114:[function(require,module,exports){
 "use strict";
 var __createBinding = (this && this.__createBinding) || (Object.create ? (function(o, m, k, k2) {
     if (k2 === undefined) k2 = k;
@@ -14904,7 +14904,7 @@ var __rest = (this && this.__rest) || function (s, e) {
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.InteractiveLine = exports.Line = void 0;
 var jsx_runtime_1 = require("@carnelian-diagram/core/jsx-runtime");
-var interaction_1 = require("@carnelian-diagram/interaction");
+var interaction_1 = require("@carnelian-diagram/interactivity");
 var Line = function (props) {
     var onChange = props.onChange, rest = __rest(props, ["onChange"]);
     return ((0, jsx_runtime_1.jsx)("line", __assign({}, rest)));
@@ -14912,7 +14912,7 @@ var Line = function (props) {
 exports.Line = Line;
 exports.InteractiveLine = (0, interaction_1.withInteractiveLine)(exports.Line);
 
-},{"@carnelian-diagram/core/jsx-runtime":17,"@carnelian-diagram/interaction":87}],116:[function(require,module,exports){
+},{"@carnelian-diagram/core/jsx-runtime":17,"@carnelian-diagram/interactivity":87}],116:[function(require,module,exports){
 "use strict";
 var __assign = (this && this.__assign) || function () {
     __assign = Object.assign || function(t) {
@@ -14939,7 +14939,7 @@ var __rest = (this && this.__rest) || function (s, e) {
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.InteractiveMultilineText = exports.MultilineText = void 0;
 var jsx_runtime_1 = require("@carnelian-diagram/core/jsx-runtime");
-var interaction_1 = require("@carnelian-diagram/interaction");
+var interaction_1 = require("@carnelian-diagram/interactivity");
 var __1 = require("..");
 var utils_1 = require("../utils");
 var MultilineText = function (props) {
@@ -14991,7 +14991,7 @@ exports.InteractiveMultilineText = (0, interaction_1.withInteractiveText)((0, in
     deleteOnEmpty: true
 });
 
-},{"..":128,"../utils":129,"@carnelian-diagram/core/jsx-runtime":17,"@carnelian-diagram/interaction":87}],117:[function(require,module,exports){
+},{"..":128,"../utils":129,"@carnelian-diagram/core/jsx-runtime":17,"@carnelian-diagram/interactivity":87}],117:[function(require,module,exports){
 "use strict";
 var __assign = (this && this.__assign) || function () {
     __assign = Object.assign || function(t) {
@@ -15018,8 +15018,8 @@ var __rest = (this && this.__rest) || function (s, e) {
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.InteractiveParallelogramWithText = exports.InteractiveParallelogram = exports.Parallelogram = void 0;
 var jsx_runtime_1 = require("@carnelian-diagram/core/jsx-runtime");
-var interaction_1 = require("@carnelian-diagram/interaction");
-var geometry_1 = require("@carnelian-diagram/interaction/geometry");
+var interaction_1 = require("@carnelian-diagram/interactivity");
+var geometry_1 = require("@carnelian-diagram/interactivity/geometry");
 var hocs_1 = require("../hocs");
 var utils_1 = require("../utils");
 var multiline_text_1 = require("./multiline-text");
@@ -15074,7 +15074,7 @@ exports.InteractiveParallelogram = (0, interaction_1.withInteractiveRect)((0, in
 });
 exports.InteractiveParallelogramWithText = (0, hocs_1.withText)(exports.InteractiveParallelogram, (0, interaction_1.withInteractiveText)(multiline_text_1.MultilineText, function (props) { return props; }, function (props) { return (0, utils_1.textEditorStyles)(props.textStyle); }), function (props) { return props; });
 
-},{"../hocs":126,"../utils":129,"./multiline-text":116,"@carnelian-diagram/core/jsx-runtime":17,"@carnelian-diagram/interaction":87,"@carnelian-diagram/interaction/geometry":69}],118:[function(require,module,exports){
+},{"../hocs":126,"../utils":129,"./multiline-text":116,"@carnelian-diagram/core/jsx-runtime":17,"@carnelian-diagram/interactivity":87,"@carnelian-diagram/interactivity/geometry":69}],118:[function(require,module,exports){
 "use strict";
 var __assign = (this && this.__assign) || function () {
     __assign = Object.assign || function(t) {
@@ -15101,8 +15101,8 @@ var __rest = (this && this.__rest) || function (s, e) {
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.InteractivePie = exports.Pie = void 0;
 var jsx_runtime_1 = require("@carnelian-diagram/core/jsx-runtime");
-var interaction_1 = require("@carnelian-diagram/interaction");
-var geometry_1 = require("@carnelian-diagram/interaction/geometry");
+var interaction_1 = require("@carnelian-diagram/interactivity");
+var geometry_1 = require("@carnelian-diagram/interactivity/geometry");
 function getCirclePoint(x, y, radius, angle) {
     return {
         x: x + radius * Math.cos((0, geometry_1.degToRad)(angle)),
@@ -15152,7 +15152,7 @@ var Pie = function (props) {
 exports.Pie = Pie;
 exports.InteractivePie = (0, interaction_1.withInteractiveCircle)((0, interaction_1.withKnobs)(exports.Pie, knobController(0), knobController(1)), { collider: PieCollider });
 
-},{"@carnelian-diagram/core/jsx-runtime":17,"@carnelian-diagram/interaction":87,"@carnelian-diagram/interaction/geometry":69}],119:[function(require,module,exports){
+},{"@carnelian-diagram/core/jsx-runtime":17,"@carnelian-diagram/interactivity":87,"@carnelian-diagram/interactivity/geometry":69}],119:[function(require,module,exports){
 "use strict";
 var __assign = (this && this.__assign) || function () {
     __assign = Object.assign || function(t) {
@@ -15179,7 +15179,7 @@ var __rest = (this && this.__rest) || function (s, e) {
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.InteractivePolygon = exports.Polygon = void 0;
 var jsx_runtime_1 = require("@carnelian-diagram/core/jsx-runtime");
-var interaction_1 = require("@carnelian-diagram/interaction");
+var interaction_1 = require("@carnelian-diagram/interactivity");
 var Polygon = function (props) {
     var points = props.points, onChange = props.onChange, rest = __rest(props, ["points", "onChange"]);
     var polygonProps = __assign(__assign({}, rest), { style: __assign(__assign({}, rest.style), { fillRule: "evenodd" }) });
@@ -15188,7 +15188,7 @@ var Polygon = function (props) {
 exports.Polygon = Polygon;
 exports.InteractivePolygon = (0, interaction_1.withInteractivePolyline)(exports.Polygon, true, 3, { collider: function (props) { return (0, interaction_1.PolygonCollider)(props.points); } });
 
-},{"@carnelian-diagram/core/jsx-runtime":17,"@carnelian-diagram/interaction":87}],120:[function(require,module,exports){
+},{"@carnelian-diagram/core/jsx-runtime":17,"@carnelian-diagram/interactivity":87}],120:[function(require,module,exports){
 "use strict";
 var __assign = (this && this.__assign) || function () {
     __assign = Object.assign || function(t) {
@@ -15215,7 +15215,7 @@ var __rest = (this && this.__rest) || function (s, e) {
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.InteractivePolyline = exports.Polyline = void 0;
 var jsx_runtime_1 = require("@carnelian-diagram/core/jsx-runtime");
-var interaction_1 = require("@carnelian-diagram/interaction");
+var interaction_1 = require("@carnelian-diagram/interactivity");
 var Polyline = function (props) {
     var points = props.points, onChange = props.onChange, rest = __rest(props, ["points", "onChange"]);
     var polylineProps = __assign(__assign({}, rest), { style: __assign(__assign({}, rest.style), { fill: "none" }) });
@@ -15224,7 +15224,7 @@ var Polyline = function (props) {
 exports.Polyline = Polyline;
 exports.InteractivePolyline = (0, interaction_1.withInteractivePolyline)(exports.Polyline, false, 2);
 
-},{"@carnelian-diagram/core/jsx-runtime":17,"@carnelian-diagram/interaction":87}],121:[function(require,module,exports){
+},{"@carnelian-diagram/core/jsx-runtime":17,"@carnelian-diagram/interactivity":87}],121:[function(require,module,exports){
 "use strict";
 var __assign = (this && this.__assign) || function () {
     __assign = Object.assign || function(t) {
@@ -15251,7 +15251,7 @@ var __rest = (this && this.__rest) || function (s, e) {
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.InteractiveRectWithText = exports.InteractiveRect = exports.Rect = void 0;
 var jsx_runtime_1 = require("@carnelian-diagram/core/jsx-runtime");
-var interaction_1 = require("@carnelian-diagram/interaction");
+var interaction_1 = require("@carnelian-diagram/interactivity");
 var hocs_1 = require("../hocs");
 var utils_1 = require("../utils");
 var multiline_text_1 = require("./multiline-text");
@@ -15265,7 +15265,7 @@ exports.InteractiveRect = (0, interaction_1.withInteractiveRect)(exports.Rect, {
 });
 exports.InteractiveRectWithText = (0, hocs_1.withText)(exports.InteractiveRect, (0, interaction_1.withInteractiveText)(multiline_text_1.MultilineText, function (props) { return props; }, function (props) { return (0, utils_1.textEditorStyles)(props.textStyle); }), function (props) { return props; });
 
-},{"../hocs":126,"../utils":129,"./multiline-text":116,"@carnelian-diagram/core/jsx-runtime":17,"@carnelian-diagram/interaction":87}],122:[function(require,module,exports){
+},{"../hocs":126,"../utils":129,"./multiline-text":116,"@carnelian-diagram/core/jsx-runtime":17,"@carnelian-diagram/interactivity":87}],122:[function(require,module,exports){
 "use strict";
 var __assign = (this && this.__assign) || function () {
     __assign = Object.assign || function(t) {
@@ -15292,8 +15292,8 @@ var __rest = (this && this.__rest) || function (s, e) {
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.InteractiveRoundedRectWithText = exports.InteractiveRoundedRect = exports.RoundedRect = void 0;
 var jsx_runtime_1 = require("@carnelian-diagram/core/jsx-runtime");
-var interaction_1 = require("@carnelian-diagram/interaction");
-var geometry_1 = require("@carnelian-diagram/interaction/geometry");
+var interaction_1 = require("@carnelian-diagram/interactivity");
+var geometry_1 = require("@carnelian-diagram/interactivity/geometry");
 var hocs_1 = require("../hocs");
 var utils_1 = require("../utils");
 var multiline_text_1 = require("./multiline-text");
@@ -15333,7 +15333,7 @@ exports.InteractiveRoundedRect = (0, interaction_1.withInteractiveRect)((0, inte
 });
 exports.InteractiveRoundedRectWithText = (0, hocs_1.withText)(exports.InteractiveRoundedRect, (0, interaction_1.withInteractiveText)(multiline_text_1.MultilineText, function (props) { return props; }, function (props) { return (0, utils_1.textEditorStyles)(props.textStyle); }), function (props) { return props; });
 
-},{"../hocs":126,"../utils":129,"./multiline-text":116,"@carnelian-diagram/core/jsx-runtime":17,"@carnelian-diagram/interaction":87,"@carnelian-diagram/interaction/geometry":69}],123:[function(require,module,exports){
+},{"../hocs":126,"../utils":129,"./multiline-text":116,"@carnelian-diagram/core/jsx-runtime":17,"@carnelian-diagram/interactivity":87,"@carnelian-diagram/interactivity/geometry":69}],123:[function(require,module,exports){
 "use strict";
 var __assign = (this && this.__assign) || function () {
     __assign = Object.assign || function(t) {
@@ -15361,7 +15361,7 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.InteractiveSquareWithText = exports.InteractiveSquare = exports.Square = void 0;
 var jsx_runtime_1 = require("@carnelian-diagram/core/jsx-runtime");
 ;
-var interaction_1 = require("@carnelian-diagram/interaction");
+var interaction_1 = require("@carnelian-diagram/interactivity");
 var hocs_1 = require("../hocs");
 var utils_1 = require("../utils");
 var multiline_text_1 = require("./multiline-text");
@@ -15382,7 +15382,7 @@ exports.InteractiveSquareWithText = (0, hocs_1.withText)(exports.InteractiveSqua
     textStyle: props.textStyle
 }); });
 
-},{"../hocs":126,"../utils":129,"./multiline-text":116,"@carnelian-diagram/core/jsx-runtime":17,"@carnelian-diagram/interaction":87}],124:[function(require,module,exports){
+},{"../hocs":126,"../utils":129,"./multiline-text":116,"@carnelian-diagram/core/jsx-runtime":17,"@carnelian-diagram/interactivity":87}],124:[function(require,module,exports){
 "use strict";
 var __assign = (this && this.__assign) || function () {
     __assign = Object.assign || function(t) {
@@ -15409,7 +15409,7 @@ var __rest = (this && this.__rest) || function (s, e) {
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.InteractiveText = exports.Text = void 0;
 var jsx_runtime_1 = require("@carnelian-diagram/core/jsx-runtime");
-var interaction_1 = require("@carnelian-diagram/interaction");
+var interaction_1 = require("@carnelian-diagram/interactivity");
 var __1 = require("..");
 var utils_1 = require("../utils");
 var Text = function (props) {
@@ -15457,7 +15457,7 @@ exports.InteractiveText = (0, interaction_1.withInteractiveText)((0, interaction
     deleteOnEmpty: true
 });
 
-},{"..":128,"../utils":129,"@carnelian-diagram/core/jsx-runtime":17,"@carnelian-diagram/interaction":87}],125:[function(require,module,exports){
+},{"..":128,"../utils":129,"@carnelian-diagram/core/jsx-runtime":17,"@carnelian-diagram/interactivity":87}],125:[function(require,module,exports){
 "use strict";
 var __assign = (this && this.__assign) || function () {
     __assign = Object.assign || function(t) {
@@ -15484,8 +15484,8 @@ var __rest = (this && this.__rest) || function (s, e) {
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.InteractiveTrapezoidWithText = exports.InteractiveTrapezoid = exports.Trapezoid = void 0;
 var jsx_runtime_1 = require("@carnelian-diagram/core/jsx-runtime");
-var interaction_1 = require("@carnelian-diagram/interaction");
-var geometry_1 = require("@carnelian-diagram/interaction/geometry");
+var interaction_1 = require("@carnelian-diagram/interactivity");
+var geometry_1 = require("@carnelian-diagram/interactivity/geometry");
 var hocs_1 = require("../hocs");
 var utils_1 = require("../utils");
 var multiline_text_1 = require("./multiline-text");
@@ -15535,7 +15535,7 @@ exports.InteractiveTrapezoid = (0, interaction_1.withInteractiveRect)((0, intera
 });
 exports.InteractiveTrapezoidWithText = (0, hocs_1.withText)(exports.InteractiveTrapezoid, (0, interaction_1.withInteractiveText)(multiline_text_1.MultilineText, function (props) { return props; }, function (props) { return (0, utils_1.textEditorStyles)(props.textStyle); }), function (props) { return props; });
 
-},{"../hocs":126,"../utils":129,"./multiline-text":116,"@carnelian-diagram/core/jsx-runtime":17,"@carnelian-diagram/interaction":87,"@carnelian-diagram/interaction/geometry":69}],126:[function(require,module,exports){
+},{"../hocs":126,"../utils":129,"./multiline-text":116,"@carnelian-diagram/core/jsx-runtime":17,"@carnelian-diagram/interactivity":87,"@carnelian-diagram/interactivity/geometry":69}],126:[function(require,module,exports){
 "use strict";
 var __createBinding = (this && this.__createBinding) || (Object.create ? (function(o, m, k, k2) {
     if (k2 === undefined) k2 = k;

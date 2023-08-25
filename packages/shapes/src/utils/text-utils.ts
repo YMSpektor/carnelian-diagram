@@ -1,5 +1,5 @@
-import { InplaceEditorStyles } from "@carnelian-diagram/interaction";
-import { Rect } from "@carnelian-diagram/interaction/geometry";
+import { InplaceEditorStyles } from "@carnelian-diagram/interactivity";
+import { Rect } from "@carnelian-diagram/interactivity/geometry";
 import { DEFAULT_FONT_FAMILY, DEFAULT_FONT_SIZE, TextStyle } from "..";
 
 export interface WrapTextResult {

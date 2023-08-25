@@ -1,5 +1,5 @@
 import { Diagram } from "@carnelian-diagram/core";
-import { InteractionController, isClipboardService, isDeletionService } from "@carnelian-diagram/interaction";
+import { InteractionController, isClipboardService, isDeletionService } from "@carnelian-diagram/interactivity";
 import { Divider, Menu, MenuItem, MenuProps } from "@mui/material";
 
 export interface DiagramContextMenuProps {

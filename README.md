@@ -19,11 +19,11 @@ This package is a core of **Carnelian Diagram** library and contains base functi
 npm install @carnelian-diagram/core
 ```
 
-### @carnelian-diagram/interaction
+### @carnelian-diagram/interactivity
 This package contains tools to make a diagram and its elements respond to a user's input.
 
 ```sh
-npm install @carnelian-diagram/interaction
+npm install @carnelian-diagram/interactivity
 ```
 
 ### @carnelian-diagram/shapes
@@ -39,7 +39,7 @@ npm install @carnelian-diagram/shapes
 
 ```typescript
 import { Diagram, DiagramDOM, DiagramRoot } from "@carnelian-diagram/core";
-import { InteractionController, withInteraction } from "@carnelian-diagram/interaction";
+import { InteractionController, withInteraction } from "@carnelian-diagram/interactivity";
 import { 
     InteractiveRoundedRect as RoundedRect,
     InteractiveCircle as Circle 
@@ -84,7 +84,7 @@ Here is the example for a simple interactive rectangle:
 /** @jsxImportSource @carnelian-diagram/core */
 
 import { DiagramElement } from "@carnelian-diagram/core";
-import { withInteractiveRect } from "@carnelian-diagram/interaction";
+import { withInteractiveRect } from "@carnelian-diagram/interactivity";
 
 export interface RectProps {
     x: number;

@@ -1,5 +1,5 @@
 import { DiagramElement } from "@carnelian-diagram/core";
-import { CircleColliderFactory, withInteractiveRotation, withInteractiveCircle, ACT_EDIT_TEXT } from "@carnelian-diagram/interaction";
+import { CircleColliderFactory, withInteractiveRotation, withInteractiveCircle, ACT_EDIT_TEXT } from "@carnelian-diagram/interactivity";
 import { CircleBaseProps, MultilineTextStyle } from "..";
 import { InteractiveMultilineTextComponent } from "../basic/multiline-text";
 import { circleRotationController, circleRotation } from "../utils";

@@ -1,5 +1,5 @@
 import { Diagram, DiagramDOM, DiagramRoot } from "@carnelian-diagram/core";
-import { InteractionController, withInteraction } from "@carnelian-diagram/interaction";
+import { InteractionController, withInteraction } from "@carnelian-diagram/interactivity";
 import { 
     InteractiveRoundedRect as RoundedRect,
     InteractiveCircle as Circle 

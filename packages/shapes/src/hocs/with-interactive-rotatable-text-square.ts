@@ -1,5 +1,5 @@
 import { DiagramElement } from "@carnelian-diagram/core";
-import { SquareColliderFactory, withInteractiveRotation, withInteractiveSquare, ACT_EDIT_TEXT } from "@carnelian-diagram/interaction";
+import { SquareColliderFactory, withInteractiveRotation, withInteractiveSquare, ACT_EDIT_TEXT } from "@carnelian-diagram/interactivity";
 import { MultilineTextStyle, SquareBaseProps } from "..";
 import { InteractiveMultilineTextComponent } from "../basic/multiline-text";
 import { squareRotationController, squareRotation } from "../utils";

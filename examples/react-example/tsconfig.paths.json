@@ -3,8 +3,8 @@
         "paths": {
             "@carnelian-diagram/core": ["../../packages/core/src"],
             "@carnelian-diagram/core/*": ["../../packages/core/src/*"],
-            "@carnelian-diagram/interaction": ["../../packages/interaction/src"],
-            "@carnelian-diagram/interaction/*": ["../../packages/interaction/src/*"],
+            "@carnelian-diagram/interactivity": ["../../packages/interactivity/src"],
+            "@carnelian-diagram/interactivity/*": ["../../packages/interactivity/src/*"],
             "@carnelian-diagram/shapes": ["../../packages/shapes/src"],
             "@carnelian-diagram/shapes/*": ["../../packages/shapes/src/*"]
           },

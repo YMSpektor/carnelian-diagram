@@ -1,7 +1,7 @@
 /** @jsxImportSource @carnelian-diagram/core */
 
 import { DiagramElement } from "@carnelian-diagram/core";
-import { EllipseCollider } from "@carnelian-diagram/interaction";
+import { EllipseCollider } from "@carnelian-diagram/interactivity";
 import { RectBaseProps } from "..";
 import { withInteractiveRotatableRect, withInteractiveRotatableTextRect } from "../hocs";
 

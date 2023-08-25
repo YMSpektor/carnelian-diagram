@@ -6,7 +6,7 @@ import ZoomInIcon from '@mui/icons-material/ZoomIn';
 import ZoomOutIcon from '@mui/icons-material/ZoomOut';
 import CircleOutlinedIcon from '@mui/icons-material/CircleOutlined';
 import DeleteForeverIcon from '@mui/icons-material/DeleteForever';
-import { DrawingModeElementFactory, DRAW_ELEMENT_EVENT, InteractionController, isDeletionService, isElementDrawingService, SelectEventArgs, SELECT_EVENT } from "@carnelian-diagram/interaction";
+import { DrawingModeElementFactory, DRAW_ELEMENT_EVENT, InteractionController, isDeletionService, isElementDrawingService, SelectEventArgs, SELECT_EVENT } from "@carnelian-diagram/interactivity";
 import { Diagram, DiagramElementNode } from "@carnelian-diagram/core";
 import {
     InteractiveLine as Line,

@@ -1,8 +1,8 @@
 /** @jsxImportSource @carnelian-diagram/core */
 
 import { DiagramElement } from "@carnelian-diagram/core";
-import { PolygonCollider, KnobController, withKnob } from "@carnelian-diagram/interaction";
-import { clamp } from "@carnelian-diagram/interaction/geometry";
+import { PolygonCollider, KnobController, withKnob } from "@carnelian-diagram/interactivity";
+import { clamp } from "@carnelian-diagram/interactivity/geometry";
 import { RectBaseProps } from "..";
 import { withInteractiveRotatableRect, withInteractiveRotatableTextRect } from "../hocs";
 import { convertPercentage, isPercentage, NumberOrPercentage } from "../utils";

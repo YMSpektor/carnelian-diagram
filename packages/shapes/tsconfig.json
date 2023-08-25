@@ -5,8 +5,8 @@
     "paths": {
       "@carnelian-diagram/core": ["../core/src"],
       "@carnelian-diagram/core/*": ["../core/src/*"],
-      "@carnelian-diagram/interaction": ["../interaction/src"],
-      "@carnelian-diagram/interaction/*": ["../interaction/src/*"]
+      "@carnelian-diagram/interactivity": ["../interactivity/src"],
+      "@carnelian-diagram/interactivity/*": ["../interactivity/src/*"]
     }
   },
   "extends": "../../tsconfig",

@@ -1,5 +1,5 @@
-import { RotationController } from "@carnelian-diagram/interaction";
-import { polygonBounds } from "@carnelian-diagram/interaction/geometry";
+import { RotationController } from "@carnelian-diagram/interactivity";
+import { polygonBounds } from "@carnelian-diagram/interactivity/geometry";
 import { CircleBaseProps, PolygonBaseProps, RectBaseProps, RotatableElementProps, SquareBaseProps, TextBaseProps, TextStyle } from "..";
 import { DiagramElementRotation } from "../hocs";
 

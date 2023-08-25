@@ -1,5 +1,5 @@
 import { Diagram } from "@carnelian-diagram/core";
-import { InteractionController, isClipboardService, isGridSnappingService, isPaperService } from "@carnelian-diagram/interaction";
+import { InteractionController, isClipboardService, isGridSnappingService, isPaperService } from "@carnelian-diagram/interactivity";
 
 export const diagram = new Diagram();
 export const controller = new InteractionController(diagram, (services) => {

@@ -1,8 +1,8 @@
 /** @jsxImportSource @carnelian-diagram/core */
 
 import { DiagramElement } from "@carnelian-diagram/core";
-import { rotateTransform, useTransform } from "@carnelian-diagram/interaction";
-import { Point, transformPoint } from "@carnelian-diagram/interaction/geometry";
+import { rotateTransform, useTransform } from "@carnelian-diagram/interactivity";
+import { Point, transformPoint } from "@carnelian-diagram/interactivity/geometry";
 import { RotatableElementProps } from "..";
 
 export interface DiagramElementRotation<T extends object> {
