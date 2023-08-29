@@ -26,7 +26,7 @@ const knobController: KnobController<CubeProps> = {
             y: props.y + offsetY
         }
     },
-    setPosition(props, {position}, hitArea) {
+    setPosition(props, {position}) {
         let offsetX: NumberOrPercentage = position.x - props.x;
         offsetX = clamp(offsetX, 0, props.width);
         offsetX = isPercentage(props.offsetX) 

@@ -6,3 +6,4 @@ export * from "./step";
 export * from "./arrow";
 export * from "./double-arrow";
 export * from "./cube";
+export * from "./cylinder";
