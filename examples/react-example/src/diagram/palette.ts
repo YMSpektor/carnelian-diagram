@@ -19,7 +19,8 @@ import {
     InteractiveStepWithText as Step,
     InteractiveCloudWithText as Cloud,
     InteractiveArrow as Arrow,
-    InteractiveDoubleArrow as DoubleArrow
+    InteractiveDoubleArrow as DoubleArrow,
+    InteractiveCubeWithText as Cube
 } from "@carnelian-diagram/shapes/advanced";
 import {
     InteractivePacman as Pacman
@@ -285,6 +286,19 @@ addToPalette({
     elementProps: {x: 20, y: 20, width: 300, height: 200, arrowWidth: "25%", arrowHeight: "50%"},
     viewBox: "0 0 340 240",
     title: "Double Arrow",
+    factory: (point, props) => ({
+        ...props,
+        x: point.x - props.width / 2,
+        y: point.y - props.height / 2
+    }),
+});
+
+addToPalette({
+    category: "advanced",
+    elementType: Cube,
+    elementProps: {x: 20, y: 20, width: 300, height: 300, offsetX: "20%", offsetY: "20%", textStyle: defaultTextStyles},
+    viewBox: "0 0 340 340",
+    title: "Cube",
     factory: (point, props) => ({
         ...props,
         x: point.x - props.width / 2,
