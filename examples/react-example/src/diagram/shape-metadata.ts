@@ -8,7 +8,8 @@ import {
 } from "@carnelian-diagram/shapes/basic";
 import {
     InteractiveArrow as Arrow,
-    InteractiveDoubleArrow as DoubleArrow
+    InteractiveDoubleArrow as DoubleArrow,
+    InteractiveImage as Image
 } from "@carnelian-diagram/shapes/advanced";
 import {
     InteractivePacman as Pacman
@@ -58,6 +59,13 @@ const TEXT_FIGURE_METADATA: ShapeMetadata = {
     hasLineCaps: false
 };
 
+const IMAGE_FIGURE_METADATA: ShapeMetadata = {
+    hasFill: false,
+    hasStroke: false,
+    hasText: false,
+    hasLineCaps: false
+};
+
 addShapeMetadata(Line, LINE_FIGURE_METADATA);
 addShapeMetadata(Polyline, LINE_FIGURE_METADATA);
 
@@ -68,3 +76,5 @@ addShapeMetadata(DoubleArrow, CLOSED_FIGURE_NO_TEXT_METADATA);
 addShapeMetadata(Pacman, CLOSED_FIGURE_NO_TEXT_METADATA);
 
 addShapeMetadata(Text, TEXT_FIGURE_METADATA);
+
+addShapeMetadata(Image, IMAGE_FIGURE_METADATA);

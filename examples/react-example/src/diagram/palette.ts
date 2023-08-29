@@ -21,7 +21,8 @@ import {
     InteractiveArrow as Arrow,
     InteractiveDoubleArrow as DoubleArrow,
     InteractiveCubeWithText as Cube,
-    InteractiveCylinderWithText as Cylinder
+    InteractiveCylinderWithText as Cylinder,
+    InteractiveImage as Image
 } from "@carnelian-diagram/shapes/advanced";
 import {
     InteractivePacman as Pacman
@@ -313,6 +314,19 @@ addToPalette({
     elementProps: {x: 20, y: 20, width: 200, height: 300, ry: "20%", textStyle: defaultTextStyles},
     viewBox: "0 0 240 340",
     title: "Cylinder",
+    factory: (point, props) => ({
+        ...props,
+        x: point.x - props.width / 2,
+        y: point.y - props.height / 2
+    }),
+});
+
+addToPalette({
+    category: "advanced",
+    elementType: Image,
+    elementProps: {x: 20, y: 20, width: 300, height: 300, href: "carnelian-diagram/image_thumb.png"},
+    viewBox: "0 0 340 340",
+    title: "Image",
     factory: (point, props) => ({
         ...props,
         x: point.x - props.width / 2,

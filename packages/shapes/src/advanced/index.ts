@@ -7,3 +7,4 @@ export * from "./arrow";
 export * from "./double-arrow";
 export * from "./cube";
 export * from "./cylinder";
+export * from "./image";
