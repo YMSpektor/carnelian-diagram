@@ -20,6 +20,7 @@ export interface ShapeMetadata {
     hasStroke?: boolean;
     hasText?: boolean;
     hasLineCaps?: boolean;
+    hasImage?: boolean;
 }
 
 const shapeMetadataRegistry = new Map<DiagramElement<any>, ShapeMetadata>();
@@ -34,7 +35,8 @@ export function getShapeMetadata(type: DiagramElement<any>): ShapeMetadata {
         hasFill: metadata?.hasFill !== undefined ? metadata.hasFill : true,
         hasStroke: metadata?.hasStroke !== undefined ? metadata.hasStroke : true,
         hasText: metadata?.hasText !== undefined ? metadata.hasText : true,
-        hasLineCaps: metadata?.hasLineCaps
+        hasLineCaps: metadata?.hasLineCaps,
+        hasImage: metadata?.hasImage
     }
 }
 
@@ -63,7 +65,8 @@ const IMAGE_FIGURE_METADATA: ShapeMetadata = {
     hasFill: false,
     hasStroke: false,
     hasText: false,
-    hasLineCaps: false
+    hasLineCaps: false,
+    hasImage: true
 };
 
 addShapeMetadata(Line, LINE_FIGURE_METADATA);

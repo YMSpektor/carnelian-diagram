@@ -28,7 +28,11 @@ export interface ElementStyle {
     fontItalic?: boolean;
     fontUnderline?: boolean;
     textAlign?: string;
-    textVAlign?: string; 
+    textVAlign?: string;
+    hasImage?: boolean;
+    imageUrl?: string;
+    imageAlign?: string;
+    imageMeetOrSlice?: string;
 }
 
 export interface DiagramPropertiesPanelProps {
@@ -37,7 +41,7 @@ export interface DiagramPropertiesPanelProps {
     unitMultiplier: number;
     elementStyle: ElementStyle | null;
     elementMetadata: ShapeMetadata | null;
-    onElementChange: (elementStyle: ElementStyle) => void;
+    onElementChange: (elementStyle: ElementStyle, propName: keyof ElementStyle) => void;
     onPaperChange: (paper: Paper) => void;
 }
 
@@ -303,14 +307,14 @@ const ElementsPropertiesTab = (props: DiagramPropertiesPanelProps) => {
             ...props.elementStyle,
             hasFill: value,
             fillColor: props.elementStyle?.fillColor !== "none" ? props.elementStyle?.fillColor : "#ffffff"
-        });
+        }, "fillColor");
     }
 
     function updateFillColor(value: string) {
         props.onElementChange({
             ...props.elementStyle,
             fillColor: value
-        });
+        }, "fillColor");
     }
 
     function updateHasStroke(value: boolean) {
@@ -318,21 +322,21 @@ const ElementsPropertiesTab = (props: DiagramPropertiesPanelProps) => {
             ...props.elementStyle,
             hasStroke: value,
             strokeColor: props.elementStyle?.strokeColor !== "none" ? props.elementStyle?.strokeColor : "#000000"
-        });
+        }, "strokeColor");
     }
 
     function updateStrokeColor(value: string) {
         props.onElementChange({
             ...props.elementStyle,
             strokeColor: value
-        });
+        }, "strokeColor");
     }
 
     function updateStrokeWidth(value: string) {
         props.onElementChange({
             ...props.elementStyle,
             strokeWidth: value
-        });
+        }, "strokeWidth");
     }
 
     function updateStrokeStyle(value: string) {
@@ -340,7 +344,7 @@ const ElementsPropertiesTab = (props: DiagramPropertiesPanelProps) => {
         props.onElementChange({
             ...props.elementStyle,
             strokeDasharray: strokeStyle?.dasharray
-        });
+        }, "strokeDasharray");
     }
 
     function updateStartLineCap(value: string) {
@@ -348,7 +352,7 @@ const ElementsPropertiesTab = (props: DiagramPropertiesPanelProps) => {
         props.onElementChange({
             ...props.elementStyle,
             startLineCap: lineCap?.value
-        });
+        }, "startLineCap");
     }
 
     function updateEndLineCap(value: string) {
@@ -356,7 +360,7 @@ const ElementsPropertiesTab = (props: DiagramPropertiesPanelProps) => {
         props.onElementChange({
             ...props.elementStyle,
             endLineCap: lineCap?.value
-        });
+        }, "endLineCap");
     }
 
     function updateHasText(value: boolean) {
@@ -364,63 +368,78 @@ const ElementsPropertiesTab = (props: DiagramPropertiesPanelProps) => {
             ...props.elementStyle,
             hasText: value,
             strokeColor: props.elementStyle?.textColor !== "none" ? props.elementStyle?.textColor : "#000000"
-        });
+        }, "textColor");
     }
 
     function updateFontFamily(value: string) {
         props.onElementChange({
             ...props.elementStyle,
             fontFamily: value === DEFAULT_FONT_FAMILY ? undefined : value
-        });
+        }, "fontFamily");
     }
 
     function updateFontBold(value: boolean) {
         props.onElementChange({
             ...props.elementStyle,
             fontBold: value
-        });
+        }, "fontBold");
     }
 
     function updateFontItalic(value: boolean) {
         props.onElementChange({
             ...props.elementStyle,
             fontItalic: value
-        });
+        }, "fontItalic");
     }
 
     function updateFontUnderline(value: boolean) {
         props.onElementChange({
             ...props.elementStyle,
             fontUnderline: value
-        });
+        }, "fontUnderline");
     }
 
     function updateTextColor(value: string) {
         props.onElementChange({
             ...props.elementStyle,
             textColor: value
-        });
+        }, "textColor");
     }
 
     function updateFontSize(value: string) {
         props.onElementChange({
             ...props.elementStyle,
             fontSize: value
-        });
+        }, "fontSize");
     }
 
     function updateTextAligh(value: string) {
         props.onElementChange({
             ...props.elementStyle,
             textAlign: value
-        });
+        }, "textAlign");
     }
 
     function updateTextVAligh(value: string) {
         props.onElementChange({
             ...props.elementStyle,
             textVAlign: value
-        });
+        }, "textVAlign");
+    }
+
+    function updateHasImage(value: boolean) {
+        props.onElementChange({
+            ...props.elementStyle,
+            hasImage: value,
+            imageUrl: props.elementStyle?.imageUrl ? props.elementStyle?.imageUrl : ""
+        }, "imageUrl");
+    }
+
+    function updateImageUrl(value: string) {
+        props.onElementChange({
+            ...props.elementStyle,
+            imageUrl: value
+        }, "imageUrl");
     }
 
     return (
@@ -574,6 +593,21 @@ const ElementsPropertiesTab = (props: DiagramPropertiesPanelProps) => {
                             disabled={!props.elementStyle.hasText}
                             value={props.elementStyle.textColor}
                             onChange={updateTextColor}
+                        />
+                    </AccordionDetails>
+                </Accordion>}
+                {props.elementMetadata?.hasImage && <Accordion disableGutters={true}  defaultExpanded={true}>
+                    <AccordionSummary expandIcon={<ExpandMoreIcon />}>
+                            <FormControlLabel onClick={e => e.stopPropagation()} control={<Checkbox checked={props.elementStyle.hasImage} onChange={(e, checked) => updateHasImage(checked)} />} label="Image" />
+                        </AccordionSummary>
+                    <AccordionDetails>
+                        <TextField 
+                            fullWidth variant="outlined" size="small" margin="dense"
+                            label="Image URL"
+                            disabled={!props.elementStyle.hasImage}
+                            value={props.elementStyle.imageUrl}
+                            onChange={(e) => updateImageUrl(e.target.value)}
+                            sx={{backgroundColor: "background.default"}}
                         />
                     </AccordionDetails>
                 </Accordion>}
