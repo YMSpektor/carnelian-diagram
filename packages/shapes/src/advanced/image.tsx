@@ -1,15 +1,10 @@
 /** @jsxImportSource @carnelian-diagram/core */
 
 import { DiagramElement } from "@carnelian-diagram/core";
-import { RectBaseProps } from "..";
+import { ImageBaseProps } from "..";
 import { withInteractiveRotatableRect } from "../hocs";
 
-export interface ImageProps extends RectBaseProps {
-    href: string;
-    preserveAspectRatio?: string;
-    crossorigin?: string;
-    decoding?: "sync" | "async" | "auto";
-}
+export interface ImageProps extends ImageBaseProps {}
 
 export const Image: DiagramElement<ImageProps> = function(props) {
     const { onChange, href, ...rest } = props;

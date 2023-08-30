@@ -78,6 +78,13 @@ export interface RawTextProps {
     text: string;
 }
 
+export interface RawImageProps extends RawRectProps {
+    href: string;
+    preserveAspectRatio?: string;
+    crossorigin?: string;
+    decoding?: "sync" | "async" | "auto";
+}
+
 export interface RotatableElementProps {
     rotation?: number;
 }
@@ -89,5 +96,6 @@ export interface RectBaseProps extends RawRectProps, ClosedFigureStyleProps {}
 export interface SquareBaseProps extends RawSquareProps, ClosedFigureStyleProps {}
 export interface CircleBaseProps extends RawCircleProps, ClosedFigureStyleProps {}
 export interface PolygonBaseProps extends RawPolylineProps, ClosedFigureStyleProps {}
+export interface ImageBaseProps extends RawImageProps {}
 
 export interface TextBaseProps<T extends TextStyle> extends RawRectProps, RawTextProps, TextStyleProps<T> {}
