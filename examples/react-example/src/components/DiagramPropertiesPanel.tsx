@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { InteractionController, isGridSnappingService, isPaperService, Paper } from "@carnelian-diagram/interactivity";
 import { allLineCapNames } from "@carnelian-diagram/shapes/line-caps";
-import { Accordion, AccordionDetails, AccordionSummary, Box, Divider, FormControl, FormControlLabel, FormLabel, InputAdornment, InputLabel, MenuItem, Radio, RadioGroup, Select, Tab, Tabs, TextField, Typography } from "@mui/material";
+import { Accordion, AccordionDetails, AccordionSummary, Box, Button, Divider, FormControl, FormControlLabel, FormLabel, InputAdornment, InputLabel, MenuItem, Radio, RadioGroup, Select, Tab, Tabs, TextField, Typography } from "@mui/material";
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
 import TabPanel from "./TabPanel";
 import FormGroup from "@mui/material/FormGroup";
@@ -10,6 +10,7 @@ import { Diagram } from "@carnelian-diagram/core";
 import ColorInput from "./ColorInput";
 import { DEFAULT_FONT_FAMILY } from "@carnelian-diagram/shapes";
 import { ShapeMetadata } from "../diagram/shape-metadata";
+import InputModal from "./InputModal";
 
 export interface ElementStyle {
     hasFill?: boolean;
@@ -308,6 +309,8 @@ const DiagramPropertiesTab = (props: DiagramPropertiesPanelProps) => {
 }
 
 const ElementsPropertiesTab = (props: DiagramPropertiesPanelProps) => {
+    const [imageUrlOpen, setImageUrlOpen] = useState(false);
+
     function getStrokeStyle() {
         return STROKE_STYLES.find(x => x.dasharray === props.elementStyle?.strokeDasharray)?.name || SOLID_STROKE_STYLE;
     }
@@ -472,6 +475,13 @@ const ElementsPropertiesTab = (props: DiagramPropertiesPanelProps) => {
         }, "imageAlign");
     }
 
+    function closeImageUrlModal(result?: string) {
+        if (result) {
+            updateImageUrl(result);
+        }
+        setImageUrlOpen(false);
+    }
+
     return (
         <>
             {props.elementStyle ? <>
@@ -631,14 +641,8 @@ const ElementsPropertiesTab = (props: DiagramPropertiesPanelProps) => {
                             <FormControlLabel onClick={e => e.stopPropagation()} control={<Checkbox checked={props.elementStyle.hasImage} onChange={(e, checked) => updateHasImage(checked)} />} label="Image" />
                         </AccordionSummary>
                     <AccordionDetails>
-                        <TextField 
-                            fullWidth variant="outlined" size="small" margin="dense"
-                            label="Image URL"
-                            disabled={!props.elementStyle.hasImage}
-                            value={props.elementStyle.imageUrl}
-                            onChange={(e) => updateImageUrl(e.target.value)}
-                            sx={{backgroundColor: "background.default"}}
-                        />
+                        <Button variant="outlined" sx={{width: "100%"}} onClick={() => setImageUrlOpen(true)}>Image URL...</Button>
+                        <InputModal header="Image URL" label="Please enter the image URL" initialValue={props.elementStyle.imageUrl} open={imageUrlOpen} onClose={closeImageUrlModal} />
                         <FormControl fullWidth variant="outlined" size="small" margin="dense" disabled={!props.elementStyle.hasImage} sx={{backgroundColor: "background.default"}}>
                             <InputLabel id="image-align-label">Image alignment</InputLabel>
                             <Select
