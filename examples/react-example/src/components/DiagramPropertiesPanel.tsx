@@ -32,7 +32,6 @@ export interface ElementStyle {
     hasImage?: boolean;
     imageUrl?: string;
     imageAlign?: string;
-    imageMeetOrSlice?: string;
 }
 
 export interface DiagramPropertiesPanelProps {
@@ -86,6 +85,25 @@ const LINE_CAPS: LineCap[] = [{name: NONE_LINE_CAP, value: ""}].concat(allLineCa
     name: x.charAt(0).toUpperCase() + x.slice(1),
     value: x
 })));
+
+interface IMAGE_ALIGN {
+    name: string;
+    value: string;
+}
+
+const DEFAULT_IMAGE_ALIGN = "Center";
+const IMAGE_ALIGNS: IMAGE_ALIGN[] = [
+    {name: "Fit Bounds", value: "none"},
+    {name: "Top Left", value: "xMinYMin"},
+    {name: "Top", value: "xMidYMin"},
+    {name: "Top Right", value: "xMaxYMin"},
+    {name: "Left", value: "xMinYMid"},
+    {name: "Center", value: "xMidYMid"},
+    {name: "Right", value: "xMaxYMid"},
+    {name: "Bottom Left", value: "xMinYMax"},
+    {name: "Bottom", value: "xMidYMax"},
+    {name: "Bottom Right", value: "xMaxYMax"},
+];
 
 const DiagramPropertiesTab = (props: DiagramPropertiesPanelProps) => {
     const paperService = props.controller.getService(isPaperService);
@@ -302,6 +320,10 @@ const ElementsPropertiesTab = (props: DiagramPropertiesPanelProps) => {
         return LINE_CAPS.find(x => x.value === props.elementStyle?.endLineCap)?.name || NONE_LINE_CAP;
     }
 
+    function getImageAlign() {
+        return IMAGE_ALIGNS.find(x => x.value === props.elementStyle?.imageAlign)?.name || DEFAULT_IMAGE_ALIGN;
+    }
+
     function updateHasFill(value: boolean) {
         props.onElementChange({
             ...props.elementStyle,
@@ -440,6 +462,14 @@ const ElementsPropertiesTab = (props: DiagramPropertiesPanelProps) => {
             ...props.elementStyle,
             imageUrl: value
         }, "imageUrl");
+    }
+
+    function updateImageAlign(value: string) {
+        const imageAlign = IMAGE_ALIGNS.find(x => x.name === value);
+        props.onElementChange({
+            ...props.elementStyle,
+            imageAlign: imageAlign?.value
+        }, "imageAlign");
     }
 
     return (
@@ -609,6 +639,19 @@ const ElementsPropertiesTab = (props: DiagramPropertiesPanelProps) => {
                             onChange={(e) => updateImageUrl(e.target.value)}
                             sx={{backgroundColor: "background.default"}}
                         />
+                        <FormControl fullWidth variant="outlined" size="small" margin="dense" disabled={!props.elementStyle.hasImage} sx={{backgroundColor: "background.default"}}>
+                            <InputLabel id="image-align-label">Image alignment</InputLabel>
+                            <Select
+                                labelId="image-align-label"
+                                label="Image alignment"
+                                value={getImageAlign()}
+                                onChange={(e) => updateImageAlign(e.target.value)}
+                            >
+                                {IMAGE_ALIGNS.map(imageAlign => (
+                                    <MenuItem key={imageAlign.name} value={imageAlign.name}>{imageAlign.name}</MenuItem>
+                                ))}
+                            </Select>
+                        </FormControl>
                     </AccordionDetails>
                 </Accordion>}
             </>

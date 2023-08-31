@@ -167,12 +167,6 @@ function getImageAlign(selectedElements: DiagramElementNode[]) {
     return element ? (element.props as RawImageProps).preserveAspectRatio?.split(" ")?.[0] || defaultImageAlign : defaultImageAlign;
 }
 
-function getImageMeetOrSlice(selectedElements: DiagramElementNode[]) {
-    const defaultMeetOrSlice = "meet";
-    const element = selectedElements.find(x => hasImageProps(x));
-    return element ? (element.props as RawImageProps).preserveAspectRatio?.split(" ")?.[1] || defaultMeetOrSlice : defaultMeetOrSlice;
-}
-
 function App(props: AppProps) {
     const { controller, diagram, palette } = props;
     const [scale, setScale] = useState(100);
@@ -224,8 +218,7 @@ function App(props: AppProps) {
                 textVAlign: getTextVAlign(e.selectedElements),
                 hasImage: getHasImage(e.selectedElements),
                 imageUrl: getImageUrl(e.selectedElements),
-                imageAlign: getImageAlign(e.selectedElements),
-                imageMeetOrSlice: getImageMeetOrSlice(e.selectedElements)
+                imageAlign: getImageAlign(e.selectedElements)
             });
             setElementMetadata({
                 hasFill: e.selectedElements.some(x => getShapeMetadata(x.type).hasFill),
@@ -243,6 +236,7 @@ function App(props: AppProps) {
 
     function updateElementStyle(value: ElementStyle, propName: keyof ElementStyle) {
         const LINE_CAP_SIZE = 20;
+        const IMAGE_MEET_OR_SLICE = "meet";
         setElementStyle(value);
         controller.getSelectedElements().forEach(element => {
             let newProps = {...element.props};
@@ -399,6 +393,13 @@ function App(props: AppProps) {
                     newProps = {
                         ...element.props, 
                         href: value.hasImage ? value.imageUrl : undefined
+                    };
+                    break;
+                case "imageAlign":
+                    shouldUpdate = hasImageProps(element);
+                    newProps = {
+                        ...element.props, 
+                        preserveAspectRatio: `${value.imageAlign} ${IMAGE_MEET_OR_SLICE}`
                     };
                     break;
             }
