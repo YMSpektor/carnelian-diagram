@@ -7,6 +7,7 @@ export * from "./diamond";
 export * from "./rounded-rect";
 export * from "./parallelogram";
 export * from "./trapezoid";
+export * from "./pentagon";
 export * from "./hexagon";
 export * from "./octagon";
 export * from "./square";

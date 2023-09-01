@@ -5,6 +5,7 @@ import {
     InteractiveRoundedRectWithText as RoundedRect,
     InteractiveParallelogramWithText as Parallelogram,
     InteractiveTrapezoidWithText as Trapezoid,
+    InteractivePentagonWithText as Pentagon,
     InteractiveHexagonWithText as Hexagon,
     InteractiveOctagonWithText as Octagon,
     InteractiveSquareWithText as Square,
@@ -109,6 +110,19 @@ addToPalette({
     elementProps: {x: 20, y: 20, width: 300, height: 200, offset: "20%", textStyle: defaultTextStyles},
     viewBox: "0 0 340 240",
     title: "Trapezoid",
+    factory: (point, props) => ({
+        ...props,
+        x: point.x - props.width / 2,
+        y: point.y - props.height / 2
+    }),
+});
+
+addToPalette({
+    category: "basic",
+    elementType: Pentagon,
+    elementProps: {x: 20, y: 20, width: 300, height: 300, textStyle: defaultTextStyles},
+    viewBox: "0 0 340 340",
+    title: "Pentagon",
     factory: (point, props) => ({
         ...props,
         x: point.x - props.width / 2,
