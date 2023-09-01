@@ -1,6 +1,6 @@
 # Interactivity
 
-The `@carnelian-diagram/interactivity` package provides several tools to make your diagram and elements interactive - in other wodrs, they will respond to a user's input
+The `@carnelian-diagram/interactivity` package provides several tools to make your diagram and elements interactive - in other words, they will respond to a user's input
 
 ## Interactive root and InteractionController
 
@@ -51,13 +51,13 @@ Hit testing is a process of determining whether the cursor is over a given eleme
 * `bounds: Rect | null` - Specifying the shape bounds allows to avoid expensive computations for some shapes if the cursor is far away from your element. If bounds are set the library performs hit testing in two phases: broad phase and narrow phase. During the broad phase it discards all the elements which bounds doesn't contain the cursor position. And during the narrow phase it only calls the callbacks for the elements that passed broad phase or doesn't specified any bounds at all.
 * `hitArea: HitArea<T>` - This argument describes the properties of the given hit area. The `HitArea` type has the following fields:
   * `type: string` - Use any string value to distinguish different hit areas
-  * `index?: string` - An optional field that can be used when you define similar hit areas in a loop (for example, if you define several vertices for your polyline element)
-  * `cursor?: string` - Here you can specify the css cursor value (e.g. `move`, `ew-resize` etc.) for the mouse pointer to help a user understand what will happen when the user start dragging the element at the given point. Optional.
+  * `index?: number` - An optional field that can be used when you define similar hit areas in a loop (for example, if you define several vertices for your polyline element)
+  * `cursor?: string` - Here you can specify the css cursor value (e.g. `move`, `ew-resize` etc.) for the mouse pointer to indicate to the user expected behavior when they start dragging the element at the given point. Optional.
   * `action?: string` - Defines the action that will be dispatched to the element when a user starts dragging (see `useAction` documentation below). Optional.
   * `dblClickAction?: string` - Similar to the previous field, but the action will be dispatched on double click event. Optional.
   * `data?: T` - Allows to define any custom data for the specific hit area. Optional.
 * `tolerance: number` - An optional argument that is used to expand the hit testing area by some screen pixels. It's useful for small or narrow hit areas like points or line segments to make it easier for users to click. The value is 0 by default.
-* `priority: number` - An optional argument allowing to define a priority to a given hit area. The InteractionController when performs hit tesing does it starting from the highest priorities. Usually element controls (see below) must have higher priority that element inside area, so this parameter allows you to achive such behaviour. By default the priority is 0.
+* `priority: number` - An optional argument allowing to define a priority to a given hit area. The InteractionController when performs hit tesing does it starting from the highest priorities. Usually element controls (see below) must have higher priority that the element inner area, so this parameter allows you to achive such behaviour. By default the priority is 0.
 * `element?: DiagramElementNode` - Allows to define which diagram element the hit area belongs to. If not specified the library consider using the current rendering element and this is what you need in the most cases, except calling the hook inside a `useControls` callback (see below) because this callback is being called after all elements are rendered and there is no current element defined in the rendering context.
 
 Here is the example of using the hook for the element that represent a circle with a given center point and radius:
