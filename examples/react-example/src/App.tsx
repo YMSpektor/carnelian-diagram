@@ -197,7 +197,6 @@ function App(props: AppProps) {
 
     const selectionChangeHandler = useCallback((e: SelectEventArgs) => {
         if (e.selectedElements.length) {
-            console.log(getHasImage(e.selectedElements))
             setElementStyle({
                 hasFill: getHasFill(e.selectedElements),
                 fillColor: getFillColor(e.selectedElements),

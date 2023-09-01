@@ -31,7 +31,7 @@ function toPolygon(props: StarProps) {
         intersectLines({a: outerPts[4], b: outerPts[1]}, {a: outerPts[0], b: outerPts[3]}, false, false)!
     ]
 
-    return outerPts.reduce<Point[]>((acc, cur, i) => acc.concat(cur, innerPts[i]), []);
+    return outerPts.reduce<Point[]>((acc, cur, i) => acc.concat(cur, innerPts[i] || cur), []);
 };
 
 const StarColliderFactory = (props: StarProps) => PolygonCollider(toPolygon(props));
