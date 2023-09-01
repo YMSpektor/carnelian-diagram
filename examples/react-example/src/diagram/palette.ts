@@ -380,7 +380,7 @@ addToPalette({
 addToPalette({
     category: "advanced",
     elementType: Image,
-    elementProps: {x: 20, y: 20, width: 300, height: 300, href: "carnelian-diagram/image_thumb.png"},
+    elementProps: {x: 20, y: 20, width: 300, height: 300, href: "image_thumb.png"},
     viewBox: "0 0 340 340",
     title: "Image",
     factory: (point, props) => ({
