@@ -1,6 +1,6 @@
 {
   "name": "@carnelian-diagram/core",
-  "version": "0.4.0",
+  "version": "0.4.1",
   "main": "index.js",
   "description": "Carnelian Diagram core package",
   "author": "Yuri Spektor",
