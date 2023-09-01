@@ -1,10 +1,10 @@
-# Carnelian engine
+# Carnelian Diagram engine
 
-**Carnelian** is designed to be similar to the popular React library, so creating custom diagram elements resembles the process of creating functional components in React. In particular, to define a new diagram element type in Carnelian you'll implement a function that accepts an element props and returns JSX to render the element DOM. The difference here is the DOM will be rendered to `<svg>` element, so you need to render SVG instead of HTML. Inside the functional element you can use similar hooks (like useState, useEffect, useContext) to manage the element behaviour.
+**Carnelian Diagram** is designed to be similar to the popular React library, so creating custom diagram elements resembles the process of creating functional components in React. In particular, to define a new diagram element type in Carnelian you'll implement a function that accepts an element props and returns JSX to render the element DOM. The difference here is the DOM will be rendered to `<svg>` element, so you need to render SVG instead of HTML. Inside the functional element you can use similar hooks (like useState, useEffect, useContext) to manage the element behaviour.
 
 ## Diagram model and view
 
-Carnelian separates a diagram model (that contains all elements with their properties) and the process of rendering. To define a diagram model you need to create an instance of `Diagram` class:
+Carnelian Diagram separates a diagram model (that contains all elements with their properties) and the process of rendering. To define a diagram model you need to create an instance of `Diagram` class:
 ```typescript
 import { Diagram } from "@carnelian-diagram/core";
 
@@ -29,7 +29,7 @@ const root = DiagramDOM.createRoot(
 root.attach();
 ```
 
-Carnelian (similar to React) has separate render and commit phases. On the render phase it renders diagram elements to a virtual tree (and only rerender the elements that were changed from the previouse rendering). On the commit phase the DOM is being updated. The library uses virtual DOM under the hood to do it efficiently instead of recreating the entire DOM.
+Carnelian Diagram (similar to React) has separate render and commit phases. On the render phase it renders diagram elements to a virtual tree (and only rerender the elements that were changed from the previouse rendering). On the commit phase the DOM is being updated. The library uses virtual DOM under the hood to do it efficiently instead of recreating the entire DOM.
 
 ## Creating custom elements
 

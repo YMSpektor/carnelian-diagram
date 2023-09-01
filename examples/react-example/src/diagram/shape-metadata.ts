@@ -8,7 +8,8 @@ import {
 } from "@carnelian-diagram/shapes/basic";
 import {
     InteractiveArrow as Arrow,
-    InteractiveDoubleArrow as DoubleArrow
+    InteractiveDoubleArrow as DoubleArrow,
+    InteractiveImage as Image
 } from "@carnelian-diagram/shapes/advanced";
 import {
     InteractivePacman as Pacman
@@ -19,6 +20,7 @@ export interface ShapeMetadata {
     hasStroke?: boolean;
     hasText?: boolean;
     hasLineCaps?: boolean;
+    hasImage?: boolean;
 }
 
 const shapeMetadataRegistry = new Map<DiagramElement<any>, ShapeMetadata>();
@@ -33,7 +35,8 @@ export function getShapeMetadata(type: DiagramElement<any>): ShapeMetadata {
         hasFill: metadata?.hasFill !== undefined ? metadata.hasFill : true,
         hasStroke: metadata?.hasStroke !== undefined ? metadata.hasStroke : true,
         hasText: metadata?.hasText !== undefined ? metadata.hasText : true,
-        hasLineCaps: metadata?.hasLineCaps
+        hasLineCaps: metadata?.hasLineCaps,
+        hasImage: metadata?.hasImage
     }
 }
 
@@ -58,6 +61,14 @@ const TEXT_FIGURE_METADATA: ShapeMetadata = {
     hasLineCaps: false
 };
 
+const IMAGE_FIGURE_METADATA: ShapeMetadata = {
+    hasFill: false,
+    hasStroke: false,
+    hasText: false,
+    hasLineCaps: false,
+    hasImage: true
+};
+
 addShapeMetadata(Line, LINE_FIGURE_METADATA);
 addShapeMetadata(Polyline, LINE_FIGURE_METADATA);
 
@@ -68,3 +79,5 @@ addShapeMetadata(DoubleArrow, CLOSED_FIGURE_NO_TEXT_METADATA);
 addShapeMetadata(Pacman, CLOSED_FIGURE_NO_TEXT_METADATA);
 
 addShapeMetadata(Text, TEXT_FIGURE_METADATA);
+
+addShapeMetadata(Image, IMAGE_FIGURE_METADATA);

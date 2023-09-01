@@ -5,12 +5,16 @@ import {
     InteractiveRoundedRectWithText as RoundedRect,
     InteractiveParallelogramWithText as Parallelogram,
     InteractiveTrapezoidWithText as Trapezoid,
+    InteractivePentagonWithText as Pentagon,
     InteractiveHexagonWithText as Hexagon,
+    InteractiveOctagonWithText as Octagon,
     InteractiveSquareWithText as Square,
     InteractiveCircleWithText as Circle,
     InteractiveDonutWithText as Donut,
     InteractiveCrossWithText as Cross,
-    InteractivePie as Pie
+    InteractivePie as Pie,
+    InteractiveStar4WithText as Star4,
+    InteractiveStarWithText as Star
 } from "@carnelian-diagram/shapes/basic";
 import {
     InteractiveBlockWithText as Block,
@@ -19,7 +23,10 @@ import {
     InteractiveStepWithText as Step,
     InteractiveCloudWithText as Cloud,
     InteractiveArrow as Arrow,
-    InteractiveDoubleArrow as DoubleArrow
+    InteractiveDoubleArrow as DoubleArrow,
+    InteractiveCubeWithText as Cube,
+    InteractiveCylinderWithText as Cylinder,
+    InteractiveImage as Image
 } from "@carnelian-diagram/shapes/advanced";
 import {
     InteractivePacman as Pacman
@@ -112,10 +119,36 @@ addToPalette({
 
 addToPalette({
     category: "basic",
+    elementType: Pentagon,
+    elementProps: {x: 20, y: 20, width: 300, height: 300, textStyle: defaultTextStyles},
+    viewBox: "0 0 340 340",
+    title: "Pentagon",
+    factory: (point, props) => ({
+        ...props,
+        x: point.x - props.width / 2,
+        y: point.y - props.height / 2
+    }),
+});
+
+addToPalette({
+    category: "basic",
     elementType: Hexagon,
     elementProps: {x: 20, y: 20, width: 300, height: 200, offset: "20%", textStyle: defaultTextStyles},
     viewBox: "0 0 340 240",
     title: "Hexagon",
+    factory: (point, props) => ({
+        ...props,
+        x: point.x - props.width / 2,
+        y: point.y - props.height / 2
+    }),
+});
+
+addToPalette({
+    category: "basic",
+    elementType: Octagon,
+    elementProps: {x: 20, y: 20, width: 300, height: 300, offset: "25%", textStyle: defaultTextStyles},
+    viewBox: "0 0 340 340",
+    title: "Octagon",
     factory: (point, props) => ({
         ...props,
         x: point.x - props.width / 2,
@@ -198,6 +231,32 @@ addToPalette({
         ...props,
         x: point.x,
         y: point.y
+    }),
+});
+
+addToPalette({
+    category: "basic",
+    elementType: Star4,
+    elementProps: {x: 20, y: 20, width: 300, height: 300, offsetX: "25%", offsetY: "25%", textStyle: defaultTextStyles},
+    viewBox: "0 0 340 340",
+    title: "4 Point Star",
+    factory: (point, props) => ({
+        ...props,
+        x: point.x - props.width / 2,
+        y: point.y - props.height / 2
+    }),
+});
+
+addToPalette({
+    category: "basic",
+    elementType: Star,
+    elementProps: {x: 20, y: 20, width: 300, height: 300, textStyle: defaultTextStyles},
+    viewBox: "0 0 340 340",
+    title: "Star",
+    factory: (point, props) => ({
+        ...props,
+        x: point.x - props.width / 2,
+        y: point.y - props.height / 2
     }),
 });
 
@@ -285,6 +344,45 @@ addToPalette({
     elementProps: {x: 20, y: 20, width: 300, height: 200, arrowWidth: "25%", arrowHeight: "50%"},
     viewBox: "0 0 340 240",
     title: "Double Arrow",
+    factory: (point, props) => ({
+        ...props,
+        x: point.x - props.width / 2,
+        y: point.y - props.height / 2
+    }),
+});
+
+addToPalette({
+    category: "advanced",
+    elementType: Cube,
+    elementProps: {x: 20, y: 20, width: 300, height: 300, offsetX: "20%", offsetY: "20%", textStyle: defaultTextStyles},
+    viewBox: "0 0 340 340",
+    title: "Cube",
+    factory: (point, props) => ({
+        ...props,
+        x: point.x - props.width / 2,
+        y: point.y - props.height / 2
+    }),
+});
+
+addToPalette({
+    category: "advanced",
+    elementType: Cylinder,
+    elementProps: {x: 20, y: 20, width: 200, height: 300, ry: "20%", textStyle: defaultTextStyles},
+    viewBox: "0 0 240 340",
+    title: "Cylinder",
+    factory: (point, props) => ({
+        ...props,
+        x: point.x - props.width / 2,
+        y: point.y - props.height / 2
+    }),
+});
+
+addToPalette({
+    category: "advanced",
+    elementType: Image,
+    elementProps: {x: 20, y: 20, width: 300, height: 300, href: "carnelian-diagram/image_thumb.png"},
+    viewBox: "0 0 340 340",
+    title: "Image",
     factory: (point, props) => ({
         ...props,
         x: point.x - props.width / 2,

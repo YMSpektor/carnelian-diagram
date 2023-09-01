@@ -8,8 +8,10 @@ import { withText } from "./with-text";
 
 export function withInteractiveRotatableTextRect<T extends RectBaseProps>(
     WrappedElement: DiagramElement<T>,
-    collider?: RectColliderFactory<T>
+    collider?: RectColliderFactory<T>,
+    textElementProps?: (props: T) => T
 ): DiagramElement<T & { text?: string; textStyle?: MultilineTextStyle }> {
+    const textProps = textElementProps || ((props) => props);
     return withRotation(
         withInteractiveRotation(
             withText(
@@ -18,7 +20,7 @@ export function withInteractiveRotatableTextRect<T extends RectBaseProps>(
                     collider
                 }),
                 InteractiveMultilineTextComponent,
-                (props) => ({ ...props, text: props.text || "" })
+                (props) => ({ ...textProps(props), text: props.text || "" })
             ),
             rectRotationController()
         ),

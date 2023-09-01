@@ -10,7 +10,7 @@ import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
 import LayoutSidebar from './components/LayoutSidebar';
 import LayoutToolbar from './components/LayoutToolbar';
 import DiagramPropertiesPanel, { ElementStyle } from './components/DiagramPropertiesPanel';
-import { ClosedFigureStyleProps, DEFAULT_FONT_FAMILY, LineFigureStyleProps, TextStyleProps } from '@carnelian-diagram/shapes';
+import { ClosedFigureStyleProps, DEFAULT_FONT_FAMILY, LineFigureStyleProps, RawImageProps, TextStyleProps } from '@carnelian-diagram/shapes';
 import { DiagramPaletteElement } from './diagram/palette';
 import { getShapeMetadata, ShapeMetadata } from './diagram/shape-metadata';
 import DiagramContextMenu from './components/DiagramContexMenu';
@@ -50,6 +50,10 @@ function hasTextProps(element: DiagramElementNode): boolean {
 
 function hasLineCapProps(element: DiagramElementNode): boolean {
     return !!getShapeMetadata(element.type)?.hasLineCaps;
+}
+
+function hasImageProps(element: DiagramElementNode): boolean {
+    return !!getShapeMetadata(element.type)?.hasImage;
 }
 
 function getHasFill(selectedElements: DiagramElementNode[]) {
@@ -147,6 +151,22 @@ function getTextVAlign(selectedElements: DiagramElementNode[]) {
     return element ? (element.props as TextStyleProps).textStyle?.verticalAlign || defaultTextVAlign : "";
 }
 
+function getHasImage(selectedElements: DiagramElementNode[]) {
+    const element = selectedElements.find(x => hasImageProps(x));
+    return element ? !!(element.props as RawImageProps).href : false;
+}
+
+function getImageUrl(selectedElements: DiagramElementNode[]) {
+    const element = selectedElements.find(x => hasImageProps(x));
+    return element ? (element.props as RawImageProps).href || "" : "";
+}
+
+function getImageAlign(selectedElements: DiagramElementNode[]) {
+    const defaultImageAlign = "xMidYMid";
+    const element = selectedElements.find(x => hasImageProps(x));
+    return element ? (element.props as RawImageProps).preserveAspectRatio?.split(" ")?.[0] || defaultImageAlign : defaultImageAlign;
+}
+
 function App(props: AppProps) {
     const { controller, diagram, palette } = props;
     const [scale, setScale] = useState(100);
@@ -194,13 +214,17 @@ function App(props: AppProps) {
                 fontItalic: getFontItalic(e.selectedElements),
                 fontUnderline: getFontUnderline(e.selectedElements),
                 textAlign: getTextAlign(e.selectedElements),
-                textVAlign: getTextVAlign(e.selectedElements)
+                textVAlign: getTextVAlign(e.selectedElements),
+                hasImage: getHasImage(e.selectedElements),
+                imageUrl: getImageUrl(e.selectedElements),
+                imageAlign: getImageAlign(e.selectedElements)
             });
             setElementMetadata({
                 hasFill: e.selectedElements.some(x => getShapeMetadata(x.type).hasFill),
                 hasStroke: e.selectedElements.some(x => getShapeMetadata(x.type).hasStroke),
                 hasText: e.selectedElements.some(x => getShapeMetadata(x.type).hasText),
-                hasLineCaps: e.selectedElements.some(x => getShapeMetadata(x.type).hasLineCaps)
+                hasLineCaps: e.selectedElements.some(x => getShapeMetadata(x.type).hasLineCaps),
+                hasImage: e.selectedElements.some(x => getShapeMetadata(x.type).hasImage),
             });
         }
         else {
@@ -209,45 +233,177 @@ function App(props: AppProps) {
         }
     }, []);
 
-    function updateElementStyle(value: ElementStyle) {
+    function updateElementStyle(value: ElementStyle, propName: keyof ElementStyle) {
         const LINE_CAP_SIZE = 20;
+        const IMAGE_MEET_OR_SLICE = "meet";
         setElementStyle(value);
         controller.getSelectedElements().forEach(element => {
-            let strokeWidth = parseFloat(value.strokeWidth || "");
-            strokeWidth = isNaN(strokeWidth) ? 0 : strokeWidth / unitMultiplier;
-            let fontSize = parseFloat(value.fontSize || "");
-            fontSize = isNaN(fontSize) ? 0 : fontSize / unitMultiplier;
-            diagram.update(element, {
-                ...element.props,
-                style: {
-                    ...element.props.style,
-                    fill: value.hasFill ? value.fillColor : "none",
-                    stroke: value.hasStroke ? value.strokeColor : "none",
-                    strokeWidth: strokeWidth,
-                    strokeDasharray: value.strokeDasharray
-                },
-                textStyle: {
-                    ...element.props.textStyle,
-                    fill: value.hasText ? value.textColor : "none",
-                    fontFamily: value.fontFamily,
-                    fontSize: fontSize,
-                    fontWeight: value.fontBold ? "bold" : undefined,
-                    fontStyle: value.fontItalic ? "italic" : undefined,
-                    textDecoration: value.fontUnderline ? "underline" : undefined,
-                    textAlign: value.textAlign,
-                    verticalAlign: value.textVAlign
-                },
-                startLineCap: {
-                    ...element.props.startLineCap,
-                    kind: value.startLineCap ? value.startLineCap : undefined,
-                    size: LINE_CAP_SIZE
-                },
-                endLineCap: {
-                    ...element.props.endLineCap,
-                    kind: value.endLineCap ? value.endLineCap : undefined,
-                    size: LINE_CAP_SIZE
-                }
-            })
+            let newProps = {...element.props};
+            let shouldUpdate = false;
+            switch (propName) {
+                case "fillColor": 
+                    shouldUpdate = hasFillProps(element);
+                    newProps = {
+                        ...element.props, 
+                        style: {
+                            ...element.props.style,
+                            fill: value.hasFill ? value.fillColor : "none"
+                        }
+                    };
+                    break;
+                case "strokeColor":
+                    shouldUpdate = hasStrokeProps(element);
+                    newProps = {
+                        ...element.props, 
+                        style: {
+                            ...element.props.style,
+                            stroke: value.hasStroke ? value.strokeColor : "none"
+                        }
+                    };
+                    break;
+                case "strokeWidth":
+                    shouldUpdate = hasStrokeProps(element);
+                    let strokeWidth = parseFloat(value.strokeWidth || "");
+                    strokeWidth = isNaN(strokeWidth) ? 0 : strokeWidth / unitMultiplier;
+                    newProps = {
+                        ...element.props, 
+                        style: {
+                            ...element.props.style,
+                            strokeWidth
+                        }
+                    };
+                    break;
+                case "strokeDasharray":
+                    shouldUpdate = hasStrokeProps(element);
+                    newProps = {
+                        ...element.props, 
+                        style: {
+                            ...element.props.style,
+                            strokeDasharray: value.strokeDasharray
+                        }
+                    };
+                    break;
+                case "textColor":
+                    shouldUpdate = hasTextProps(element);
+                    newProps = {
+                        ...element.props, 
+                        textStyle: {
+                            ...element.props.textStyle,
+                            fill: value.hasText ? value.textColor : "none"
+                        }
+                    };
+                    break;
+                case "fontFamily":
+                    shouldUpdate = hasTextProps(element);
+                    newProps = {
+                        ...element.props, 
+                        textStyle: {
+                            ...element.props.textStyle,
+                            fontFamily: value.fontFamily
+                        }
+                    };
+                    break;
+                case "fontSize":
+                    shouldUpdate = hasTextProps(element);
+                    let fontSize = parseFloat(value.fontSize || "");
+                    fontSize = isNaN(fontSize) ? 0 : fontSize / unitMultiplier;
+                    newProps = {
+                        ...element.props, 
+                        textStyle: {
+                            ...element.props.textStyle,
+                            fontSize
+                        }
+                    };
+                    break;
+                case "fontBold":
+                    shouldUpdate = hasTextProps(element);
+                    newProps = {
+                        ...element.props, 
+                        textStyle: {
+                            ...element.props.textStyle,
+                            fontWeight: value.fontBold ? "bold" : undefined
+                        }
+                    };
+                    break;
+                case "fontItalic":
+                    shouldUpdate = hasTextProps(element);
+                    newProps = {
+                        ...element.props, 
+                        textStyle: {
+                            ...element.props.textStyle,
+                            fontStyle: value.fontItalic ? "italic" : undefined
+                        }
+                    };
+                    break;
+                case "fontUnderline":
+                    shouldUpdate = hasTextProps(element);
+                    newProps = {
+                        ...element.props, 
+                        textStyle: {
+                            ...element.props.textStyle,
+                            textDecoration: value.fontUnderline ? "underline" : undefined
+                        }
+                    };
+                    break;
+                case "textAlign":
+                    shouldUpdate = hasTextProps(element);
+                    newProps = {
+                        ...element.props, 
+                        textStyle: {
+                            ...element.props.textStyle,
+                            textAlign: value.textAlign
+                        }
+                    };
+                    break;
+                case "textVAlign":
+                    shouldUpdate = hasTextProps(element);
+                    newProps = {
+                        ...element.props, 
+                        textStyle: {
+                            ...element.props.textStyle,
+                            verticalAlign: value.textVAlign
+                        }
+                    };
+                    break;
+                case "startLineCap":
+                    shouldUpdate = hasLineCapProps(element);
+                    newProps = {
+                        ...element.props, 
+                        startLineCap: {
+                            ...element.props.startLineCap,
+                            kind: value.startLineCap ? value.startLineCap : undefined,
+                            size: LINE_CAP_SIZE
+                        }
+                    };
+                    break;
+                case "endLineCap":
+                    shouldUpdate = hasLineCapProps(element);
+                    newProps = {
+                        ...element.props, 
+                        endLineCap: {
+                            ...element.props.endLineCap,
+                            kind: value.endLineCap ? value.endLineCap : undefined,
+                            size: LINE_CAP_SIZE
+                        }
+                    };
+                    break;
+                case "imageUrl":
+                    shouldUpdate = hasImageProps(element);
+                    newProps = {
+                        ...element.props, 
+                        href: value.hasImage ? value.imageUrl : undefined
+                    };
+                    break;
+                case "imageAlign":
+                    shouldUpdate = hasImageProps(element);
+                    newProps = {
+                        ...element.props, 
+                        preserveAspectRatio: `${value.imageAlign} ${IMAGE_MEET_OR_SLICE}`
+                    };
+                    break;
+            }
+
+            shouldUpdate && diagram.update(element, newProps);
         });
     }
 
