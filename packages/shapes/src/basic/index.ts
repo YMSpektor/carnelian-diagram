@@ -8,6 +8,7 @@ export * from "./rounded-rect";
 export * from "./parallelogram";
 export * from "./trapezoid";
 export * from "./hexagon";
+export * from "./octagon";
 export * from "./square";
 export * from "./circle";
 export * from "./donut";
