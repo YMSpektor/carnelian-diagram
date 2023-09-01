@@ -17,3 +17,4 @@ export * from "./pie";
 export * from "./text";
 export * from "./multiline-text";
 export * from "./star4";
+export * from "./star";

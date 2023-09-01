@@ -12,7 +12,8 @@ import {
     InteractiveDonutWithText as Donut,
     InteractiveCrossWithText as Cross,
     InteractivePie as Pie,
-    InteractiveStar4WithText as Star4
+    InteractiveStar4WithText as Star4,
+    InteractiveStarWithText as Star
 } from "@carnelian-diagram/shapes/basic";
 import {
     InteractiveBlockWithText as Block,
@@ -225,6 +226,19 @@ addToPalette({
     elementProps: {x: 20, y: 20, width: 300, height: 300, offsetX: "25%", offsetY: "25%", textStyle: defaultTextStyles},
     viewBox: "0 0 340 340",
     title: "4 Point Star",
+    factory: (point, props) => ({
+        ...props,
+        x: point.x - props.width / 2,
+        y: point.y - props.height / 2
+    }),
+});
+
+addToPalette({
+    category: "basic",
+    elementType: Star,
+    elementProps: {x: 20, y: 20, width: 300, height: 300, textStyle: defaultTextStyles},
+    viewBox: "0 0 340 340",
+    title: "Star",
     factory: (point, props) => ({
         ...props,
         x: point.x - props.width / 2,
