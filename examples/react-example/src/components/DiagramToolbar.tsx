@@ -6,7 +6,7 @@ import ZoomInIcon from '@mui/icons-material/ZoomIn';
 import ZoomOutIcon from '@mui/icons-material/ZoomOut';
 import CircleOutlinedIcon from '@mui/icons-material/CircleOutlined';
 import DeleteForeverIcon from '@mui/icons-material/DeleteForever';
-import { DrawingModeElementFactory, DRAW_ELEMENT_EVENT, InteractionController, isDeletionService, isElementDrawingService, SelectEventArgs, SELECT_EVENT } from "@carnelian-diagram/interactivity";
+import { DrawingModeElementFactory, DRAW_ELEMENT_EVENT, group, InteractionController, isDeletionService, isElementDrawingService, SelectEventArgs, SELECT_EVENT } from "@carnelian-diagram/interactivity";
 import { Diagram, DiagramElementNode } from "@carnelian-diagram/core";
 import {
     InteractiveLine as Line,
@@ -87,6 +87,14 @@ const SendToBackIcon = React.forwardRef(function (props: {}, ref: React.Forwarde
     return (
         <SvgIcon {...props} ref={ref}>
             <path d="M2,2H11V11H2V2M9,4H4V9H9V4M22,13V22H13V13H22M15,20H20V15H15V20M16,8V11H13V8H16M11,16H8V13H11V16Z" />
+        </SvgIcon>
+    );
+});
+
+const GroupIcon = React.forwardRef(function (props: {}, ref: React.ForwardedRef<SVGSVGElement>) {
+    return (
+        <SvgIcon {...props} ref={ref}>
+            <path d="M1,1V5H2V19H1V23H5V22H19V23H23V19H22V5H23V1H19V2H5V1M5,4H19V5H20V19H19V20H5V19H4V5H5M6,6V14H9V18H18V9H14V6M8,8H12V12H8M14,11H16V16H11V14H14" />
         </SvgIcon>
     );
 });
@@ -191,6 +199,10 @@ function DiagramToolbar(props: DiagramToolbarProps) {
         });
     }
 
+    function groupElements() {
+        group(props.diagram, props.controller.getSelectedElements());
+    }
+
     function deleteElements() {
         const srv = props.controller.getService(isDeletionService);
         srv?.delete(props.controller.getSelectedElements());
@@ -268,6 +280,12 @@ function DiagramToolbar(props: DiagramToolbarProps) {
             <ButtonTooltip title="Send to back">
                 <IconButton color="inherit" onClick={(e) => sendToBack()} disabled={selectedElements.length < 1}>
                     <SendToBackIcon />
+                </IconButton>
+            </ButtonTooltip>
+            <ToolbarDivider />
+            <ButtonTooltip title="Group">
+                <IconButton color="inherit" onClick={(e) => groupElements()} disabled={selectedElements.length < 1}>
+                    <GroupIcon />
                 </IconButton>
             </ButtonTooltip>
             <ToolbarDivider />

@@ -5,6 +5,7 @@ export * from "./transforms";
 export * from "./interaction-controller";
 export * from "./context";
 export * from "./controls";
+export * from "./components";
 export * from "./collisions";
 export * from "./hooks";
 export * from "./hocs";
