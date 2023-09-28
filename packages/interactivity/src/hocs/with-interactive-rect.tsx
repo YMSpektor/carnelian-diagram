@@ -19,7 +19,8 @@ import {
     HitArea,
     useTransform,
     ACT_PASTE_Payload,
-    ACT_PASTE
+    ACT_PASTE,
+    useBounds
 } from "..";
 import { Collider, RectCollider } from "../collisions";
 import { radToDeg, transformPoint } from "../geometry";
@@ -123,6 +124,8 @@ export function useInteractiveRect<T extends InteractiveRectProps>(
         result.bounds = null; // No need to perform broad phase testing for rect colliders
         return result;
     }
+
+    useBounds(props);
 
     const collider = options?.collider?.(props) || defaultCollider();
     let hitArea: HitArea = { type: "in", action: ACT_MOVE, cursor: "move" };

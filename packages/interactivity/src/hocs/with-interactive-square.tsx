@@ -1,7 +1,7 @@
 /** @jsxImportSource @carnelian-diagram/core */
 
 import { DiagramElement, DiagramElementProps } from "@carnelian-diagram/core";
-import { ACT_DRAW_POINT_CANCEL, ACT_DRAW_POINT_CANCEL_Payload, ACT_DRAW_POINT_MOVE, ACT_DRAW_POINT_MOVE_Payload, ACT_DRAW_POINT_PLACE, ACT_DRAW_POINT_PLACE_Payload, ACT_MOVE, ACT_PASTE, ACT_PASTE_Payload, DragActionPayload, HitArea, useAction, useCollider } from "..";
+import { ACT_DRAW_POINT_CANCEL, ACT_DRAW_POINT_CANCEL_Payload, ACT_DRAW_POINT_MOVE, ACT_DRAW_POINT_MOVE_Payload, ACT_DRAW_POINT_PLACE, ACT_DRAW_POINT_PLACE_Payload, ACT_MOVE, ACT_PASTE, ACT_PASTE_Payload, DragActionPayload, HitArea, useAction, useBounds, useCollider } from "..";
 import { Collider, RectCollider } from "../collisions";
 import { useInteractiveRectControls } from "./with-interactive-rect";
 
@@ -111,6 +111,8 @@ export function useInteractiveSquare<T extends InteractiveSquareProps>(
         result.bounds = null; // No need to perform broad phase testing for rect colliders
         return result;
     }
+
+    useBounds({x: props.x, y: props.y, width: props.size, height: props.size});
 
     const collider = options?.collider?.(props) || defaultCollider();
     let hitArea: HitArea = { type: "in", action: ACT_MOVE, cursor: "move" };

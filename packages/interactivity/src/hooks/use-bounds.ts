@@ -2,7 +2,7 @@ import { RenderContext, useContext, useEffect } from "@carnelian-diagram/core";
 import { DiagramElementBounds, InteractionContext } from "..";
 import { Rect } from "../geometry";
 
-export function useBounds(bounds: Rect) {
+export function useBounds(bounds: Rect | null) {
     const renderContext = useContext(RenderContext);
     const curElement = renderContext?.currentElement();
     if (!curElement) {
@@ -14,10 +14,10 @@ export function useBounds(bounds: Rect) {
         return;
     }
 
-    const elementBounds: DiagramElementBounds = {
+    const elementBounds: DiagramElementBounds | undefined = bounds ? {
         bounds,
         element: curElement
-    };
+    } : undefined;
     interactions.updateBounds(curElement, elementBounds);
 
     useEffect(() => {

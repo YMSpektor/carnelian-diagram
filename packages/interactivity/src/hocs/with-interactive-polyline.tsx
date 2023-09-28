@@ -1,8 +1,8 @@
 /** @jsxImportSource @carnelian-diagram/core */
 
 import { DiagramElement, DiagramElementProps } from "@carnelian-diagram/core";
-import { ACT_DRAW_POINT_CANCEL, ACT_DRAW_POINT_CANCEL_Payload, ACT_DRAW_POINT_MOVE, ACT_DRAW_POINT_MOVE_Payload, ACT_DRAW_POINT_PLACE, ACT_DRAW_POINT_PLACE_Payload, ACT_MOVE, ACT_PASTE, ACT_PASTE_Payload, ClickActionPayload, Collider, DragActionPayload, EdgeControl, HandleControl, HitArea, LineCollider, PointCollider, UnionCollider, useAction, useCollider, useControls } from "..";
-import { Line, Point } from "../geometry";
+import { ACT_DRAW_POINT_CANCEL, ACT_DRAW_POINT_CANCEL_Payload, ACT_DRAW_POINT_MOVE, ACT_DRAW_POINT_MOVE_Payload, ACT_DRAW_POINT_PLACE, ACT_DRAW_POINT_PLACE_Payload, ACT_MOVE, ACT_PASTE, ACT_PASTE_Payload, ClickActionPayload, Collider, DragActionPayload, EdgeControl, HandleControl, HitArea, LineCollider, PointCollider, UnionCollider, useAction, useBounds, useCollider, useControls } from "..";
+import { Line, Point, polygonBounds } from "../geometry";
 
 export interface InteractivePolylineProps {
     points: Point[];
@@ -46,6 +46,8 @@ export function useInteractivePolyline<T extends InteractivePolylineProps>(
             points: points.map((p, i) => i !== payload.hitArea.index ? p : { x: payload.position.x, y: payload.position.y })
         }));
     }
+
+    useBounds(polygonBounds(points));
 
     const collider = options?.collider?.(props) || PolylineCollider(points);
     const tolerance = isClosed ? 0 : 2;

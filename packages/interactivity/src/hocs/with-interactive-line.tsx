@@ -1,7 +1,8 @@
 /** @jsxImportSource @carnelian-diagram/core */
 
 import { DiagramElement, DiagramElementProps } from "@carnelian-diagram/core";
-import { ACT_DRAW_POINT_CANCEL, ACT_DRAW_POINT_CANCEL_Payload, ACT_DRAW_POINT_MOVE, ACT_DRAW_POINT_MOVE_Payload, ACT_DRAW_POINT_PLACE, ACT_DRAW_POINT_PLACE_Payload, ACT_MOVE, ACT_PASTE, ACT_PASTE_Payload, Collider, DragActionPayload, HandleControl, LineCollider, useAction, useCollider, useControls } from "..";
+import { ACT_DRAW_POINT_CANCEL, ACT_DRAW_POINT_CANCEL_Payload, ACT_DRAW_POINT_MOVE, ACT_DRAW_POINT_MOVE_Payload, ACT_DRAW_POINT_PLACE, ACT_DRAW_POINT_PLACE_Payload, ACT_MOVE, ACT_PASTE, ACT_PASTE_Payload, Collider, DragActionPayload, HandleControl, LineCollider, useAction, useBounds, useCollider, useControls } from "..";
+import { lineBounds } from "../geometry";
 
 export interface InteractiveLineProps {
     x1: number;
@@ -37,6 +38,8 @@ export function useInteractiveLine<T extends InteractiveLineProps>(
             y2: payload.hitArea.index === 1 ? payload.position.y : props.y2,
         }));
     }
+
+    useBounds(lineBounds({a: {x: x1, y: y1}, b: {x: x2, y: y2}}));
 
     const collider = colliderFactory?.(props) || LineCollider({a: {x: x1, y: y1}, b: {x: x2, y: y2}});
     useCollider(collider, { type: "in", cursor: "move", action: ACT_MOVE }, 2);
