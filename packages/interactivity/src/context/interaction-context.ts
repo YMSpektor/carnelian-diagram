@@ -1,5 +1,5 @@
 import { createContext, DiagramElementNode } from "@carnelian-diagram/core";
-import { DiagramElementAction, DiagramElementControls, DiagramElementHitTest, DiagramElementIntersectionTest, DiagramElementTransform, InteractionController } from "..";
+import { DiagramElementAction, DiagramElementBounds, DiagramElementControls, DiagramElementHitTest, DiagramElementIntersectionTest, DiagramElementTransform, InteractionController } from "..";
 
 export interface InteractionContextType {
     getController(): InteractionController;
@@ -8,6 +8,7 @@ export interface InteractionContextType {
     updateIntersectionTests(key: {}, intersectionTest?: DiagramElementIntersectionTest): void;
     updateActions(key: {}, action?: DiagramElementAction<any>): void;
     updateTransforms(element: DiagramElementNode, key: {}, transform?: DiagramElementTransform): void;
+    updateBounds(element: DiagramElementNode, bounds?: DiagramElementBounds): void;
 }
 
 export const InteractionContext = createContext<InteractionContextType | null>(null);

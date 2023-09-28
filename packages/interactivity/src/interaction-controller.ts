@@ -31,6 +31,11 @@ export interface DiagramElementAction<T> {
     callback: ActionCallback<T>;
 }
 
+export interface DiagramElementBounds {
+    bounds: Rect;
+    element: DiagramElementNode;
+}
+
 export const SELECT_EVENT = "select";
 
 export interface SelectEventArgs {
@@ -42,6 +47,7 @@ export class InteractionController {
     private hitTests: HitTestCollection = {};
     private intersectionTests = new Map<object, DiagramElementIntersectionTest>;
     private transforms = new Map<DiagramElementNode, DiagramElementTransforms>;
+    private bounds = new Map<DiagramElementNode, DiagramElementBounds>;
     private actions = new Map<object, DiagramElementAction<any>>();
     private pendingActions = new Map<DiagramElementNode, PendingAction<any>[]>();
     private selectedElements = new Set<DiagramElementNode>();
@@ -224,13 +230,23 @@ export class InteractionController {
             }
         }
 
+        const updateBounds = (element: DiagramElementNode, bounds?: DiagramElementBounds) => {
+            if (bounds) {
+                this.bounds.set(element, bounds);
+            }
+            else {
+                this.bounds.delete(element);
+            }
+        }
+
         return {
             getController: () => this,
             updateControls,
             updateHitTests,
             updateIntersectionTests,
             updateActions,
-            updateTransforms
+            updateTransforms,
+            updateBounds
         }
     }
 
@@ -242,6 +258,11 @@ export class InteractionController {
         const transforms = this.transforms.get(element);
         const localTransform = transforms ? transforms.result : new DOMMatrix();
         return parentTransform ? parentTransform.multiply(localTransform) : localTransform;
+    }
+
+    getElementBounds(element: DiagramElementNode): Rect | undefined {
+        const bounds = this.bounds.get(element);
+        return bounds?.bounds;
     }
 
     clientToDiagram(point: DOMPointReadOnly, element?: DiagramElementNode): DOMPointReadOnly {
