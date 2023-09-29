@@ -200,7 +200,8 @@ function DiagramToolbar(props: DiagramToolbarProps) {
     }
 
     function groupElements() {
-        group(props.diagram, props.controller.getSelectedElements());
+        const groupElement = group(props.diagram, props.controller, props.controller.getSelectedElements());
+        props.controller.select(groupElement);
     }
 
     function deleteElements() {
